@@ -200,7 +200,9 @@ static void SV_AddLinksToPmove (areanode_t *node, const vec3_t pmove_mins, const
 	vec3_t		mins, maxs;
 	physent_t	*pe;
 
-	pl = EDICT_NUM (svgame.pmove->player_index + 1);
+	// [FWGS, 05.04.26]
+	/*pl = EDICT_NUM (svgame.pmove->player_index + 1);*/
+	pl = SV_EdictNum (svgame.pmove->player_index + 1);
 	Assert (SV_IsValidEdict (pl));
 
 	// touch linked edicts
@@ -218,8 +220,8 @@ static void SV_AddLinksToPmove (areanode_t *node, const vec3_t pmove_mins, const
 				continue;
 			}
 
-		if (check->v.owner == pl || check->v.solid == SOLID_TRIGGER)
-			continue; // player or player's own missile
+		if ((check->v.owner == pl) || (check->v.solid == SOLID_TRIGGER))
+			continue;	// player or player's own missile
 
 		if (svgame.pmove->numvisent < MAX_PHYSENTS)
 			{
@@ -404,29 +406,30 @@ static void GAME_EXPORT pfnPlaySound (int channel, const char *sample, float vol
 	{
 	edict_t *ent;
 
-	ent = EDICT_NUM (svgame.pmove->player_index + 1);
+	// [FWGS, 05.04.26]
+	/*ent = EDICT_NUM (svgame.pmove->player_index + 1);*/
+	ent = SV_EdictNum (svgame.pmove->player_index + 1);
+
 	if (!SV_IsValidEdict (ent))
 		return;
 
 	SV_StartSound (ent, channel, sample, volume, attenuation, fFlags | SND_FILTER_CLIENT, pitch);
 	}
 
-// [FWGS, 01.07.24]
 static void GAME_EXPORT pfnPlaybackEventFull (int flags, int clientindex, word eventindex, float delay, float *origin,
 	float *angles, float fparam1, float fparam2, int iparam1, int iparam2, int bparam1, int bparam2)
 	{
+	// [FWGS, 05.04.26]
 	edict_t *ent;
-	ent = EDICT_NUM (clientindex + 1);
+	/*ent = EDICT_NUM (clientindex + 1);*/
+	ent = SV_EdictNum (clientindex + 1);
 
 	if (!SV_IsValidEdict (ent))
 		return;
 
 	// GoldSrc always sets FEV_NOTHOST in PMove version of this function
-	SV_PlaybackEventFull (flags | FEV_NOTHOST, ent, eventindex,
-		delay, origin, angles,
-		fparam1, fparam2,
-		iparam1, iparam2,
-		bparam1, bparam2);
+	SV_PlaybackEventFull (flags | FEV_NOTHOST, ent, eventindex, delay, origin, angles,
+		fparam1, fparam2, iparam1, iparam2, bparam1, bparam2);
 	}
 
 static pmtrace_t GAME_EXPORT pfnPlayerTraceEx (float *start, float *end, int traceFlags, pfnIgnore pmFilter)
@@ -678,8 +681,10 @@ static void SV_FinishPMove (playermove_t *pmove, sv_client_t *cl)
 		}
 	else if ((pmove->onground >= 0) && (pmove->onground < pmove->numphysent))
 		{
+		// [FWGS, 05.04.26]
 		SetBits (clent->v.flags, FL_ONGROUND);
-		clent->v.groundentity = EDICT_NUM (pmove->physents[pmove->onground].info);
+		/*clent->v.groundentity = EDICT_NUM (pmove->physents[pmove->onground].info);*/
+		clent->v.groundentity = SV_EdictNum (pmove->physents[pmove->onground].info);
 		}
 
 	// angles
@@ -929,7 +934,7 @@ static void SV_RestoreMoveInterpolant (sv_client_t *cl)
 
 /***
 ===========
-SV_RunCmd [FWGS, 01.03.25]
+SV_RunCmd
 ===========
 ***/
 void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed)
@@ -1034,11 +1039,12 @@ void SV_RunCmd (sv_client_t *cl, usercmd_t *ucmd, int random_seed)
 			SV_LinkEdict (clent, true);
 			VectorCopy (clent->v.velocity, oldvel); // save velocity
 
-			// touch other objects
+			// [FWGS, 05.04.26] touch other objects
 			for (i = 0; i < svgame.pmove->numtouch; i++)
 				{
 				pmtrace = &svgame.pmove->touchindex[i];
-				touch = EDICT_NUM (svgame.pmove->physents[pmtrace->ent].info);
+				/*touch = EDICT_NUM (svgame.pmove->physents[pmtrace->ent].info);*/
+				touch = SV_EdictNum (svgame.pmove->physents[pmtrace->ent].info);
 				VectorCopy (pmtrace->deltavelocity, clent->v.velocity);
 				PM_ConvertTrace (&trace, pmtrace, touch);
 				SV_Impact (touch, clent, &trace);

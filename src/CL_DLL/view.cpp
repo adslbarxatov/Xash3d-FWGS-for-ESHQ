@@ -1504,6 +1504,11 @@ void DLLEXPORT V_CalcRefdef (struct ref_params_s *pparams)
 		}
 	}
 
+// ESHQ: изменение определений
+#ifdef VectorNormalize
+#undef VectorNormalize
+#endif
+
 /***
 =============
 V_DropPunchAngle

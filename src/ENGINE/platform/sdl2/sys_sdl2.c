@@ -100,20 +100,29 @@ static void SDLCALL SDLash_LogOutputFunction (void *userdata, int category, SDL_
 		case SDL_LOG_PRIORITY_INFO:
 			str = S_NOTE;
 			break;
+
+		// [FWGS, 05.04.26]
+		default:
+			str = "";
+			break;
 		}
 
 	Con_Reportf ("%s" S_BLUE "SDL" S_DEFAULT ": [%s] %s\n", str, SDLash_CategoryToString (category), message);
 	}
 
-void SDLash_Init (const char *basedir)
+// [FWGS, 05.04.26]
+/*void SDLash_Init (const char *basedir)*/
+void SDLash_Init (void)
 	{
-#if XASH_APPLE
+/*if XASH_APPLE*/
+#if XASH_IOS
 	char *path = SDL_GetBasePath ();
 	if (path != NULL)
 		{
 		char buf[MAX_VA_STRING];
 
-		Q_snprintf (buf, sizeof (buf), "%s%s/extras.pk3", path, basedir);
+		/*Q_snprintf (buf, sizeof (buf), "%s%s/extras.pk3", path, basedir);*/
+		Q_snprintf (buf, sizeof (buf), "%s%s/extras.pk3", path, host.default_gamedir);
 		setenv ("XASH3D_EXTRAS_PAK1", buf, true);
 		}
 #endif
@@ -127,7 +136,6 @@ void SDLash_Init (const char *basedir)
 	else
 		SDL_LogSetAllPriority (SDL_LOG_PRIORITY_ERROR);
 
-	// [FWGS, 01.03.26]
 	/*ifndef SDL_INIT_EVENTS
 	define SDL_INIT_EVENTS 0
 	endif*/
@@ -138,7 +146,6 @@ void SDLash_Init (const char *basedir)
 	// SDL_SetHint( SDL_HINT_WINDOWS_DPI_SCALING, "1" );
 #endif
 
-	// [FWGS, 01.03.26]
 	SDL_SetHint (SDL_HINT_ANDROID_BLOCK_ON_PAUSE, "0");
 	SDL_SetHint (SDL_HINT_ANDROID_BLOCK_ON_PAUSE_PAUSEAUDIO, "0");
 
@@ -148,7 +155,6 @@ void SDLash_Init (const char *basedir)
 		host.type = HOST_DEDICATED;
 		}
 
-	// [FWGS, 01.03.26]
 	/*if SDL_MAJOR_VERSION >= 2*/
 	SDL_SetHint (SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
 	SDL_SetHint (SDL_HINT_JOYSTICK_HIDAPI_STEAM, "1");
@@ -161,7 +167,7 @@ void SDLash_Init (const char *basedir)
 
 	SDL_SetHint (SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
 
-	// [FWGS, 01.03.26] NOTE: setting this hint makes no sense, as of course
+	// NOTE: setting this hint makes no sense, as of course
 	// it doesn't make warps magically work in normal, non-relative mode
 	// there is pointer_warp_v1 extension but it's only implemented in SDL3
 	// at the time of writing, so there it should just work if compositor

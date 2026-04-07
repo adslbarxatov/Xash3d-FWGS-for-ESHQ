@@ -9,9 +9,10 @@ Use, distribution, and modification of this source code and/or resulting
 object code is restricted to non-commercial enhancements to products from
 Valve LLC.  All other use, distribution, or modification is prohibited
 without written permission from Valve LLC
-****/
+***/
+
 //
-//  cdll_int.h
+// cdll_int.h
 //
 // 4-23-98  
 // JOHN:  client dll interface declarations
@@ -96,14 +97,14 @@ extern "C" {
 
 	typedef struct hud_player_info_s
 		{
-		char *name;
+		char	*name;
 		short	ping;
 		byte	thisplayer;	// TRUE if this is the calling player
 
 		// stuff that's unused at the moment,  but should be done
 		byte	spectator;
 		byte	packetloss;
-		char *model;
+		char	*model;
 		short	topcolor;
 		short	bottomcolor;
 		// FWGS

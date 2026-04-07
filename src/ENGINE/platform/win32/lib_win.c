@@ -341,8 +341,8 @@ static const char *GetLastErrorAsString (void)
 	if (!errorcode)
 		return "";
 
-	FormatMessageW (fm_flags, NULL, errorcode, 0, wide_errormessage, ARRAYSIZE (wide_errormessage), NULL);
-	Q_UTF16ToUTF8 (errormessage, sizeof (errormessage), wide_errormessage, ARRAYSIZE (wide_errormessage));
+	FormatMessageW (fm_flags, NULL, errorcode, 0, wide_errormessage, HLARRAYSIZE (wide_errormessage), NULL);
+	Q_UTF16ToUTF8 (errormessage, sizeof (errormessage), wide_errormessage, HLARRAYSIZE (wide_errormessage));
 
 	return errormessage;
 	}

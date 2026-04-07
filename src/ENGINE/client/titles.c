@@ -1,5 +1,5 @@
 /***
-titles.c - implementation of titles.txt parser
+titles.c - titles.txt file parser
 Copyright (C) 2010 Uncle Mike
 
 This program is free software: you can redistribute it and/or modify
@@ -18,52 +18,97 @@ GNU General Public License for more details
 #include "client.h"
 #include "tests.h"
 
-#define MAX_MESSAGES	2048
+// [FWGS, 05.04.26]
+/*define MAX_MESSAGES	2048*/
+client_textmessage_t	gMessageParms;
 
-#define MSGFILE_NAME	0
-#define MSGFILE_TEXT	1
+/*define MSGFILE_NAME	0
+define MSGFILE_TEXT	1
 
 client_textmessage_t	gMessageParms;
 
 // the string "pText" is assumed to have all whitespace from both ends cut out
-static int IsComment (const char *pText)
+static int IsComment (const char *pText)*/
+
+// [FWGS, 05.04.26] removed IsComment, IsStartOfText, IsEndOfText, IsWhiteSpace,
+// SkipSpace, SkipText
+
+// [FWGS, 05.04.26]
+static qboolean TitleParseDirective (const char *line)
 	{
-	if (pText)
+	/*if (pText)*/
+	char	directive[64];
+	char	*p = COM_ParseFile ((char *)line, directive, sizeof (directive));
+
+	if (!p || (directive[0] != '$'))
+		return false;
+
+	int nargs;
+	if (!Q_stricmp (directive, "$position"))
 		{
-		int length = Q_strlen (pText);
+		nargs = 2;
+		}
+	else if (!Q_stricmp (directive, "$effect") || !Q_stricmp (directive, "$fadein") ||
+		!Q_stricmp (directive, "$fadeout") || !Q_stricmp (directive, "$holdtime") ||
+		!Q_stricmp (directive, "$fxtime"))
+		{
+		nargs = 1;
+		}
+	else if (!Q_stricmp (directive, "$color") || !Q_stricmp (directive, "$color2"))
+		{
+		nargs = 3;
+		}
+	else
+		{
+		/*int length = Q_strlen (pText);
 
 		if ((length >= 2) && (pText[0] == '/') && (pText[1] == '/'))
 			return 1;
 
 		// no text?
 		if (length > 0)
-			return 0;
+			return 0;*/
+		Con_DPrintf (S_ERROR "unknown directive: %s\n", directive);
+		return true;
 		}
 
-	// no text is a comment too
+	/*// no text is a comment too
 	return 1;
 	}
 
 // the string "pText" is assumed to have all whitespace from both ends cut out
 static int IsStartOfText (const char *pText)
 	{
-	if (pText)
+	if (pText)*/
+	float args[3] = { 0 };
+	for (int i = 0; i < nargs; i++)
 		{
-		if (pText[0] == '{')
-			return 1;
+		/*if (pText[0] == '{')
+			return 1;*/
+		char numstr[32];
+		p = COM_ParseFile (p, numstr, sizeof (numstr));
+
+		if (!p)
+			return true;	// not enough arguments
+
+		args[i] = Q_atof (numstr);
 		}
-	return 0;
+
+	/*return 0;
 	}
 
 // the string "pText" is assumed to have all whitespace from both ends cut out
 static int IsEndOfText (const char *pText)
 	{
-	if (pText)
+	if (pText)*/
+	if (!Q_stricmp (directive, "$position"))
 		{
-		if (pText[0] == '}')
-			return 1;
+		/*if (pText[0] == '}')
+			return 1;*/
+		gMessageParms.x = args[0];
+		gMessageParms.y = args[1];
 		}
-	return 0;
+	/*return 0;
 	}
 
 static int IsWhiteSpace (char space)
@@ -75,72 +120,138 @@ static int IsWhiteSpace (char space)
 
 static const char *SkipSpace (const char *pText)
 	{
-	if (pText)
+	if (pText)*/
+	else if (!Q_stricmp (directive, "$color"))
 		{
-		int pos = 0;
+		/*int pos = 0;
 		while (pText[pos] && IsWhiteSpace (pText[pos]))
 			pos++;
-		return pText + pos;
+		return pText + pos;*/
+		gMessageParms.r1 = args[0];
+		gMessageParms.g1 = args[1];
+		gMessageParms.b1 = args[2];
 		}
-	return NULL;
+	/*return NULL;
 	}
 
 static const char *SkipText (const char *pText)
 	{
-	if (pText)
+	if (pText)*/
+	else if (!Q_stricmp (directive, "$color2"))
 		{
-		int pos = 0;
+		/*int pos = 0;
 		while (pText[pos] && !IsWhiteSpace (pText[pos]))
 			pos++;
-		return pText + pos;
+		return pText + pos;*/
+		gMessageParms.r2 = args[0];
+		gMessageParms.g2 = args[1];
+		gMessageParms.b2 = args[2];
 		}
-	return NULL;
+	/*return NULL;*/
+	else if (!Q_stricmp (directive, "$effect"))
+		{
+		gMessageParms.effect = args[0];
+		}
+	else if (!Q_stricmp (directive, "$fadein"))
+		{
+		gMessageParms.fadein = args[0];
+		}
+	else if (!Q_stricmp (directive, "$fadeout"))
+		{
+		gMessageParms.fadeout = args[0];
+		}
+	else if (!Q_stricmp (directive, "$holdtime"))
+		{
+		gMessageParms.holdtime = args[0];
+		}
+	else if (!Q_stricmp (directive, "$fxtime"))
+		{
+		gMessageParms.fxtime = args[0];
+		}
+
+	return true;
 	}
 
-static int ParseFloats (const char *pText, float *pFloat, int count)
-	{
-	const char *pTemp = pText;
-	int index = 0;
+// [FWGS, 05.04.26] removed ParseFloats
+/*static int ParseFloats (const char *pText, float *pFloat, int count)*/
 
-	while (pTemp && (count > 0))
+// [FWGS, 05.04.26] fast first pass: count the number of complete name { text } blocks
+static int TitleCountMessages (char *pfile, int fileSize)
+	{
+	/*const char *pTemp = pText;
+	int index = 0;*/
+	char	line[512];
+	int		filepos = 0, count = 0;
+	qboolean	in_text = false;
+
+	/*while (pTemp && (count > 0))*/
+	while (Q_memfgets (pfile, fileSize, &filepos, line, sizeof (line)) != NULL)
 		{
-		// skip current token / float
+		/*// skip current token / float
 		pTemp = SkipText (pTemp);
 		// skip any whitespace in between
-		pTemp = SkipSpace (pTemp);
+		pTemp = SkipSpace (pTemp);*/
+		char trim[512];
+		COM_TrimSpace (trim, line, sizeof (trim));
 
-		if (pTemp)
+		/*if (pTemp)*/
+		if (!in_text)
 			{
-			// parse a float
+			if (trim[0] == '{')
+				in_text = true;
+			}
+		else if (trim[0] == '}')
+			{
+			/*// parse a float
 			pFloat[index] = Q_atof (pTemp);
 			count--;
-			index++;
+			index++;*/
+			count++;
+			in_text = false;
 			}
 		}
 
-	if (count == 0)
+	/*if (count == 0)
 		return 1;
-	return 0;
+	return 0;*/
+	return count;
 	}
 
-static int IsToken (const char *pText, const char *pTokenName)
+// [FWGS, 05.04.26] removed IsToken, ParseDirective
+
+// [FWGS, 05.04.26]
+/*static int IsToken (const char *pText, const char *pTokenName)*/
+client_textmessage_t *CL_TextMessageParse (poolhandle_t mempool, char *pfile, int fileSize, int *numTitles)
 	{
-	if (!pText || !pTokenName)
-		return 0;
-
-	if (!Q_strnicmp (pText + 1, pTokenName, Q_strlen (pTokenName)))
-		return 1;
-
-	return 0;
-	}
-
-static int ParseDirective (const char *pText)
-	{
-	if (pText && (pText[0] == '$'))
+	/*if (!pText || !pTokenName)
+		return 0;*/
+	int total = TitleCountMessages (pfile, fileSize);
+	if (!total)
 		{
-		float	tempFloat[8];
+		*numTitles = 0;
+		return NULL;
+		}
 
-		if (IsToken (pText, "position"))
+	/*if (!Q_strnicmp (pText + 1, pTokenName, Q_strlen (pTokenName)))
+		return 1;*/
+	size_t	bufsize = total * sizeof (client_textmessage_t);
+	client_textmessage_t *out = Mem_Calloc (mempool, bufsize);
+
+	/*return 0;
+	}*/
+	char	line[512], curname[512];
+	int		filepos = 0, linenum = 0, count = 0, textsegstart = 0;
+	qboolean	in_text = false;
+
+	/*static int ParseDirective (const char *pText)
+	{
+	if (pText && (pText[0] == '$'))*/
+	while (1)
+		{
+		/*float	tempFloat[8];*/
+		int curlinestart = filepos;
+
+		/*if (IsToken (pText, "position"))
 			{
 			if (ParseFloats (pText, tempFloat, 2))
 				{
@@ -208,10 +319,11 @@ static int ParseDirective (const char *pText)
 		return 1;
 		}
 	return 0;
-	}
+	}*/
+		if (Q_memfgets (pfile, fileSize, &filepos, line, sizeof (line)) == NULL)
+			break;
 
-// [FWGS, 01.03.26]
-/*void CL_TextMessageParse (byte *pMemFile, int fileSize)*/
+		/*// [FWGS, 01.03.26]
 client_textmessage_t *CL_TextMessageParse (poolhandle_t mempool, byte *pMemFile, int fileSize, int *numTitles)
 	{
 	char	buf[512], trim[512], currentName[512];
@@ -230,38 +342,51 @@ client_textmessage_t *CL_TextMessageParse (poolhandle_t mempool, byte *pMemFile,
 	lastLinePos = 0;
 	messageCount = 0;
 
-	/*while (COM_MemFgets (pMemFile, fileSize, &filePos, buf, 512) != NULL)*/
 	while (Q_memfgets (pMemFile, fileSize, &filePos, buf, 512) != NULL)
 		{
-		/*COM_TrimSpace (buf, trim);*/
-		COM_TrimSpace (trim, buf, sizeof (trim));
+		COM_TrimSpace (trim, buf, sizeof (trim));*/
+		linenum++;
 
-		switch (mode)
+		char trim[512];
+		COM_TrimSpace (trim, line, sizeof (trim));
+
+		/*switch (mode)*/
+		if (!in_text)
 			{
-			case MSGFILE_NAME:
+			/*case MSGFILE_NAME:
 				// skip comment lines
 				if (IsComment (trim))
-					break;
+					break;*/
+			if (COM_StringEmpty (trim) || ((trim[0] == '/') && (trim[1] == '/')))
+				continue;
 
-				// Is this a directive "$command"?, if so parse it and break
+			/*// Is this a directive "$command"?, if so parse it and break
 				if (ParseDirective (trim))
-					break;
+					break;*/
+			if (TitleParseDirective (trim))
+				continue;
 
-				if (IsStartOfText (trim))
-					{
-					mode = MSGFILE_TEXT;
+			/*if (IsStartOfText (trim))*/
+			if (trim[0] == '{')
+				{
+				/*mode = MSGFILE_TEXT;
 					pCurrentText = (char *)(pMemFile + filePos);
-					break;
-					}
+					break;*/
+				in_text = true;
+				textsegstart = filepos;
+				continue;
+				}
 
-				if (IsEndOfText (trim))
-					{
-					Con_Reportf ("%s: unexpected '}' found, line %d\n", __func__, lineNumber);
-					/*return;*/
-					return NULL;
-					}
+			/*if (IsEndOfText (trim))*/
+			if (trim[0] == '}')
+				{
+				/*Con_Reportf ("%s: unexpected '}' found, line %d\n", __func__, lineNumber);*/
+				Con_Reportf ("%s: unexpected '}' at line %d\n", __func__, linenum);
+				Mem_Free (out);
+				return NULL;
+				}
 
-				Q_strncpy (currentName, trim, sizeof (currentName));
+			/*Q_strncpy (currentName, trim, sizeof (currentName));
 				break;
 
 			case MSGFILE_TEXT:
@@ -273,7 +398,6 @@ client_textmessage_t *CL_TextMessageParse (poolhandle_t mempool, byte *pMemFile,
 					if (lastNamePos + length > 32768)
 						{
 						Con_Reportf ("%s: error while parsing!\n", __func__);
-						/*return;*/
 						return NULL;
 						}
 
@@ -294,82 +418,108 @@ client_textmessage_t *CL_TextMessageParse (poolhandle_t mempool, byte *pMemFile,
 					mode = MSGFILE_NAME;
 					break;
 					}
-				if (IsStartOfText (trim))
-					{
-					Con_Reportf ("%s: unexpected '{' found, line %d\n", __func__, lineNumber);
-					/*return;*/
-					return NULL;
-					}
-				break;
+				if (IsStartOfText (trim))*/
+			Q_strncpy (curname, trim, sizeof (curname));
+			}
+		else
+			{
+			if (trim[0] == '{')
+				{
+				/*Con_Reportf ("%s: unexpected '{' found, line %d\n", __func__, lineNumber);*/
+				Con_Reportf ("%s: unexpected '{' at line %d\n", __func__, linenum);
+				Mem_Free (out);
+				return NULL;
+				}
+			/*break;
 			}
 
 		lineNumber++;
-		lastLinePos = filePos;
+		lastLinePos = filePos;*/
 
-		if (messageCount >= MAX_MESSAGES)
-			{
-			Con_Printf (S_WARN "Too many messages in titles.txt, max is %d\n", MAX_MESSAGES);
-			break;
+			/*if (messageCount >= MAX_MESSAGES)
+		{
+		Con_Printf (S_WARN "Too many messages in titles.txt, max is %d\n", MAX_MESSAGES);
+		break;*/
+			if (trim[0] == '}')
+				{
+				size_t textlen = Q_max (curlinestart - 1 - textsegstart, 0);
+				size_t namelen = Q_strlen (curname);
+				size_t nameoffset = bufsize;
+				size_t textoffset = nameoffset + namelen + 1;
+
+				bufsize = textoffset + textlen + 1;
+				out = Mem_Realloc (mempool, out, bufsize);
+
+				char *p = (char *)out;
+
+				memcpy (&p[nameoffset], curname, namelen + 1);
+				memcpy (&p[textoffset], &pfile[textsegstart], textlen);
+				p[textoffset + textlen] = '\0';
+
+				// store offsets as pointers temporarily
+				out[count] = gMessageParms;
+				out[count].pName = (char *)nameoffset;
+				out[count].pMessage = (char *)textoffset;
+				count++;
+				in_text = false;
+				}
 			}
 		}
 
-	Con_Reportf ("%s: parsed %d text messages\n", __func__, messageCount);
-	nameHeapSize = lastNamePos;
-	textHeapSize = 0;
+	/*Con_Reportf ("%s: parsed %d text messages\n", __func__, messageCount);
+nameHeapSize = lastNamePos;
+textHeapSize = 0;
 
-	for (i = 0; i < messageCount; i++)
-		textHeapSize += Q_strlen (textMessages[i].pMessage) + 1;
-	messageSize = (messageCount * sizeof (client_textmessage_t));
+for (i = 0; i < messageCount; i++)
+	textHeapSize += Q_strlen (textMessages[i].pMessage) + 1;
+messageSize = (messageCount * sizeof (client_textmessage_t));
 
-	if ((textHeapSize + nameHeapSize + messageSize) <= 0)
+if ((textHeapSize + nameHeapSize + messageSize) <= 0)
+	{
+	*numTitles = 0;
+	return NULL;
+	}
+
+// must malloc because we need to be able to clear it after initialization
+client_textmessage_t *out = Mem_Calloc (mempool, textHeapSize + nameHeapSize + messageSize);
+
+// copy table over
+memcpy (out, textMessages, messageSize);*/
+	if (unlikely (count != total))
+		Con_DPrintf (S_ERROR "%s: expected %d messages, parsed %d\n", __func__, total, count);
+
+	/*// copy Name heap
+pNameHeap = ((char *)out) + messageSize;
+memcpy (pNameHeap, nameHeap, nameHeapSize);
+
+// copy text & fixup pointers
+textHeapSizeRemaining = textHeapSize;
+pCurrentText = pNameHeap + nameHeapSize;
+
+for (i = 0; i < messageCount; i++)*/
+	// fix up offsets
+	for (int i = 0; i < count; i++)
 		{
-		/*clgame.titles = NULL;
-		clgame.numTitles = 0;
-		return;*/
-		*numTitles = 0;
-		return NULL;
+		/*size_t currentTextSize = Q_strlen (out[i].pMessage) + 1;
+
+	out[i].pName = pNameHeap;	// adjust name pointer (parallel buffer)
+	Q_strncpy (pCurrentText, out[i].pMessage, textHeapSizeRemaining);	// copy text over
+	out[i].pMessage = pCurrentText;
+
+	pNameHeap += Q_strlen (pNameHeap) + 1;
+	pCurrentText += currentTextSize;
+	textHeapSizeRemaining -= currentTextSize;*/
+		out[i].pName = (char *)out + (uintptr_t)out[i].pName;
+		out[i].pMessage = (char *)out + (uintptr_t)out[i].pMessage;
 		}
 
-	// must malloc because we need to be able to clear it after initialization
-	/*clgame.titles = (client_textmessage_t *)Mem_Calloc (cls.mempool, textHeapSize + nameHeapSize + messageSize);*/
-	client_textmessage_t *out = Mem_Calloc (mempool, textHeapSize + nameHeapSize + messageSize);
-
-	// copy table over
-	/*memcpy (clgame.titles, textMessages, messageSize);*/
-	memcpy (out, textMessages, messageSize);
-
-	// copy Name heap
-	/*pNameHeap = ((char *)clgame.titles) + messageSize;*/
-	pNameHeap = ((char *)out) + messageSize;
-	memcpy (pNameHeap, nameHeap, nameHeapSize);
-
-	// copy text & fixup pointers
-	textHeapSizeRemaining = textHeapSize;
-	pCurrentText = pNameHeap + nameHeapSize;
-
-	for (i = 0; i < messageCount; i++)
-		{
-		/*size_t currentTextSize = Q_strlen (clgame.titles[i].pMessage) + 1;*/
-		size_t currentTextSize = Q_strlen (out[i].pMessage) + 1;
-
-		/*clgame.titles[i].pName = pNameHeap;			// adjust name pointer (parallel buffer)
-		Q_strncpy (pCurrentText, clgame.titles[i].pMessage, textHeapSizeRemaining);	// copy text over
-		clgame.titles[i].pMessage = pCurrentText;*/
-		out[i].pName = pNameHeap;	// adjust name pointer (parallel buffer)
-		Q_strncpy (pCurrentText, out[i].pMessage, textHeapSizeRemaining);	// copy text over
-		out[i].pMessage = pCurrentText;
-
-		pNameHeap += Q_strlen (pNameHeap) + 1;
-		pCurrentText += currentTextSize;
-		textHeapSizeRemaining -= currentTextSize;
-		}
-
-	/*if ((pCurrentText - (char *)clgame.titles) != (textHeapSize + nameHeapSize + messageSize))*/
-	if ((pCurrentText - (char *)out) != (textHeapSize + nameHeapSize + messageSize))
+	/*if ((pCurrentText - (char *)out) != (textHeapSize + nameHeapSize + messageSize))
 		Con_DPrintf (S_ERROR "%s: overflow text message buffer!\n", __func__);
 
 	clgame.numTitles = messageCount;
-	*numTitles = messageCount;
+	*numTitles = messageCount;*/
+	Con_Reportf ("%s: parsed %d text messages\n", __func__, count);
+	*numTitles = count;
 
 	return out;
 	}

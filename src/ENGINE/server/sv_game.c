@@ -43,7 +43,9 @@ typedef void (DLLEXPORT *GIVEFNPTRSTODLL)(enginefuncs_t *engfuncs, globalvars_t 
 
 // [FWGS, 01.05.24] removed SV_EdictNum
 
-#ifndef NDEBUG
+// [FWGS, 05.04.26] removed SV_CheckEdict
+
+/*ifndef NDEBUG
 qboolean SV_CheckEdict (const edict_t *e, const char *file, const int line)
 	{
 	int	n;
@@ -59,17 +61,19 @@ qboolean SV_CheckEdict (const edict_t *e, const char *file, const int line)
 
 	return false;
 	}
-#endif
+endif*/
 
 static edict_t *SV_PEntityOfEntIndex (const int iEntIndex, const qboolean allentities)
 	{
 	if ((iEntIndex >= 0) && (iEntIndex < GI->max_edicts))
 		{
-		edict_t *pEdict = EDICT_NUM (iEntIndex);
-		qboolean player = allentities ? iEntIndex <= svs.maxclients : iEntIndex < svs.maxclients;
+		// [FWGS, 05.04.26]
+		/*edict_t *pEdict = EDICT_NUM (iEntIndex);*/
+		edict_t		*pEdict = SV_EdictNum (iEntIndex);
+		qboolean	player = allentities ? iEntIndex <= svs.maxclients : iEntIndex < svs.maxclients;
 
 		if (!iEntIndex || FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
-			return pEdict; // just get access to array
+			return pEdict;	// just get access to array
 
 		if (SV_IsValidEdict (pEdict) && pEdict->pvPrivateData)
 			return pEdict;
@@ -81,7 +85,6 @@ static edict_t *SV_PEntityOfEntIndex (const int iEntIndex, const qboolean allent
 
 	return NULL;
 	}
-
 
 /***
 =============
@@ -276,11 +279,12 @@ void GAME_EXPORT SV_SetModel (edict_t *ent, const char *modelname)
 		return;
 		}
 
-	// [FWGS, 01.03.26]
+	// [FWGS, 05.04.26]
 	/*if (COM_CheckString (name))*/
 	if (!COM_StringEmptyOrNULL (name))
 		{
-		ent->v.model = MAKE_STRING (sv.model_precache[i]);
+		/*ent->v.model = MAKE_STRING (sv.model_precache[i]);*/
+		ent->v.model = SV_MakeString (sv.model_precache[i]);
 		ent->v.modelindex = i;
 		mod = sv.models[i];
 		}
@@ -547,8 +551,11 @@ qboolean SV_RestoreCustomDecal (decallist_t *entry, edict_t *pEdict, qboolean ad
 	{
 	if (svgame.physFuncs.pfnRestoreDecal != NULL)
 		{
-		if (!pEdict) 
-			pEdict = EDICT_NUM (entry->entityIndex);
+		// [FWGS, 05.04.26]
+		/*if (!pEdict) 
+			pEdict = EDICT_NUM (entry->entityIndex);*/
+		if (!pEdict)
+			pEdict = SV_EdictNum (entry->entityIndex);
 
 		// true if decal was sucessfully restored at the game-side
 		return svgame.physFuncs.pfnRestoreDecal (entry, pEdict, adjacent);
@@ -625,9 +632,10 @@ qboolean SV_CreateStaticEntity (sizebuf_t *msg, int index)
 	memset (&nullstate, 0, sizeof (nullstate));
 	baseline = &nullstate;
 
-	// restore modelindex from modelname (already precached)
-	state->modelindex = pfnModelIndex (STRING (state->messagenum));
-	state->entityType = ENTITY_NORMAL; // select delta-encode
+	// [FWGS, 05.04.26] restore modelindex from modelname (already precached)
+	/*state->modelindex = pfnModelIndex (STRING (state->messagenum));*/
+	state->modelindex = pfnModelIndex (SV_GetString (state->messagenum));
+	state->entityType = ENTITY_NORMAL;	// select delta-encode
 	state->number = 0;
 
 	// [FWGS, 25.12.24] trying to compress with previous delta's
@@ -1141,7 +1149,10 @@ edict_t *GAME_EXPORT SV_AllocEdict (void)
 
 	for (i = svs.maxclients + 1; i < svgame.numEntities; i++)
 		{
-		e = EDICT_NUM (i);
+		// [FWGS, 05.04.26]
+		/*e = EDICT_NUM (i);*/
+		e = SV_EdictNum (i);
+
 		// the first couple seconds of server time can involve a lot of
 		// freeing and allocating, so relax the replacement policy
 		if (e->free && ((e->freetime < 2.0f) || ((sv.time - e->freetime) > 0.5f)))
@@ -1155,8 +1166,10 @@ edict_t *GAME_EXPORT SV_AllocEdict (void)
 	if (i >= GI->max_edicts)
 		Host_Error ("%s: no free edicts (max is %d)\n", __func__, GI->max_edicts);
 
+	// [FWGS, 05.04.26]
 	svgame.numEntities++;
-	e = EDICT_NUM (i);
+	/*e = EDICT_NUM (i);*/
+	e = SV_EdictNum (i);
 	SV_InitEdict (e);
 
 	return e;
@@ -1177,7 +1190,7 @@ static LINK_ENTITY_FUNC SV_GetEntityClass (const char *pszClassName)
 
 /***
 ==============
-SV_AllocPrivateData [FWGS, 01.05.24]
+SV_AllocPrivateData
 
 allocate private data for a given edict.
 - if customentity is NULL, no "custom" entity HLEXPORT is being done
@@ -1190,7 +1203,9 @@ static edict_t *SV_AllocPrivateData (edict_t *ent, string_t className, qboolean 
 	const char	*pszClassName;
 	LINK_ENTITY_FUNC	SpawnEdict;
 
-	pszClassName = STRING (className);
+	// [FWGS, 05.04.26]
+	/*pszClassName = STRING (className);*/
+	pszClassName = SV_GetString (className);
 
 	if (customentity)
 		*customentity = false;
@@ -1201,11 +1216,10 @@ static edict_t *SV_AllocPrivateData (edict_t *ent, string_t className, qboolean 
 		SV_InitEdict (ent);		// re-init edict
 
 	ent->v.classname = className;
-	ent->v.pContainingEntity = ent; // re-link
+	ent->v.pContainingEntity = ent;	// re-link
 
 	// allocate edict private memory (passed by dlls)
 	SpawnEdict = SV_GetEntityClass (pszClassName);
-
 	if (!SpawnEdict)
 		{
 		// attempt to create custom entity (Xash3D extension)
@@ -1254,12 +1268,15 @@ release all the edicts from server
 ***/
 void SV_FreeEdicts (void)
 	{
-	int	i = 0;
-	edict_t *ent;
+	int		i = 0;
+	edict_t	*ent;
 
 	for (i = 0; i < svgame.numEntities; i++)
 		{
-		ent = EDICT_NUM (i);
+		// [FWGS, 05.04.26]
+		/*ent = EDICT_NUM (i);*/
+		ent = SV_EdictNum (i);
+
 		if (ent->free)
 			continue;
 		SV_FreeEdict (ent);
@@ -1312,7 +1329,9 @@ const char *SV_ClassName (const edict_t *e)
 	if (e->free) 
 		return "freed";
 
-	return STRING (e->v.classname);
+	// [FWGS, 05.04.26]
+	/*return STRING (e->v.classname);*/
+	return SV_GetString (e->v.classname);
 	}
 
 /***
@@ -1329,6 +1348,7 @@ static qboolean SV_IsValidCmd (const char *pCmd)
 	// valid commands all have a ';' or newline '\n' as their last character
 	if (len && ((pCmd[len - 1] == '\n') || (pCmd[len - 1] == ';')))
 		return true;
+
 	return false;
 	}
 
@@ -1376,6 +1396,13 @@ static int GAME_EXPORT pfnPrecacheModel (const char *s)
 	qboolean	optional = false;
 	int	i;
 
+	// [FWGS, 05.04.26]
+	if (COM_StringEmptyOrNULL (s))
+		{
+		Host_Error ("%s: NULL pointer or empty string as model name\n", __func__);
+		return 0;
+		}
+
 	if (*s == '!')
 		{
 		optional = true;
@@ -1410,10 +1437,11 @@ static int GAME_EXPORT pfnModelIndex (const char *m)
 
 	if ((*m == '\\') || (*m == '/'))
 		m++;
+
 	Q_strncpy (name, m, sizeof (name));
 	COM_FixSlashes (name);
 
-	for (i = 1; i < MAX_MODELS && sv.model_precache[i][0]; i++)
+	for (i = 1; (i < MAX_MODELS) && sv.model_precache[i][0]; i++)
 		{
 		if (!Q_stricmp (sv.model_precache[i], name))
 			return i;
@@ -1599,10 +1627,13 @@ static edict_t *SV_FindEntityByString (edict_t *pStartEdict, const char *pszFiel
 
 	for (e++; e < svgame.numEntities; e++)
 		{
-		ed = EDICT_NUM (e);
-		if (!SV_IsValidEdict (ed)) continue;
+		// [FWGS, 05.04.26]
+		/*ed = EDICT_NUM (e);*/
+		ed = SV_EdictNum (e);
+		if (!SV_IsValidEdict (ed))
+			continue;
 
-		if (e <= svs.maxclients && !SV_ClientFromEdict (ed, (svs.maxclients != 1)))
+		if ((e <= svs.maxclients) && !SV_ClientFromEdict (ed, (svs.maxclients != 1)))
 			continue;
 
 		switch (desc->fieldType)
@@ -1610,13 +1641,16 @@ static edict_t *SV_FindEntityByString (edict_t *pStartEdict, const char *pszFiel
 			case FIELD_STRING:
 			case FIELD_MODELNAME:
 			case FIELD_SOUNDNAME:
-				t = STRING (*(string_t *)&((byte *)&ed->v)[desc->fieldOffset]);
+				// [FWGS, 05.04.26]
+				/*t = STRING (*(string_t *)&((byte *)&ed->v)[desc->fieldOffset]);*/
+				t = SV_GetString (*(string_t *)&((byte *)&ed->v)[desc->fieldOffset]);
 				if (t != NULL && t != svgame.globals->pStringBase)
 					{
 					if (!Q_strcmp (t, pszValue))
 						return ed;
 					}
 				break;
+
 			default:
 				ASSERT (0);
 				break;
@@ -1635,12 +1669,15 @@ ripped out from the hl.dll
 ***/
 edict_t *SV_FindGlobalEntity (string_t classname, string_t globalname)
 	{
-	edict_t *pent = SV_FindEntityByString (NULL, "globalname", STRING (globalname));
+	// [FWGS, 05.04.26]
+	/*edict_t *pent = SV_FindEntityByString (NULL, "globalname", STRING (globalname));*/
+	edict_t *pent = SV_FindEntityByString (NULL, "globalname", SV_GetString (globalname));
 
 	if (SV_IsValidEdict (pent))
 		{
 		// don't spam about error - game code already tell us
-		if (Q_strcmp (SV_ClassName (pent), STRING (classname)))
+		/*if (Q_strcmp (SV_ClassName (pent), STRING (classname)))*/
+		if (Q_strcmp (SV_ClassName (pent), SV_GetString (classname)))
 			pent = NULL;
 		}
 
@@ -1659,9 +1696,9 @@ find the entity in sphere
 static edict_t *pfnFindEntityInSphere (edict_t *pStartEdict, const float *org, float flRadius)
 	{
 	float	distSquared;
-	int	j, e = 0;
+	int		j, e = 0;
 	float	eorg;
-	edict_t *ent;
+	edict_t	*ent;
 
 	flRadius *= flRadius;
 
@@ -1670,13 +1707,15 @@ static edict_t *pfnFindEntityInSphere (edict_t *pStartEdict, const float *org, f
 
 	for (e++; e < svgame.numEntities; e++)
 		{
-		ent = EDICT_NUM (e);
+		// [FWGS, 05.04.26]
+		/*ent = EDICT_NUM (e);*/
+		ent = SV_EdictNum (e);
 
 		if (!SV_IsValidEdict (ent))
 			continue;
 
 		// ignore clients that not in a game
-		if (e <= svs.maxclients && !SV_ClientFromEdict (ent, true))
+		if ((e <= svs.maxclients) && !SV_ClientFromEdict (ent, true))
 			continue;
 
 		distSquared = 0.0f;
@@ -1719,7 +1758,7 @@ static int SV_CheckClientPVS (int check, qboolean bMergePVS)
 	check = bound (1, check, svs.maxclients);
 
 	if (check == svs.maxclients)
-		i = 1; // reset cycle
+		i = 1;	// reset cycle
 	else
 		i = check + 1;
 
@@ -1728,8 +1767,11 @@ static int SV_CheckClientPVS (int check, qboolean bMergePVS)
 		if (i == (svs.maxclients + 1))
 			i = 1;
 
-		ent = EDICT_NUM (i);
-		if (i == check) break; // didn't find anything else
+		// [FWGS, 05.04.26]
+		/*ent = EDICT_NUM (i);*/
+		ent = SV_EdictNum (i);
+		if (i == check)
+			break;	// didn't find anything else
 
 		if (ent->free || !ent->pvPrivateData || FBitSet (ent->v.flags, FL_NOTARGET))
 			continue;
@@ -1798,8 +1840,9 @@ static edict_t *GAME_EXPORT pfnFindClientInPVS (edict_t *pEdict)
 		sv.lastchecktime = sv.time;
 		}
 
-	// return check if it might be visible
-	pClient = EDICT_NUM (sv.lastcheck);
+	// [FWGS, 05.04.26] return check if it might be visible
+	/*pClient = EDICT_NUM (sv.lastcheck);*/
+	pClient = SV_EdictNum (sv.lastcheck);
 
 	if (!SV_ClientFromEdict (pClient, true))
 		return svgame.edicts;
@@ -1838,27 +1881,32 @@ pfnEntitiesInPVS
 ***/
 static edict_t *pfnEntitiesInPVS (edict_t *pview)
 	{
-	edict_t *pchain, *ptest;
+	edict_t	*pchain, *ptest;
 	vec3_t	viewpoint;
-	edict_t *pent;
-	int	i;
+	edict_t	*pent;
+	int		i;
 
 	if (!SV_IsValidEdict (pview))
 		return NULL;
 
+	// [FWGS, 05.04.26]
 	VectorAdd (pview->v.origin, pview->v.view_ofs, viewpoint);
-	pchain = EDICT_NUM (0);
+	/*pchain = EDICT_NUM (0);*/
+	pchain = SV_EdictNum (0);
 
 	for (i = 1; i < svgame.numEntities; i++)
 		{
-		pent = EDICT_NUM (i);
+		// [FWGS, 05.04.26]
+		/*pent = EDICT_NUM (i);*/
+		pent = SV_EdictNum (i);
 
 		if (!SV_IsValidEdict (pent))
 			continue;
 
-		if (pent->v.movetype == MOVETYPE_FOLLOW && SV_IsValidEdict (pent->v.aiment))
+		if ((pent->v.movetype == MOVETYPE_FOLLOW) && SV_IsValidEdict (pent->v.aiment))
 			ptest = pent->v.aiment;
-		else ptest = pent;
+		else
+			ptest = pent;
 
 		if (SV_BoxInPVS (viewpoint, ptest->v.absmin, ptest->v.absmax))
 			{
@@ -1892,10 +1940,11 @@ static void GAME_EXPORT pfnRemoveEntity (edict_t *e)
 	if (!SV_IsValidEdict (e))
 		return;
 
-	// never free client or world entity
+	// [FWGS, 05.04.26] never free client or world entity
 	if (NUM_FOR_EDICT (e) < (svs.maxclients + 1))
 		{
-		Con_Printf (S_ERROR "can't delete %s\n", (e == EDICT_NUM (0)) ? "world" : "client");
+		/*Con_Printf (S_ERROR "can't delete %s\n", (e == EDICT_NUM (0)) ? "world" : "client");*/
+		Con_Printf (S_ERROR "can't delete %s\n", (e == SV_EdictNum (0)) ? "world" : "client");
 		return;
 		}
 
@@ -1929,7 +1978,7 @@ static void GAME_EXPORT pfnMakeStatic (edict_t *ent)
 	// fill the entity state
 	state = &svs.static_entities[sv.num_static_entities];	// allocate a new one
 	svgame.dllFuncs.pfnCreateBaseline (false, NUM_FOR_EDICT (ent), state, ent, 0, vec3_origin, vec3_origin);
-	state->messagenum = ent->v.model; // member modelname
+	state->messagenum = ent->v.model;	// member modelname
 
 	if (SV_CreateStaticEntity (&sv.signon, sv.num_static_entities))
 		sv.num_static_entities++;
@@ -2312,8 +2361,8 @@ pfnTraceModel
 static void GAME_EXPORT pfnTraceModel (const float *v1, const float *v2, int hullNumber,
 	edict_t *pent, TraceResult *ptr)
 	{
-	float *mins, *maxs;
-	model_t *model;
+	float	*mins, *maxs;
+	model_t	*model;
 	trace_t	trace;
 
 	if (!SV_IsValidEdict (pent))
@@ -2420,7 +2469,10 @@ static void GAME_EXPORT pfnGetAimVector (edict_t *ent, float speed, float *rgflR
 	else
 		bestdist = 0;
 
-	check = EDICT_NUM (1); // start at first client
+	// [FWGS, 05.04.26]
+	/*check = EDICT_NUM (1); // start at first client*/
+	check = SV_EdictNum (1); // start at first client
+
 	for (i = 1; i < svgame.numEntities; i++, check++)
 		{
 		if (check->v.takedamage != DAMAGE_AIM)
@@ -2446,7 +2498,6 @@ static void GAME_EXPORT pfnGetAimVector (edict_t *ent, float speed, float *rgflR
 			continue; // to far to turn
 
 		tr = SV_Move (start, vec3_origin, vec3_origin, end, MOVE_NORMAL, ent, false);
-
 		if (tr.ent == check)
 			{
 			// can shoot at this one
@@ -2495,7 +2546,7 @@ void GAME_EXPORT pfnClientCommand (edict_t *pEdict, char *szFmt, ...)
 	va_list		args;
 
 	if (sv.state != ss_active)
-		return; // early out
+		return;	// early out
 
 	if ((cl = SV_ClientFromEdict (pEdict, false)) == NULL)
 		{
@@ -2545,7 +2596,7 @@ static void GAME_EXPORT pfnParticleEffect (const float *org, const float *dir, f
 	MSG_WriteChar (&sv.datagram, v);
 	MSG_WriteByte (&sv.datagram, count);
 	MSG_WriteByte (&sv.datagram, color);
-	MSG_WriteByte (&sv.datagram, 0); // z-vel
+	MSG_WriteByte (&sv.datagram, 0);	// z-vel
 	}
 
 /***
@@ -2615,11 +2666,11 @@ static int SV_CanRewriteMessage (int msg_num)
 
 static qboolean SV_RewriteMessage (void)
 	{
-	vec3_t		 origin;
-	const char	*sample = NULL;
+	vec3_t		origin;
+	const char *sample = NULL;
 	float		vol, attn;
-	int			ent, pitch, flags, idx;
-	int			cmd;
+	int		ent, pitch, flags, idx;
+	int		cmd;
 
 	MSG_SeekToBit (&sv.multicast, svgame.msg_rewrite_pos, SEEK_SET);
 
@@ -2649,8 +2700,11 @@ static qboolean SV_RewriteMessage (void)
 				return false;
 				}
 
+			// [FWGS, 05.04.26]
 			MSG_SeekToBit (&sv.multicast, svgame.msg_rewrite_pos, SEEK_SET);
-			return SV_BuildSoundMsg (&sv.multicast, EDICT_NUM (ent), CHAN_STATIC, sample, vol, attn, flags,
+			/*return SV_BuildSoundMsg (&sv.multicast, EDICT_NUM (ent), CHAN_STATIC, sample, vol, attn, flags,
+				pitch, origin);*/
+			return SV_BuildSoundMsg (&sv.multicast, SV_EdictNum (ent), CHAN_STATIC, sample, vol, attn, flags,
 				pitch, origin);
 		}
 
@@ -3215,8 +3269,8 @@ SV_AllocStringPool [FWGS, 01.12.24]
 
 alloc string pool on 32bit platforms
 alloc string array near the server library on 64bit platforms if possible
-alloc string array somewhere if not (MAKE_STRING will not work. Always call ALLOC_STRING instead, or crash)
-this case need patched game dll with MAKE_STRING checking ptrdiff size
+alloc string array somewhere if not (SV_MakeString will not work. Always call SV_AllocString instead, or crash)
+this case need patched game dll with SV_MakeString checking ptrdiff size
 ==================
 ***/
 static void SV_AllocStringPool (void)
@@ -3611,11 +3665,13 @@ static edict_t *GAME_EXPORT pfnFindEntityByVars (entvars_t *pvars)
 
 	for (i = 0; i < GI->max_edicts; i++)
 		{
-		pEdict = EDICT_NUM (i);
+		// [FWGS, 05.04.26]
+		/*pEdict = EDICT_NUM (i);*/
+		pEdict = SV_EdictNum (i);
 
 		// g-cont: we should compare pointers
 		if (&pEdict->v == pvars)
-			return pEdict; // found it
+			return pEdict;	// found it
 		}
 
 	return NULL;
@@ -4600,8 +4656,9 @@ static int GAME_EXPORT pfnCreateInstancedBaseline (int classname, struct entity_
 	if (!baseline || (sv.num_instanced >= MAX_CUSTOM_BASELINES))
 		return 0;
 
-	// g-cont. must sure that classname is really allocated
-	sv.instanced[sv.num_instanced].classname = SV_CopyString (STRING (classname));
+	// [FWGS, 05.04.26] g-cont. must sure that classname is really allocated
+	/*sv.instanced[sv.num_instanced].classname = SV_CopyString (STRING (classname));*/
+	sv.instanced[sv.num_instanced].classname = SV_CopyString (SV_GetString (classname));
 	sv.instanced[sv.num_instanced].baseline = *baseline;
 	sv.num_instanced++;
 
@@ -5068,7 +5125,7 @@ static void SV_FreeKeyValueStrings (KeyValueData *kvd, int numpairs)
 
 /***
 ====================
-SV_ParseEdict [FWGS, 01.07.24]
+SV_ParseEdict
 
 Parses an edict out of the given string, returning the new position
 ed should be a properly initialized empty edict
@@ -5134,9 +5191,10 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 			if (!kvd.fHandled)
 				Host_Error ("%s: game didn't handled \"%s\" classname\n", __func__, value);
 
-			// this lets game dll override custom entity classname
+			// [FWGS, 05.04.26] this lets game dll override custom entity classname
 			// to something bogus that's exported in game dll
-			classname = STRING (ent->v.classname);
+			/*classname = STRING (ent->v.classname);*/
+			classname = SV_GetString (ent->v.classname);
 			continue;
 			}
 
@@ -5295,10 +5353,12 @@ static void SV_LoadFromFile (const char *mapname, char *entities)
 			if (token[0] != '{')
 				Host_Error ("%s: found %s when expecting {\n", __func__, token);
 
+			// [FWGS, 05.04.26]
 			if (create_world)
 				{
 				create_world = false;
-				ent = EDICT_NUM (0); // already initialized
+				/*ent = EDICT_NUM (0); // already initialized*/
+				ent = SV_EdictNum (0);	// already initialized
 				}
 			else
 				{
@@ -5332,7 +5392,7 @@ static void SV_LoadFromFile (const char *mapname, char *entities)
 SpawnEntities
 
 Creates a server's entity / program execution context by
-parsing textual entity definitions out of an ent file.
+parsing textual entity definitions out of an ent file
 ==============
 ***/
 void SV_SpawnEntities (const char *mapname)
@@ -5353,18 +5413,25 @@ void SV_SpawnEntities (const char *mapname)
 	Cvar_Reset ("sv_skyvec_z");
 	Cvar_Reset ("sv_skyname");
 
-	ent = EDICT_NUM (0);
+	// [FWGS, 05.04.26]
+	/*ent = EDICT_NUM (0);*/
+	ent = SV_EdictNum (0);
 	if (ent->free)
 		SV_InitEdict (ent);
 
-	ent->v.model = MAKE_STRING (sv.model_precache[1]);
+	// [FWGS, 05.04.26]
+	/*ent->v.model = MAKE_STRING (sv.model_precache[1]);*/
+	ent->v.model = SV_MakeString (sv.model_precache[1]);
 	ent->v.modelindex = WORLD_INDEX; // world model
 	ent->v.solid = SOLID_BSP;
 	ent->v.movetype = MOVETYPE_PUSH;
 
+	// [FWGS, 05.04.26]
 	svgame.globals->maxEntities = GI->max_edicts;
-	svgame.globals->mapname = MAKE_STRING (sv.name);
-	svgame.globals->startspot = MAKE_STRING (sv.startspot);
+	/*svgame.globals->mapname = MAKE_STRING (sv.name);
+	svgame.globals->startspot = MAKE_STRING (sv.startspot);*/
+	svgame.globals->mapname = SV_MakeString (sv.name);
+	svgame.globals->startspot = SV_MakeString (sv.startspot);
 	svgame.globals->time = sv.time;
 
 	// spawn the rest of the entities on the map

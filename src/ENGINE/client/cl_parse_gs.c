@@ -616,13 +616,19 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 		// record command for debugging spew on parse problem
 		CL_Parse_RecordCommand (cmd, bufStart);
 
-		if (CL_ParseCommonDLLMessage (msg, PROTO_GOLDSRC, cmd, bufStart))
+		// [FWGS, 05.04.26]
+		/*if (CL_ParseCommonDLLMessage (msg, PROTO_GOLDSRC, cmd, bufStart))*/
+		if (CL_ParseCommonMessage (msg, PROTO_GOLDSRC, cmd, bufStart))
+			continue;
+
+		if (CL_ParseCommonHLMessage (msg, PROTO_GOLDSRC, cmd, bufStart))
 			continue;
 
 		// other commands
 		switch (cmd)
 			{
-			case svc_bad:
+			// [FWGS, 05.04.26]
+			/*case svc_bad:
 				Host_Error ("svc_bad\n");
 				break;
 
@@ -632,7 +638,7 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 			case svc_goldsrc_killedmonster:
 			case svc_goldsrc_foundsecret:
 				// this does nothing
-				break;
+				break;*/
 
 			// [FWGS, 01.03.26]
 			case svc_disconnect:
@@ -657,16 +663,18 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 					Host_Error ("Server use invalid protocol (%i should be %i)\n", param1, PROTOCOL_GOLDSRC_VERSION);
 				break;
 
-			case svc_setview:
+			// [FWGS, 05.04.26]
+			/*case svc_setview:
 				CL_ParseViewEntity (msg);
-				break;
+				break;*/
 
 			case svc_sound:
 				CL_ParseSoundPacketGS (msg);
 				cl.frames[cl.parsecountmod].graphdata.sound += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
 
-			case svc_time:
+			// [FWGS, 05.04.26]
+			/*case svc_time:
 				CL_ParseServerTime (msg, PROTO_GOLDSRC);
 				break;
 
@@ -682,11 +690,11 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 					Con_Printf ("Stufftext: %s%c", s, len && s[len - 1] == '\n' ? '\0' : '\n');
 					}
 
-#ifdef HACKS_RELATED_HLMODS
+ifdef HACKS_RELATED_HLMODS
 				// disable Cry Of Fear antisave protection
 				if (!Q_strnicmp (s, "disconnect", 10) && cls.signon != SIGNONS)
 					break; // too early
-#endif
+endif
 				Cbuf_AddFilteredText (s);
 				break;
 
@@ -708,7 +716,7 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				CL_UpdateUserinfo (msg, PROTO_GOLDSRC);
 				break;
 
-			// [FWGS, 25.12.24]
+			// [FWGS, 25.12.24]*/
 			case svc_deltatable:
 				Delta_ParseTableField_GS (msg);
 				break;
@@ -732,8 +740,12 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				MSG_EndBitWriting (msg);
 				break;
 
-			case svc_particle:
-				CL_ParseParticles (msg, PROTO_GOLDSRC);
+			// [FWGS, 05.04.26]
+			/*case svc_particle:
+				CL_ParseParticles (msg, PROTO_GOLDSRC);*/
+			case svc_goldsrc_damage:
+			case svc_spawnstatic:
+				// this does nothing
 				break;
 
 			case svc_event_reliable:
@@ -753,19 +765,24 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				cl.paused = (MSG_ReadByte (msg) != 0);
 				break;
 
-			case svc_signonnum:
+			// [FWGS, 05.04.26]
+			/*case svc_signonnum:
 				CL_ParseSignon (msg, PROTO_GOLDSRC);
 				break;
 
 			case svc_centerprint:
-				CL_CenterPrint (MSG_ReadString (msg), 0.25f);
+				CL_CenterPrint (MSG_ReadString (msg), 0.25f);*/
+			case svc_goldsrc_killedmonster:
+			case svc_goldsrc_foundsecret:
+				// this does nothing
 				break;
 
 			case svc_goldsrc_spawnstaticsound:
 				CL_ParseSpawnStaticSound (msg);
 				break;
 
-			case svc_finale:
+			// [FWGS, 05.04.26]
+			/*case svc_finale:
 				CL_ParseFinaleCutscene (msg, 2);
 				break;
 
@@ -775,7 +792,7 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 
 			case svc_cutscene:
 				CL_ParseFinaleCutscene (msg, 3);
-				break;
+				break;*/
 
 			case svc_goldsrc_decalname:
 				param1 = MSG_ReadByte (msg);
@@ -783,14 +800,15 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				Q_strncpy (host.draw_decals[param1], s, sizeof (host.draw_decals[param1]));
 				break;
 
-			case svc_addangle:
+			// [FWGS, 05.04.26]
+			/*case svc_addangle:
 				CL_ParseAddAngle (msg);
 				break;
 
 			// [FWGS, 25.12.24]
 			case svc_usermessage:
 				CL_RegisterUserMessage (msg, PROTO_GOLDSRC);
-				break;
+				break;*/
 
 			case svc_packetentities:
 				playerbytes = CL_ParsePacketEntitiesGS (msg, false);
@@ -804,10 +822,11 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				cl.frames[cl.parsecountmod].graphdata.entities += MSG_GetNumBytesRead (msg) - bufStart - playerbytes;
 				break;
 
-			case svc_choke:
+			// [FWGS, 05.04.26]
+			/*case svc_choke:
 				cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK].choked = true;
 				cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK].receivedtime = -2.0;
-				break;
+				break;*/
 
 			case svc_resourcelist:
 				MSG_StartBitWriting (msg);
@@ -820,7 +839,9 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				CL_ParseNewMovevars (msg);
 				break;
 
-			case svc_resourcerequest:
+
+			// [FWGS, 05.04.26]
+			/*case svc_resourcerequest:
 				CL_ParseResourceRequest (msg);
 				break;
 
@@ -855,7 +876,7 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 
 			case svc_resourcelocation:
 				CL_ParseResLocation (msg);
-				break;
+				break;*/
 
 			case svc_goldsrc_sendextrainfo:
 				CL_ParseExtraInfo (msg);
@@ -868,7 +889,8 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				MSG_ReadFloat (msg);
 				break;
 
-			// [FWGS, 25.12.24]
+			// [FWGS, 05.04.26]
+			/*// [FWGS, 25.12.24]
 			case svc_querycvarvalue:
 				CL_ParseCvarValue (msg, false, PROTO_GOLDSRC);
 				break;
@@ -880,7 +902,7 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 
 			case svc_exec:
 				CL_ParseExec (msg);
-				break;
+				break;*/
 
 			// [FWGS, 01.03.26]
 			default:

@@ -19,6 +19,9 @@ GNU General Public License for more details
 #include "net_encode.h"
 #include "net_api.h"
 
+// [FWGS, 05.04.26] challenges are valid for two consecutive windows of this size (max lifetime ~10s)
+#define CHALLENGE_WINDOW_SECONDS	5
+
 // [FWGS, 01.11.25]
 typedef struct ucmd_s
 	{
@@ -62,16 +65,17 @@ void SV_GetPlayerCount (int *players, int *bots)
 
 /***
 =================
-SV_GetChallenge [FWGS, 01.03.25]
+SV_GetChallenge [FWGS, 05.04.25]
 
 Returns a challenge number that can be used
 in a subsequent client_connect command.
 We do this to prevent denial of service attacks that
-flood the server with invalid connection IPs.  With a
-challenge, they must give a valid IP address.
+flood the server with invalid connection IPs. With a
+challenge, they must give a valid IP address
 =================
 ***/
-static int SV_GetChallenge (netadr_t from, qboolean *error)
+/*static int SV_GetChallenge (netadr_t from, qboolean *error)*/
+static int SV_GetChallenge (netadr_t from, uint32_t time_window, qboolean *error)
 	{
 	const netadrtype_t	type = NET_NetadrType (&from);
 	MD5Context_t		ctx;
@@ -107,17 +111,19 @@ static int SV_GetChallenge (netadr_t from, qboolean *error)
 		}
 
 	MD5Update (&ctx, (byte *)svs.challenge_salt, sizeof (svs.challenge_salt));
+	MD5Update (&ctx, (byte *)&time_window, sizeof (time_window));
 	MD5Final (digest, &ctx);
 
 	return digest[0] | (digest[1] << 8) | (digest[2] << 16) | (digest[3] << 24);
 	}
 
-// [FWGS, 01.11.25]
-/*static void SV_SendChallenge (netadr_t from)*/
+// [FWGS, 05.04.26]
 static void SV_SendChallenge (netadr_t from, qboolean skip_bandwidth_test)
 	{
-	qboolean error = false;
-	int challenge = SV_GetChallenge (from, &error);
+	qboolean	error = false;
+	/*int challenge = SV_GetChallenge (from, &error);*/
+	uint32_t	time_window = (uint32_t)(host.realtime / CHALLENGE_WINDOW_SECONDS);
+	int			challenge = SV_GetChallenge (from, time_window, &error);
 
 	if (error)
 		return;
@@ -213,7 +219,7 @@ static void SV_FailDownload (sv_client_t *cl, const char *filename)
 
 /***
 ================
-SV_CheckChallenge [FWGS, 01.03.25]
+SV_CheckChallenge [FWGS, 05.04.26]
 
 Make sure connecting client is not spoofing
 ================
@@ -221,15 +227,25 @@ Make sure connecting client is not spoofing
 static int SV_CheckChallenge (netadr_t from, int challenge)
 	{
 	qboolean	error = false;
-	int			challenge2 = SV_GetChallenge (from, &error);
+	/*int			challenge2 = SV_GetChallenge (from, &error);*/
+	uint32_t	time_window = (uint32_t)(host.realtime / CHALLENGE_WINDOW_SECONDS);
 
-	if (error || (challenge2 != challenge))
+	/*if (error || (challenge2 != challenge))
 		{
 		SV_RejectConnection (from, "no challenge for your address\n");
 		return false;
-		}
+		}*/
+	// accept the current window and the previous one so challenges issued just
+	// before a window boundary remain valid for the full expected lifetime
+	if ((SV_GetChallenge (from, time_window, &error) == challenge) && !error)
+		return true;
 
-	return true;
+	/*return true;*/
+	if ((SV_GetChallenge (from, time_window - 1, &error) == challenge) && !error)
+		return true;
+
+	SV_RejectConnection (from, "no challenge for your address\n");
+	return false;
 	}
 
 /***
@@ -424,7 +440,9 @@ static void SV_ConnectClient (netadr_t from)
 	newcl->pViewEntity = viewent;
 	}
 
-	newcl->edict = EDICT_NUM ((newcl - svs.clients) + 1);
+	// [FWGS, 05.04.26]
+	/*newcl->edict = EDICT_NUM ((newcl - svs.clients) + 1);*/
+	newcl->edict = SV_EdictNum ((newcl - svs.clients) + 1);
 	newcl->frames = frames;
 
 	// [FWGS, 01.06.25]
@@ -516,8 +534,10 @@ edict_t *GAME_EXPORT SV_FakeConnect (const char *netname)
 	SV_ClearResourceLists (cl);
 	memset (cl, 0, sizeof (*cl));
 
+	// [FWGS, 05.04.26]
 	cl->state = cs_spawned;
-	cl->edict = EDICT_NUM ((cl - svs.clients) + 1);
+	/*cl->edict = EDICT_NUM ((cl - svs.clients) + 1);*/
+	cl->edict = SV_EdictNum ((cl - svs.clients) + 1);
 	cl->userid = g_userid++; // create unique userid
 
 	SetBits (cl->flags, FCL_FAKECLIENT);
@@ -1316,11 +1336,14 @@ void SV_FullClientUpdate (sv_client_t *cl, sizebuf_t *msg)
 		}
 	}
 
-/***
+// [FWGS, 05.04.26] removed SV_RefreshUserinfo
+
+/*
+/
 ===================
 SV_RefreshUserinfo
 ===================
-***/
+/
 void SV_RefreshUserinfo (void)
 	{
 	sv_client_t	*cl;
@@ -1331,7 +1354,7 @@ void SV_RefreshUserinfo (void)
 		if (cl->state >= cs_connected)
 			SetBits (cl->flags, FCL_RESEND_USERINFO);
 		}
-	}
+	}*/
 
 /***
 ===================
@@ -1472,14 +1495,16 @@ static void SV_PutClientInServer (sv_client_t *cl)
 		else 
 			ent->v.flags = 0;
 
-		ent->v.netname = MAKE_STRING (cl->name);
-		ent->v.colormap = NUM_FOR_EDICT (ent);
+		// [FWGS, 05.04.26]
+		/*ent->v.netname = MAKE_STRING (cl->name);*/
+		ent->v.netname = SV_MakeString (cl->name);
+		ent->v.colormap = NUM_FOR_EDICT (ent);	// ?
 
 		// fisrt entering
 		svgame.globals->time = sv.time;
 		svgame.dllFuncs.pfnClientPutInServer (ent);
 
-		if (sv.background)		// don't attack player in background mode
+		if (sv.background)	// don't attack player in background mode
 			SetBits (ent->v.flags, FL_GODMODE | FL_NOTARGET);
 
 		cl->pViewEntity = NULL;	// reset pViewEntity
@@ -1629,7 +1654,10 @@ void SV_SendServerdata (sizebuf_t *msg, sv_client_t *cl)
 	MSG_WriteWord (msg, GI->max_edicts);
 	MSG_WriteWord (msg, MAX_MODELS);
 	MSG_WriteString (msg, sv.name);
-	MSG_WriteString (msg, STRING (svgame.edicts->v.message)); // Map Message
+
+	// [FWGS, 05.04.26]
+	/*MSG_WriteString (msg, STRING (svgame.edicts->v.message)); // Map Message*/
+	MSG_WriteString (msg, SV_GetString (svgame.edicts->v.message)); // Map Message
 	MSG_WriteOneBit (msg, sv.background); // tell client about background map
 	MSG_WriteString (msg, GI->gamefolder);
 	MSG_WriteLong (msg, host.features);
@@ -1877,7 +1905,7 @@ static double SV_CheckRate (double rate)
 
 /***
 =================
-SV_UserinfoChanged [FWGS, 01.03.26]
+SV_UserinfoChanged [FWGS, 05.04.26]
 
 Pull specific info from a newly changed userinfo string
 into a more C freindly form
@@ -2007,7 +2035,8 @@ static void SV_UserinfoChanged (sv_client_t *cl)
 	/*val = Info_ValueForKey (cl->userinfo, "name");
 	Q_strncpy (cl->name, val, sizeof (cl->name));*/
 	Q_strncpy (cl->name, Info_ValueForKey (cl->userinfo, "name"), sizeof (cl->name));
-	ent->v.netname = MAKE_STRING (cl->name);
+	/*ent->v.netname = MAKE_STRING (cl->name);*/
+	ent->v.netname = SV_MakeString (cl->name);
 	}
 
 // [FWGS, 01.04.25] removed SV_UpdateUserinfo_f
@@ -2403,7 +2432,9 @@ SV_GetCrossEnt
 ***/
 static edict_t *SV_GetCrossEnt (edict_t *player)
 	{
-	edict_t	*ent = EDICT_NUM (1);
+	// [FWGS, 05.04.26]
+	/*edict_t	*ent = EDICT_NUM (1);*/
+	edict_t	*ent = SV_EdictNum (1);
 	edict_t	*closest = NULL;
 	float	flMaxDot = 0.94;
 	vec3_t	forward;
@@ -2536,7 +2567,9 @@ static edict_t *SV_EntFindSingle (sv_client_t *cl, const char *pattern)
 		if (i >= svgame.numEntities)
 			return NULL;
 
-		ent = EDICT_NUM (i);
+		// [FWGS, 05.04.26]
+		/*ent = EDICT_NUM (i);*/
+		ent = SV_EdictNum (i);
 
 		if (ent->serialnumber != Q_atoi (p))
 			return NULL;
@@ -2545,17 +2578,20 @@ static edict_t *SV_EntFindSingle (sv_client_t *cl, const char *pattern)
 		{
 		for (i = svgame.globals->maxClients + 1; i < svgame.numEntities; i++)
 			{
-			ent = EDICT_NUM (i);
+			/*ent = EDICT_NUM (i);*/
+			ent = SV_EdictNum (i);
 
 			if (!SV_IsValidEdict (ent))
 				continue;
 
-			if (Q_stricmpext (pattern, STRING (ent->v.targetname)))
+			/*if (Q_stricmpext (pattern, STRING (ent->v.targetname)))*/
+			if (Q_stricmpext (pattern, SV_GetString (ent->v.targetname)))
 				break;
 			}
 		}
 
-	ent = EDICT_NUM (i);
+	/*ent = EDICT_NUM (i);*/
+	ent = SV_EdictNum (i);
 
 	if (!SV_IsValidEdict (ent))
 		return NULL;
@@ -2576,17 +2612,21 @@ static qboolean SV_EntList_f (sv_client_t *cl)
 	edict_t	*ent = NULL;
 	int		i;
 
+	// [FWGS, 05.04.26]
 	for (i = 0; i < svgame.numEntities; i++)
 		{
-		ent = EDICT_NUM (i);
+		/*ent = EDICT_NUM (i);*/
+		ent = SV_EdictNum (i);
 		if (!SV_IsValidEdict (ent))
 			continue;
 
 		// filter by string
 		if (Cmd_Argc () > 1)
 			{
-			if (!Q_stricmpext (Cmd_Argv (1), STRING (ent->v.classname)) && !Q_stricmpext (Cmd_Argv (1), 
-				STRING (ent->v.targetname)))
+			/*if (!Q_stricmpext (Cmd_Argv (1), STRING (ent->v.classname)) && !Q_stricmpext (Cmd_Argv (1), 
+				STRING (ent->v.targetname)))*/
+			if (!Q_stricmpext (Cmd_Argv (1), SV_GetString (ent->v.classname)) &&
+				!Q_stricmpext (Cmd_Argv (1), SV_GetString (ent->v.targetname)))
 				continue;
 			}
 
@@ -2597,19 +2637,24 @@ static qboolean SV_EntList_f (sv_client_t *cl)
 		SV_ClientPrintf (cl, "%5i borigin: %.f %.f %.f", i, borigin[0], borigin[1], borigin[2]);
 
 		if (ent->v.classname)
-			SV_ClientPrintf (cl, ", class: %s", STRING (ent->v.classname));
+			/*SV_ClientPrintf (cl, ", class: %s", STRING (ent->v.classname));*/
+			SV_ClientPrintf (cl, ", class: %s", SV_GetString (ent->v.classname));
 
 		if (ent->v.globalname)
-			SV_ClientPrintf (cl, ", global: %s", STRING (ent->v.globalname));
+			/*SV_ClientPrintf (cl, ", global: %s", STRING (ent->v.globalname));*/
+			SV_ClientPrintf (cl, ", global: %s", SV_GetString (ent->v.globalname));
 
 		if (ent->v.targetname)
-			SV_ClientPrintf (cl, ", name: %s", STRING (ent->v.targetname));
+			/*SV_ClientPrintf (cl, ", name: %s", STRING (ent->v.targetname));*/
+			SV_ClientPrintf (cl, ", name: %s", SV_GetString (ent->v.targetname));
 
 		if (ent->v.target)
-			SV_ClientPrintf (cl, ", target: %s", STRING (ent->v.target));
+			/*SV_ClientPrintf (cl, ", target: %s", STRING (ent->v.target));*/
+			SV_ClientPrintf (cl, ", target: %s", SV_GetString (ent->v.target));
 
 		if (ent->v.model)
-			SV_ClientPrintf (cl, ", model: %s", STRING (ent->v.model));
+			/*SV_ClientPrintf (cl, ", model: %s", STRING (ent->v.model));*/
+			SV_ClientPrintf (cl, ", model: %s", SV_GetString (ent->v.model));
 
 		SV_ClientPrintf (cl, "\n");
 		}
@@ -2647,20 +2692,26 @@ static qboolean SV_EntInfo_f (sv_client_t *cl)
 	SV_ClientPrintf (cl, "angles: %.f %.f %.f\n", ent->v.angles[0], ent->v.angles[1], ent->v.angles[2]);
 	SV_ClientPrintf (cl, "borigin: %.f %.f %.f\n", borigin[0], borigin[1], borigin[2]);
 
+	// [FWGS, 05.04.26]
 	if (ent->v.classname)
-		SV_ClientPrintf (cl, "class: %s\n", STRING (ent->v.classname));
+		/*SV_ClientPrintf (cl, "class: %s\n", STRING (ent->v.classname));*/
+		SV_ClientPrintf (cl, "class: %s\n", SV_GetString (ent->v.classname));
 
 	if (ent->v.globalname)
-		SV_ClientPrintf (cl, "global: %s\n", STRING (ent->v.globalname));
+		/*SV_ClientPrintf (cl, "global: %s\n", STRING (ent->v.globalname));*/
+		SV_ClientPrintf (cl, "global: %s\n", SV_GetString (ent->v.globalname));
 
 	if (ent->v.targetname)
-		SV_ClientPrintf (cl, "name: %s\n", STRING (ent->v.targetname));
+		/*SV_ClientPrintf (cl, "name: %s\n", STRING (ent->v.targetname));*/
+		SV_ClientPrintf (cl, "name: %s\n", SV_GetString (ent->v.targetname));
 
 	if (ent->v.target)
-		SV_ClientPrintf (cl, "target: %s\n", STRING (ent->v.target));
+		/*SV_ClientPrintf (cl, "target: %s\n", STRING (ent->v.target));*/
+		SV_ClientPrintf (cl, "target: %s\n", SV_GetString (ent->v.target));
 
 	if (ent->v.model)
-		SV_ClientPrintf (cl, "model: %s\n", STRING (ent->v.model));
+		/*SV_ClientPrintf (cl, "model: %s\n", STRING (ent->v.model));*/
+		SV_ClientPrintf (cl, "model: %s\n", SV_GetString (ent->v.model));
 
 	SV_ClientPrintf (cl, "health: %.f\n", ent->v.health);
 
@@ -2709,7 +2760,9 @@ static qboolean SV_EntFire_f (sv_client_t *cl)
 		if ((i < 0) || (i >= svgame.numEntities))
 			return false;
 
-		ent = EDICT_NUM (i);
+		// [FWGS, 05.04.26]
+		/*ent = EDICT_NUM (i);*/
+		ent = SV_EdictNum (i);
 		}
 	else if ((single = !Q_stricmp (Cmd_Argv (1), "!cross")))
 		{
@@ -2733,7 +2786,9 @@ static qboolean SV_EntFire_f (sv_client_t *cl)
 		if ((i < 0) || (i >= svgame.numEntities))
 			return false;
 
-		ent = EDICT_NUM (i);
+		// [FWGS, 05.04.26]
+		/*ent = EDICT_NUM (i);*/
+		ent = SV_EdictNum (i);
 		if (ent->serialnumber != Q_atoi (cmd))
 			return false;
 		}
@@ -2744,7 +2799,9 @@ static qboolean SV_EntFire_f (sv_client_t *cl)
 
 	for (; (i < svgame.numEntities) && (count < sv_enttools_maxfire.value); i++)
 		{
-		ent = EDICT_NUM (i);
+		// [FWGS, 05.04.26]
+		/*ent = EDICT_NUM (i);*/
+		ent = SV_EdictNum (i);
 		if (!SV_IsValidEdict (ent))
 			{
 			if (single)
@@ -2752,11 +2809,13 @@ static qboolean SV_EntFire_f (sv_client_t *cl)
 			continue;
 			}
 
-		// if user specified not a number, try find such entity
+		// [FWGS, 05.04.26] if user specified not a number, try find such entity
 		if (!single)
 			{
-			if (!Q_stricmpext (Cmd_Argv (1), STRING (ent->v.targetname)) && 
-				!Q_stricmpext (Cmd_Argv (1), STRING (ent->v.classname)))
+			/*if (!Q_stricmpext (Cmd_Argv (1), STRING (ent->v.targetname)) && 
+				!Q_stricmpext (Cmd_Argv (1), STRING (ent->v.classname)))*/
+			if (!Q_stricmpext (Cmd_Argv (1), SV_GetString (ent->v.targetname)) &&
+				!Q_stricmpext (Cmd_Argv (1), SV_GetString (ent->v.classname)))
 				continue;
 			}
 
@@ -2784,14 +2843,18 @@ static qboolean SV_EntFire_f (sv_client_t *cl)
 			ent->v.solid = Q_atoi (Cmd_Argv (3));
 			}
 
+		// [FWGS, 05.04.26]
 		else if (!Q_stricmp (Cmd_Argv (2), "rename"))
 			{
-			ent->v.targetname = ALLOC_STRING (Cmd_Argv (3));
+			/*ent->v.targetname = ALLOC_STRING (Cmd_Argv (3));*/
+			ent->v.targetname = SV_AllocString (Cmd_Argv (3));
 			}
 
+		// [FWGS, 05.04.26]
 		else if (!Q_stricmp (Cmd_Argv (2), "settarget"))
 			{
-			ent->v.target = ALLOC_STRING (Cmd_Argv (3));
+			/*ent->v.target = ALLOC_STRING (Cmd_Argv (3));*/
+			ent->v.target = SV_AllocString (Cmd_Argv (3));
 			}
 
 		else if (!Q_stricmp (Cmd_Argv (2), "setmodel"))
@@ -2807,7 +2870,9 @@ static qboolean SV_EntFire_f (sv_client_t *cl)
 			if (Cmd_Argc () != 5)
 				return false;
 
-			pkvd.szClassName = (char *)STRING (ent->v.classname);
+			// [FWGS, 05.04.26]
+			/*pkvd.szClassName = (char *)STRING (ent->v.classname);*/
+			pkvd.szClassName = (char *)SV_GetString (ent->v.classname);
 			Q_strncpy (keyname, Cmd_Argv (3), sizeof (keyname));
 			Q_strncpy (value, Cmd_Argv (4), sizeof (value));
 			pkvd.szKeyName = keyname;
@@ -3029,8 +3094,10 @@ static void SV_EntSendVars (sv_client_t *cl, edict_t *ent)
 	if (!ent)
 		return;
 
+	// [FWGS, 05.04.26]
 	MSG_WriteByte (&cl->netchan.message, svc_stufftext);
-	MSG_WriteStringf (&cl->netchan.message, "set ent_last_name \"%s\"\n", STRING (ent->v.targetname));
+	/*MSG_WriteStringf (&cl->netchan.message, "set ent_last_name \"%s\"\n", STRING (ent->v.targetname));*/
+	MSG_WriteStringf (&cl->netchan.message, "set ent_last_name \"%s\"\n", SV_GetString (ent->v.targetname));
 	MSG_WriteByte (&cl->netchan.message, svc_stufftext);
 	MSG_WriteStringf (&cl->netchan.message, "set ent_last_num %i\n", NUM_FOR_EDICT (ent));
 	MSG_WriteByte (&cl->netchan.message, svc_stufftext);
@@ -3039,7 +3106,8 @@ static void SV_EntSendVars (sv_client_t *cl, edict_t *ent)
 	MSG_WriteStringf (&cl->netchan.message, "set ent_last_origin \"%f %f %f\"\n", ent->v.origin[0], 
 		ent->v.origin[1], ent->v.origin[2]);
 	MSG_WriteByte (&cl->netchan.message, svc_stufftext);
-	MSG_WriteStringf (&cl->netchan.message, "set ent_last_class \"%s\"\n", STRING (ent->v.classname));
+	/*MSG_WriteStringf (&cl->netchan.message, "set ent_last_class \"%s\"\n", STRING (ent->v.classname));*/
+	MSG_WriteStringf (&cl->netchan.message, "set ent_last_class \"%s\"\n", SV_GetString (ent->v.classname));
 	MSG_WriteByte (&cl->netchan.message, svc_stufftext);
 	MSG_WriteString (&cl->netchan.message, "ent_getvars_cb\n"); // why do we need this?
 	}
@@ -3063,7 +3131,9 @@ static qboolean SV_EntCreate_f (sv_client_t *cl)
 		return false;
 		}
 
-	classname = ALLOC_STRING (Cmd_Argv (1));
+	// [FWGS, 05.04.26]
+	/*classname = ALLOC_STRING (Cmd_Argv (1));*/
+	classname = SV_AllocString (Cmd_Argv (1));
 	ent = SV_CreateNamedEntity (0, classname);
 
 	// Xash3D extension
@@ -3071,7 +3141,10 @@ static qboolean SV_EntCreate_f (sv_client_t *cl)
 		{
 		ent = SV_AllocEdict ();
 		ent->v.classname = classname;
-		if (svgame.physFuncs.SV_CreateEntity (ent, (char *)STRING (classname)) == -1)
+
+		// [FWGS, 05.04.26]
+		/*if (svgame.physFuncs.SV_CreateEntity (ent, (char *)STRING (classname)) == -1)*/
+		if (svgame.physFuncs.SV_CreateEntity (ent, (char *)SV_GetString (classname)) == -1)
 			{
 			if (ent && !ent->free)
 				SV_FreeEdict (ent);
@@ -3124,10 +3197,12 @@ static qboolean SV_EntCreate_f (sv_client_t *cl)
 			if (!Q_strcmp (Cmd_Argv (i), "|"))
 				break;
 
+			// [FWGS, 05.04.26]
 			Q_strncpy (keyname, Cmd_Argv (i++), sizeof (keyname));
 			Q_strncpy (value, Cmd_Argv (i), sizeof (value));
 			pkvd.fHandled = false;
-			pkvd.szClassName = (char *)STRING (ent->v.classname);
+			/*pkvd.szClassName = (char *)STRING (ent->v.classname);*/
+			pkvd.szClassName = (char *)SV_GetString (ent->v.classname);
 			pkvd.szKeyName = keyname;
 			pkvd.szValue = value;
 			svgame.dllFuncs.pfnKeyValue (ent, &pkvd);
@@ -3148,26 +3223,32 @@ static qboolean SV_EntCreate_f (sv_client_t *cl)
 			char c = Q_tolower (cl->name[j]);
 			if ((c < 'a') || (c > 'z'))
 				c = '_';
+
 			if (!cl->name[j])
 				{
 				clientname[j] = 0;
 				break;
 				}
+
 			clientname[j] = c;
 			}
 
 		// generate name based on nick name and index
 		Q_snprintf (newname, sizeof (newname), "%s_%i_e%i", clientname, cl->userid, NUM_FOR_EDICT (ent));
 
-		// i know, it may break strict aliasing rules
+		// [FWGS, 05.04.26] i know, it may break strict aliasing rules
 		// but we will not lose anything in this case
 		Q_strnlwr (newname, newname, sizeof (newname));
-		ent->v.targetname = ALLOC_STRING (newname);
+		/*ent->v.targetname = ALLOC_STRING (newname);*/
+		ent->v.targetname = SV_AllocString (newname);
 		SV_EntSendVars (cl, ent);
 		}
 
-	SV_ClientPrintf (cl, "Created %i: %s, targetname %s\n", NUM_FOR_EDICT (ent), Cmd_Argv (1), 
-		STRING (ent->v.targetname));
+	// [FWGS, 05.04.26]
+	/*SV_ClientPrintf (cl, "Created %i: %s, targetname %s\n", NUM_FOR_EDICT (ent), Cmd_Argv (1), 
+		STRING (ent->v.targetname));*/
+	SV_ClientPrintf (cl, "Created %i: %s, targetname %s\n", NUM_FOR_EDICT (ent), Cmd_Argv (1),
+		SV_GetString (ent->v.targetname));
 
 	if (svgame.dllFuncs.pfnSpawn)
 		svgame.dllFuncs.pfnSpawn (ent);
@@ -3188,10 +3269,12 @@ static qboolean SV_EntCreate_f (sv_client_t *cl)
 			string value;
 			KeyValueData pkvd;
 
+			// [FWGS, 05.04.26]
 			Q_strncpy (keyname, Cmd_Argv (i++), sizeof (keyname));
 			Q_strncpy (value, Cmd_Argv (i), sizeof (value));
 			pkvd.fHandled = false;
-			pkvd.szClassName = (char *)STRING (ent->v.classname);
+			/*pkvd.szClassName = (char *)STRING (ent->v.classname);*/
+			pkvd.szClassName = (char *)SV_GetString (ent->v.classname);
 			pkvd.szKeyName = keyname;
 			pkvd.szValue = value;
 			svgame.dllFuncs.pfnKeyValue (ent, &pkvd);

@@ -777,9 +777,9 @@ void Test_RunImagelib (void)
 	Z_Free (rgb.buffer);
 	}
 
-// [FWGS, 01.02.24]
+// [FWGS, 05.04.26]
 #define IMPLEMENT_IMAGELIB_FUZZ_TARGET( export, target ) \
-int export( const uint8_t *Data, size_t Size ); \
+int HLEXPORT export( const uint8_t *Data, size_t Size ); \
 int HLEXPORT export( const uint8_t *Data, size_t Size ) \
 	{ \
 	rgbdata_t *rgb; \

@@ -84,7 +84,8 @@ static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_
 		// setup hostflags
 		if (FBitSet (cl->flags, FCL_LOCAL_WEAPONS))
 			SetBits (sv.hostflags, SVF_SKIPLOCALHOST);
-		else ClearBits (sv.hostflags, SVF_SKIPLOCALHOST);
+		else
+			ClearBits (sv.hostflags, SVF_SKIPLOCALHOST);
 
 		// reset viewents each frame
 		cl->num_viewents = 0;
@@ -93,11 +94,12 @@ static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_
 	svgame.dllFuncs.pfnSetupVisibility (pViewEnt, pClient, &clientpvs, &clientphs);
 	if (!clientpvs) fullvis = true;
 
-	// g-cont: of course we can send world but not want to do it :-)
+	// [FWGS, 05.04.26] g-cont: of course we can send world but not want to do it :-)
 	for (e = 1; e < svgame.numEntities; e++)
 		{
 		byte *pset;
-		ent = EDICT_NUM (e);
+		/*ent = EDICT_NUM (e);*/
+		ent = SV_EdictNum (e);
 
 		// don't double add an entity through portals (in case this already added)
 		if (CHECKVISBIT (ents->sended, e))
@@ -321,8 +323,10 @@ static void SV_EmitPacketEntities (sv_client_t *cl, client_frame_t *to, sizebuf_
 
 		if (newnum < oldnum)
 			{
+			// [FWGS, 05.04.26]
 			entity_state_t *baseline = &svs.baselines[newnum];
-			const char *classname = SV_ClassName (EDICT_NUM (newnum));
+			/*const char *classname = SV_ClassName (EDICT_NUM (newnum));*/
+			const char *classname = SV_ClassName (SV_EdictNum (newnum));
 			int		offset = 0;
 
 			// [FWGS, 25.12.24] trying to reduce message by select optimal baseline
@@ -351,7 +355,9 @@ static void SV_EmitPacketEntities (sv_client_t *cl, client_frame_t *to, sizebuf_
 
 		if (newnum > oldnum)
 			{
-			edict_t *ed = EDICT_NUM (oldent->number);
+			// [FWGS, 05.04.26]
+			/*edict_t *ed = EDICT_NUM (oldent->number);*/
+			edict_t		*ed = SV_EdictNum (oldent->number);
 			qboolean	force = false;
 
 			// check if entity completely removed from server

@@ -276,7 +276,7 @@ void SDLash_HandleGameControllerEvent (SDL_Event *ev)
 		case SDL_CONTROLLERAXISMOTION:
 			SDLash_SetActiveGameController (ev->caxis.which);
 			x = ev->caxis.axis;
-			if ((x >= 0) && (x < ARRAYSIZE (g_axis_mapping)))
+			if ((x >= 0) && (x < HLARRAYSIZE (g_axis_mapping)))
 				Joy_AxisMotionEvent (g_axis_mapping[x], ev->caxis.value);
 			break;
 
@@ -284,7 +284,7 @@ void SDLash_HandleGameControllerEvent (SDL_Event *ev)
 		case SDL_CONTROLLERBUTTONUP:
 			SDLash_SetActiveGameController (ev->cbutton.which);
 			x = ev->cbutton.button;
-			if ((x >= 0) && (x < ARRAYSIZE (g_button_mapping)))
+			if ((x >= 0) && (x < HLARRAYSIZE (g_button_mapping)))
 				Key_Event (g_button_mapping[x], ev->cbutton.state);
 			break;
 

@@ -509,7 +509,7 @@ enable polygon offset and push it onto the stack
 ***/
 void GL_PushPolygonOffset (float factor, float units)
 	{
-	if (glState.num_polyoffsets >= ARRAYSIZE (glState.polyoffset_state))
+	if (glState.num_polyoffsets >= HLARRAYSIZE (glState.polyoffset_state))
 		{
 		gEngfuncs.Con_Reportf ("%s: overflow\n", __func__);
 		return;

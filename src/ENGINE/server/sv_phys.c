@@ -86,7 +86,9 @@ static void SV_CheckAllEnts (void)
 	// check edicts errors
 	for (i = svs.maxclients + 1; i < svgame.numEntities; i++)
 		{
-		e = EDICT_NUM (i);
+		// [FWGS, 05.04.26]
+		/*e = EDICT_NUM (i);*/
+		e = SV_EdictNum (i);
 
 		if (e->free && (e->pvPrivateData != NULL))
 			{
@@ -124,35 +126,45 @@ void SV_CheckVelocity (edict_t *ent)
 	{
 	float	wishspd;
 	float	maxspd;
-	int	i;
+	int		i;
 
 	// bound velocity
 	for (i = 0; i < 3; i++)
 		{
 		if (IS_NAN (ent->v.velocity[i]))
 			{
+			// [FWGS, 05.04.26]
 			if (sv_check_errors.value)
-				Con_Printf ("Got a NaN velocity on %s\n", STRING (ent->v.classname));
+				/*Con_Printf ("Got a NaN velocity on %s\n", STRING (ent->v.classname));*/
+				Con_Printf ("Got a NaN velocity on %s\n", SV_GetString (ent->v.classname));
+
 			ent->v.velocity[i] = 0.0f;
 			}
 
 		if (IS_NAN (ent->v.origin[i]))
 			{
+			// [FWGS, 05.04.26]
 			if (sv_check_errors.value)
-				Con_Printf ("Got a NaN origin on %s\n", STRING (ent->v.classname));
+				/*Con_Printf ("Got a NaN origin on %s\n", STRING (ent->v.classname));*/
+				Con_Printf ("Got a NaN origin on %s\n", SV_GetString (ent->v.classname));
+
 			ent->v.origin[i] = 0.0f;
 			}
 		}
 
 	wishspd = DotProduct (ent->v.velocity, ent->v.velocity);
-	maxspd = sv_maxvelocity.value * sv_maxvelocity.value * 1.73f; // half-diagonal
+	maxspd = sv_maxvelocity.value * sv_maxvelocity.value * 1.73f;	// half-diagonal
 
 	if (wishspd > maxspd)
 		{
+		// [FWGS, 05.04.26]
 		wishspd = sqrt (wishspd);
 		if (sv_check_errors.value)
-			Con_Printf ("Got a velocity too high on %s ( %.2f > %.2f )\n", STRING (ent->v.classname),
+			/*Con_Printf ("Got a velocity too high on %s ( %.2f > %.2f )\n", STRING (ent->v.classname),
+				wishspd, sqrt (maxspd));*/
+			Con_Printf ("Got a velocity too high on %s ( %.2f > %.2f )\n", SV_GetString (ent->v.classname),
 				wishspd, sqrt (maxspd));
+
 		wishspd = sv_maxvelocity.value / wishspd;
 		VectorScale (ent->v.velocity, wishspd, ent->v.velocity);
 		}
@@ -950,8 +962,12 @@ static edict_t *SV_PushMove (edict_t *pusher, float movetime)
 
 	for (e = 1; e < svgame.numEntities; e++)
 		{
-		check = EDICT_NUM (e);
-		if (!SV_IsValidEdict (check)) continue;
+		// [FWGS, 05.04.26]
+		/*check = EDICT_NUM (e);*/
+		check = SV_EdictNum (e);
+
+		if (!SV_IsValidEdict (check))
+			continue;
 
 		// filter movetypes to collide with
 		if (!SV_CanPushed (check))
@@ -1067,7 +1083,10 @@ static edict_t *SV_PushRotate (edict_t *pusher, float movetime)
 	// see if any solid entities are inside the final position
 	for (e = 1; e < svgame.numEntities; e++)
 		{
-		check = EDICT_NUM (e);
+		// [FWGS, 05.04.26]
+		/*check = EDICT_NUM (e);*/
+		check = SV_EdictNum (e);
+
 		if (!SV_IsValidEdict (check))
 			continue;
 
@@ -1078,7 +1097,8 @@ static edict_t *SV_PushRotate (edict_t *pusher, float movetime)
 		pusher->v.solid = SOLID_NOT;
 		block = SV_TestEntityPosition (check, pusher);
 		pusher->v.solid = oldsolid;
-		if (block) continue;
+		if (block)
+			continue;
 
 		// if the entity is standing on the pusher, it will definately be moved
 		if (!((check->v.flags & FL_ONGROUND) && check->v.groundentity == pusher))
@@ -1847,7 +1867,7 @@ SV_Physics
 ***/
 void SV_Physics (void)
 	{
-	edict_t *ent;
+	edict_t	*ent;
 	int    	i;
 
 	SV_CheckAllEnts ();
@@ -1860,7 +1880,9 @@ void SV_Physics (void)
 	// treat each object in turn
 	for (i = 0; i < svgame.numEntities; i++)
 		{
-		ent = EDICT_NUM (i);
+		// [FWGS, 05.04.26]
+		/*ent = EDICT_NUM (i);*/
+		ent = SV_EdictNum (i);
 
 		if (!SV_IsValidEdict (ent))
 			continue;
@@ -1883,10 +1905,11 @@ void SV_Physics (void)
 	// increase framecount
 	sv.framecount++;
 
-	// [FWGS, 01.02.24] figure out why this causes memory corruption
+	// [FWGS, 05.04.26] figure out why this causes memory corruption
 #if 0 
 	// decrement svgame.numEntities if the highest number entities died
-	for (; (ent = EDICT_NUM (svgame.numEntities - 1)) && ent->free; svgame.numEntities--);
+	/*for (; (ent = EDICT_NUM (svgame.numEntities - 1)) && ent->free; svgame.numEntities--);*/
+	for (; (ent = SV_EdictNum (svgame.numEntities - 1)) && ent->free; svgame.numEntities--);
 #endif
 	}
 

@@ -210,21 +210,23 @@ void UI_ShowConnectionWarning (void)
 		}
 	}
 
+// [FWGS, 05.04.26] removed UI_ShowUpdateDialog
 
-/***
+/*
+/
 =================
 UI_ShowConnectionWarning
 
 show update dialog
 =================
-***/
+/
 void UI_ShowUpdateDialog (qboolean preferStore)
 	{
 	if (gameui.dllFuncs2.pfnShowUpdateDialog)
 		gameui.dllFuncs2.pfnShowUpdateDialog (preferStore);
 
 	Con_Printf (S_WARN "This version is not supported anymore. To continue, install latest engine version\n");
-	}
+	}*/
 
 /***
 =================
@@ -1365,6 +1367,7 @@ void UI_UnloadProgs (void)
 
 qboolean UI_LoadProgs (void)
 	{
+	// [FWGS, 05.04.26]
 	static ui_enginefuncs_t		gpEngfuncs;
 	static ui_extendedfuncs_t	gpExtendedfuncs;
 	static ui_globalvars_t		gpGlobals;
@@ -1372,7 +1375,7 @@ qboolean UI_LoadProgs (void)
 	UITEXTAPI		GiveTextApi;
 	MENUAPI			GetMenuAPI;
 	string			dllpath;
-	int				i;
+	/*int				i;*/
 
 	if (gameui.hInstance)
 		UI_UnloadProgs ();

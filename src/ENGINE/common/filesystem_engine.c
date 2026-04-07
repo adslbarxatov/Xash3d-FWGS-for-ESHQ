@@ -378,16 +378,16 @@ static qboolean FS_DetermineReadOnlyRootDirectory (char *out, size_t size)
 
 /***
 ================
-FS_Init
+FS_Init [FWGS, 05.04.26]
 ================
 ***/
-void FS_Init (const char *basedir)
+/*void FS_Init (const char *basedir)*/
+void FS_Init (void)
 	{
 	string	gamedir;
 	char	rodir[MAX_OSPATH], rootdir[MAX_OSPATH];
 	rodir[0] = rootdir[0] = 0;
 
-	// [FWGS, 01.03.26]
 	/*if (!FS_DetermineRootDirectory (rootdir, sizeof (rootdir)) || !COM_CheckStringEmpty (rootdir))*/
 	if (!FS_DetermineRootDirectory (rootdir, sizeof (rootdir)) || COM_StringEmpty (rootdir))
 		{
@@ -408,7 +408,8 @@ void FS_Init (const char *basedir)
 		if (env)
 			Q_strncpy (gamedir, env, sizeof (gamedir));
 		else
-			Q_strncpy (gamedir, basedir, sizeof (gamedir)); // gamedir == basedir
+			/*Q_strncpy (gamedir, basedir, sizeof (gamedir)); // gamedir == basedir*/
+			Q_strncpy (gamedir, host.default_gamedir, sizeof (gamedir)); // gamedir == basedir
 		}
 
 	FS_LoadProgs ();
@@ -419,25 +420,22 @@ void FS_Init (const char *basedir)
 	// because InitStdio immediately scans all available game directories
 	// and this better be reworked at some point
 	g_fsapi.SetCurrentDirectory (rootdir);
-	if (!g_fsapi.InitStdio (true, rootdir, basedir, gamedir, rodir))
+	/*if (!g_fsapi.InitStdio (true, rootdir, basedir, gamedir, rodir))*/
+	if (!g_fsapi.InitStdio (true, rootdir, host.default_gamedir, gamedir, rodir))
 		{
 		Sys_Error ("Can't init filesystem_stdio!\n");
 		return;
 		}
 
-	// [FWGS, 01.02.25]
 	Cmd_AddRestrictedCommand ("fs_rescan", FS_Rescan_f, "rescan filesystem search pathes");
 	Cmd_AddRestrictedCommand ("fs_path", FS_Path_f_, "show filesystem search pathes");
 	Cmd_AddRestrictedCommand ("fs_clearpaths", FS_ClearPaths_f, "clear filesystem search pathes");
 	Cmd_AddRestrictedCommand ("fs_make_gameinfo", FS_MakeGameInfo_f, "create gameinfo.txt for current running game");
 
-	// [FWGS, 01.03.25]
 	Cvar_RegisterVariable (&fs_mount_hd);
 	Cvar_RegisterVariable (&fs_mount_lv);
 	Cvar_RegisterVariable (&fs_mount_addon);
 	Cvar_RegisterVariable (&fs_mount_l10n);
-
-	// [FWGS, 01.09.25]
 	Cvar_RegisterVariable (&ui_language);
 
 	if (!Sys_GetParmFromCmdLine ("-dll", host.gamedll))
@@ -446,7 +444,6 @@ void FS_Init (const char *basedir)
 	if (!Sys_GetParmFromCmdLine ("-clientlib", host.clientlib))
 		host.clientlib[0] = 0;
 
-	// [FWGS, 01.05.25]
 	if (!Sys_GetParmFromCmdLine ("-menulib", host.menulib))
 		host.menulib[0] = 0;
 	}

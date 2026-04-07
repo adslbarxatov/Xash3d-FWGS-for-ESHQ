@@ -32,9 +32,10 @@ endif*/
 	#define XASH_GAMEDIR "valve" // ! Replace with your default (base) game directory !
 #endif
 
-#if XASH_WIN32
-	#error "Single-binary or dedicated builds aren't supported for Windows!"
-#endif
+// [FWGS, 05.04.26]
+/*if XASH_WIN32
+	error "Single-binary or dedicated builds aren't supported for Windows!"
+endif*/
 
 // [FWGS, 01.04.26]
 /*static char		szGameDir[128]; // safe place to keep gamedir

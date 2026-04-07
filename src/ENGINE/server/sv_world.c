@@ -187,9 +187,12 @@ static hull_t *SV_HullForBsp (edict_t *ent, const vec3_t mins, const vec3_t maxs
 	// decide which clipping hull to use, based on the size
 	model = SV_ModelHandle (ent->v.modelindex);
 
+	// [FWGS, 05.04.26]
 	if (!model || (model->type != mod_brush))
-		Host_Error ("Entity %i (%s) SOLID_BSP with a non bsp model %s\n", NUM_FOR_EDICT (ent), SV_ClassName (ent),
-			STRING (ent->v.model));
+		/*Host_Error ("Entity %i (%s) SOLID_BSP with a non bsp model %s\n", NUM_FOR_EDICT (ent), SV_ClassName (ent),
+			STRING (ent->v.model));*/
+		Host_Error ("Entity %i (%s) SOLID_BSP with a non bsp model %s\n", NUM_FOR_EDICT (ent),
+			SV_ClassName (ent), SV_GetString (ent->v.model));
 
 	VectorSubtract (maxs, mins, size);
 
@@ -248,7 +251,7 @@ SV_HullForEntity
 Returns a hull that can be used for testing or clipping an object of mins/maxs
 size.
 Offset is filled in to contain the adjustment that must be added to the
-testing object's origin to get a point to use with the returned hull.
+testing object's origin to get a point to use with the returned hull
 ================
 ***/
 static hull_t *SV_HullForEntity (edict_t *ent, vec3_t mins, vec3_t maxs, vec3_t offset)
@@ -530,7 +533,7 @@ static void SV_TouchLinks (edict_t *ent, areanode_t *node)
 			}
 		else
 			{
-			if ((touch == ent) || (touch->v.solid != SOLID_TRIGGER)) // disabled ?
+			if ((touch == ent) || (touch->v.solid != SOLID_TRIGGER))	// disabled ?
 				continue;
 
 			if (touch->v.groupinfo && ent->v.groupinfo)
@@ -562,7 +565,7 @@ static void SV_TouchLinks (edict_t *ent, areanode_t *node)
 					}
 				else
 					{
-					// offset the test point appropriately for this hull.
+					// offset the test point appropriately for this hull
 					VectorSubtract (ent->v.origin, offset, test);
 					}
 
@@ -736,7 +739,7 @@ static void SV_WaterLinks (const vec3_t origin, int *pCont, areanode_t *node)
 		next = l->next;
 		touch = EDICT_FROM_AREA (l);
 
-		if (touch->v.solid != SOLID_NOT) // disabled ?
+		if (touch->v.solid != SOLID_NOT)	// disabled ?
 			continue;
 
 		if (touch->v.groupinfo)
@@ -1053,7 +1056,7 @@ static void SV_PortalCSG (edict_t *portal, const vec3_t trace_mins, const vec3_t
 		if (d - planes[plane][3] >= 0)
 			continue;	// endpos is inside
 		else
-			return;	// end is already outside
+			return;		// end is already outside
 		}
 
 	// yup, we're inside, the trace shouldn't end where it actually did
@@ -1341,7 +1344,7 @@ static void SV_ClipToWorldBrush (areanode_t *node, moveclip_t *clip)
 
 /***
 ==================
-SV_Move [FWGS, 01.06.25]
+SV_Move
 ==================
 ***/
 trace_t SV_Move (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int type, edict_t *e,
@@ -1349,7 +1352,9 @@ trace_t SV_Move (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end,
 	{
 	moveclip_t	clip = { 0 };
 
-	SV_ClipMoveToEntity (EDICT_NUM (0), start, mins, maxs, end, &clip.trace);
+	// [FWGS, 05.04.26]
+	/*SV_ClipMoveToEntity (EDICT_NUM (0), start, mins, maxs, end, &clip.trace);*/
+	SV_ClipMoveToEntity (SV_EdictNum (0), start, mins, maxs, end, &clip.trace);
 
 	if (clip.trace.fraction != 0.0f)
 		{
@@ -1363,7 +1368,10 @@ trace_t SV_Move (const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end,
 		clip.type = (type & 0xFF);
 		clip.ignoretrans = type >> 8;
 		clip.monsterclip = false;
-		clip.passedict = (e) ? e : EDICT_NUM (0);
+
+		// [FWGS, 05.04.26]
+		/*clip.passedict = (e) ? e : EDICT_NUM (0);*/
+		clip.passedict = (e) ? e : SV_EdictNum (0);
 		clip.mins = mins;
 		clip.maxs = maxs;
 
@@ -1407,8 +1415,10 @@ trace_t GAME_EXPORT SV_MoveNoEnts (const vec3_t start, vec3_t mins, vec3_t maxs,
 	vec3_t		trace_endpos;
 	float		trace_fraction;
 
+	// [FWGS, 05.04.26]
 	memset (&clip, 0, sizeof (moveclip_t));
-	SV_ClipMoveToEntity (EDICT_NUM (0), start, mins, maxs, end, &clip.trace);
+	/*SV_ClipMoveToEntity (EDICT_NUM (0), start, mins, maxs, end, &clip.trace);*/
+	SV_ClipMoveToEntity (SV_EdictNum (0), start, mins, maxs, end, &clip.trace);
 
 	if (clip.trace.fraction != 0.0f)
 		{
@@ -1420,7 +1430,10 @@ trace_t GAME_EXPORT SV_MoveNoEnts (const vec3_t start, vec3_t mins, vec3_t maxs,
 		clip.type = (type & 0xFF);
 		clip.ignoretrans = type >> 8;
 		clip.monsterclip = false;
-		clip.passedict = (e) ? e : EDICT_NUM (0);
+
+		// [FWGS, 05.04.26]
+		/*clip.passedict = (e) ? e : EDICT_NUM (0);*/
+		clip.passedict = (e) ? e : SV_EdictNum (0);
 		clip.mins = mins;
 		clip.maxs = maxs;
 

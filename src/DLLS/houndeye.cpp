@@ -1,17 +1,16 @@
 /***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
-*	This product contains software technology licensed from Id
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
-*	All Rights Reserved.
-*
-*   This source code contains proprietary and confidential information of
-*   Valve LLC and its suppliers.  Access to this code is restricted to
-*   persons who have executed a written SDK license with Valve.  Any access,
-*   use or distribution of this code by or to any unlicensed person is illegal.
-*
-****/
+Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+
+This product contains software technology licensed from Id
+Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
+All Rights Reserved.
+
+This source code contains proprietary and confidential information of
+Valve LLC and its suppliers.  Access to this code is restricted to
+persons who have executed a written SDK license with Valve.  Any access,
+use or distribution of this code by or to any unlicensed person is illegal
+***/
+
 // =========================================================
 // Houndeye - spooky sonic dog
 // =========================================================
@@ -30,7 +29,7 @@
 extern CGraph WorldGraph;
 
 // houndeye does 20 points of damage spread over a sphere 384 units in diameter, and each additional 
-// squad member increases the BASE damage by 110%, per the spec.
+// squad member increases the BASE damage by 110%, per the spec
 #define HOUNDEYE_MAX_SQUAD_SIZE			4
 #define	HOUNDEYE_MAX_ATTACK_RADIUS		384
 #define	HOUNDEYE_SQUAD_BONUS			(float)1.1
@@ -106,25 +105,25 @@ class CHoundeye: public CSquadMonster
 		static TYPEDESCRIPTION m_SaveData[];
 
 		int m_iSpriteTexture;
-		BOOL m_fAsleep;// some houndeyes sleep in idle mode if this is set, the houndeye is lying down
-		BOOL m_fDontBlink;// don't try to open/close eye if this bit is set!
-		Vector	m_vecPackCenter; // the center of the pack. The leader maintains this by averaging the origins of all pack members.
+		BOOL m_fAsleep;		// some houndeyes sleep in idle mode if this is set, the houndeye is lying down
+		BOOL m_fDontBlink;	// don't try to open/close eye if this bit is set!
+		Vector	m_vecPackCenter;	// the center of the pack. The leader maintains this by averaging the origins of all pack members
 	};
 LINK_ENTITY_TO_CLASS (monster_houndeye, CHoundeye);
 
 TYPEDESCRIPTION	CHoundeye::m_SaveData[] =
 	{
-		DEFINE_FIELD (CHoundeye, m_iSpriteTexture, FIELD_INTEGER),
-		DEFINE_FIELD (CHoundeye, m_fAsleep, FIELD_BOOLEAN),
-		DEFINE_FIELD (CHoundeye, m_fDontBlink, FIELD_BOOLEAN),
-		DEFINE_FIELD (CHoundeye, m_vecPackCenter, FIELD_POSITION_VECTOR),
+	DEFINE_FIELD (CHoundeye, m_iSpriteTexture, FIELD_INTEGER),
+	DEFINE_FIELD (CHoundeye, m_fAsleep, FIELD_BOOLEAN),
+	DEFINE_FIELD (CHoundeye, m_fDontBlink, FIELD_BOOLEAN),
+	DEFINE_FIELD (CHoundeye, m_vecPackCenter, FIELD_POSITION_VECTOR),
 	};
 
 IMPLEMENT_SAVERESTORE (CHoundeye, CSquadMonster);
 
 // =========================================================
 // Classify - indicates this monster's place in the 
-// relationship table.
+// relationship table
 // =========================================================
 int	CHoundeye::Classify (void)
 	{
@@ -140,18 +139,16 @@ BOOL CHoundeye::FValidateHintType (short sHint)
 
 	static short sHoundHints[] =
 		{
-			HINT_WORLD_MACHINERY,
-			HINT_WORLD_BLINKING_LIGHT,
-			HINT_WORLD_HUMAN_BLOOD,
-			HINT_WORLD_ALIEN_BLOOD,
+		HINT_WORLD_MACHINERY,
+		HINT_WORLD_BLINKING_LIGHT,
+		HINT_WORLD_HUMAN_BLOOD,
+		HINT_WORLD_ALIEN_BLOOD,
 		};
 
 	for (i = 0; i < HLARRAYSIZE (sHoundHints); i++)
 		{
 		if (sHoundHints[i] == sHint)
-			{
 			return TRUE;
-			}
 		}
 
 	ALERT (at_aiconsole, "Couldn't validate hint type");
@@ -172,11 +169,9 @@ BOOL CHoundeye::FCanActiveIdle (void)
 			{
 			CSquadMonster* pMember = pSquadLeader->MySquadMember (i);
 
-			if (pMember != NULL && pMember != this && pMember->m_iHintNode != NO_NODE)
-				{
-				// someone else in the group is active idling right now!
+			// someone else in the group is active idling right now!
+			if ((pMember != NULL) && (pMember != this) && (pMember->m_iHintNode != NO_NODE))
 				return FALSE;
-				}
 			}
 
 		return TRUE;
@@ -188,7 +183,7 @@ BOOL CHoundeye::FCanActiveIdle (void)
 // =========================================================
 // CheckRangeAttack1 - overridden for houndeyes so that they
 // try to get within half of their max attack radius before
-// attacking, so as to increase their chances of doing damage.
+// attacking, so as to increase their chances of doing damage
 // =========================================================
 BOOL CHoundeye::CheckRangeAttack1 (float flDot, float flDist)
 	{
@@ -200,12 +195,11 @@ BOOL CHoundeye::CheckRangeAttack1 (float flDot, float flDist)
 
 // =========================================================
 // SetYawSpeed - allows each sequence to have a different
-// turn rate associated with it.
+// turn rate associated with it
 // =========================================================
 void CHoundeye::SetYawSpeed (void)
 	{
 	int ys;
-
 	ys = 90;
 
 	switch (m_Activity)
@@ -213,15 +207,19 @@ void CHoundeye::SetYawSpeed (void)
 		case ACT_CROUCHIDLE:	// sleeping!
 			ys = 0;
 			break;
+
 		case ACT_IDLE:
 			ys = 60;
 			break;
+
 		case ACT_WALK:
 			ys = 90;
 			break;
+
 		case ACT_RUN:
 			ys = 90;
 			break;
+
 		case ACT_TURN_LEFT:
 		case ACT_TURN_RIGHT:
 			ys = 90;
@@ -241,12 +239,12 @@ void CHoundeye::SetActivity (Activity NewActivity)
 	if (NewActivity == m_Activity)
 		return;
 
-	if (m_MonsterState == MONSTERSTATE_COMBAT && NewActivity == ACT_IDLE && RANDOM_LONG (0, 1))
+	if ((m_MonsterState == MONSTERSTATE_COMBAT) && (NewActivity == ACT_IDLE) && RANDOM_LONG (0, 1))
 		{
 		// play pissed idle.
 		iSequence = LookupSequence ("madidle");
 
-		m_Activity = NewActivity; // Go ahead and set this so it doesn't keep trying when the anim is not present
+		m_Activity = NewActivity;	// Go ahead and set this so it doesn't keep trying when the anim is not present
 
 		// In case someone calls this with something other than the ideal activity
 		m_IdealActivity = m_Activity;
@@ -268,14 +266,14 @@ void CHoundeye::SetActivity (Activity NewActivity)
 
 // =========================================================
 // HandleAnimEvent - catches the monster-specific messages
-// that occur when tagged animation frames are played.
+// that occur when tagged animation frames are played
 // =========================================================
 void CHoundeye::HandleAnimEvent (MonsterEvent_t* pEvent)
 	{
 	switch (pEvent->event)
 		{
 		case HOUND_AE_WARN:
-			// do stuff for this event.
+			// do stuff for this event
 			WarnSound ();
 			break;
 
@@ -401,9 +399,11 @@ void CHoundeye::IdleSound (void)
 		case 0:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "houndeye/he_idle1.wav", 1, ATTN_MEDIUM);
 			break;
+
 		case 1:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "houndeye/he_idle2.wav", 1, ATTN_MEDIUM);
 			break;
+
 		case 2:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "houndeye/he_idle3.wav", 1, ATTN_MEDIUM);
 			break;
@@ -420,9 +420,11 @@ void CHoundeye::WarmUpSound (void)
 		case 0:
 			EMIT_SOUND (ENT (pev), CHAN_WEAPON, "houndeye/he_attack1.wav", 0.7, ATTN_MEDIUM);
 			break;
+
 		case 1:
 			EMIT_SOUND (ENT (pev), CHAN_WEAPON, "houndeye/he_attack2.wav", 0.7, ATTN_MEDIUM);
 			break;
+
 		case 2:
 			EMIT_SOUND (ENT (pev), CHAN_WEAPON, "houndeye/he_attack3.wav", 0.7, ATTN_MEDIUM);
 			break;
@@ -439,9 +441,11 @@ void CHoundeye::WarnSound (void)
 		case 0:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "houndeye/he_hunt1.wav", 1, ATTN_MEDIUM);
 			break;
+
 		case 1:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "houndeye/he_hunt2.wav", 1, ATTN_MEDIUM);
 			break;
+
 		case 2:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "houndeye/he_hunt3.wav", 1, ATTN_MEDIUM);
 			break;
@@ -453,18 +457,19 @@ void CHoundeye::WarnSound (void)
 // =========================================================
 void CHoundeye::AlertSound (void)
 	{
-
 	if (InSquad () && !IsLeader ())
-		return; // only leader makes ALERT sound
+		return;	// only leader makes ALERT sound
 
 	switch (RANDOM_LONG (0, 2))
 		{
 		case 0:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "houndeye/he_alert1.wav", 1, ATTN_MEDIUM);
 			break;
+
 		case 1:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "houndeye/he_alert2.wav", 1, ATTN_MEDIUM);
 			break;
+
 		case 2:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "houndeye/he_alert3.wav", 1, ATTN_MEDIUM);
 			break;
@@ -481,9 +486,11 @@ void CHoundeye::DeathSound (void)
 		case 0:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "houndeye/he_die1.wav", 1, ATTN_MEDIUM);
 			break;
+
 		case 1:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "houndeye/he_die2.wav", 1, ATTN_MEDIUM);
 			break;
+
 		case 2:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "houndeye/he_die3.wav", 1, ATTN_MEDIUM);
 			break;
@@ -500,12 +507,15 @@ void CHoundeye::PainSound (void)
 		case 0:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "houndeye/he_pain1.wav", 1, ATTN_MEDIUM);
 			break;
+
 		case 1:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "houndeye/he_pain2.wav", 1, ATTN_MEDIUM);
 			break;
+
 		case 2:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "houndeye/he_pain3.wav", 1, ATTN_MEDIUM);
 			break;
+
 		case 3:
 			EMIT_SOUND (ENT (pev), CHAN_VOICE, "houndeye/he_pain4.wav", 1, ATTN_MEDIUM);
 			break;
@@ -530,16 +540,19 @@ void CHoundeye::WriteBeamColor (void)
 				bGreen = 133;
 				bBlue = 221;
 				break;
+
 			case 3:
 				bRed = 67;
 				bGreen = 85;
 				bBlue = 255;
 				break;
+
 			case 4:
 				bRed = 62;
 				bGreen = 33;
 				bBlue = 211;
 				break;
+
 			default:
 				ALERT (at_aiconsole, "Unsupported Houndeye SquadSize!\n");
 				bRed = 188;
@@ -567,17 +580,19 @@ void CHoundeye::WriteBeamColor (void)
 // =========================================================
 void CHoundeye::SonicAttack (void)
 	{
-	float		flAdjustedDamage;
-	float		flDist;
+	float	flAdjustedDamage;
+	float	flDist;
 
 	switch (RANDOM_LONG (0, 2))
 		{
 		case 0:	
 			EMIT_SOUND (ENT (pev), CHAN_WEAPON, "houndeye/he_blast1.wav", 1, ATTN_MEDIUM);	
 			break;
+
 		case 1:	
 			EMIT_SOUND (ENT (pev), CHAN_WEAPON, "houndeye/he_blast2.wav", 1, ATTN_MEDIUM);	
 			break;
+
 		case 2:	
 			EMIT_SOUND (ENT (pev), CHAN_WEAPON, "houndeye/he_blast3.wav", 1, ATTN_MEDIUM);	
 			break;
@@ -591,7 +606,7 @@ void CHoundeye::SonicAttack (void)
 	WRITE_COORD (pev->origin.z + 16);
 	WRITE_COORD (pev->origin.x);
 	WRITE_COORD (pev->origin.y);
-	WRITE_COORD (pev->origin.z + 16 + HOUNDEYE_MAX_ATTACK_RADIUS / .2); // reach damage radius over .3 seconds
+	WRITE_COORD (pev->origin.z + 16 + HOUNDEYE_MAX_ATTACK_RADIUS / .2);	// reach damage radius over .3 seconds
 	WRITE_SHORT (m_iSpriteTexture);
 	WRITE_BYTE (0);		// startframe
 	WRITE_BYTE (0);		// framerate
@@ -612,7 +627,7 @@ void CHoundeye::SonicAttack (void)
 	WRITE_COORD (pev->origin.z + 16);
 	WRITE_COORD (pev->origin.x);
 	WRITE_COORD (pev->origin.y);
-	WRITE_COORD (pev->origin.z + 16 + (HOUNDEYE_MAX_ATTACK_RADIUS / 2) / .2); // reach damage radius over .3 seconds
+	WRITE_COORD (pev->origin.z + 16 + (HOUNDEYE_MAX_ATTACK_RADIUS / 2) / .2);	// reach damage radius over .3 seconds
 	WRITE_SHORT (m_iSpriteTexture);
 	WRITE_BYTE (0);		// startframe
 	WRITE_BYTE (0);		// framerate
@@ -626,20 +641,19 @@ void CHoundeye::SonicAttack (void)
 	WRITE_BYTE (0);		// speed
 	MESSAGE_END ();
 
-
 	CBaseEntity* pEntity = NULL;
-	// iterate on all entities in the vicinity.
+
+	// iterate on all entities in the vicinity
 	while ((pEntity = UTIL_FindEntityInSphere (pEntity, pev->origin, HOUNDEYE_MAX_ATTACK_RADIUS)) != NULL)
 		{
 		if (pEntity->pev->takedamage != DAMAGE_NO)
 			{
+			// houndeyes don't hurt other houndeyes with their attack
 			if (!FClassnameIs (pEntity->pev, "monster_houndeye"))
-				{// houndeyes don't hurt other houndeyes with their attack
-
-					// houndeyes do FULL damage if the ent in question is visible. Half damage otherwise.
-					// This means that you must get out of the houndeye's attack range entirely to avoid damage.
-					// Calculate full damage first
-
+				{
+				// houndeyes do FULL damage if the ent in question is visible. Half damage otherwise.
+				// This means that you must get out of the houndeye's attack range entirely to avoid damage.
+				// Calculate full damage first
 				if (SquadCount () > 1)
 					{
 					// squad gets attack bonus.
@@ -667,7 +681,7 @@ void CHoundeye::SonicAttack (void)
 						// so that monsters in other parts of the level don't take the damage and get pissed
 						flAdjustedDamage *= 0.5;
 						}
-					else if (!FClassnameIs (pEntity->pev, "func_breakable") && 
+					else if (!FClassnameIs (pEntity->pev, "func_breakable") &&
 						!FClassnameIs (pEntity->pev, "func_pushable"))
 						{
 						// do not hurt nonclients through walls, but allow damage to be done to breakables
@@ -693,21 +707,21 @@ void CHoundeye::StartTask (Task_t* pTask)
 		{
 		case TASK_HOUND_FALL_ASLEEP:
 			{
-			m_fAsleep = TRUE; // signal that hound is lying down (must stand again before doing anything else!)
+			m_fAsleep = TRUE;	// signal that hound is lying down (must stand again before doing anything else!)
 			m_iTaskStatus = TASKSTATUS_COMPLETE;
 			break;
 			}
 
 		case TASK_HOUND_WAKE_UP:
 			{
-			m_fAsleep = FALSE; // signal that hound is standing again
+			m_fAsleep = FALSE;	// signal that hound is standing again
 			m_iTaskStatus = TASKSTATUS_COMPLETE;
 			break;
 			}
 
 		case TASK_HOUND_OPEN_EYE:
 			{
-			m_fDontBlink = FALSE; // turn blinking back on and that code will automatically open the eye
+			m_fDontBlink = FALSE;	// turn blinking back on and that code will automatically open the eye
 			m_iTaskStatus = TASKSTATUS_COMPLETE;
 			break;
 			}
@@ -799,7 +813,8 @@ void CHoundeye::RunTask (Task_t* pTask)
 
 			float life;
 			life = ((255 - pev->frame) / (pev->framerate * m_flFrameRate));
-			if (life < 0.1) life = 0.1;
+			if (life < 0.1)
+				life = 0.1;
 
 			MESSAGE_BEGIN (MSG_PAS, SVC_TEMPENTITY, pev->origin);
 			WRITE_BYTE (TE_IMPLOSION);
@@ -834,7 +849,7 @@ void CHoundeye::PrescheduleThink (void)
 	{
 	int blink = 0;
 
-	// if the hound is mad and is running, make hunt noises.
+	// if the hound is mad and is running, make hunt noises
 	if (m_MonsterState == MONSTERSTATE_COMBAT && m_Activity == ACT_RUN && RANDOM_FLOAT (0, 1) < 0.2)
 		WarnSound ();
 
@@ -928,7 +943,7 @@ Schedule_t	slHoundRangeAttack[] =
 		},
 		{
 			tlHoundYell2,
-			ARRAYSIZE (tlHoundYell2),
+			HLARRAYSIZE (tlHoundYell2),
 			bits_COND_LIGHT_DAMAGE |
 			bits_COND_HEAVY_DAMAGE,
 			0,
@@ -939,7 +954,7 @@ Schedule_t	slHoundRangeAttack[] =
 // lie down and fall asleep
 Task_t	tlHoundSleep[] =
 	{
-		{ TASK_STOP_MOVING,			(float)0		},
+		{ TASK_STOP_MOVING,			(float)0				},
 		{ TASK_SET_ACTIVITY,		(float)ACT_IDLE			},
 		{ TASK_WAIT_RANDOM,			(float)5				},
 		{ TASK_PLAY_SEQUENCE,		(float)ACT_CROUCH		},
@@ -1052,8 +1067,8 @@ Schedule_t	slHoundAgitated[] =
 
 Task_t	tlHoundHopRetreat[] =
 	{
-		{ TASK_STOP_MOVING,				0											},
-		{ TASK_HOUND_HOP_BACK,			0											},
+		{ TASK_STOP_MOVING,				0									},
+		{ TASK_HOUND_HOP_BACK,			0									},
 		{ TASK_SET_SCHEDULE,			(float)SCHED_TAKE_COVER_FROM_ENEMY	},
 	};
 
@@ -1153,6 +1168,7 @@ Schedule_t* CHoundeye::GetScheduleOfType (int Type)
 					return &slHoundWakeUrgent[0];
 					}
 				}
+
 			// sound was not loud enough to scare the bejesus out of houndeye
 			return &slHoundWakeLazy[0];
 			}
@@ -1243,7 +1259,7 @@ Schedule_t* CHoundeye::GetSchedule (void)
 			// dead enemy
 			if (HasConditions (bits_COND_ENEMY_DEAD))
 				{
-				// call base class, all code to handle dead enemies is centralized there.
+				// call base class, all code to handle dead enemies is centralized there
 				return CBaseMonster::GetSchedule ();
 				}
 

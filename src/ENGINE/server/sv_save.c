@@ -335,8 +335,10 @@ static void SaveBuildComment (char *text, int maxlength)
 		}
 	else
 		{
+		// [FWGS, 05.04.26]
 		size_t i;
-		const char *mapname = STRING (svgame.globals->mapname);
+		/*const char *mapname = STRING (svgame.globals->mapname);*/
+		const char *mapname = SV_GetString (svgame.globals->mapname);
 
 		for (i = 0; i < HLARRAYSIZE (gTitleComments); i++)
 			{
@@ -353,13 +355,15 @@ static void SaveBuildComment (char *text, int maxlength)
 			{
 			if (svgame.edicts->v.message != 0)
 				{
-				// trying to extract message from the world
-				pName = STRING (svgame.edicts->v.message);
+				// [FWGS, 05.04.26] trying to extract message from the world
+				/*pName = STRING (svgame.edicts->v.message);*/
+				pName = SV_GetString (svgame.edicts->v.message);
 				}
 			else
 				{
-				// or use mapname
-				pName = STRING (svgame.globals->mapname);
+				// [FWGS, 05.04.26] or use mapname
+				/*pName = STRING (svgame.globals->mapname);*/
+				pName = SV_GetString (svgame.globals->mapname);
 				}
 			}
 		}
@@ -405,11 +409,12 @@ static void InitEntityTable (SAVERESTOREDATA *pSaveData, int entityCount)
 	pSaveData->pTable = Mem_Calloc (host.mempool, sizeof (ENTITYTABLE) * entityCount);
 	pSaveData->tableCount = entityCount;
 
-	// setup entitytable
+	// [FWGS, 05.04.26] setup entitytable
 	for (i = 0; i < entityCount; i++)
 		{
 		pTable = &pSaveData->pTable[i];
-		pTable->pent = EDICT_NUM (i);
+		/*pTable->pent = EDICT_NUM (i);*/
+		pTable->pent = SV_EdictNum (i);
 		pTable->id = i;
 		}
 	}
@@ -1479,13 +1484,17 @@ static void CreateEntitiesInRestoreList (SAVERESTOREDATA *pSaveData, int levelMa
 
 				if ((pTable->id == 0) && create_world) // worldspawn
 					{
-					pent = EDICT_NUM (0);
+					// [FWGS, 05.04.26]
+					/*pent = EDICT_NUM (0);*/
+					pent = SV_EdictNum (0);
 					SV_InitEdict (pent);
 					pent = SV_CreateNamedEntity (pent, pTable->classname);
 					}
 				else if ((pTable->id > 0) && (pTable->id < svs.maxclients + 1))
 					{
-					edict_t *ed = EDICT_NUM (pTable->id);
+					// [FWGS, 05.04.26]
+					/*edict_t *ed = EDICT_NUM (pTable->id);*/
+					edict_t *ed = SV_EdictNum (pTable->id);
 
 					if (!FBitSet (pTable->flags, FENTTABLE_PLAYER))
 						Con_Printf (S_ERROR "ENTITY IS NOT A PLAYER: %d\n", i);
@@ -1514,17 +1523,17 @@ save current game state
 ***/
 static SAVERESTOREDATA *SaveGameState (int changelevel)
 	{
-	char		name[MAX_QPATH];
+	char	name[MAX_QPATH];
 	int		i, id, version;
-	char *pTableData;
-	char *pTokenData;
-	SAVERESTOREDATA *pSaveData;
+	char	*pTableData;
+	char	*pTokenData;
+	SAVERESTOREDATA	*pSaveData;
 	int		tableSize;
 	int		dataSize;
-	ENTITYTABLE *pTable;
-	SAVE_HEADER	header;
+	ENTITYTABLE		*pTable;
+	SAVE_HEADER		header;
 	SAVE_LIGHTSTYLE	light;
-	file_t *pFile;
+	file_t	*pFile;
 
 	if (!svgame.dllFuncs.pfnParmsChangeLevel)
 		return NULL;
@@ -1544,7 +1553,7 @@ static SAVERESTOREDATA *SaveGameState (int changelevel)
 	header.skillLevel = (int)skill.value;	// this is created from an int even though it's a float
 	header.entityCount = pSaveData->tableCount;
 	header.connectionCount = pSaveData->connectionCount;
-	header.time = svgame.globals->time;	// use DLL time
+	header.time = svgame.globals->time;		// use DLL time
 	Q_strncpy (header.mapName, sv.name, sizeof (header.mapName));
 	Q_strncpy (header.skyName, sv_skyname.string, sizeof (header.skyName));
 	header.skyColor_r = sv_skycolor_r.value;
@@ -1692,9 +1701,10 @@ static int LoadGameState (char const *level, qboolean changelevel)
 	if (!pSaveData)
 		return 0;
 
-	// [FWGS, 22.01.25] must set mapname before calling into DLL
+	// [FWGS, 05.04.26] must set mapname before calling into DLL
 	Q_strncpy (sv.name, level, sizeof (sv.name));
-	svgame.globals->mapname = MAKE_STRING (sv.name);
+	/*svgame.globals->mapname = MAKE_STRING (sv.name);*/
+	svgame.globals->mapname = SV_MakeString (sv.name);
 
 	ParseSaveTables (pSaveData, &header, true);
 	EntityPatchRead (pSaveData, level);
@@ -1771,7 +1781,7 @@ static qboolean SaveGameSlot (const char *pSaveName, const char *pSaveComment)
 		return false;
 
 	SaveFinish (pSaveData);
-	pSaveData = SaveInit (SAVE_HEAPSIZE, SAVE_HASHSTRINGS); // re-init the buffer
+	pSaveData = SaveInit (SAVE_HEAPSIZE, SAVE_HASHSTRINGS);	// re-init the buffer
 
 	Q_strncpy (hlPath, DEFAULT_SAVE_DIRECTORY "*." EXTENDED_SAVE_EXTENSION "?", sizeof (hlPath));
 	Q_strncpy (gameHeader.mapName, sv.name, sizeof (gameHeader.mapName));
@@ -1817,13 +1827,13 @@ static qboolean SaveGameSlot (const char *pSaveName, const char *pSaveComment)
 
 	FS_Write (pFile, &id, sizeof (id));
 	FS_Write (pFile, &version, sizeof (version));
-	FS_Write (pFile, &pSaveData->size, sizeof (int)); // does not include token table
+	FS_Write (pFile, &pSaveData->size, sizeof (int));	// does not include token table
 
 	// write out the tokens first so we can load them before we load the entities
 	FS_Write (pFile, &pSaveData->tokenCount, sizeof (int));
 	FS_Write (pFile, &pSaveData->tokenSize, sizeof (int));
 	FS_Write (pFile, pTokenData, pSaveData->tokenSize);
-	FS_Write (pFile, pSaveData->pBaseData, pSaveData->size); // header and globals
+	FS_Write (pFile, pSaveData->pBaseData, pSaveData->size);	// header and globals
 
 	DirectoryCopy (hlPath, pFile);
 	SaveFinish (pSaveData);
@@ -1895,8 +1905,8 @@ moving edicts to another level
 static int CreateEntityTransitionList (SAVERESTOREDATA *pSaveData, int levelMask)
 	{
 	int		i, movedCount;
-	ENTITYTABLE *pTable;
-	edict_t *pent;
+	ENTITYTABLE	*pTable;
+	edict_t		*pent;
 
 	movedCount = 0;
 
@@ -1931,7 +1941,9 @@ static int CreateEntityTransitionList (SAVERESTOREDATA *pSaveData, int levelMask
 				// IMPORTANT: we should find the already spawned or local restored global entity
 				pNewEnt = SV_FindGlobalEntity (tmpVars.classname, tmpVars.globalname);
 
-				Con_DPrintf ("Merging changes for global: %s\n", STRING (pTable->classname));
+				// [FWGS, 05.04.26]
+				/*Con_DPrintf ("Merging changes for global: %s\n", STRING (pTable->classname));*/
+				Con_DPrintf ("Merging changes for global: %s\n", SV_GetString (pTable->classname));
 
 				// -------------------------------------------------------------------------
 				// Pass the "global" flag to the DLL to indicate this entity should only override
@@ -1949,7 +1961,9 @@ static int CreateEntityTransitionList (SAVERESTOREDATA *pSaveData, int levelMask
 				}
 			else
 				{
-				Con_Reportf ("Transferring %s (%d)\n", STRING (pTable->classname), NUM_FOR_EDICT (pent));
+				// [FWGS, 05.04.26]
+				/*Con_Reportf ("Transferring %s (%d)\n", STRING (pTable->classname), NUM_FOR_EDICT (pent));*/
+				Con_Reportf ("Transferring %s (%d)\n", SV_GetString (pTable->classname), NUM_FOR_EDICT (pent));
 
 				if (svgame.dllFuncs.pfnRestore (pent, pSaveData, 0) < 0)
 					{
@@ -1959,9 +1973,10 @@ static int CreateEntityTransitionList (SAVERESTOREDATA *pSaveData, int levelMask
 					{
 					if (!FBitSet (pTable->flags, FENTTABLE_PLAYER) && EntityInSolid (pent))
 						{
-						// this can happen during normal processing - PVS is just a guess,
+						// [FWGS, 05.04.26] this can happen during normal processing - PVS is just a guess,
 						// some map areas won't exist in the new map
-						Con_Reportf ("Suppressing %s\n", STRING (pTable->classname));
+						/*Con_Reportf ("Suppressing %s\n", STRING (pTable->classname));*/
+						Con_Reportf ("Suppressing %s\n", SV_GetString (pTable->classname));
 						SetBits (pent->v.flags, FL_KILLME);
 						}
 					else
@@ -2206,8 +2221,9 @@ qboolean SV_LoadGame (const char *pPath)
 	if (!FS_FileExists (pPath, true))
 		return false;
 
-	// initialize game if needs
-	if (!SV_InitGame ())
+	// [FWGS, 05.04.26] initialize game if needs
+	/*if (!SV_InitGame ())*/
+	if (!SV_InitGame (false))
 		return false;
 
 	svs.initialized = true;

@@ -207,7 +207,6 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 
 	// parse protocol version number
 	i = MSG_ReadLong (msg);
-
 	if (i != PROTOCOL_VERSION_QUAKE)
 		{
 		Con_Printf ("\n" S_ERROR "Server use invalid protocol (%i should be %i)\n", i, PROTOCOL_VERSION_QUAKE);
@@ -221,6 +220,9 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	clgame.maxEntities = bound (600, clgame.maxEntities, MAX_EDICTS);
 	clgame.maxModels = MAX_MODELS;
 	Q_strncpy (clgame.maptitle, MSG_ReadString (msg), sizeof (clgame.maptitle));
+
+	// [FWGS, 05.04.26]
+	Host_ValidateEngineFeatures (ENGINE_FEATURES_MASK, ENGINE_QUAKE_COMPATIBLE);
 
 	// Re-init hud video, especially if we changed game directories
 	clgame.dllFuncs.pfnVidInit ();
@@ -971,12 +973,17 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 		// record command for debugging spew on parse problem
 		CL_Parse_RecordCommand (cmd, bufStart);
 
+		// [FWGS, 05.04.26]
+		if (CL_ParseCommonMessage (msg, PROTO_QUAKE, cmd, bufStart))
+			continue;
+
 		// other commands
 		switch (cmd)
 			{
-			case svc_nop:
+			// [FWGS, 05.04.26]
+			/*case svc_nop:
 				// this does nothing
-				break;
+				break;*/
 
 			case svc_disconnect:
 				CL_DemoCompleted ();
@@ -992,9 +999,10 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 					Host_Error ("Server is protocol %i instead of %i\n", param1, PROTOCOL_VERSION_QUAKE);
 				break;
 
-			case svc_setview:
+			// [FWGS, 05.04.26]
+			/*case svc_setview:
 				CL_ParseViewEntity (msg);
-				break;
+				break;*/
 
 			case svc_sound:
 				CL_ParseQuakeSound (msg);
@@ -1026,10 +1034,11 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				CL_ParseQuakeServerInfo (msg);
 				break;
 
-			// [FWGS, 22.01.25]
+			// [FWGS, 05.04.26]
+			/*// [FWGS, 22.01.25]
 			case svc_lightstyle:
 				CL_ParseLightStyle (msg, PROTO_QUAKE);
-				break;
+				break;*/
 
 			case svc_updatename:
 				param1 = MSG_ReadByte (msg);
@@ -1095,10 +1104,11 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				CL_ParseQuakeSignon (msg);
 				break;
 
-			// [FWGS, 01.11.25]
+			// [FWGS, 05.04.26]
 			case svc_centerprint:
-				str = MSG_ReadString (msg);
-				CL_DispatchUserMessage ("HudText", Q_strlen (str) + 1, (void *)str);
+				/*str = MSG_ReadString (msg);
+				CL_DispatchUserMessage ("HudText", Q_strlen (str) + 1, (void *)str);*/
+				CL_HudMessage (MSG_ReadString (msg));
 				break;
 
 			case svc_killedmonster:
@@ -1113,13 +1123,14 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				CL_ParseQuakeStaticSound (msg);
 				break;
 
-			case svc_intermission:
+			// [FWGS, 05.04.26]
+			/*case svc_intermission:
 				cl.intermission = 1;
 				break;
 
 			case svc_finale:
 				CL_ParseFinaleCutscene (msg, 2);
-				break;
+				break;*/
 
 			case svc_cdtrack:
 				param1 = MSG_ReadByte (msg);
@@ -1137,17 +1148,21 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				Cmd_ExecuteString ("help");	// open quake menu
 				break;
 
-			case svc_cutscene:
-				CL_ParseFinaleCutscene (msg, 3);
+			// [FWGS, 05.04.26]
+			/*case svc_cutscene:
+				CL_ParseFinaleCutscene (msg, 3);*/
+			case svc_showlmp:
+				CL_ParseNehahraShowLMP (msg);
 				break;
 
 			case svc_hidelmp:
 				CL_ParseNehahraHideLMP (msg);
 				break;
 
-			case svc_showlmp:
+			// [FWGS, 05.04.26]
+			/*case svc_showlmp:
 				CL_ParseNehahraShowLMP (msg);
-				break;
+				break;*/
 
 			case svc_skybox:
 				Q_strncpy (clgame.movevars.skyName, MSG_ReadString (msg), sizeof (clgame.movevars.skyName));

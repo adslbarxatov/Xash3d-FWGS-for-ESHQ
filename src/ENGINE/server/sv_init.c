@@ -524,7 +524,9 @@ static void SV_CreateBaseline (void)
 
 	for (entnum = 0; entnum < svgame.numEntities; entnum++)
 		{
-		edict_t *pEdict = EDICT_NUM (entnum);
+		// [FWGS, 05.04.26]
+		/*edict_t *pEdict = EDICT_NUM (entnum);*/
+		edict_t *pEdict = SV_EdictNum (entnum);
 
 		if (!SV_IsValidEdict (pEdict))
 			continue;
@@ -536,7 +538,7 @@ static void SV_CreateBaseline (void)
 		else
 			{
 			if (!pEdict->v.modelindex)
-				continue; // invisible
+				continue;	// invisible
 			delta_type = DELTA_ENTITY;
 			}
 
@@ -563,7 +565,9 @@ static void SV_CreateBaseline (void)
 
 	for (entnum = 0; entnum < svgame.numEntities; entnum++)
 		{
-		edict_t *pEdict = EDICT_NUM (entnum);
+		// [FWGS, 05.04.26]
+		/*edict_t *pEdict = EDICT_NUM (entnum);*/
+		edict_t *pEdict = SV_EdictNum (entnum);
 
 		if (!SV_IsValidEdict (pEdict))
 			continue;
@@ -575,7 +579,7 @@ static void SV_CreateBaseline (void)
 		else
 			{
 			if (!pEdict->v.modelindex)
-				continue; // invisible
+				continue;	// invisible
 			delta_type = DELTA_ENTITY;
 			}
 
@@ -585,7 +589,7 @@ static void SV_CreateBaseline (void)
 		MSG_WriteDeltaEntity (&nullstate, base, &sv.signon, true, delta_type, 1.0f, 0);
 		}
 
-	MSG_WriteUBitLong (&sv.signon, LAST_EDICT, MAX_ENTITY_BITS); // end of baselines
+	MSG_WriteUBitLong (&sv.signon, LAST_EDICT, MAX_ENTITY_BITS);	// end of baselines
 	MSG_WriteUBitLong (&sv.signon, sv.num_instanced, 6);
 
 	// ESHQ: поддержка для системы ES: Randomaze
@@ -620,14 +624,17 @@ void SV_FreeOldEntities (void)
 	// at end of frame kill all entities which supposed to it
 	for (i = svs.maxclients + 1; i < svgame.numEntities; i++)
 		{
-		ent = EDICT_NUM (i);
+		// [FWGS, 05.04.26]
+		/*ent = EDICT_NUM (i);*/
+		ent = SV_EdictNum (i);
 
 		if (!ent->free && FBitSet (ent->v.flags, FL_KILLME))
 			SV_FreeEdict (ent);
 		}
 
-	// [FWGS, 01.02.24] decrement svgame.numEntities if the highest number entities died
-	for (; (ent = EDICT_NUM (svgame.numEntities - 1)) && ent->free; svgame.numEntities--);
+	// [FWGS, 05.04.26] decrement svgame.numEntities if the highest number entities died
+	/*for (; (ent = EDICT_NUM (svgame.numEntities - 1)) && ent->free; svgame.numEntities--);*/
+	for (; (ent = SV_EdictNum (svgame.numEntities - 1)) && ent->free; svgame.numEntities--);
 	}
 
 /***
@@ -791,12 +798,13 @@ void SV_DeactivateServer (void)
 
 /***
 ==============
-SV_InitGame
+SV_InitGame [FWGS, 05.04.26]
 
 A brand new game has been started
 ==============
 ***/
-qboolean SV_InitGame (void)
+/*qboolean SV_InitGame (void)*/
+qboolean SV_InitGame (qboolean silent)
 	{
 	string dllpath;
 
@@ -807,12 +815,16 @@ qboolean SV_InitGame (void)
 	COM_ResetLibraryError ();
 	COM_GetCommonLibraryPath (LIBRARY_SERVER, dllpath, sizeof (dllpath));
 
-	// [FWGS, 01.03.26]
 	if (!SV_LoadProgs (dllpath))
 		{
-		/*Con_Printf (S_ERROR "can't initialize %s: %s\n", dllpath, COM_GetLibraryError ());*/
-		Sys_Warn ("can't initialize %s: %s\n", dllpath, COM_GetLibraryError ());
-		return false; // failed to load server.dll
+		/*Con_Printf (S_ERROR "can't initialize %s: %s\n", dllpath, COM_GetLibraryError ());
+		Sys_Warn ("can't initialize %s: %s\n", dllpath, COM_GetLibraryError ());*/
+		if (!silent)
+			Sys_Warn ("can't initialize %s: %s\n", dllpath, COM_GetLibraryError ());
+		else
+			Con_Printf (S_ERROR "can't initialize %s: %s\n", dllpath, COM_GetLibraryError ());
+
+		return false;	// failed to load server.dll
 		}
 
 	// client frames will be allocated in SV_ClientConnect
@@ -1089,7 +1101,9 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 
 	SV_SetupClients ();
 
-	if (!SV_InitGame ())
+	// [FWGS, 05.04.26]
+	/*if (!SV_InitGame ())*/
+	if (!SV_InitGame (false))
 		return false;
 
 	// [FWGS, 01.12.24] re-initialize delta
@@ -1225,7 +1239,9 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 		if (svs.clients[i].state > cs_connected)
 			svs.clients[i].state = cs_connected;
 
-		ent = EDICT_NUM (i + 1);
+		// [FWGS, 05.04.26]
+		/*ent = EDICT_NUM (i + 1);*/
+		ent = SV_EdictNum (i + 1);
 		svs.clients[i].pViewEntity = NULL;
 		svs.clients[i].edict = ent;
 		SV_InitEdict (ent);

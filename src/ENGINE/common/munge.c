@@ -13,6 +13,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
+
 #include "common.h"
 
 static const byte mungify_table[] =
@@ -91,10 +92,15 @@ void COM_UnMunge2 (byte *data, size_t len, int seq)
 	COM_GenericMunge (data, len, seq, mungify_table2, true);
 	}
 
+// [FWGS, 05.04.26] not used in client, keep for tests only
+#if XASH_ENGINE_TESTS
+
 void COM_Munge3 (byte *data, size_t len, int seq)
 	{
 	COM_GenericMunge (data, len, seq, mungify_table3, false);
 	}
+
+#endif
 
 void COM_UnMunge3 (byte *data, size_t len, int seq)
 	{
@@ -119,6 +125,7 @@ void Test_RunMunge (void)
 		"\x68\x6a\x71\x31\x6e\x7e\x25\x75\x3e\x69\x69\x39\x62\x2c\x62\x24\x29\x77\x29\x74\x7d\x2c\x73\x20\x22\x62\x38\x26\x6a\x28\x2a\x6d\x3c\x3e\x72\x37\x61\x61",
 		}
 		};
+
 	string buf;
 	size_t msglen = Q_strlen (msg) + 1;
 	int i;
@@ -155,4 +162,5 @@ void Test_RunMunge (void)
 		TASSERT (!Q_strcmp (buf, msg));
 		}
 	}
+
 #endif

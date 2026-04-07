@@ -640,7 +640,7 @@ char *Wcon_Input (void)
 		if (eventsCount <= 0)
 			break;
 
-		if (!ReadConsoleInputW (s_wcd.hInput, events, ARRAYSIZE (events), &eventsCount))
+		if (!ReadConsoleInputW (s_wcd.hInput, events, HLARRAYSIZE (events), &eventsCount))
 			return NULL;
 
 		if (eventsCount == 0)

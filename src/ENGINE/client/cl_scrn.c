@@ -792,8 +792,10 @@ void SCR_LoadCreditsFont (void)
 	if (!success)
 		success = Con_LoadVariableWidthFont ("gfx/creditsfont.fnt", font, scale, &hud_fontrender, TF_FONT);
 
+	// [FWGS, 05.04.26]
 	if (!success)
-		success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, &hud_fontrender, TF_FONT);
+		/*success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, &hud_fontrender, TF_FONT);*/
+		success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, &hud_fontrender, TF_FONT | TF_NEAREST);
 
 	// copy font size for client.dll
 	if (success)

@@ -73,14 +73,15 @@ void CL_SetFontRendermode (cl_font_t *font)
 	ref.dllFuncs.GL_SetRenderMode (CL_FontRenderMode (font->rendermode));
 	}
 
-// [FWGS, 01.04.26]
+// [FWGS, 05.04.26]
 void CL_SetFontColor (cl_font_t *font, const rgba_t color)
 	{
-	// don't apply color to fixed fonts it's already colored
+	/*// don't apply color to fixed fonts it's already colored
 	if ((font->type != FONT_FIXED) || (REF_GET_PARM (PARM_TEX_GLFORMAT, font->hFontTexture) == 0x8045))	// GL_LUMINANCE8_ALPHA8
 		ref.dllFuncs.Color4ub (color[0], color[1], color[2], color[3]);
 	else
-		ref.dllFuncs.Color4ub (255, 255, 255, color[3]);
+		ref.dllFuncs.Color4ub (255, 255, 255, color[3]);*/
+	ref.dllFuncs.Color4ub (color[0], color[1], color[2], color[3]);
 	}
 
 // [FWGS, 01.03.24]

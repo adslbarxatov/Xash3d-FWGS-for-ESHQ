@@ -1800,8 +1800,9 @@ void Netchan_TransmitBits (netchan_t *chan, int length, const byte *data)
 	memset (send_buf, 0, sizeof (send_buf));
 	MSG_Init (&send, "NetSend", send_buf, sizeof (send_buf));
 
-	// prepare the packet header
-	w1 = chan->outgoing_sequence | (send_reliable << 31);
+	// [FWGS, 05.04.26] prepare the packet header
+	/*w1 = chan->outgoing_sequence | (send_reliable << 31);*/
+	w1 = chan->outgoing_sequence | (((uint)send_reliable) << 31);
 	w2 = chan->incoming_sequence | (chan->incoming_reliable_sequence << 31);
 
 	send_reliable_fragment = false;

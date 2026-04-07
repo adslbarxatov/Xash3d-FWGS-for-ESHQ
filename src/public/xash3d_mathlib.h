@@ -387,7 +387,11 @@ static inline float VectorNormalizeLength2 (const vec3_t v, vec3_t out)
 	return length;
 	}
 
-// [FWGS, 01.12.24]
+// ESHQ: правка для Client.dll
+#ifdef AngleVectors
+#undef AngleVectors
+#endif
+
 static inline void GAME_EXPORT AngleVectors (const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 	{
 	float sr, sp, sy, cr, cp, cy;

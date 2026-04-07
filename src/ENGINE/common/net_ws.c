@@ -2039,17 +2039,20 @@ void NET_Config (qboolean multiplayer, qboolean changeport)
 	net.configured = multiplayer ? true : false;
 	}
 
-/***
+// [FWGS, 05.04.26] removed NET_IsConfigured
+
+/*
+/
 ====================
 NET_IsConfigured
 
 Is winsock ip initialized?
 ====================
-***/
+/
 qboolean NET_IsConfigured (void)
 	{
 	return net.configured;
-	}
+	}*/
 
 /***
 ====================
@@ -2061,16 +2064,19 @@ qboolean NET_IsActive (void)
 	return net.initialized;
 	}
 
-/***
+// [FWGS, 05.04.26] removed NET_Sleep
+
+/*
+/
 ====================
 NET_Sleep
 
 sleeps msec or until net socket is ready
 ====================
-***/
+/
 void NET_Sleep (int msec)
 	{
-#ifndef XASH_NO_NETWORK
+ifndef XASH_NO_NETWORK
 	struct timeval	timeout;
 	fd_set		fdset;
 	int		i = 0;
@@ -2089,8 +2095,8 @@ void NET_Sleep (int msec)
 	timeout.tv_sec = msec / 1000;
 	timeout.tv_usec = (msec % 1000) * 1000;
 	select (i + 1, &fdset, NULL, NULL, &timeout);
-#endif
-	}
+endif
+	}*/
 
 /***
 ====================
