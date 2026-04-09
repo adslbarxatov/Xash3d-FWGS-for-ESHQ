@@ -96,6 +96,7 @@ const char *SoundList_Get (enum soundlst_group_e group, int i)
 		case SoundList_Range:
 			Q_snprintf (temp, sizeof (temp), lst->snd, lst->min + i);
 			return temp;
+
 		case SoundList_List:
 			return &lst->snd[i * lst->min];
 		}

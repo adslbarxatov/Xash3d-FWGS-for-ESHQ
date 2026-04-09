@@ -277,6 +277,7 @@ qboolean Matrix4x4_Invert_Full (matrix4x4 out, const matrix4x4 in1);
 // So don't carry over this to C++ code
 
 #ifndef __cplusplus
+
 typedef union
 	{
 	float		fl;
@@ -388,9 +389,11 @@ static inline float VectorNormalizeLength2 (const vec3_t v, vec3_t out)
 	}
 
 // ESHQ: правка для Client.dll
-#ifdef AngleVectors
-#undef AngleVectors
-#endif
+/*ifdef AngleVectors
+undef AngleVectors
+endif*/
+
+#ifndef CLIENT_DLL
 
 static inline void GAME_EXPORT AngleVectors (const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
 	{
@@ -421,6 +424,8 @@ static inline void GAME_EXPORT AngleVectors (const vec3_t angles, vec3_t forward
 		up[2] = (cr * cp);
 		}
 	}
+
+#endif
 
 // [FWGS, 01.01.24]
 static inline void ClearBounds (vec3_t mins, vec3_t maxs)

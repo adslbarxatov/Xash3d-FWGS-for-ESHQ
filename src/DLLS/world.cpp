@@ -503,7 +503,7 @@ void CWorld::Precache (void)
 	PRECACHE_SOUND ("items/gunpickup2.wav");		// player picks up a gun.
 
 	// ESHQ: новые звуки
-	PRECACHE_SOUND ("common/bodydrop1.wav");
+	/*PRECACHE_SOUND ("common/bodydrop1.wav");*/
 	PRECACHE_SOUND ("common/bodydrop2.wav");
 	PRECACHE_SOUND ("common/bodydrop3.wav");
 	PRECACHE_SOUND ("common/bodydrop4.wav");

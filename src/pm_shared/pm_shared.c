@@ -768,7 +768,7 @@ void PM_UpdateStepSound (void)
 					break;
 
 				case CHAR_TEX_METAL:
-					fvol = fWalking ? 0.2 : 0.5;
+					fvol = fWalking ? 0.2 : 0.4;
 					pmove->flTimeStepSound = fWalking ? 400 : 300;
 					break;
 

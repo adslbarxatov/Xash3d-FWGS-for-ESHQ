@@ -2494,12 +2494,13 @@ void CBaseMonster::HandleAnimEvent (MonsterEvent_t* pEvent)
 		case MONSTER_EVENT_BODYDROP_HEAVY:
 			if (pev->flags & FL_ONGROUND)
 				{
-				switch (RANDOM_LONG (1, 4)) 
+				switch (RANDOM_LONG (2, 4)) 
 					{
-					case 1:
+					/*case 1:
 						EMIT_SOUND_DYN (ENT (pev), CHAN_BODY, "common/bodydrop1.wav", 1, ATTN_MEDIUM, 0, 90);
-						break;
+						break;*/
 
+					default:
 					case 2:
 						EMIT_SOUND_DYN (ENT (pev), CHAN_BODY, "common/bodydrop2.wav", 1, ATTN_MEDIUM, 0, 90);
 						break;
@@ -2518,12 +2519,13 @@ void CBaseMonster::HandleAnimEvent (MonsterEvent_t* pEvent)
 		case MONSTER_EVENT_BODYDROP_LIGHT:
 			if (pev->flags & FL_ONGROUND)
 				{
-				switch (RANDOM_LONG (1, 4))
+				switch (RANDOM_LONG (2, 4))
 					{
-					case 1:
+					/*case 1:
 						EMIT_SOUND (ENT (pev), CHAN_BODY, "common/bodydrop1.wav", 1, ATTN_MEDIUM);
-						break;
+						break;*/
 
+					default:
 					case 2:
 						EMIT_SOUND (ENT (pev), CHAN_BODY, "common/bodydrop2.wav", 1, ATTN_MEDIUM);
 						break;

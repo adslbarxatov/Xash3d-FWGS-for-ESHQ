@@ -335,75 +335,6 @@ void CCycler::DamageSound ()
 	{
 	CBreakable::MakeDamageSound (m_Material, GetVolume (), GetPitch (), ENT (pev),
 		FBitSet (pev->spawnflags, HC_CYCLER_BREAKABLE));
-
-	/*int pitch;
-	float fvol;
-	char *rgpsz[6];
-	int i;
-	int material = m_Material;
-
-	// Отмена звука, если cycler нематериальный
-	if (FBitSet (pev->spawnflags, HC_CYCLER_PASSABLE))
-		return;
-
-	// Настройка звука
-	fvol = GetVolume ();
-	pitch = GetPitch ();
-
-	if (material == matComputer && RANDOM_LONG (0, 1))
-		material = matMetal;
-
-	switch (material)
-		{
-		case matComputer:
-		case matGlass:
-		case matUnbreakableGlass:
-			rgpsz[0] = "debris/glass1.wav";
-			rgpsz[1] = "debris/glass2.wav";
-			rgpsz[2] = "debris/glass3.wav";
-			i = 3;
-			break;
-
-		case matWood:
-			rgpsz[0] = "debris/wood5.wav";
-			rgpsz[1] = "debris/wood6.wav";
-			rgpsz[2] = "debris/wood7.wav";
-			i = 3;
-			break;
-
-		case matMetal:
-			rgpsz[0] = "player/pl_metal5.wav";
-			rgpsz[1] = "player/pl_metal6.wav";
-			rgpsz[2] = "player/pl_metal7.wav";
-			rgpsz[3] = "player/pl_metal8.wav";
-			i = 4;
-			break;
-
-		case matFlesh:
-			rgpsz[0] = "debris/flesh2.wav";
-			rgpsz[1] = "debris/flesh3.wav";
-			rgpsz[2] = "debris/flesh4.wav";
-			rgpsz[3] = "debris/flesh5.wav";
-			rgpsz[4] = "debris/flesh6.wav";
-			rgpsz[5] = "debris/flesh7.wav";
-			i = 6;
-			break;
-
-		case matRocks:
-		case matCinderBlock:
-			rgpsz[0] = "debris/concrete1.wav";
-			rgpsz[1] = "debris/concrete2.wav";
-			rgpsz[2] = "debris/concrete3.wav";
-			i = 3;
-			break;
-
-		case matCeilingTile:
-			i = 0;
-			break;
-		}
-
-	if (i)
-		EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, rgpsz[RANDOM_LONG (0, i - 1)], fvol, ATTN_MEDIUM, 0, pitch);*/
 	}
 
 // ESHQ: обработка получения урона
@@ -413,8 +344,6 @@ int CCycler::TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 	Vector vecVelocity;	// shard velocity
 	CBaseEntity *pEntity = NULL;
 	char cFlag = 0;
-	/*int pitch;
-	float fvol;*/
 	float ampl, freq, duration;
 
 	// Защита от посторонних обработок
@@ -430,7 +359,6 @@ int CCycler::TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 			pev->framerate = 1.0;
 			StudioFrameAdvance (0.1);
 			pev->framerate = 0;
-			/*ALERT (at_console, "sequence: %d, frame %.0f\n", pev->sequence, pev->frame);*/
 			}
 		}
 
@@ -457,102 +385,6 @@ int CCycler::TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 
 	cFlag = CBreakable::MakeBustSound (m_Material, GetVolume (), GetPitch (), ENT (pev));
 
-	/*// ESHQ: громкость и высота теперь зависят от размера объекта
-	fvol = GetVolume ();
-	pitch = GetPitch ();
-
-	switch (m_Material)
-		{
-		case matGlass:
-			switch (RANDOM_LONG (0, 2))
-				{
-				case 0:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustglass1.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 1:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustglass2.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 2:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustglass3.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				}
-			cFlag = BREAK_GLASS;
-			break;
-
-		case matWood:
-			switch (RANDOM_LONG (0, 2))
-				{
-				case 0:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustcrate1.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 1:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustcrate2.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 2:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustcrate3.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				}
-			cFlag = BREAK_WOOD;
-			break;
-
-		case matComputer:
-		case matMetal:
-			switch (RANDOM_LONG (0, 1))
-				{
-				case 0:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustmetal1.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 1:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustmetal2.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				}
-			cFlag = BREAK_METAL;
-			break;
-
-		case matFlesh:
-			switch (RANDOM_LONG (0, 1))
-				{
-				case 0:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustflesh1.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 1:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustflesh2.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				}
-			cFlag = BREAK_FLESH;
-			break;
-
-		case matRocks:
-		case matCinderBlock:
-			switch (RANDOM_LONG (0, 1))
-				{
-				case 0:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustconcrete1.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 1:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustconcrete2.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				}
-			cFlag = BREAK_CONCRETE;
-			break;
-
-		case matCeilingTile:
-			switch (RANDOM_LONG (0, 1))
-				{
-				case 0:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustceiling1.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				case 1:
-					EMIT_SOUND_DYN (ENT (pev), CHAN_VOICE, "debris/bustceiling2.wav", fvol, ATTN_MEDIUM, 0, pitch);
-					break;
-				}
-			break;
-		}*/
-
-	/*// Направление
-	vecVelocity.x = 0;
-	vecVelocity.y = 0;
-	vecVelocity.z = 0;*/
 	// Разброс обломков (armortype не равен нулю только при ударах по объекту оружием)
 	ampl = flDamage * 15.0f;
 	if (ampl > 400.0f)

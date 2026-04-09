@@ -798,6 +798,7 @@ void CL_ParseViewBeam (sizebuf_t *msg, int beamType)
 
 		case TE_BEAMHOSE:
 			break;
+
 		case TE_KILLBEAM:
 			startEnt = MSG_ReadShort (msg);
 			R_BeamKill (startEnt);

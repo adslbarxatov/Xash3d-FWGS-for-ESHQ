@@ -289,6 +289,7 @@ static void CL_TempEntPlaySound (TEMPENTITY *pTemp, float damp)
 		// ESHQ: исправление после модификации функционала lerping
 		case BOUNCE_WOOD:
 			soundname = SoundList_GetRandom (BounceWood);
+			fvol = 1.0f;
 			break;
 
 		case BOUNCE_SHRAP:
@@ -297,13 +298,13 @@ static void CL_TempEntPlaySound (TEMPENTITY *pTemp, float damp)
 
 		case BOUNCE_SHOTSHELL:
 			soundname = SoundList_GetRandom (BounceWeaponShell);
-			isshellcasing = true; // shell casings have different playback parameters
+			isshellcasing = true;	// shell casings have different playback parameters
 			fvol = 0.5f;
 			break;
 
 		case BOUNCE_SHELL:
 			soundname = SoundList_GetRandom (BouncePlayerShell);
-			isshellcasing = true; // shell casings have different playback parameters
+			isshellcasing = true;	// shell casings have different playback parameters
 			break;
 
 		case BOUNCE_CONCRETE:
@@ -341,10 +342,6 @@ static void CL_TempEntPlaySound (TEMPENTITY *pTemp, float damp)
 			fvol *= Q_min (1.0f, ((float)zvel) / 350.0f);
 		else
 			fvol *= Q_min (1.0f, ((float)zvel) / 450.0f);
-
-		/*// ESHQ: иначе какой смысл?
-		if (fvol < 0.15f)
-			fvol = 0.15f;*/
 
 		if (!COM_RandomLong (0, 3) && !isshellcasing)
 			pitch = COM_RandomLong (95, 105);
@@ -450,7 +447,7 @@ static qboolean CL_FreeLowPriorityTempEnt (void)
 ==============
 CL_TempEntAlloc [FWGS, 01.12.24]
 
-alloc normal\low priority tempentity
+alloc normal/low priority tempentity
 ==============
 ***/
 TEMPENTITY *CL_TempEntAlloc (const vec3_t org, model_t *pmodel)
@@ -1036,11 +1033,11 @@ void GAME_EXPORT R_BreakModel (const vec3_t pos, const vec3_t size, const vec3_t
 			vecSpot[2] = pos[2] + COM_RandomFloat (-0.5f, 0.5f) * size[2];
 
 			if (PM_CL_PointContents (vecSpot, NULL) != CONTENTS_SOLID)
-				break; // valid spot
+				break;	// valid spot
 			}
 
 		if (j == 32)
-			continue; // a piece completely stuck in the wall, ignore it
+			continue;	// a piece completely stuck in the wall, ignore it
 
 		pTemp = CL_TempEntAlloc (vecSpot, pmodel);
 		if (!pTemp)
@@ -1075,13 +1072,13 @@ void GAME_EXPORT R_BreakModel (const vec3_t pos, const vec3_t size, const vec3_t
 		else
 			{
 			pTemp->entity.curstate.rendermode = kRenderNormal;
-			pTemp->entity.curstate.renderamt = pTemp->entity.baseline.renderamt = 255; // set this for fadeout
+			pTemp->entity.curstate.renderamt = pTemp->entity.baseline.renderamt = 255;	// set this for fadeout
 			}
 
 		pTemp->entity.baseline.origin[0] = dir[0] + COM_RandomFloat (-random, random);
 		pTemp->entity.baseline.origin[1] = dir[1] + COM_RandomFloat (-random, random);
 		pTemp->entity.baseline.origin[2] = dir[2] + COM_RandomFloat (0, random);
-		pTemp->die = cl.time + life + COM_RandomFloat (0.0f, 2.0f); // ESHQ: можно чуть подольше
+		pTemp->die = cl.time + life + COM_RandomFloat (0.0f, 2.0f);	// ESHQ: можно чуть подольше
 		}
 	}
 

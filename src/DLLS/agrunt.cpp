@@ -870,14 +870,14 @@ Schedule_t	slAGruntThreatDisplay[] =
 DEFINE_CUSTOM_SCHEDULES (CAGrunt)
 	{
 	slAGruntFail,
-		slAGruntCombatFail,
-		slAGruntStandoff,
-		slAGruntSuppress,
-		slAGruntRangeAttack1,
-		slAGruntHiddenRangeAttack,
-		slAGruntTakeCoverFromEnemy,
-		slAGruntVictoryDance,
-		slAGruntThreatDisplay,
+	slAGruntCombatFail,
+	slAGruntStandoff,
+	slAGruntSuppress,
+	slAGruntRangeAttack1,
+	slAGruntHiddenRangeAttack,
+	slAGruntTakeCoverFromEnemy,
+	slAGruntVictoryDance,
+	slAGruntThreatDisplay,
 	};
 
 IMPLEMENT_CUSTOM_SCHEDULES (CAGrunt, CSquadMonster);
@@ -885,30 +885,28 @@ IMPLEMENT_CUSTOM_SCHEDULES (CAGrunt, CSquadMonster);
 // =========================================================
 // FCanCheckAttacks - this is overridden for alien grunts
 // because they can use their smart weapons against unseen
-// enemies. Base class doesn't attack anyone it can't see.
+// enemies. Base class doesn't attack anyone it can't see
 // =========================================================
 BOOL CAGrunt::FCanCheckAttacks (void)
 	{
 	if (!HasConditions (bits_COND_ENEMY_TOOFAR))
-		{
 		return TRUE;
-		}
-	else
-		{
-		return FALSE;
-		}
+
+	/*else
+		{*/
+	return FALSE;
+	/*}*/
 	}
 
 // =========================================================
 // CheckMeleeAttack1 - alien grunts zap the crap out of 
-// any enemy that gets too close. 
+// any enemy that gets too close
 // =========================================================
 BOOL CAGrunt::CheckMeleeAttack1 (float flDot, float flDist)
 	{
-	if (HasConditions (bits_COND_SEE_ENEMY) && flDist <= AGRUNT_MELEE_DIST && flDot >= 0.6 && m_hEnemy != NULL)
-		{
+	if (HasConditions (bits_COND_SEE_ENEMY) && (flDist <= AGRUNT_MELEE_DIST) && (flDot >= 0.6) && (m_hEnemy != NULL))
 		return TRUE;
-		}
+		
 	return FALSE;
 	}
 

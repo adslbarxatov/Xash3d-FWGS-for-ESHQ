@@ -738,11 +738,9 @@ void CLightning::DamageThink (void)
 	BeamDamage (&tr);
 	}
 
-
-
 void CLightning::Zap (const Vector& vecSrc, const Vector& vecDest)
 	{
-#if 1
+	/*if 1*/
 	MESSAGE_BEGIN (MSG_BROADCAST, SVC_TEMPENTITY);
 	WRITE_BYTE (TE_BEAMPOINTS);
 	WRITE_COORD (vecSrc.x);
@@ -763,7 +761,7 @@ void CLightning::Zap (const Vector& vecSrc, const Vector& vecDest)
 	WRITE_BYTE (pev->renderamt);	// brightness
 	WRITE_BYTE (m_speed);		// speed
 	MESSAGE_END ();
-#else
+	/*else
 	MESSAGE_BEGIN (MSG_BROADCAST, SVC_TEMPENTITY);
 	WRITE_BYTE (TE_LIGHTNING);
 	WRITE_COORD (vecSrc.x);
@@ -777,7 +775,8 @@ void CLightning::Zap (const Vector& vecSrc, const Vector& vecDest)
 	WRITE_BYTE (40);
 	WRITE_SHORT (m_spriteTexture);
 	MESSAGE_END ();
-#endif
+	endif*/
+
 	DoSparks (vecSrc, vecDest);
 	}
 
@@ -801,24 +800,24 @@ void CLightning::RandomArea (void)
 		do {
 			vecDir2 = Vector (RANDOM_FLOAT (-1.0, 1.0), RANDOM_FLOAT (-1.0, 1.0), RANDOM_FLOAT (-1.0, 1.0));
 			} while (DotProduct (vecDir1, vecDir2) > 0);
-			vecDir2 = vecDir2.Normalize ();
-			TraceResult		tr2;
-			UTIL_TraceLine (vecSrc, vecSrc + vecDir2 * m_radius, ignore_monsters, ENT (pev), &tr2);
 
-			if (tr2.flFraction == 1.0)
-				continue;
+		vecDir2 = vecDir2.Normalize ();
+		TraceResult		tr2;
+		UTIL_TraceLine (vecSrc, vecSrc + vecDir2 * m_radius, ignore_monsters, ENT (pev), &tr2);
 
-			if ((tr1.vecEndPos - tr2.vecEndPos).Length () < m_radius * 0.1)
-				continue;
+		if (tr2.flFraction == 1.0)
+			continue;
 
-			UTIL_TraceLine (tr1.vecEndPos, tr2.vecEndPos, ignore_monsters, ENT (pev), &tr2);
+		if ((tr1.vecEndPos - tr2.vecEndPos).Length () < m_radius * 0.1)
+			continue;
 
-			if (tr2.flFraction != 1.0)
-				continue;
+		UTIL_TraceLine (tr1.vecEndPos, tr2.vecEndPos, ignore_monsters, ENT (pev), &tr2);
 
-			Zap (tr1.vecEndPos, tr2.vecEndPos);
+		if (tr2.flFraction != 1.0)
+			continue;
 
-			break;
+		Zap (tr1.vecEndPos, tr2.vecEndPos);
+		break;
 		}
 	}
 
@@ -903,6 +902,7 @@ void CLightning::BeamUpdateVars (void)
 	SetNoise (m_noiseAmplitude);
 	SetFrame (m_frameStart);
 	SetScrollRate (m_speed);
+
 	if (pev->spawnflags & SF_BEAM_SHADEIN)
 		SetFlags (BEAM_FSHADEIN);
 	else if (pev->spawnflags & SF_BEAM_SHADEOUT)
@@ -915,9 +915,9 @@ LINK_ENTITY_TO_CLASS (env_laser, CLaser);
 
 TYPEDESCRIPTION	CLaser::m_SaveData[] =
 	{
-		DEFINE_FIELD (CLaser, m_pSprite, FIELD_CLASSPTR),
-		DEFINE_FIELD (CLaser, m_iszSpriteName, FIELD_STRING),
-		DEFINE_FIELD (CLaser, m_firePosition, FIELD_POSITION_VECTOR),
+	DEFINE_FIELD (CLaser, m_pSprite, FIELD_CLASSPTR),
+	DEFINE_FIELD (CLaser, m_iszSpriteName, FIELD_STRING),
+	DEFINE_FIELD (CLaser, m_firePosition, FIELD_POSITION_VECTOR),
 	};
 
 IMPLEMENT_SAVERESTORE (CLaser, CBeam);
@@ -929,7 +929,8 @@ void CLaser::Spawn (void)
 		SetThink (&CBaseEntity::SUB_Remove);
 		return;
 		}
-	pev->solid = SOLID_NOT;							// Remove model & collisions
+
+	pev->solid = SOLID_NOT;		// Remove model & collisions
 	Precache ();
 
 	SetThink (&CLaser::StrikeThink);
@@ -1075,8 +1076,6 @@ void CLaser::StrikeThink (void)
 	pev->nextthink = gpGlobals->time + 0.1;
 	}
 
-
-
 class CGlow: public CPointEntity
 	{
 	public:
@@ -1095,8 +1094,8 @@ LINK_ENTITY_TO_CLASS (env_glow, CGlow);
 
 TYPEDESCRIPTION	CGlow::m_SaveData[] =
 	{
-		DEFINE_FIELD (CGlow, m_lastTime, FIELD_TIME),
-		DEFINE_FIELD (CGlow, m_maxFrame, FIELD_FLOAT),
+	DEFINE_FIELD (CGlow, m_lastTime, FIELD_TIME),
+	DEFINE_FIELD (CGlow, m_maxFrame, FIELD_FLOAT),
 	};
 
 IMPLEMENT_SAVERESTORE (CGlow, CPointEntity);
@@ -1132,13 +1131,12 @@ void CGlow::Animate (float frames)
 		pev->frame = fmod (pev->frame + frames, m_maxFrame);
 	}
 
-
 LINK_ENTITY_TO_CLASS (env_sprite, CSprite);
 
 TYPEDESCRIPTION	CSprite::m_SaveData[] =
 	{
-		DEFINE_FIELD (CSprite, m_lastTime, FIELD_TIME),
-		DEFINE_FIELD (CSprite, m_maxFrame, FIELD_FLOAT),
+	DEFINE_FIELD (CSprite, m_lastTime, FIELD_TIME),
+	DEFINE_FIELD (CSprite, m_maxFrame, FIELD_FLOAT),
 	};
 
 IMPLEMENT_SAVERESTORE (CSprite, CPointEntity);
@@ -1296,33 +1294,33 @@ class CGibShooter: public CBaseDelay
 		void	Spawn (void);
 		void	Precache (void);
 		void	KeyValue (KeyValueData* pkvd);
-		void HLEXPORT ShootThink (void);
-		void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void	HLEXPORT ShootThink (void);
+		void	Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 
-		virtual CGib* CreateGib (void);
+		virtual CGib	*CreateGib (void);
 
 		virtual int		Save (CSave& save);
 		virtual int		Restore (CRestore& restore);
 		static	TYPEDESCRIPTION m_SaveData[];
 
-		int	m_iGibs;
-		int m_iGibCapacity;
-		int m_iGibMaterial;
-		int m_iGibModelIndex;
-		float m_flGibVelocity;
-		float m_flVariance;
-		float m_flGibLife;
+		int		m_iGibs;
+		int		m_iGibCapacity;
+		int		m_iGibMaterial;
+		int		m_iGibModelIndex;
+		float	m_flGibVelocity;
+		float	m_flVariance;
+		float	m_flGibLife;
 	};
 
 TYPEDESCRIPTION CGibShooter::m_SaveData[] =
 	{
-		DEFINE_FIELD (CGibShooter, m_iGibs, FIELD_INTEGER),
-		DEFINE_FIELD (CGibShooter, m_iGibCapacity, FIELD_INTEGER),
-		DEFINE_FIELD (CGibShooter, m_iGibMaterial, FIELD_INTEGER),
-		DEFINE_FIELD (CGibShooter, m_iGibModelIndex, FIELD_INTEGER),
-		DEFINE_FIELD (CGibShooter, m_flGibVelocity, FIELD_FLOAT),
-		DEFINE_FIELD (CGibShooter, m_flVariance, FIELD_FLOAT),
-		DEFINE_FIELD (CGibShooter, m_flGibLife, FIELD_FLOAT),
+	DEFINE_FIELD (CGibShooter, m_iGibs, FIELD_INTEGER),
+	DEFINE_FIELD (CGibShooter, m_iGibCapacity, FIELD_INTEGER),
+	DEFINE_FIELD (CGibShooter, m_iGibMaterial, FIELD_INTEGER),
+	DEFINE_FIELD (CGibShooter, m_iGibModelIndex, FIELD_INTEGER),
+	DEFINE_FIELD (CGibShooter, m_flGibVelocity, FIELD_FLOAT),
+	DEFINE_FIELD (CGibShooter, m_flVariance, FIELD_FLOAT),
+	DEFINE_FIELD (CGibShooter, m_flGibLife, FIELD_FLOAT),
 	};
 
 IMPLEMENT_SAVERESTORE (CGibShooter, CBaseDelay);
@@ -1401,8 +1399,7 @@ CGib* CGibShooter::CreateGib (void)
 		ALERT (at_aiconsole, "GibShooter Body is <= 1!\n");
 		}
 
-	pGib->pev->body = RANDOM_LONG (1, pev->body - 1);// avoid throwing random amounts of the 0th gib. (skull).
-
+	pGib->pev->body = RANDOM_LONG (1, pev->body - 1);	// avoid throwing random amounts of the 0th gib (skull)
 	return pGib;
 	}
 
@@ -1457,10 +1454,10 @@ void CGibShooter::ShootThink (void)
 
 class CEnvShooter: public CGibShooter
 	{
-	void		Precache (void);
-	void		KeyValue (KeyValueData* pkvd);
+	void	Precache (void);
+	void	KeyValue (KeyValueData* pkvd);
 
-	CGib* CreateGib (void);
+	CGib	*CreateGib (void);
 	};
 
 LINK_ENTITY_TO_CLASS (env_shooter, CEnvShooter);
@@ -1481,30 +1478,36 @@ void CEnvShooter::KeyValue (KeyValueData* pkvd)
 			case 0:
 				m_iGibMaterial = matGlass;
 				break;
+
 			case 1:
 				m_iGibMaterial = matWood;
 				break;
+
 			case 2:
 				m_iGibMaterial = matMetal;
 				break;
+
 			case 3:
 				m_iGibMaterial = matFlesh;
 				break;
+
 			case 4:
 				m_iGibMaterial = matRocks;
 				break;
+
 			case 5:
 				m_iGibMaterial = matCinderBlock;
 				break;
+
 			case 6:
 				m_iGibMaterial = matComputer;
 				break;
+
 			case 7:
 				m_iGibMaterial = matFabric;
 				break;
 
 			default:
-			/*case -1:*/
 				m_iGibMaterial = matNone;
 				break;
 			}
@@ -1523,7 +1526,7 @@ void CEnvShooter::Precache (void)
 
 CGib* CEnvShooter::CreateGib (void)
 	{
-	CGib* pGib = GetClassPtr ((CGib*)NULL);
+	CGib *pGib = GetClassPtr ((CGib *)NULL);
 
 	pGib->Spawn (STRING (pev->model));
 
@@ -1551,13 +1554,12 @@ class CTestEffect: public CBaseDelay
 	public:
 		void	Spawn (void);
 		void	Precache (void);
-		// void	KeyValue( KeyValueData *pkvd );
-		void HLEXPORT TestThink (void);
-		void Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+		void	HLEXPORT TestThink (void);
+		void	Use (CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value);
 
 		int		m_iLoop;
 		int		m_iBeam;
-		CBeam*	m_pBeam[24];
+		CBeam	*m_pBeam[24];
 		float	m_flBeamTime[24];
 		float	m_flStartTime;
 	};
@@ -1592,7 +1594,6 @@ void CTestEffect::TestThink (void)
 		UTIL_TraceLine (vecSrc, vecSrc + vecDir * 128, ignore_monsters, ENT (pev), &tr);
 
 		pbeam->PointsInit (vecSrc, tr.vecEndPos);
-		// pbeam->SetColor( 80, 100, 255 );
 		pbeam->SetColor (255, 180, 100);
 		pbeam->SetWidth (100);
 		pbeam->SetScrollRate (12);
@@ -1601,7 +1602,7 @@ void CTestEffect::TestThink (void)
 		m_pBeam[m_iBeam] = pbeam;
 		m_iBeam++;
 
-#if 0
+		/*if 0
 		Vector vecMid = (vecSrc + tr.vecEndPos) * 0.5;
 		MESSAGE_BEGIN (MSG_BROADCAST, SVC_TEMPENTITY);
 		WRITE_BYTE (TE_DLIGHT);
@@ -1615,7 +1616,7 @@ void CTestEffect::TestThink (void)
 		WRITE_BYTE (20);		// time * 10
 		WRITE_BYTE (0);		// decay * 0.1
 		MESSAGE_END ();
-#endif
+		endif*/
 		}
 
 	if (t < 3.0)
@@ -1636,7 +1637,6 @@ void CTestEffect::TestThink (void)
 			}
 		m_flStartTime = gpGlobals->time;
 		m_iBeam = 0;
-		// pev->nextthink = gpGlobals->time;
 		SetThink (NULL);
 		}
 	}
@@ -1703,9 +1703,11 @@ void CBlood::KeyValue (KeyValueData* pkvd)
 			case 1:
 				SetColor (BLOOD_COLOR_RED);
 				break;
+
 			case 2:
 				SetColor (BLOOD_COLOR_GREEN);
 				break;
+
 			default:
 				SetColor (BLOOD_COLOR_YELLOW);
 				break;
@@ -1719,7 +1721,9 @@ void CBlood::KeyValue (KeyValueData* pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CPointEntity::KeyValue (pkvd);
+		}
 	}
 
 Vector CBlood::Direction (void)
@@ -1749,11 +1753,11 @@ Vector CBlood::BloodPosition (CBaseEntity* pActivator)
 	return pev->origin;
 	}
 
-
 void CBlood::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 	{
 	if (pev->spawnflags & SF_BLOOD_STREAM)
-		UTIL_BloodStream (BloodPosition (pActivator), Direction (), (Color () == BLOOD_COLOR_RED) ? 70 : Color (), BloodAmount ());
+		UTIL_BloodStream (BloodPosition (pActivator), Direction (),
+			(Color () == BLOOD_COLOR_RED) ? 70 : Color (), BloodAmount ());
 	else
 		UTIL_BloodDrips (BloodPosition (pActivator), Direction (), Color (), BloodAmount ());
 
@@ -1838,15 +1842,15 @@ void CShake::KeyValue (KeyValueData* pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CPointEntity::KeyValue (pkvd);
+		}
 	}
-
 
 void CShake::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 	{
 	UTIL_ScreenShake (pev->origin, Amplitude (), Frequency (), Duration (), Radius ());
 	}
-
 
 class CFade: public CPointEntity
 	{
@@ -1920,7 +1924,6 @@ void CFade::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType
 	SUB_UseTargets (this, USE_TOGGLE, 0);
 	}
 
-
 class CMessage: public CPointEntity
 	{
 	public:
@@ -1959,6 +1962,7 @@ void CMessage::Spawn (void)
 			pev->speed = ATTN_SMALL;
 			break;
 		}
+
 	pev->impulse = 0;
 
 	// No volume, use normal
@@ -1990,7 +1994,9 @@ void CMessage::KeyValue (KeyValueData* pkvd)
 		pkvd->fHandled = TRUE;
 		}
 	else
+		{
 		CPointEntity::KeyValue (pkvd);
+		}
 	}
 
 void CMessage::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
@@ -2071,7 +2077,7 @@ void CEnvFunnel::Spawn (void)
 // =========================================================
 // Beverage Dispenser
 // overloaded pev->frags, is now a flag for whether or not a can is stuck in the dispenser. 
-// overloaded pev->health, is now how many cans remain in the machine.
+// overloaded pev->health, is now how many cans remain in the machine
 // =========================================================
 class CEnvBeverage: public CBaseDelay
 	{
@@ -2091,7 +2097,7 @@ LINK_ENTITY_TO_CLASS (env_beverage, CEnvBeverage);
 
 void CEnvBeverage::Use (CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 	{
-	if (pev->frags != 0 || pev->health <= 0)
+	if ((pev->frags != 0) || (pev->health <= 0))
 		{
 		// no more cans while one is waiting in the dispenser, or if I'm out of cans.
 		return;
@@ -2116,9 +2122,7 @@ void CEnvBeverage::Spawn (void)
 	pev->frags = 0;
 
 	if (pev->health == 0)
-		{
 		pev->health = 10;
-		}
 	}
 
 // =========================================================
@@ -2168,7 +2172,7 @@ void CItemSoda::CanTouch (CBaseEntity* pOther)
 		return;
 
 	// spoit sound here
-	pOther->TakeHealth (1, DMG_GENERIC);// a bit of health.
+	pOther->TakeHealth (1, DMG_GENERIC);	// a bit of health
 
 	if (!FNullEnt (pev->owner))
 		{

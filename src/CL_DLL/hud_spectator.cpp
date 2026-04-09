@@ -62,13 +62,13 @@ extern vec3_t v_cl_angles;	// last client/mouse angle
 extern vec3_t v_sim_org;	// last sim origin
 
 // ESHQ: исправление определений
-#ifdef VectorNormalize
-#undef VectorNormalize
-#endif
+/*ifdef VectorNormalize
+un def VectorNormalize
+endif
 
-#ifdef VectorScale
-#undef VectorScale
-#endif
+ifdef VectorScale
+un def VectorScale
+endif*/
 
 void SpectatorMode (void)
 	{
