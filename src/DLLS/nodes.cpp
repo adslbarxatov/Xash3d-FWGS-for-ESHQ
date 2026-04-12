@@ -1225,25 +1225,25 @@ void CTestHull::BuildNodeGraph (void)
 	TraceResult	tr;
 	FILE *file;
 
-	char	szNrpFilename[MAX_PATH];// text node report filename
+	char	szNrpFilename[MAX_PATH];	// text node report filename
 
-	CLink *pTempPool;	// temporary link pool 
+	CLink	*pTempPool;		// temporary link pool 
 
-	CNode *pSrcNode;	// node we're currently working with
-	CNode *pDestNode;	// the other node in comparison operations
+	CNode	*pSrcNode;		// node we're currently working with
+	CNode	*pDestNode;		// the other node in comparison operations
 
 	BOOL	fSkipRemainingHulls;	// if smallest hull can't fit, don't check any others
 	BOOL	fPairsValid;	// are all links in the graph evenly paired?
 
 	int		i, j, hull;
 
-	int		iBadNode;	// this is the node that caused graph generation to fail
+	int		iBadNode;		// this is the node that caused graph generation to fail
 
 	int		cMaxInitialLinks = 0;
 	int		cMaxValidLinks = 0;
 
 	int		iPoolIndex = 0;
-	int		cPoolLinks;	// number of links in the pool
+	int		cPoolLinks;		// number of links in the pool
 
 	Vector	vecDirToCheckNode;
 	Vector	vecDirToTestNode;
@@ -1257,17 +1257,18 @@ void CTestHull::BuildNodeGraph (void)
 	Vector2D	vec2TraceSpot;
 	Vector2D	vec2Spot;
 
-	float	flYaw;	// use this stuff to walk the hull between nodes
+	float	flYaw;		// use this stuff to walk the hull between nodes
 	float	flDist;
 	int		step;
 
-	SetThink (&CBaseEntity::SUB_Remove);// no matter what happens, the hull gets rid of itself.
+	SetThink (&CBaseEntity::SUB_Remove);	// no matter what happens, the hull gets rid of itself.
 	pev->nextthink = gpGlobals->time;
 
-	// 	malloc a swollen temporary connection pool that we trim down after we know exactly how many connections there are.
+	//	malloc a swollen temporary connection pool that we trim down after we know exactly how many connections there are.
 	pTempPool = (CLink *)calloc (sizeof (CLink), (WorldGraph.m_cNodes * MAX_NODE_INITIAL_LINKS));
 	if (!pTempPool)
 		{
+		// ESHQ: здесь и далее – все сообщения должны быть видны
 		ALERT (at_aiconsole, "**Could not malloc TempPool!\n");
 		return;
 		}
@@ -1286,7 +1287,8 @@ void CTestHull::BuildNodeGraph (void)
 	file = fopen (szNrpFilename, "w+");
 
 	if (!file)
-		{// file error
+		{
+		// file error
 		ALERT (at_aiconsole, "Couldn't create %s!\n", szNrpFilename);
 
 		if (pTempPool)
@@ -1299,7 +1301,8 @@ void CTestHull::BuildNodeGraph (void)
 	fprintf (file, "%d Total Nodes\n\n", WorldGraph.m_cNodes);
 
 	for (i = 0; i < WorldGraph.m_cNodes; i++)
-		{// print all node numbers and their locations to the file
+		{
+		// print all node numbers and their locations to the file
 		WorldGraph.m_pNodes[i].m_cNumLinks = 0;
 		WorldGraph.m_pNodes[i].m_iFirstLink = 0;
 		memset (WorldGraph.m_pNodes[i].m_pNextBestNode, 0, sizeof (WorldGraph.m_pNodes[i].m_pNextBestNode));
@@ -1312,6 +1315,7 @@ void CTestHull::BuildNodeGraph (void)
 		fprintf (file, "HintYaw:      %4f\n", WorldGraph.m_pNodes[i].m_flHintYaw);
 		fprintf (file, "-------------------------------------------------------------------------------\n");
 		}
+
 	fprintf (file, "\n\n");
 
 	// Automatically recognize WATER nodes and drop the LAND nodes to the floor
@@ -1414,12 +1418,15 @@ void CTestHull::BuildNodeGraph (void)
 					case NODE_SMALL_HULL:
 						UTIL_SetSize (pev, Vector (-12, -12, 0), Vector (12, 12, 24));
 						break;
+
 					case NODE_HUMAN_HULL:
 						UTIL_SetSize (pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
 						break;
+
 					case NODE_LARGE_HULL:
 						UTIL_SetSize (pev, Vector (-32, -32, 0), Vector (32, 32, 64));
 						break;
+
 					case NODE_FLY_HULL:
 						UTIL_SetSize (pev, Vector (-32, -32, 0), Vector (32, 32, 64));
 						// UTIL_SetSize(pev, Vector(0, 0, 0), Vector(0, 0, 0));
@@ -1454,6 +1461,7 @@ void CTestHull::BuildNodeGraph (void)
 					{
 					int SaveFlags = pev->flags;
 					int MoveMode = WALKMOVE_WORLDONLY;
+
 					if (pSrcNode->m_afNodeInfo & bits_NODE_WATER)
 						{
 						pev->flags |= FL_SWIM;
@@ -1461,7 +1469,6 @@ void CTestHull::BuildNodeGraph (void)
 						}
 
 					flYaw = UTIL_VecToYaw (pDestNode->m_vecOrigin - pev->origin);
-
 					flDist = (vecSpot - pev->origin).Length2D ();
 
 					int fWalkFailed = FALSE;
@@ -1483,12 +1490,9 @@ void CTestHull::BuildNodeGraph (void)
 							}
 						}
 
+					// we thought we 
 					if (!fWalkFailed && (pev->origin - vecSpot).Length () > 64)
-						{
-						// ALERT( at_console, "bogus walk\n");
-						// we thought we 
 						fWalkFailed = TRUE;
-						}
 
 					if (fWalkFailed)
 						{
@@ -1501,12 +1505,14 @@ void CTestHull::BuildNodeGraph (void)
 									bits_LINK_HUMAN_HULL | bits_LINK_LARGE_HULL);
 								fSkipRemainingHulls = TRUE;// don't bother checking larger hulls
 								break;
+
 							case NODE_HUMAN_HULL:
 								fprintf (file, "NODE_HUMAN_HULL step %f\n", step);
 								pTempPool[pSrcNode->m_iFirstLink + j].m_afLinkInfo &= ~(bits_LINK_HUMAN_HULL |
 									bits_LINK_LARGE_HULL);
 								fSkipRemainingHulls = TRUE;// don't bother checking larger hulls
 								break;
+
 							case NODE_LARGE_HULL:
 								fprintf (file, "NODE_LARGE_HULL step %f\n", step);
 								pTempPool[pSrcNode->m_iFirstLink + j].m_afLinkInfo &= ~bits_LINK_LARGE_HULL;
@@ -1548,7 +1554,8 @@ void CTestHull::BuildNodeGraph (void)
 	WorldGraph.m_pLinkPool = (CLink *)calloc (sizeof (CLink), cPoolLinks);
 
 	if (!WorldGraph.m_pLinkPool)
-		{// couldn't make the link pool!
+		{
+		// couldn't make the link pool!
 		ALERT (at_aiconsole, "Couldn't malloc LinkPool!\n");
 		if (pTempPool)
 			free (pTempPool);
@@ -1559,6 +1566,7 @@ void CTestHull::BuildNodeGraph (void)
 
 		return;
 		}
+
 	WorldGraph.m_cLinks = cPoolLinks;
 
 	// copy only the used portions of the TempPool into the graph's link pool
@@ -1573,9 +1581,7 @@ void CTestHull::BuildNodeGraph (void)
 		WorldGraph.m_pNodes[i].m_iFirstLink = iFinalPoolIndex;
 
 		for (j = 0; j < WorldGraph.m_pNodes[i].m_cNumLinks; j++)
-			{
 			WorldGraph.m_pLinkPool[iFinalPoolIndex++] = pTempPool[iOldFirstLink + j];
-			}
 		}
 
 
@@ -1628,9 +1634,7 @@ void CTestHull::BuildNodeGraph (void)
 	for (i = 0; i < WorldGraph.m_cNodes; i++)
 		{
 		if ((WorldGraph.m_pNodes[i].m_afNodeInfo & bits_NODE_LAND))
-			{
 			WorldGraph.m_pNodes[i].m_vecOrigin.z -= NODE_HEIGHT;
-			}
 		}
 
 	// free the temp pool
@@ -1650,7 +1654,7 @@ void CTestHull::BuildNodeGraph (void)
 
 	// save the node graph for this level	
 	WorldGraph.FSaveGraph ((char *)STRING (gpGlobals->mapname));
-	ALERT (at_console, "Done.\n");
+	ALERT (at_aiconsole, "Node graph rebuilding has been completed\n");
 	}
 
 // =========================================================

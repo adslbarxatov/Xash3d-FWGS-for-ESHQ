@@ -70,18 +70,6 @@ const char* CBreakable::pSpawnObjects[] =
 void CBreakable::KeyValue (KeyValueData* pkvd)
 	{
 	// ESHQ: удалено, обрабатывается на основе силы удара
-	/*if (FStrEq (pkvd->szKeyName, "explosion"))
-		{
-		if (!stricmp (pkvd->szValue, "directed"))	// ESHQ: возможно, нерабочая схема
-			m_Explosion = expDirected;
-		else if (!stricmp (pkvd->szValue, "1"))
-			m_Explosion = expDirected;
-		else
-			m_Explosion = expRandom;
-
-		pkvd->fHandled = TRUE;
-		}
-	else*/
 	if (FStrEq (pkvd->szKeyName, "material"))
 		{
 		int i = atoi (pkvd->szValue);
@@ -369,10 +357,6 @@ char *CBreakable::PrecacheSounds (Materials2 material)
 		case matWood:
 			pGibName = "models/woodgibs.mdl";
 
-			/*PRECACHE_SOUND ("debris/ bustcrate1.wav");
-			PRECACHE_SOUND ("debris/bustcrate2.wav");
-			// ESHQ
-			PRECACHE_SOUND ("debris/bustcrate3.wav");*/
 			sz = HLARRAYSIZE (pSoundsBustWood);
 			for (i = 0; i < sz; i++)
 				PRECACHE_SOUND (pSoundsBustWood[i]);
@@ -381,24 +365,18 @@ char *CBreakable::PrecacheSounds (Materials2 material)
 		case matFlesh:
 			pGibName = "models/fleshgibs.mdl";
 
-			/*PRECACHE_SOUND ("debris/ bustflesh1.wav");
-			PRECACHE_SOUND ("debris/bustflesh2.wav");*/
 			sz = HLARRAYSIZE (pSoundsBustFlesh);
 			for (i = 0; i < sz; i++)
 				PRECACHE_SOUND (pSoundsBustFlesh[i]);
 			break;
 
 		case matComputer:
-			/*PRECACHE_SOUND ("buttons/ spark5.wav");
-			PRECACHE_SOUND ("buttons/spark6.wav");*/
 			sz = HLARRAYSIZE (pSoundsSparks);
 			for (i = 0; i < sz; i++)
 				PRECACHE_SOUND (pSoundsSparks[i]);
 
 			pGibName = "models/computergibs.mdl";
 
-			/*PRECACHE_SOUND ("debris/ bustmetal1.wav");
-			PRECACHE_SOUND ("debris/bustmetal2.wav");*/
 			sz = HLARRAYSIZE (pSoundsBustMetal);
 			for (i = 0; i < sz; i++)
 				PRECACHE_SOUND (pSoundsBustMetal[i]);
@@ -411,18 +389,12 @@ char *CBreakable::PrecacheSounds (Materials2 material)
 			sz = HLARRAYSIZE (pSoundsBustGlass);
 			for (i = 0; i < sz; i++)
 				PRECACHE_SOUND (pSoundsBustGlass[i]);
-
-			/*PRECACHE_SOUND ("debris/ bustglass1.wav");
-			PRECACHE_SOUND ("debris/ bustglass2.wav");
-			PRECACHE_SOUND ("debris/ bustglass3.wav");*/
 			break;
 
 		default:
 		case matMetal:
 			pGibName = "models/metalplategibs.mdl";
 
-			/*PRECACHE_SOUND ("debris/ bustmetal1.wav");
-			PRECACHE_SOUND ("debris/bustmetal2.wav");*/
 			sz = HLARRAYSIZE (pSoundsBustMetal);
 			for (i = 0; i < sz; i++)
 				PRECACHE_SOUND (pSoundsBustMetal[i]);
@@ -431,8 +403,6 @@ char *CBreakable::PrecacheSounds (Materials2 material)
 		case matCinderBlock:
 			pGibName = "models/cindergibs.mdl";
 
-			/*PRECACHE_SOUND ("debris/ bustconcrete1.wav");
-			PRECACHE_SOUND ("debris/bustconcrete2.wav");*/
 			sz = HLARRAYSIZE (pSoundsBustConcrete);
 			for (i = 0; i < sz; i++)
 				PRECACHE_SOUND (pSoundsBustConcrete[i]);
@@ -441,8 +411,6 @@ char *CBreakable::PrecacheSounds (Materials2 material)
 		case matRocks:
 			pGibName = "models/rockgibs.mdl";
 
-			/*PRECACHE_SOUND ("debris/ bustconcrete1.wav");
-			PRECACHE_SOUND ("debris/bustconcrete2.wav");*/
 			sz = HLARRAYSIZE (pSoundsBustConcrete);
 			for (i = 0; i < sz; i++)
 				PRECACHE_SOUND (pSoundsBustConcrete[i]);
@@ -451,8 +419,6 @@ char *CBreakable::PrecacheSounds (Materials2 material)
 		case matCeilingTile:
 			pGibName = "models/ceilinggibs.mdl";
 
-			/*PRECACHE_SOUND ("debris/ bustceiling1.wav");
-			PRECACHE_SOUND ("debris/bustceiling2.wav");*/
 			sz = HLARRAYSIZE (pSoundsBustCeiling);
 			for (i = 0; i < sz; i++)
 				PRECACHE_SOUND (pSoundsBustCeiling[i]);
@@ -461,11 +427,6 @@ char *CBreakable::PrecacheSounds (Materials2 material)
 		case matFabric:
 			pGibName = "models/fabricgibs.mdl";
 
-			/*// ESHQ
-			PRECACHE_SOUND ("player/ pl_dirt1.wav");
-			PRECACHE_SOUND ("player/pl_dirt2.wav");
-			PRECACHE_SOUND ("player/pl_dirt3.wav");
-			PRECACHE_SOUND ("player/pl_dirt4.wav");*/
 			sz = HLARRAYSIZE (pSoundsBustFabric);
 			for (i = 0; i < sz; i++)
 				PRECACHE_SOUND (pSoundsBustFabric[i]);
@@ -770,7 +731,7 @@ unsigned char CBreakable::MakeBustSound (Materials2 material, float volume, int 
 		case matCeilingTile:
 			i = RANDOM_LONG (0, HLARRAYSIZE (pSoundsBustCeiling) - 1);
 			EMIT_SOUND_DYN (entity, CHAN_VOICE, pSoundsBustCeiling[i], volume, ATTN_MEDIUM, 0, pitch);
-			cFlag = 0;
+			cFlag = BREAK_WOOD;	// ESHQ: подходит
 			break;
 
 		case matFabric:

@@ -226,7 +226,7 @@ static void CL_PrepareTEnt (TEMPENTITY *pTemp, model_t *pmodel)
 	memset (pTemp, 0, sizeof (*pTemp));
 
 	// use these to set per-frame and termination conditions / actions
-	pTemp->entity.trivial_accept = modelHandle; // keep unchanged
+	pTemp->entity.trivial_accept = modelHandle;	// keep unchanged
 	pTemp->flags = FTENT_NONE;
 	pTemp->die = cl.time + 0.75f;
 
@@ -280,6 +280,7 @@ static void CL_TempEntPlaySound (TEMPENTITY *pTemp, float damp)
 
 		case BOUNCE_METAL:
 			soundname = SoundList_GetRandom (BounceMetal);
+			fvol = 1.0f;
 			break;
 
 		case BOUNCE_FLESH:

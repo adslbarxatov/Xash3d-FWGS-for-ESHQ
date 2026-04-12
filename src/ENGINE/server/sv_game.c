@@ -3099,7 +3099,7 @@ static void GAME_EXPORT pfnAlertMessage (ALERT_TYPE type, char *szFmt, ...)
 		return;
 
 	// g-cont: some mods have wrong aiconsole messages that crash the engine
-	if (type == at_aiconsole && host_developer.value < DEV_EXTENDED)
+	if ((type == at_aiconsole) && (host_developer.value < DEV_EXTENDED))
 		return;
 
 	va_start (args, szFmt);
@@ -3112,15 +3112,19 @@ static void GAME_EXPORT pfnAlertMessage (ALERT_TYPE type, char *szFmt, ...)
 		case at_notice:
 			Con_Printf (S_NOTE "%s", buffer);
 			break;
+
 		case at_console:
 			Con_Printf ("%s", buffer);
 			break;
+
 		case at_aiconsole:
 			Con_DPrintf ("%s", buffer);
 			break;
+
 		case at_warning:
 			Con_Printf (S_WARN "%s", buffer);
 			break;
+
 		case at_error:
 			Con_Printf (S_ERROR "%s", buffer);
 			break;

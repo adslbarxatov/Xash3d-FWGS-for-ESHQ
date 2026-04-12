@@ -348,7 +348,7 @@ void CGauss::StartFire (void)
 
 		if (!g_pGameRules->IsMultiplayer ())
 			{
-			// in deathmatch, gauss can pop you up into the air. Not in single play.
+			// in deathmatch, gauss can pop you up into the air. Not in single play
 			m_pPlayer->pev->velocity.z = flZVel;
 			}
 #endif
