@@ -29,22 +29,6 @@ NOTE: number at end of pixelformat name it's a total bitscount e.g. PF_RGB_24 ==
 ========================================================================
 ***/
 
-/*define ImageRAW( type )	(type == PF_RGBA_32 || type == PF_BGRA_32 || type == PF_RGB_24 || type == PF_BGR_24 || type == PF_LUMINANCE)
-
-define ImageCompressed( type ) \
-	(  type == PF_DXT1 \
-	|| type == PF_DXT3 \
-	|| type == PF_DXT5 \
-	|| type == PF_ATI2 \
-	|| type == PF_BC4_SIGNED \
-	|| type == PF_BC4_UNSIGNED \
-	|| type == PF_BC5_SIGNED \
-	|| type == PF_BC5_UNSIGNED \
-	|| type == PF_BC6H_SIGNED \
-	|| type == PF_BC6H_UNSIGNED \
-	|| type == PF_BC7_UNORM \
-	|| type == PF_BC7_SRGB \
-	|| type == PF_KTX2_RAW )*/
 #define ImageRAW( type )		( (type >= PF_RGBA_32) && (type <= PF_LUMINANCE) )
 #define ImageCompressed( type )	( (type >= PF_DXT1) && (type <= PF_KTX2_RAW) )
 #define ImageBigEndian( type )	( (type == PF_BGRA_32) || (type == PF_BGR_24) )
@@ -140,6 +124,10 @@ typedef enum
 	IMAGE_MULTILAYER =		BIT (8),	// to differentiate from 3D texture
 	IMAGE_ONEBIT_ALPHA =	BIT (9),	// binary alpha
 	IMAGE_QUAKEPAL =		BIT (10),	// image has quake1 palette
+
+	// [FWGS, 15.04.26]
+	IMAGE_PREMULTIPLIED =	BIT (11),
+	IMAGE_PLAYERDECAL =		BIT (12),	// loaded with IL_LOAD_PLAYER_DECAL (custom player spray)
 
 	// Image_Process manipulation flags
 	IMAGE_FLIP_X =			BIT (16),	// flip the image by width

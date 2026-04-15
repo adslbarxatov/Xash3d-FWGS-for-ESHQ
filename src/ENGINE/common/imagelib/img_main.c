@@ -16,7 +16,6 @@ GNU General Public License for more details
 // [FWGS, 01.03.26]
 #include <math.h>
 #include "imagelib.h"
-/*include "eiface.h"		// [FWGS, 22.01.25] ARRAYSIZE*/
 
 // [FWGS, 01.09.25]
 #define DEBUG_LOOKUPS_COUNT			0
@@ -199,11 +198,14 @@ void Image_Reset (void)
 #endif
 	}
 
-// [FWGS, 01.09.25]
 static MALLOC_LIKE (FS_FreeImage, 1) rgbdata_t *ImagePack (const char *name)
 	{
 	rgbdata_t *pack;
 	Image_ReportLookupsCount (name);
+
+	// [FWGS, 15.04.26]
+	if (Image_CheckFlag (IL_LOAD_PLAYER_DECAL))
+		SetBits (image.flags, IMAGE_PLAYERDECAL);
 
 	// clear any force flags
 	image.force_flags = 0;

@@ -43,13 +43,15 @@ void Platform_MessageBox (const char *title, const char *message, qboolean paren
 void Platform_SetStatus (const char *status);
 qboolean Platform_DebuggerPresent (void);
 
-// [FWGS, 05.04.26] legacy iOS port functions
-#if TARGET_OS_IOS
+// [FWGS, 15.04.26] legacy iOS port functions
+/*if TARGET_OS_IOS*/
+#if XASH_IOS
 	int IOS_GetArgs (char ***argv);
 	const char *IOS_GetDocsDir (void);
+	const char *IOS_GetExecDir (void);
 	void IOS_LaunchDialog (void);
 
-#include "platform/ios/lib_ios.h"
+/*include "platform/ios/lib_ios.h"*/
 #endif
 
 #if XASH_WIN32 || XASH_LINUX
@@ -230,12 +232,13 @@ static inline void Sys_SetupCrashHandler (const char *argv0) { }
 static inline void Sys_RestoreCrashHandler (void) { }
 #endif
 
-// [FWGS, 05.04.26]
+// [FWGS, 15.04.26]
 static inline qboolean Platform_LibraryExists (const char *name, qboolean gamedironly)
 	{
-#if XASH_IOS
+/*if XASH_IOS
 	return IOS_LibraryExists (name);
-#elif XASH_ANDROID
+elif XASH_ANDROID*/
+#if XASH_ANDROID
 	// sorry, unimplemented
 	return false;
 #else

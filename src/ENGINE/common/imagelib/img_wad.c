@@ -268,7 +268,11 @@ qboolean Image_LoadSPR (const char *name, const byte *buffer, fs_offset_t filesi
 			SetBits (image.flags, IMAGE_ONEBIT_ALPHA);
 			// intentionally fallthrough
 
+		// [FWGS, 15.04.26]
 		case LUMP_GRADIENT:
+			SetBits (image.flags, IMAGE_HAS_ALPHA);
+			break;
+
 		case LUMP_QUAKE1:
 			SetBits (image.flags, IMAGE_HAS_ALPHA);
 			break;

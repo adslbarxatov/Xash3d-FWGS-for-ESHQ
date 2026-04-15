@@ -84,6 +84,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #define K_JOY3		205
 #define K_JOY4		206
 
+// [FWGS, 15.04.26]
+#define K_LTRIGGER	K_JOY1
+#define K_RTRIGGER	K_JOY2
+
 // FWGS
 // aux keys are for multi-buttoned joysticks to generate so they can use
 // the normal binding process
@@ -167,4 +171,4 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 // [FWGS, 01.04.26] 9 more keys for international keyboards, as defined by SDL2
 //
-#define K_INTERNATIONAL 256
+#define K_INTERNATIONAL	256

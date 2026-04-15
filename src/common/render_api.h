@@ -19,7 +19,6 @@ GNU General Public License for more details
 // [FWGS, 01.03.26]
 #include <stdint.h>
 #include "lightstyle.h"
-/*include "dlight.h"*/
 
 #define CL_RENDER_INTERFACE_VERSION	37	// Xash3D 1.0
 #define MAX_STUDIO_DECALS			4096	// + unused space of BSP decals
@@ -103,7 +102,9 @@ typedef enum
 	TF_TEXTURE_3D =		(1 << 20),	// this is GL_TEXTURE_3D
 	TF_ATLAS_PAGE =		(1 << 21),	// bit who indicate lightmap page or deluxemap page
 	TF_ALPHACONTRAST =	(1 << 22),	// special texture mode for A2C
-	// reserved
+
+	// [FWGS, 15.04.26]
+	TF_PREMULTIPLIED =	(1 << 23),	// RGBA was stored premultiplied (HL gradient / indexalpha)
 	// reserved
 
 	// this is set for first time when called glTexImage, otherwise it will be call glTexSubImage

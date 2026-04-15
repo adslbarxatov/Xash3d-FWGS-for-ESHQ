@@ -80,7 +80,6 @@ typedef struct ui_enginefuncs_s
 	// [FWGS, 01.12.24] cvar handlers
 	cvar_t	*(*pfnRegisterVariable)(const char *szName, const char *szValue, int flags);
 	float	(*pfnGetCvarFloat)(const char *szName);
-	/*const char	*(*pfnGetCvarString)(const char *szName);*/
 	const char *(*pfnGetCvarString)(const char *szName) PFN_RETURNS_NONNULL;
 	void	(*pfnCvarSetString)(const char *szName, const char *szValue);
 	void	(*pfnCvarSetValue)(const char *szName, float flValue);
@@ -90,16 +89,10 @@ typedef struct ui_enginefuncs_s
 	void	(*pfnClientCmd)(int execute_now, const char *szCmdString);
 	void	(*pfnDelCommand)(const char *cmd_name);
 	int		(*pfnCmdArgc)(void);
-	/*const char	*(*pfnCmdArgv)(int argc);
-	const char	*(*pfnCmd_Args)(void);*/
 	const char *(*pfnCmdArgv)(int argc) PFN_RETURNS_NONNULL;
 	const char *(*pfnCmd_Args)(void) PFN_RETURNS_NONNULL;
 
 	// [FWGS, 01.12.24] debug messages (in-menu shows only notify)	
-	/*void	(*Con_Printf)(const char *fmt, ...);	// FWGS: _format (1);
-	void	(*Con_DPrintf)(const char *fmt, ...);	// FWGS: _format (1);
-	void	(*Con_NPrintf)(int pos, const char *fmt, ...);	// FWGS: _format(2);
-	void	(*Con_NXPrintf)(struct con_nprint_s *info, const char *fmt, ...);	// FWGS: _format(2);*/
 	void (*Con_Printf)(const char *fmt, ...) FORMAT_CHECK (1);
 	void (*Con_DPrintf)(const char *fmt, ...) FORMAT_CHECK (1);
 	void (*Con_NPrintf)(int pos, const char *fmt, ...) FORMAT_CHECK (2);
@@ -129,7 +122,6 @@ typedef struct ui_enginefuncs_s
 	int		(*CL_CreateVisibleEntity)(int type, struct cl_entity_s *ent);
 
 	// [FWGS, 01.12.24: отменено] misc handlers
-	/*void	(*pfnHostError)(const char *szFmt, ...);	// FWGS: _format(1);*/
 	void	(*pfnHostError)(const char *szFmt, ...) FORMAT_CHECK (1);
 	int		(*pfnFileExists)(const char *filename, int gamedironly);
 	void	(*pfnGetGameDir)(char *szGetGameDir);
@@ -223,11 +215,8 @@ typedef struct ui_extendedfuncs_s
 
 	// [FWGS, 01.04.25] new engine extended api start here
 	// returns 1 if there are more in list, otherwise 0
-	/*int		(*pfnGetRenderers)(unsigned int num, char *shortName, size_t size1, char *readableName, size_t size2);*/
 	int		(*pfnGetRenderers)(unsigned int num, char *short_name, size_t size1, char *long_name, size_t size2);
-
 	double	(*pfnDoubleTime)(void);
-
 	char	*(*pfnParseFile)(char *data, char *buf, const int size, unsigned int flags, int *len);
 
 	// [FWGS, 01.12.24] network address funcs
@@ -241,10 +230,13 @@ typedef struct ui_extendedfuncs_s
 	struct net_api_s *pNetAPI;
 
 	// [FWGS, 01.09.24] new mods info
-	gameinfo2_t *(*pfnGetGameInfo)(int gi_version); // might return NULL if gi_version is unsupported
-	gameinfo2_t *(*pfnGetModInfo)(int gi_version, int mod_index); // continiously call it until it returns null
+	gameinfo2_t *(*pfnGetGameInfo)(int gi_version);	// might return NULL if gi_version is unsupported
 
-	/// [FWGS, 01.12.24] returns 1 if cvar has read-only flag
+	// [FWGS, 15.04.26]
+	/*gameinfo2_t *(*pfnGetModInfo)(int gi_version, int mod_index); // continiously call it until it returns null*/
+	gameinfo2_t *(*pfnGetModInfo)(int gi_version, int mod_index);	// continuously call it until it returns null
+
+	// [FWGS, 01.12.24] returns 1 if cvar has read-only flag
 	// or -1 if cvar not found
 	int (*pfnIsCvarReadOnly)(const char *name);
 	} ui_extendedfuncs_t;
@@ -271,8 +263,6 @@ typedef struct
 	} UI_EXTENDED_FUNCTIONS;
 
 typedef int (*MENUAPI)(UI_FUNCTIONS *pFunctionTable, ui_enginefuncs_t *engfuncs, ui_globalvars_t *pGlobals);
-
-// FWGS
 typedef int (*UIEXTENEDEDAPI)(int version, UI_EXTENDED_FUNCTIONS *pFunctionTable, ui_extendedfuncs_t *engfuncs);
 
 // deprecated interface from old engine

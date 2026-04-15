@@ -24,7 +24,6 @@ INPUT
 
 // [FWGS, 01.03.26]
 #include "keydefs.h"
-/*include "usercmd.h"	// [FWGS, 01.12.24]*/
 
 //
 // input.c
@@ -63,7 +62,6 @@ typedef enum
 	event_motion
 	} touchEventType;
 
-// [FWGS, 01.11.25]
 #if XASH_NO_TOUCH
 
 static inline void Touch_Draw (void) {}
@@ -75,7 +73,8 @@ static inline void Touch_AddDefaultButton (const char *name, const char *texture
 static inline void Touch_WriteConfig (void) {}
 static inline void Touch_Init (void) {}
 static inline void Touch_Shutdown (void) {}
-static inline void Touch_GetMove (float *forward, float *side, float *yaw, float *pitch) {}
+/*static inline void Touch_GetMove (float *forward, float *side, float *yaw, float *pitch) {}*/
+static inline void Touch_GetMove (float *forward, float *side, float *pitch, float *yaw) {}	// [FWGS, 15.04.26]
 static inline void Touch_ResetDefaultButtons (void) {}
 static inline int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx, float dy) { return 0; }
 static inline void Touch_KeyEvent (int key, int down) {}
@@ -84,7 +83,6 @@ static inline void Touch_NotifyResize (void) {}
 
 #else
 
-// [FWGS, 01.03.25]
 void Touch_Draw (void);
 void Touch_SetClientOnly (byte state);
 void Touch_RemoveButton (const char *name, qboolean privileged);
@@ -96,7 +94,8 @@ void Touch_AddDefaultButton (const char *name, const char *texturefile, const ch
 void Touch_WriteConfig (void);
 void Touch_Init (void);
 void Touch_Shutdown (void);
-void Touch_GetMove (float *forward, float *side, float *yaw, float *pitch);
+/*void Touch_GetMove (float *forward, float *side, float *yaw, float *pitch);*/
+void Touch_GetMove (float *forward, float *side, float *pitch, float *yaw);	// [FWGS, 15.04.26]
 void Touch_ResetDefaultButtons (void);
 int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx, float dy);
 void Touch_KeyEvent (int key, int down);
@@ -121,6 +120,7 @@ enum
 	JOY_HAT_LEFTDOWN = JOY_HAT_LEFT | JOY_HAT_DOWN
 	};
 
+// [FWGS, 15.04.26]
 typedef enum engineAxis_e
 	{
 	JOY_AXIS_SIDE = 0,
@@ -129,7 +129,8 @@ typedef enum engineAxis_e
 	JOY_AXIS_YAW,
 	JOY_AXIS_RT,
 	JOY_AXIS_LT,
-	JOY_AXIS_NULL
+	/*JOY_AXIS_NULL*/
+	MAX_AXES,
 	} engineAxis_t;
 
 // [FWGS, 01.03.25]
@@ -149,6 +150,9 @@ void Joy_SetCalibrationState (joy_calibration_state_t state);
 void Joy_AxisMotionEvent (engineAxis_t engineAxis, short value);
 void Joy_GyroEvent (vec3_t data);
 void Joy_FinalizeMove (float *fw, float *side, float *dpitch, float *dyaw);
+
+// [FWGS, 15.04.26]
+void Joy_DrawDebug (void);
 void Joy_Init (void);
 void Joy_Shutdown (void);
 

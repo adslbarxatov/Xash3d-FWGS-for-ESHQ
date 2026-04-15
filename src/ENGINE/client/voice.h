@@ -18,7 +18,7 @@ GNU General Public License for more details
 #define VOICE_H
 
 #include "common.h"
-#include "protocol.h" // MAX_CLIENTS
+#include "protocol.h"	// MAX_CLIENTS
 #include "sound.h"
 
 // [FWGS, 01.07.25]
@@ -93,7 +93,6 @@ typedef struct voice_state_s
 	double		start_time;
 
 	voice_status_t	local;
-	/*voice_status_t	players_status[MAX_CLIENTS]; // do not access this directly, use Voice_GetPlayerStatus instead*/
 
 	// opus stuff
 	OpusCustomMode		*custom_mode;
@@ -112,7 +111,7 @@ typedef struct voice_state_s
 	byte	input_buffer[MAX_RAW_SAMPLES];
 	byte	compress_buffer[MAX_RAW_SAMPLES];
 	byte	decompress_buffer[MAX_RAW_SAMPLES];
-	fs_offset_t			input_buffer_pos; // in bytes
+	fs_offset_t			input_buffer_pos;	// in bytes
 
 	// input from file
 	wavdata_t		*input_file;
@@ -136,11 +135,10 @@ void Voice_Disconnect (void);
 void Voice_AddIncomingData (int ent, const byte *data, uint size, uint frames);
 
 // [FWGS, 01.11.25]
-/*void Voice_StatusAck (voice_status_t *status, int playerIndex);
-
-// [FWGS, 01.07.25]
-void Voice_StartChannel (uint samples, byte *data, int entnum);*/
 void Voice_StopChannel (int entnum);
-void Voice_LoopbackAck (void); // sends VOICE_LOOPBACK_INDEX to client, gets disabled on timeout
+void Voice_LoopbackAck (void);	// sends VOICE_LOOPBACK_INDEX to client, gets disabled on timeout
+
+// [FWGS, 15.04.26]
+voice_audio_info_t Voice_GetAudioInfo (void);
 
 #endif

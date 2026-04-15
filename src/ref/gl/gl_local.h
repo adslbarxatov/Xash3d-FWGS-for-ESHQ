@@ -25,14 +25,12 @@ GNU General Public License for more details
 #include "cl_entity.h"
 #include "render_api.h"
 #include "protocol.h"
-/*include "dlight.h"*/
 #include "gl_frustum.h"
 #include "ref_api.h"
 #include "xash3d_mathlib.h"
 #include "ref_params.h"
 #include "enginefeatures.h"
 #include "com_strings.h"
-/*include "pm_movevars.h"*/
 #include "gl_export.h"
 #include "wadfile.h"
 #include "common/mod_local.h"
@@ -263,7 +261,8 @@ typedef struct
 	// cull info
 	vec3_t		modelorg;		// relative to viewpoint
 
-	// [FWGS, 01.01.24] get from engine
+	// [FWGS, 15.04.26] get from engine
+	model_t			*worldmodel;
 	world_static_t	*world;
 	cl_entity_t		*entities;
 	movevars_t		*movevars;
@@ -521,14 +520,14 @@ void R_DrawAliasModel (cl_entity_t *e);
 void R_AliasInit (void);
 
 //
-// gl_warp.c [FWGS, 01.02.25]
+// gl_warp.c [FWGS, 15.04.26]
 //
 void R_AddSkyBoxSurface (msurface_t *fa);
 void R_ClearSkyBox (void);
 void R_DrawSkyBox (void);
 void R_DrawClouds (void);
 void R_UnloadSkybox (void);
-void EmitWaterPolys (msurface_t *warp, qboolean reverse, qboolean ripples);
+/*void EmitWaterPolys (msurface_t *warp, qboolean reverse, qboolean ripples);*/
 void R_ResetRipples (void);
 void R_AnimateRipples (void);
 qboolean R_UploadRipples (texture_t *image);
@@ -819,8 +818,9 @@ static inline int GL_MaxTextureUnits (void)
 	return Q_min (glConfig.max_texture_units, MAX_TEXTURE_UNITS);
 	}
 
-// [FWGS, 01.01.24]
-#define WORLDMODEL (gp_cl->models[1])
+// [FWGS, 15.04.26]
+/*define WORLDMODEL (gp_cl->models[1])*/
+#define WORLDMODEL (tr.worldmodel)
 
 // renderer cvars
 extern convar_t gl_texture_anisotropy;

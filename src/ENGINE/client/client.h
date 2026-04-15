@@ -24,9 +24,9 @@ GNU General Public License for more details
 #include "mod_local.h"
 #include "pmove.h"		// [FWGS, 01.03.26]
 #include "pm_defs.h"
-/*include "pm_movevars.h"*/
 #include "ref_params.h"
 #include "render_api.h"
+#include "sound_api.h"	// [FWGS, 15.04.26]
 #include "cdll_exp.h"
 #include "screenfade.h"
 #include "protocol.h"
@@ -461,6 +461,9 @@ typedef struct
 	void		*hInstance;				// pointer to client.dll
 	cldll_func_t		dllFuncs;		// dll exported funcs
 	render_interface_t	drawFuncs;		// custom renderer support
+
+	sound_interface_t soundFuncs;		// [FWGS, 15.04.26] custom sound support
+
 	poolhandle_t		mempool;		// client edicts pool
 	string		mapname;				// map name
 	string		maptitle;				// display map title

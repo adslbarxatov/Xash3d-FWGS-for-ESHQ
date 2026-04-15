@@ -37,12 +37,12 @@ GNU General Public License for more details
 #include "sound.h"		// SND_STOP_LOOPING
 #include "platform/platform.h"
 
-#define TEXT_MSGNAME "TextMessage"
+#define TEXT_MSGNAME	"TextMessage"
 
-#define MAX_LINELENGTH		80
+#define MAX_LINELENGTH	80
 /*define MAX_TEXTCHANNELS	8		// must be power of two (GoldSrc uses 4 channels)
 define TEXT_MSGNAME		"TextMessage%i"*/
-#define TEXT_MSGNAME		"TextMessage"
+#define TEXT_MSGNAME	"TextMessage"
 
 // [FWGS, 01.12.24]
 static char	cl_textbuffer[MAX_TEXTCHANNELS][2048];
@@ -104,7 +104,7 @@ static const dllfunc_t cdll_exports[] =
 	{ "KB_Find", (void **)&clgame.dllFuncs.KB_Find },
 	};
 
-// [FWGS, 22.01.25] optional exports
+// optional exports
 static const dllfunc_t cdll_new_exports[] = // allowed only in SDK 2.3 and higher
 	{
 	{ "HUD_GetStudioModelInterface", (void **)&clgame.dllFuncs.pfnGetStudioModelInterface },
@@ -116,6 +116,10 @@ static const dllfunc_t cdll_new_exports[] = // allowed only in SDK 2.3 and highe
 	{ "IN_ClientTouchEvent", (void **)&clgame.dllFuncs.pfnTouchEvent},				// Xash3D FWGS ext
 	{ "IN_ClientMoveEvent", (void **)&clgame.dllFuncs.pfnMoveEvent},				// Xash3D FWGS ext
 	{ "IN_ClientLookEvent", (void **)&clgame.dllFuncs.pfnLookEvent},				// Xash3D FWGS ext
+
+	// [FWGS, 15.04.26]
+	{ "HUD_GetSoundInterface", (void **)&clgame.dllFuncs.pfnGetSoundInterface },	// Xash3D FWGS ext
+	{ "Voice_StartChannel", (void **)&clgame.dllFuncs.pfnVoice_StartChannel },		// Xash3D FWGS ext
 	};
 
 static void pfnSPR_DrawHoles (int frame, int x, int y, const wrect_t *prc);

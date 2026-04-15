@@ -24,7 +24,6 @@ GNU General Public License for more details
 #include "mod_local.h"
 #include "pmove.h"
 #include "pm_defs.h"
-/*include "pm_movevars.h"*/
 #include "entity_state.h"
 #include "protocol.h"
 #include "netchan.h"
@@ -432,6 +431,7 @@ extern convar_t		sv_wateralpha;
 extern convar_t		sv_wateramp;
 extern convar_t		sv_voiceenable;
 extern convar_t		sv_voicequality;
+extern convar_t		sv_voice_singleplayer;	// [FWGS, 15.04.26]
 extern convar_t		sv_maxvelocity;
 extern convar_t		sv_stepsize;	// [FWGS, 25.12.24]
 extern convar_t		sv_skyname;

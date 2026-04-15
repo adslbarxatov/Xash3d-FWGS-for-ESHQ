@@ -21,7 +21,6 @@ GNU General Public License for more details
 #include "pm_local.h"
 #include "cl_tent.h"
 #include "studio.h"
-/*include "dlight.h"*/
 #include "sound.h"
 #include "input.h"
 
@@ -1398,13 +1397,16 @@ SOUND ENGINE IMPLEMENTATION
 ***/
 qboolean CL_GetEntitySpatialization (channel_t *ch)
 	{
-	cl_entity_t *ent;
+	cl_entity_t		*ent;
 	qboolean		valid_origin;
 
+	// [FWGS, 15.04.26]
 	if (ch->entnum == 0)
 		{
-		ch->staticsound = true;
-		return true; // static sound
+		/*ch->staticsound = true;*/
+		SetBits (ch->flags, FL_CHAN_STATIC_SOUND);
+
+		return true;	// static sound
 		}
 
 	if ((ch->entnum - 1) == cl.playernum)

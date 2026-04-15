@@ -64,10 +64,9 @@ GNU General Public License for more details
 // - Removed FillRGBABlend. Now FillRGBA accepts rendermode parameter
 // 10. [FWGS, 01.06.25] Added R_GetWindowHandle to retrieve platform-specific window object.
 // 11. Added size argument to Mod_ProcessRenderData
-/*define REF_API_VERSION 11*/
 // 12. [FWGS, 01.03.26] Added Image_CalcImageSize
 // 13. [FWGS, 01.03.26] Removed ignore_flags argument from GetCvarPointer
-#define REF_API_VERSION 13
+#define REF_API_VERSION	13
 
 #define TF_SKY		(TF_SKYSIDE|TF_NOMIPMAP|TF_ALLOW_NEAREST)
 #define TF_FONT		(TF_NOMIPMAP|TF_CLAMP|TF_ALLOW_NEAREST)
@@ -93,7 +92,11 @@ GNU General Public License for more details
 #define MODEL_WORLD				BIT( 29 )	// it's a worldmodel
 #define MODEL_CLIENT			BIT( 30 )	// client sprite
 
-// goes into world.flags
+// [FWGS, 15.04.26] goes into world.flags
+/*define FWORLD_SKYSPHERE		BIT( 0 )
+define FWORLD_CUSTOM_SKYBOX	BIT( 1 )
+define FWORLD_WATERALPHA		BIT( 2 )
+define FWORLD_HAS_DELUXEMAP	BIT( 3 )*/
 #define FWORLD_SKYSPHERE		BIT( 0 )
 #define FWORLD_CUSTOM_SKYBOX	BIT( 1 )
 #define FWORLD_WATERALPHA		BIT( 2 )

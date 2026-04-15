@@ -621,13 +621,13 @@ STATIC_CHECK_SIZEOF (decal_t, 60, 88);
 STATIC_CHECK_SIZEOF (mfaceinfo_t, 176, 304);
 
 // model flags (stored in model_t->flags)
-#define MODEL_QBSP2 BIT( 28 ) // uses 32-bit types
+#define MODEL_QBSP2 BIT( 28 )	// uses 32-bit types
 
-// [FWGS, 01.02.25] access functions
+// access functions
 static inline mnode_t *node_child (const mnode_t *n, int side, const model_t *mod)
 	{
 #if !XASH_64BIT
-	if (unlikely (mod->flags & MODEL_QBSP2)) // MODEL_QBSP2
+	if (unlikely (mod->flags & MODEL_QBSP2))	// MODEL_QBSP2
 		{
 		if (side == 0)
 			{
@@ -645,9 +645,12 @@ static inline mnode_t *node_child (const mnode_t *n, int side, const model_t *mo
 			}
 		}
 
-	return n->children_[side];
+	// [FWGS, 15.04.26]
+	/*return n->children_[side];*/
+	return n->children_[side ? 1 : 0];
 #else
-	return n->children_[side];
+	/*return n->children_[side];*/
+	return n->children_[side ? 1 : 0];
 #endif
 	}
 
