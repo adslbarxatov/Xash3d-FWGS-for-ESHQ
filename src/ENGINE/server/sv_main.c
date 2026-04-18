@@ -236,6 +236,11 @@ CVAR_DEFINE_AUTO (sv_voiceenable, "1", FCVAR_ARCHIVE | FCVAR_SERVER,
 	"enable voice support");
 CVAR_DEFINE_AUTO (sv_voicequality, "3", FCVAR_ARCHIVE,
 	"voice chat quality level, from 0 to 5, higher is better");
+
+// [FWGS, 15.04.26]
+CVAR_DEFINE_AUTO (sv_voice_singleplayer, "0", FCVAR_ARCHIVE | FCVAR_SERVER,
+	"enable voice subsystem in singleplayer games (maxclients == 1)");
+
 CVAR_DEFINE_AUTO (sv_enttools_enable, "0", FCVAR_ARCHIVE | FCVAR_PROTECTED,
 	"enable powerful and dangerous entity tools");
 CVAR_DEFINE_AUTO (sv_enttools_maxfire, "5", FCVAR_ARCHIVE | FCVAR_PROTECTED,
@@ -1156,6 +1161,9 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&_sv_override_scientist_mdl);
 	Cvar_RegisterVariable (&sv_voiceenable);
 	Cvar_RegisterVariable (&sv_voicequality);
+
+	// [FWGS, 15.04.26]
+	Cvar_RegisterVariable (&sv_voice_singleplayer);
 	Cvar_RegisterVariable (&sv_trace_messages);
 	Cvar_RegisterVariable (&sv_enttools_enable);
 	Cvar_RegisterVariable (&sv_enttools_maxfire);

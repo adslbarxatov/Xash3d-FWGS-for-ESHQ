@@ -99,20 +99,24 @@ void GL_FrustumInitOrtho (gl_frustum_t *out, float xLeft, float xRight, float yT
 	}
 
 // ==============================
-// Cull methods [FWGS, 01.09.25]
+// Cull methods [FWGS, 15.04.26]
 // ==============================
 qboolean GL_FrustumCullBox (const gl_frustum_t *out, const vec3_t mins, const vec3_t maxs, int userClipFlags)
 	{
-	int	iClipFlags;
+	/*int	iClipFlags;*/
+	int iClipFlags = (userClipFlags != 0) ? userClipFlags : out->clipFlags;
 	int	i, bit;
 
-	if (r_nocull.value)
+	/*if (r_nocull.value)*/
+	if (unlikely (r_nocull.value))
 		return false;
 
-	if (userClipFlags != 0)
+	/*if (userClipFlags != 0)
 		iClipFlags = userClipFlags;
 	else
-		iClipFlags = out->clipFlags;
+		iClipFlags = out->clipFlags;*/
+	if (!iClipFlags)
+		return false;
 
 	for (i = FRUSTUM_PLANES, bit = 1; i > 0; i--, bit <<= 1)
 		{
@@ -163,19 +167,23 @@ qboolean GL_FrustumCullBox (const gl_frustum_t *out, const vec3_t mins, const ve
 	return false;
 	}
 
-// [FWGS, 01.09.25]
+// [FWGS, 15.04.26]
 qboolean GL_FrustumCullSphere (const gl_frustum_t *out, const vec3_t center, float radius, int userClipFlags)
 	{
-	int	iClipFlags;
+	/*int	iClipFlags;*/
+	int iClipFlags = userClipFlags != 0 ? userClipFlags : out->clipFlags;
 	int	i, bit;
 
-	if (r_nocull.value)
+	/*if (r_nocull.value)*/
+	if (unlikely (r_nocull.value))
 		return false;
 
-	if (userClipFlags != 0)
+	/*if (userClipFlags != 0)
 		iClipFlags = userClipFlags;
 	else
-		iClipFlags = out->clipFlags;
+		iClipFlags = out->clipFlags;*/
+	if (!iClipFlags)
+		return false;
 
 	for (i = FRUSTUM_PLANES, bit = 1; i > 0; i--, bit <<= 1)
 		{

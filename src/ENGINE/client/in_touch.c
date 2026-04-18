@@ -190,8 +190,6 @@ static CVAR_DEFINE_AUTO (touch_joy_texture, "touch_default/joy", FCVAR_FILTERABL
 // [FWGS, 01.11.25]
 static CVAR_DEFINE (touch_emulate, "_touch_emulate", "0", FCVAR_PRIVILEGED,
 	"emulate touch with mouse");
-/*CVAR_DEFINE_AUTO (touch_enable, DEFAULT_TOUCH_ENABLE, FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-	"enable touch controls");*/
 
 // code looks smaller with it
 #define TO_SCRN_Y(x) (refState.width * (x) * Touch_AspectRatio())
@@ -438,7 +436,7 @@ static void Touch_GenerateCode_f (void)
 		int round;
 
 		if (FBitSet (flags, TOUCH_FL_CLIENT))
-			continue; // skip temporary buttons
+			continue;	// skip temporary buttons
 
 		if (FBitSet (flags, TOUCH_FL_DEF_SHOW))
 			ClearBits (flags, TOUCH_FL_HIDE);
@@ -1104,22 +1102,6 @@ static void Touch_EnableEdit_f (void)
 
 // [FWGS, 01.11.25] Touch_DisableEdit_f moved to line 500
 
-/*static void Touch_DisableEdit_f (void)
-	{
-	touch.state = state_none;
-	if (touch.edit)
-		touch.edit->finger = -1;
-	if (touch.selection)
-		touch.selection->finger = -1;
-	touch.edit = touch.selection = NULL;
-	touch.resize_finger = touch.move_finger = touch.look_finger = touch.wheel_finger = -1;
-
-	if (touch_in_menu.value)
-		Cvar_DirectSet (&touch_in_menu, "0");
-	else if (cls.key_dest == key_game)
-		Touch_WriteConfig ();
-	}*/
-
 static void Touch_DeleteProfile_f (void)
 	{
 	if (Cmd_Argc () != 2)
@@ -1284,7 +1266,6 @@ void Touch_Init (void)
 	Cvar_RegisterVariable (&touch_joy_texture);
 
 	// [FWGS, 01.11.25] input devices cvar
-	/*Cvar_RegisterVariable (&touch_enable);*/
 	Cvar_RegisterVariable (&touch_emulate);
 
 	touch.initialized = true;
@@ -1322,23 +1303,23 @@ TOUCH CONTROLS RENDERING
 static qboolean Touch_IsVisible (touch_button_t *button)
 	{
 	if (!FBitSet (button->flags, TOUCH_FL_CLIENT) && touch.clientonly)
-		return false; // skip nonclient buttons in clientonly mode
+		return false;	// skip nonclient buttons in clientonly mode
 
 	if (touch.state >= state_edit)
-		return true; // draw when editor is open
+		return true;	// draw when editor is open
 
 	if (FBitSet (button->flags, TOUCH_FL_HIDE))
-		return false; // skip hidden
+		return false;	// skip hidden
 
 	if (cl.maxclients == 1)
 		{
 		if (FBitSet (button->flags, TOUCH_FL_MP))
-			return false; // skip multiplayer buttons in singleplayer
+			return false;	// skip multiplayer buttons in singleplayer
 		}
 	else
 		{
 		if (FBitSet (button->flags, TOUCH_FL_SP))
-			return false; // skip singleplayer(load, save) buttons in multiplayer
+			return false;	// skip singleplayer(load, save) buttons in multiplayer
 		}
 
 	return true;
@@ -2289,12 +2270,15 @@ int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx
 	return Touch_ControlsEvent (type, fingerID, x, y, dx, dy);
 	}
 
-void Touch_GetMove (float *forward, float *side, float *yaw, float *pitch)
+// [FWGS, 15.04.26]
+/*void Touch_GetMove (float *forward, float *side, float *yaw, float *pitch)*/
+void Touch_GetMove (float *forward, float *side, float *pitch, float *yaw)
 	{
 	*forward += touch.forward;
 	*side += touch.side;
-	*yaw += touch.yaw;
+	/**yaw += touch.yaw;*/
 	*pitch += touch.pitch;
+	*yaw += touch.yaw;
 	touch.yaw = touch.pitch = 0;
 	}
 

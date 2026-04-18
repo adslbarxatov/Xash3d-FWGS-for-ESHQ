@@ -274,12 +274,12 @@ static void AVI_StreamAudio (movie_state_t *Avi)
 	int buffer_samples, file_samples, file_bytes;
 	rawchan_t *ch = NULL;
 
-	// keep the same semantics, when S_RAW_SOUND_SOUNDTRACK doesn't play if S_StartStreaming wasn't enabled
-	qboolean disable_stream = Avi->entnum == S_RAW_SOUND_SOUNDTRACK ? !s_listener.streaming : false;
+	// [FWGS, 15.04.26] keep the same semantics, when S_RAW_SOUND_SOUNDTRACK doesn't play if S_StartStreaming wasn't enabled
+	/*qboolean disable_stream = Avi->entnum == S_RAW_SOUND_SOUNDTRACK ? !s_listener.streaming : false;*/
+	qboolean disable_stream = Avi->entnum == S_RAW_SOUND_SOUNDTRACK ? !snd.streaming : false;
 
-	// [FWGS, 01.03.26]
-	/*if (!dma.initialized || disable_stream || s_listener.paused || !Avi->cached_audio)*/
-	if (!dma.initialized || disable_stream || cl.paused || !Avi->cached_audio)
+	/*if (!dma.initialized || disable_stream || cl.paused || !Avi->cached_audio)*/
+	if (!snd.initialized || disable_stream || cl.paused || !Avi->cached_audio)
 		return;
 
 	ch = S_FindRawChannel (Avi->entnum, true);
@@ -290,20 +290,25 @@ static void AVI_StreamAudio (movie_state_t *Avi)
 	ch->master_vol = Avi->volume;
 	ch->dist_mult = (Avi->attn / SND_CLIP_DISTANCE);
 
-	if (ch->s_rawend < soundtime)
-		ch->s_rawend = soundtime;
+	// [FWGS, 15.04.26]
+	/*if (ch->s_rawend < soundtime)
+		ch->s_rawend = soundtime;*/
+	if (ch->s_rawend < snd.soundtime)
+		ch->s_rawend = snd.soundtime;
 
-	while (ch->s_rawend < soundtime + ch->max_samples)
+	/*while (ch->s_rawend < soundtime + ch->max_samples)*/
+	while (ch->s_rawend < snd.soundtime + ch->max_samples)
 		{
 		size_t copy;
 
-		buffer_samples = ch->max_samples - (ch->s_rawend - soundtime);
+		// [FWGS, 15.04.26]
+		/*buffer_samples = ch->max_samples - (ch->s_rawend - soundtime);*/
+		buffer_samples = ch->max_samples - (ch->s_rawend - snd.soundtime);
 
 		file_samples = buffer_samples * ((float)Avi->rate / SOUND_DMA_SPEED);
 		if (file_samples <= 1) return; // no more samples need
 
 		file_bytes = file_samples * pav_get_bytes_per_sample (Avi->s_fmt) * Avi->channels;
-
 		if (file_bytes > ch->max_samples)
 			{
 			file_bytes = ch->max_samples;
@@ -311,7 +316,6 @@ static void AVI_StreamAudio (movie_state_t *Avi)
 			}
 
 		copy = Q_min (file_bytes, Q_max (Avi->cached_audio_len - Avi->cached_audio_pos, 0));
-
 		if (!copy)
 			break;
 

@@ -191,18 +191,17 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 
 /***
 ==================
-S_FindName [FWGS, 01.03.26]
+S_FindName [FWGS, 15.04.26]
 ==================
 ***/
-/*sfx_t *S_FindName (const char *pname, int *pfInCache)*/
 sfx_t *S_FindName (const char *pname, qboolean *pfInCache)
 	{
 	sfx_t	*sfx;
 	uint	i, hash;
 	string	name;
 
-	/*if (!COM_CheckString (pname) || !dma.initialized)*/
-	if (COM_StringEmptyOrNULL (pname) || !dma.initialized)
+	/*if (COM_StringEmptyOrNULL (pname) || !dma.initialized)*/
+	if (COM_StringEmptyOrNULL (pname) || !snd.initialized)
 		return NULL;
 
 	if (Q_strlen (pname) >= sizeof (sfx->name))
@@ -286,6 +285,13 @@ void S_FreeSound (sfx_t *sfx)
 		prev = &hashSfx->hashNext;
 		}
 
+	// [FWGS, 15.04.26]
+	if (clgame.soundFuncs.pfnS_FreeSound)
+		{
+		clgame.soundFuncs.pfnS_FreeSound (sfx, sfx - s_knownSfx);
+		return;
+		}
+
 	if (sfx->cache)
 		FS_FreeSound (sfx->cache);
 	memset (sfx, 0, sizeof (*sfx));
@@ -293,13 +299,14 @@ void S_FreeSound (sfx_t *sfx)
 
 /***
 =====================
-S_BeginRegistration
+S_BeginRegistration [FWGS, 15.04.26]
 =====================
 ***/
 void S_BeginRegistration (void)
 	{
 	int	i;
-	snd_ambient = false;
+	/*snd_ambient = false;*/
+	snd.have_ambient_sfx = false;
 
 	// check for automatic ambient sounds
 	for (i = 0; i < NUM_AMBIENTS; i++)
@@ -307,9 +314,12 @@ void S_BeginRegistration (void)
 		if (!GI->ambientsound[i][0])
 			continue;	// empty slot
 
-		ambient_sfx[i] = S_RegisterSound (GI->ambientsound[i]);
+		/*ambient_sfx[i] = S_RegisterSound (GI->ambientsound[i]);
 		if (ambient_sfx[i])
-			snd_ambient = true; // allow auto-ambients
+			snd_ambient = true; // allow auto-ambients*/
+		snd.ambient_sfx[i] = S_RegisterSound (GI->ambientsound[i]);
+		if (snd.ambient_sfx[i])
+			snd.have_ambient_sfx = true;	// allow auto-ambients
 		}
 
 	s_registering = true;
@@ -325,17 +335,19 @@ void S_EndRegistration (void)
 	sfx_t	*sfx;
 	int		i;
 
-	if (!s_registering || !dma.initialized)
+	// [FWGS, 15.04.26]
+	/*if (!s_registering || !dma.initialized)*/
+	if (!s_registering || !snd.initialized)
 		return;
 
 	// free any sounds not from this registration sequence
 	for (i = 0, sfx = s_knownSfx; i < s_numSfx; i++, sfx++)
 		{
 		if (!sfx->name[0] || !Q_stricmp (sfx->name, "*default"))
-			continue; // don't release default sound
+			continue;	// don't release default sound
 
 		if (sfx->servercount != cl.servercount)
-			S_FreeSound (sfx); // don't need this sound
+			S_FreeSound (sfx);	// don't need this sound
 		}
 
 	// load everything in
@@ -357,9 +369,9 @@ sound_t S_RegisterSound (const char *name)
 	{
 	sfx_t *sfx;
 
-	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (name) || !dma.initialized)*/
-	if (COM_StringEmptyOrNULL (name) || !dma.initialized)
+	// [FWGS, 15.04.26]
+	/*if (COM_StringEmptyOrNULL (name) || !dma.initialized)*/
+	if (COM_StringEmptyOrNULL (name) || !snd.initialized)
 		return -1;
 
 	if (S_TestSoundChar (name, '!'))
@@ -387,7 +399,9 @@ sound_t S_RegisterSound (const char *name)
 
 sfx_t *S_GetSfxByHandle (sound_t handle)
 	{
-	if (!dma.initialized)
+	// [FWGS, 15.04.26]
+	/*if (!dma.initialized)*/
+	if (!snd.initialized)
 		return NULL;
 
 	// create new sfx
@@ -426,7 +440,9 @@ void S_FreeSounds (void)
 	sfx_t	*sfx;
 	int		i;
 
-	if (!dma.initialized)
+	// [FWGS, 15.04.26]
+	/*if (!dma.initialized)*/
+	if (!snd.initialized)
 		return;
 
 	// stop all sounds

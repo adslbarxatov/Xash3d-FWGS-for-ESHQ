@@ -1625,8 +1625,9 @@ void Key_Console (int key)
 		return;
 		}
 
-	// [FWGS, 01.03.26] command completion
-	if ((key == K_TAB) || (key == K_L2_BUTTON))
+	// [FWGS, 15.04.26] command completion
+	/*if ((key == K_TAB) || (key == K_L2_BUTTON))*/
+	if ((key == K_TAB) || (key == K_L2_BUTTON) || (key == K_LTRIGGER))
 		{
 		/*Con_CompleteCommand (&con.input);*/
 		Con_CompleteCommand (&con.input, true);
@@ -2260,10 +2261,16 @@ void Con_RunConsole (void)
 			con.vislines = con.showlines;
 		}
 
+	// [FWGS, 15.04.26]
+	/*if (FBitSet (con_charset.flags | con_fontscale.flags | con_fontnum.flags | cl_charset.flags |
+		con_oldfont.flags, FCVAR_CHANGED))*/
 	if (FBitSet (con_charset.flags | con_fontscale.flags | con_fontnum.flags | cl_charset.flags |
 		con_oldfont.flags, FCVAR_CHANGED))
 		{
-		// [FWGS, 01.03.25] update codepage parameters
+		if (con_fontscale.value < 1.0f)
+			Cvar_DirectSet (&con_fontscale, "1");
+
+		// update codepage parameters
 		if (!Q_stricmp (con_charset.string, "cp1251"))
 			{
 			g_codepage = 1251;

@@ -48,7 +48,6 @@ static void R_ParseDetailTextures (const char *filename)
 			// this code will be fix it
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
 			
-			// [FWGS, 01.04.23]
 			Q_snprintf (texname, sizeof (texname), "{%s", token);
 			}
 		else
@@ -91,7 +90,6 @@ static void R_ParseDetailTextures (const char *filename)
 			if (Q_stricmp (tex->name, texname))
 				continue;
 
-			// [FWGS, 01.11.23]
 			tex->dt_texturenum = GL_LoadTexture (detail_path, NULL, 0, TF_FORCE_COLOR | TF_NOFLIP_TGA);
 
 			// texture is loaded
@@ -112,10 +110,13 @@ static void R_ParseDetailTextures (const char *filename)
 
 void R_NewMap (void)
 	{
-	texture_t *tx;
-	int	i;
+	texture_t	*tx;
+	int		i;
 
-	R_ClearDecals (); // clear all level decals
+	// [FWGS, 15.04.26]
+	tr.worldmodel = gp_cl->models[1];
+
+	R_ClearDecals ();	// clear all level decals
 
 	R_StudioResetPlayerModels ();
 
@@ -155,7 +156,6 @@ void R_NewMap (void)
 
 	// [FWGS, 01.12.24]
 	GL_BuildLightmaps ();
-	/*R_GenerateVBO ();*/
 	R_ClearVBO ();
 	if (R_HasEnabledVBO ())
 		R_GenerateVBO ();

@@ -19,7 +19,6 @@ GNU General Public License for more details
 #include "net_encode.h"
 #include "cl_tent.h"
 #include "input.h"
-/*include "kbutton.h"*/
 #include "vgui_draw.h"
 #include "library.h"
 #include "vid_common.h"
@@ -1381,8 +1380,10 @@ static void CL_SendConnectPacket (connprotocol_t proto, int challenge)
 		}
 	else
 		{
+		// [FWGS, 15.04.26]
 		const char *qport = Cvar_VariableString ("net_qport");
-		int extensions = NET_EXT_SPLITSIZE;
+		/*int extensions = NET_EXT_SPLITSIZE;*/
+		int extensions = Host_IsLocalGame () ? 0 : NET_EXT_SPLITSIZE;
 
 		string key;
 		ID_GetMD5ForAddress (key, adr, sizeof (key));
@@ -4138,11 +4139,12 @@ void CL_Init (void)
 	if (host.type == HOST_DEDICATED)
 		return; // nothing running on the client
 
+	// [FWGS, 15.04.26]
 	CL_InitLocal ();
 	VID_Init ();	// init video
-	S_Init ();	// init sound
+	/*S_Init ();	// init sound
 
-	Voice_Init (VOICE_DEFAULT_CODEC, 3, true);	// init voice (do not open the device)
+	Voice_Init (VOICE_DEFAULT_CODEC, 3, true);	// init voice (do not open the device)*/
 
 	// unreliable buffer. unsed for unreliable commands and voice stream
 	MSG_Init (&cls.datagram, "cls.datagram", cls.datagram_buf, sizeof (cls.datagram_buf));
@@ -4150,6 +4152,10 @@ void CL_Init (void)
 
 	if (!CL_LoadProgs (libpath))
 		Host_Error ("can't initialize %s: %s\n", libpath, COM_GetLibraryError ());
+
+	// [FWGS, 15.04.26]
+	S_Init ();	// init sound
+	Voice_Init (VOICE_DEFAULT_CODEC, 3, true);	// init voice (do not open the device)
 
 	// [FWGS, 01.03.25]
 	ID_Init ();
@@ -4159,7 +4165,7 @@ void CL_Init (void)
 
 	cls.build_num = 0;
 	cls.initialized = true;
-	cl.maxclients = 1; // allow to drawing player in menu
+	cl.maxclients = 1;	// allow to drawing player in menu
 	cls.olddemonum = -1;
 	cls.demonum = -1;
 	}

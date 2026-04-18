@@ -427,26 +427,27 @@ static void SDLash_ActiveEvent (int gain)
 	else
 		{
 
-#if TARGET_OS_IPHONE
+		// [FWGS, 15.04.26]
+		/*if TARGET_OS_IPHONE
 				{
 				// Keep running if ftp server enabled
 				void IOS_StartBackgroundTask (void);
 				IOS_StartBackgroundTask ();
 				}
-#endif
+		endif*/
 
-				// [FWGS, 01.02.25]
-				host.status = HOST_NOFOCUS;
-				if (cls.key_dest == key_game)
-					{
-					Key_ClearStates ();
-					IN_DeactivateMouse ();
-					}
+		// [FWGS, 01.02.25]
+		host.status = HOST_NOFOCUS;
+		if (cls.key_dest == key_game)
+			{
+			Key_ClearStates ();
+			IN_DeactivateMouse ();
+			}
 
-				// [FWGS, 01.03.26]
-				host.force_draw_version_time = host.realtime + 2.0;
-				/*VID_RestoreScreenResolution ();*/
-				VID_RestoreScreenResolution ((window_mode_t)vid_fullscreen.value);
+		// [FWGS, 01.03.26]
+		host.force_draw_version_time = host.realtime + 2.0;
+		/*VID_RestoreScreenResolution ();*/
+		VID_RestoreScreenResolution ((window_mode_t)vid_fullscreen.value);
 		}
 	}
 

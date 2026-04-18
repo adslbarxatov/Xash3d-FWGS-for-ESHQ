@@ -23,6 +23,10 @@ extern poolhandle_t sndpool;
 // [FWGS, 15.04.26]
 #include "xash3d_mathlib.h"
 #include "sound_api.h"
+#include "cvardef.h"	// ESHQ: convar_t
+#include "cl_entity.h"	// ESHQ: mouth_t
+#include "const.h"		// ESHQ: CHAN_VOICE и прочие
+#include "common.h"		// EHSQ: wavdata_t
 
 // [FWGS, 01.03.26]
 #define SOUND_11k	11025	// 11khz sample rate
@@ -211,7 +215,8 @@ float S_GetMusicVolume (void);
 //
 // s_main.c [FWGS, 01.03.26]
 //
-int S_RetrieveAudioSamples (const wavdata_t *source, const void **output_buffer, int start_position, int num_samples, qboolean enable_looping);
+int S_RetrieveAudioSamples (const wavdata_t *source, const void **output_buffer, int start_position,
+	int num_samples, qboolean enable_looping);
 void S_FreeChannel (channel_t *ch);
 
 //

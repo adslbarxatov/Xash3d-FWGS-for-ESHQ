@@ -2354,7 +2354,7 @@ cleanup_and_error:
 
 /***
 =================
-Mod_SetupSubmodels [FWGS, 01.06.25]
+Mod_SetupSubmodels
 
 duplicate the basic information
 for embedded submodels
@@ -2420,8 +2420,9 @@ static void Mod_SetupSubmodels (model_t *mod, dbspmodel_t *bmod)
 				SetBits (mod->flags, MODEL_HAS_ORIGIN);
 
 #ifdef HACKS_RELATED_HLMODS
-			// c2a1 doesn't have origin brush it's just placed at center of the level
-			if (!Q_stricmp (name, "maps/c2a1.bsp") && (i == 11))
+			// [FWGS, 15.04.26] c2a1 doesn't have origin brush it's just placed at center of the level
+			/*if (!Q_stricmp (name, "maps/c2a1.bsp") && (i == 11))*/
+			if ((i == 11) && !Q_stricmp (name, "maps/c2a1.bsp"))
 				SetBits (mod->flags, MODEL_HAS_ORIGIN);
 #endif
 			}
@@ -2942,7 +2943,6 @@ static qboolean Mod_SearchForTextureReplacement (char *out, size_t size, const c
 	return false;
 	}
 
-// [FWGS, 01.02.25]
 static void Mod_InitSkyClouds (model_t *mod, const mip_t *mt, texture_t *tx, qboolean custom_palette)
 	{
 #if !XASH_DEDICATED
@@ -3057,8 +3057,9 @@ static void Mod_InitSkyClouds (model_t *mod, const mip_t *mt, texture_t *tx, qbo
 	r_temp.buffer = (byte *)trans;
 	r_temp.palette = NULL;
 
-	// load it in
-	solidskyTexture = GL_LoadTextureInternal ("solid_sky", &r_temp, TF_NOMIPMAP);
+	// [FWGS, 15.04.26] load it in
+	/*solidskyTexture = GL_LoadTextureInternal ("solid_sky", &r_temp, TF_NOMIPMAP);*/
+	solidskyTexture = GL_LoadTextureInternal ("solid_sky", &r_temp, TF_NOMIPMAP | TF_ALLOW_NEAREST);
 
 	for (i = 0; i < r_sky->width >> 1; i++)
 		{
@@ -3080,8 +3081,9 @@ static void Mod_InitSkyClouds (model_t *mod, const mip_t *mt, texture_t *tx, qbo
 
 	r_temp.flags = IMAGE_HAS_COLOR | IMAGE_HAS_ALPHA;
 
-	// load it in
-	alphaskyTexture = GL_LoadTextureInternal ("alpha_sky", &r_temp, TF_NOMIPMAP);
+	// [FWGS, 15.04.26] load it in
+	/*alphaskyTexture = GL_LoadTextureInternal ("alpha_sky", &r_temp, TF_NOMIPMAP);*/
+	alphaskyTexture = GL_LoadTextureInternal ("alpha_sky", &r_temp, TF_NOMIPMAP | TF_ALLOW_NEAREST);
 
 	// clean up
 	FS_FreeImage (r_sky);

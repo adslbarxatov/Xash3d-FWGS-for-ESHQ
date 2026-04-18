@@ -16,9 +16,10 @@ GNU General Public License for more details
 #include "gl_local.h"
 #include "wadfile.h"
 
+// [FWGS, 15.04.26]
 #define SKYCLOUDS_QUALITY	12
-#define MAX_CLIP_VERTS		128 // skybox clip vertices
-#define TURBSCALE			( 256.0f / ( M_PI2 ))
+#define MAX_CLIP_VERTS		128	// skybox clip vertices
+/*define TURBSCALE			( 256.0f / ( M_PI2 ))*/
 
 // [FWGS, 01.07.24]
 static const int r_skyTexOrder[SKYBOX_MAX_SIDES] = { 0, 2, 1, 3, 4, 5 };
@@ -54,11 +55,12 @@ static const int vec_to_st[SKYBOX_MAX_SIDES][3] =
 	{ -2,  1, -3 }
 	};
 
-// speed up sin calculations
+// [FWGS, 15.04.26]
+/*// speed up sin calculations
 static float r_turbsin[] =
 	{
-	#include "warpsin.h"
-	};
+	include "warpsin.h"
+	};*/
 
 #define RIPPLES_CACHEWIDTH_BITS		7
 #define RIPPLES_CACHEWIDTH			( 1 << RIPPLES_CACHEWIDTH_BITS )
@@ -579,13 +581,15 @@ void R_DrawClouds (void)
 
 // [FWGS, 01.07.24] removed R_InitSkyClouds
 
-/***
+// [FWGS, 15.04.26] EmitWaterPolys moved to gl_rsurf.c
+
+/*
 =============
 EmitWaterPolys [FWGS, 22.01.25]
 
 Does a water warp on the pre-fragmented glpoly_t chain
 =============
-***/
+/
 void EmitWaterPolys (msurface_t *warp, qboolean reverse, qboolean ripples)
 	{
 	float		*v, nv, waveHeight;
@@ -667,6 +671,7 @@ void EmitWaterPolys (msurface_t *warp, qboolean reverse, qboolean ripples)
 
 	GL_SetupFogColorForSurfaces ();
 	}
+	*/
 
 /***
 ============================================================

@@ -19,8 +19,6 @@ GNU General Public License for more details
 #include "soundlib.h"	// [FWGS, 01.02.25]
 
 // [FWGS, 01.03.26]
-/*static bg_track_t		s_bgTrack;
-static musicfade_t		musicfade;	// controlled by game dlls*/
 static struct
 	{
 	string		current;	// a currently playing track
@@ -101,7 +99,10 @@ void S_StartBackgroundTrack (const char *introTrack, const char *mainTrack, int 
 	{
 	S_StopBackgroundTrack ();
 
-	if (!dma.initialized)
+	// [FWGS, 15.04.26]
+	/*if (!dma.initialized)
+		return;*/
+	if (!snd.initialized)
 		return;
 
 	// check for special symbols
@@ -146,10 +147,15 @@ S_StopBackgroundTrack
 ***/
 void S_StopBackgroundTrack (void)
 	{
-	s_listener.stream_paused = false;
+	// [FWGS, 15.04.26]
+	/*s_listener.stream_paused = false;*/
+	snd.stream_paused = false;
 
-	if (!dma.initialized)
+	/*if (!dma.initialized)
+		return;*/
+	if (!snd.initialized)
 		return;
+
 	if (!s_bgTrack.stream)
 		return;
 
@@ -162,12 +168,13 @@ void S_StopBackgroundTrack (void)
 
 /***
 =================
-S_StreamSetPause
+S_StreamSetPause [FWGS, 15.04.26]
 =================
 ***/
 void S_StreamSetPause (int pause)
 	{
-	s_listener.stream_paused = pause;
+	/*s_listener.stream_paused = pause;*/
+	snd.stream_paused = pause;
 	}
 
 /***
@@ -181,14 +188,14 @@ qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, c
 	size_t loopTrackSize, int *position)
 	{
 	if (!s_bgTrack.stream)
-		return false; // not active
+		return false;	// not active
 
 	if (currentTrack)
 		{
 		if (s_bgTrack.current[0])
 			Q_strncpy (currentTrack, s_bgTrack.current, currentTrackSize);
 		else
-			Q_strncpy (currentTrack, "*", currentTrackSize); // no track
+			Q_strncpy (currentTrack, "*", currentTrackSize);	// no track
 		}
 
 	if (loopTrack)
@@ -196,7 +203,7 @@ qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, c
 		if (s_bgTrack.loopName[0])
 			Q_strncpy (loopTrack, s_bgTrack.loopName, loopTrackSize);
 		else
-			Q_strncpy (loopTrack, "*", loopTrackSize); // no track
+			Q_strncpy (loopTrack, "*", loopTrackSize);	// no track
 		}
 
 	if (position)
@@ -218,12 +225,15 @@ void S_StreamBackgroundTrack (void)
 	int		r, fileBytes;
 	rawchan_t	*ch = NULL;
 
-	if (!dma.initialized || !s_bgTrack.stream || s_listener.streaming)
+	// [FWGS, 15.04.26]
+	/*if (!dma.initialized || !s_bgTrack.stream || s_listener.streaming)*/
+	if (!snd.initialized || !s_bgTrack.stream || snd.streaming)
 		return;
 
-	// [FWGS, 01.03.26] don't bother playing anything if musicvolume is 0
-	/*if (!s_musicvolume.value || s_listener.paused || s_listener.stream_paused)*/
-	if (!s_musicvolume.value || cl.paused || s_listener.stream_paused)
+	// [FWGS, 15.04.26] don't bother playing anything if musicvolume is 0
+	/*if (!s_musicvolume.value || s_listener.paused || s_listener.stream_paused)
+	if (!s_musicvolume.value || cl.paused || s_listener.stream_paused)*/
+	if (!s_musicvolume.value || cl.paused || snd.stream_paused)
 		return;
 
 	if (!cl.background)
@@ -243,16 +253,20 @@ void S_StreamBackgroundTrack (void)
 
 	Assert (ch != NULL);
 
-	// see how many samples should be copied into the raw buffer
-	if (ch->s_rawend < soundtime)
-		ch->s_rawend = soundtime;
+	// [FWGS, 15.04.26] see how many samples should be copied into the raw buffer
+	/*if (ch->s_rawend < soundtime)
+		ch->s_rawend = soundtime;*/
+	if (ch->s_rawend < snd.soundtime)
+		ch->s_rawend = snd.soundtime;
 
-	// [FWGS, 01.02.25]
-	while (ch->s_rawend < soundtime + ch->max_samples)
+	// [FWGS, 15.04.26]
+	/*while (ch->s_rawend < soundtime + ch->max_samples)*/
+	while (ch->s_rawend < snd.soundtime + ch->max_samples)
 		{
 		const stream_t *info = s_bgTrack.stream;
 
-		bufferSamples = ch->max_samples - (ch->s_rawend - soundtime);
+		/*bufferSamples = ch->max_samples - (ch->s_rawend - soundtime);*/
+		bufferSamples = ch->max_samples - (ch->s_rawend - snd.soundtime);
 
 		// decide how much data needs to be read from the file
 		fileSamples = bufferSamples * ((float)info->rate / SOUND_DMA_SPEED);
@@ -277,14 +291,15 @@ void S_StreamBackgroundTrack (void)
 			fileSamples = r / (info->width * info->channels);
 			}
 
-		// [FWGS, 01.07.25]
 		if (r > 0)
 			{
 			// add to raw buffer
 			int music_vol = (int)(255.0f * S_GetMusicVolume ());
 
-			S_RawEntSamples (S_RAW_SOUND_BACKGROUNDTRACK, fileSamples, info->rate, info->width, info->channels,
-				raw, music_vol);
+			/*S_RawEntSamples (S_RAW_SOUND_BACKGROUNDTRACK, fileSamples, info->rate, info->width, info->channels,
+				raw, music_vol);*/
+			S_RawEntSamples (S_RAW_SOUND_BACKGROUNDTRACK, fileSamples, info->rate, info->width,
+				info->channels, raw, music_vol, ATTN_EVERYWHERE);
 			}
 		else
 			{
@@ -310,29 +325,36 @@ void S_StreamBackgroundTrack (void)
 
 /***
 =================
-S_StartStreaming
+S_StartStreaming [FWGS, 15.04.26]
 =================
 ***/
 void S_StartStreaming (void)
 	{
-	if (!dma.initialized)
+	/*if (!dma.initialized)
+		return;*/
+	if (!snd.initialized)
 		return;
 
 	// begin streaming movie soundtrack
-	s_listener.streaming = true;
+	/*s_listener.streaming = true;*/
+	snd.streaming = true;
 	}
 
 /***
 =================
-S_StopStreaming
+S_StopStreaming [FWGS, 15.04.26]
 =================
 ***/
 void S_StopStreaming (void)
 	{
-	if (!dma.initialized)
+	/*if (!dma.initialized)
 		return;
 
-	s_listener.streaming = false;
+	s_listener.streaming = false;*/
+	if (!snd.initialized)
+		return;
+
+	snd.streaming = false;
 	}
 
 // [FWGS, 01.07.25] removed S_StreamSoundTrack

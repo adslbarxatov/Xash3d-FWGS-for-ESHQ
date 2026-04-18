@@ -107,7 +107,7 @@ static int PM_SampleMiptex (const msurface_t *surf, const vec3_t point)
 
 /***
 ==================
-PM_RecursiveSurfCheck [FWGS, 01.02.25]
+PM_RecursiveSurfCheck [FWGS, 15.04.26]
 ==================
 ***/
 msurface_t *PM_RecursiveSurfCheck (model_t *mod, mnode_t *node, vec3_t p1, vec3_t p2)
@@ -116,7 +116,7 @@ msurface_t *PM_RecursiveSurfCheck (model_t *mod, mnode_t *node, vec3_t p1, vec3_
 	int			i, side;
 	msurface_t	*surf;
 	vec3_t		mid;
-	mnode_t		*children[2];
+	/*mnode_t		*children[2];*/
 	int			numsurfaces, firstsurface;
 
 loc0:
@@ -126,19 +126,19 @@ loc0:
 	t1 = PlaneDiff (p1, node->plane);
 	t2 = PlaneDiff (p2, node->plane);
 
-	node_children (children, node, mod);
+	/*node_children (children, node, mod);*/
 
 	if ((t1 >= -FRAC_EPSILON) && (t2 >= -FRAC_EPSILON))
 		{
-		/*node = node->children[0];*/
-		node = children[0];
+		/*node = children[0];*/
+		node = node_child (node, 0, mod);
 		goto loc0;
 		}
 
 	if ((t1 < FRAC_EPSILON) && (t2 < FRAC_EPSILON))
 		{
-		/*node = node->children[1];*/
-		node = children[1];
+		/*node = children[1];*/
+		node = node_child (node, 1, mod);
 		goto loc0;
 		}
 
@@ -148,18 +148,16 @@ loc0:
 
 	VectorLerp (p1, frac, p2, mid);
 
-	/*if ((surf = PM_RecursiveSurfCheck (mod, node->children[side], p1, mid)) != NULL)*/
-	if ((surf = PM_RecursiveSurfCheck (mod, children[side], p1, mid)) != NULL)
+	/*if ((surf = PM_RecursiveSurfCheck (mod, children[side], p1, mid)) != NULL)*/
+	if ((surf = PM_RecursiveSurfCheck (mod, node_child (node, side, mod), p1, mid)) != NULL)
 		return surf;
 
 	// walk through real faces
-	/*for (i = 0; i < node->numsurfaces; i++)*/
 	numsurfaces = node_numsurfaces (node, mod);
 	firstsurface = node_firstsurface (node, mod);
 
 	for (i = 0; i < numsurfaces; i++)
 		{
-		/*msurface_t		*surf = &mod->surfaces[node->firstsurface + i];*/
 		msurface_t		*surf = &mod->surfaces[firstsurface + i];
 		mextrasurf_t	*info = surf->info;
 		mfacebevel_t	*fb = info->bevel;
@@ -176,22 +174,22 @@ loc0:
 		for (j = 0; j < fb->numedges; j++)
 			{
 			if (PlaneDiff (mid, &fb->edges[j]) > FRAC_EPSILON)
-				break; // outside the bounds
+				break;	// outside the bounds
 			}
 
 		if (j != fb->numedges)
-			continue; // we are outside the bounds of the facet
+			continue;	// we are outside the bounds of the facet
 
 		// hit the surface
 		contents = PM_SampleMiptex (surf, mid);
 
 		if (contents != CONTENTS_EMPTY)
 			return surf;
-		return NULL; // through the fence
+		return NULL;	// through the fence
 		}
 
-	/*return PM_RecursiveSurfCheck (mod, node->children[side ^ 1], mid, p2);*/
-	return PM_RecursiveSurfCheck (mod, children[side ^ 1], mid, p2);
+	/*return PM_RecursiveSurfCheck (mod, children[side ^ 1], mid, p2);*/
+	return PM_RecursiveSurfCheck (mod, node_child (node, side ^ 1, mod), mid, p2);
 	}
 
 /***
@@ -235,7 +233,7 @@ msurface_t *PM_TraceSurface (physent_t *pe, vec3_t start, vec3_t end)
 
 /***
 ==================
-PM_TestLine_r [FWGS, 01.02.25]
+PM_TestLine_r [FWGS, 15.04.26]
 
 optimized trace for light gathering
 ==================
@@ -247,7 +245,7 @@ static int PM_TestLine_r (model_t *mod, mnode_t *node, vec_t p1f, vec_t p2f, con
 	float	frac, midf;
 	int		i, r, side;
 	vec3_t	mid;
-	mnode_t	*children[2];
+	/*mnode_t	*children[2];*/
 	int		numsurfaces, firstsurface;
 
 loc0:
@@ -265,19 +263,19 @@ loc0:
 	front = PlaneDiff (start, node->plane);
 	back = PlaneDiff (stop, node->plane);
 
-	node_children (children, node, mod);
+	/*node_children (children, node, mod);*/
 
 	if ((front >= -FRAC_EPSILON) && (back >= -FRAC_EPSILON))
 		{
-		/*node = node->children[0];*/
-		node = children[0];
+		/*node = children[0];*/
+		node = node_child (node, 0, mod);
 		goto loc0;
 		}
 
 	if ((front < FRAC_EPSILON) && (back < FRAC_EPSILON))
 		{
-		/*node = node->children[1];*/
-		node = children[1];
+		/*node = children[1];*/
+		node = node_child (node, 1, mod);
 		goto loc0;
 		}
 
@@ -288,8 +286,8 @@ loc0:
 	VectorLerp (start, frac, stop, mid);
 	midf = p1f + (p2f - p1f) * frac;
 
-	/*r = PM_TestLine_r (mod, node->children[side], p1f, midf, start, mid, trace);*/
-	r = PM_TestLine_r (mod, children[side], p1f, midf, start, mid, trace);
+	/*r = PM_TestLine_r (mod, children[side], p1f, midf, start, mid, trace);*/
+	r = PM_TestLine_r (mod, node_child (node, side, mod), p1f, midf, start, mid, trace);
 
 	if (r != CONTENTS_EMPTY)
 		{
@@ -300,13 +298,11 @@ loc0:
 		}
 
 	// walk through real faces
-	/*for (i = 0; i < node->numsurfaces; i++)*/
 	numsurfaces = node_numsurfaces (node, mod);
 	firstsurface = node_firstsurface (node, mod);
 
 	for (i = 0; i < numsurfaces; i++)
 		{
-		/*msurface_t *surf = &mod->surfaces[node->firstsurface + i];*/
 		msurface_t		*surf = &mod->surfaces[firstsurface + i];
 		mextrasurf_t	*info = surf->info;
 		mfacebevel_t	*fb = info->bevel;
@@ -323,11 +319,11 @@ loc0:
 		for (j = 0; j < fb->numedges; j++)
 			{
 			if (PlaneDiff (mid, &fb->edges[j]) > FRAC_EPSILON)
-				break; // outside the bounds
+				break;	// outside the bounds
 			}
 
 		if (j != fb->numedges)
-			continue; // we are outside the bounds of the facet
+			continue;	// we are outside the bounds of the facet
 
 		// hit the surface
 		contents = PM_SampleMiptex (surf, mid);
@@ -342,8 +338,8 @@ loc0:
 		return contents;
 		}
 
-	/*return PM_TestLine_r (mod, node->children[!side], midf, p2f, mid, stop, trace);*/
-	return PM_TestLine_r (mod, children[!side], midf, p2f, mid, stop, trace);
+	/*return PM_TestLine_r (mod, children[!side], midf, p2f, mid, stop, trace);*/
+	return PM_TestLine_r (mod, node_child (node, !side, mod), midf, p2f, mid, stop, trace);
 	}
 
 int PM_TestLineExt (playermove_t *pmove, physent_t *ents, int numents, const vec3_t start, const vec3_t end, int flags)
@@ -401,9 +397,7 @@ int PM_TestLineExt (playermove_t *pmove, physent_t *ents, int numents, const vec
 		PM_TestLine_r (pe->model, &pe->model->nodes[hull->firstclipnode], 0.0f, 1.0f, start_l, end_l, &trace_bbox);
 
 		if ((trace_bbox.contents != CONTENTS_EMPTY) || (trace_bbox.fraction < trace.fraction))
-			{
 			trace = trace_bbox;
-			}
 		}
 
 	return trace.contents;

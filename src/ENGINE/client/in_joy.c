@@ -24,7 +24,8 @@ GNU General Public License for more details
 #define SHRT_MAX 0x7FFF
 #endif
 
-#define MAX_AXES JOY_AXIS_NULL
+// [FWGS, 15.04.26]
+/*define MAX_AXES JOY_AXIS_NULL*/
 
 // index - axis num come from event
 // value - inner axis
@@ -38,14 +39,15 @@ static engineAxis_t joyaxesmap[MAX_AXES] =
 	JOY_AXIS_LT     // left trigger
 	};
 
+// [FWGS, 15.04.26]
 static struct joy_axis_s
 	{
-	short val;
-	short prevval;
+	short	val;
+	short	prevval;
+	short	rawval;	// value before deadzone zeroing, for debug display
 	} joyaxis[MAX_AXES] = { 0 };
 
 // [FWGS, 01.03.25]
-/*static byte currentbinding;			// add posibility to remap keys, to place it in joykeys[]*/
 static qboolean joy_initialized;
 
 // [FWGS, 01.03.25]
@@ -76,16 +78,34 @@ static CVAR_DEFINE_AUTO (joy_yaw_deadzone, DEFAULT_JOY_DEADZONE, FCVAR_ARCHIVE |
 static CVAR_DEFINE_AUTO (joy_axis_binding, "sfpyrl", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"axis hardware id to engine inner axis binding, "
 	"s - side, f - forward, y - yaw, p - pitch, r - left trigger, l - right trigger");
-/*static CVAR_DEFINE_AUTO (joy_found, "0", FCVAR_READ_ONLY,
-	"is joystick is connected");
-static CVAR_DEFINE_AUTO (joy_index, "0", FCVAR_READ_ONLY,
-	"current active joystick");*/
 CVAR_DEFINE_AUTO (joy_enable, "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"enable joystick");
 static CVAR_DEFINE_AUTO (joy_have_gyro, "0", FCVAR_READ_ONLY,
 	"tells whether current active gamepad has gyroscope or not");
 static CVAR_DEFINE_AUTO (joy_calibrated, "0", FCVAR_READ_ONLY,
 	"tells whether current active gamepad gyroscope has been calibrated or not");
+
+// [FWGS, 15.04.26]
+static CVAR_DEFINE_AUTO (joy_gyro_pitch, "1.0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"gyroscope sensitivity for looking up and down");
+static CVAR_DEFINE_AUTO (joy_gyro_yaw, "1.0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"gyroscope sensitivity for turning left and right");
+static CVAR_DEFINE_AUTO (joy_gyro_roll, "0.0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"gyroscope sensitivity when tilting the device sideways");
+static CVAR_DEFINE_AUTO (joy_gyro_pitch_deadzone, "0.5", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"gyroscope pitch axis deadzone (deg/s)");
+static CVAR_DEFINE_AUTO (joy_gyro_yaw_deadzone, "0.5", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"gyroscope yaw axis deadzone (deg/s)");
+static CVAR_DEFINE_AUTO (joy_gyro_roll_deadzone, "0.5", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"gyroscope roll axis deadzone (deg/s)");
+static CVAR_DEFINE_AUTO (joy_debug, "0", 0,
+	"visualize gamepad axes and buttons");
+
+// [FWGS, 15.04.26] stores the latest instantaneous gyroscope rotation rates (in rad/s) from platform input
+static vec3_t joy_gyro_speed;
+
+// [FWGS, 15.04.26] last non-zero gyro speed, retained for debug display after joy_gyro_speed is cleared
+static vec3_t joy_gyro_speed_display;
 
 /***
 ============
@@ -94,7 +114,6 @@ Joy_IsActive [FWGS, 01.03.25]
 ***/
 qboolean Joy_IsActive (void)
 	{
-	/*return joy_found.value && joy_enable.value;*/
 	return joy_enable.value;
 	}
 
@@ -128,7 +147,6 @@ Joy_HatMotionEvent [FWGS, 01.03.25]
 DPad events
 ============
 ***/
-/*void Joy_HatMotionEvent (byte hat, byte value)*/
 static void Joy_HatMotionEvent (int value)
 	{
 	struct
@@ -142,11 +160,8 @@ static void Joy_HatMotionEvent (int value)
 				{ JOY_HAT_LEFT, K_LEFTARROW },
 				{ JOY_HAT_RIGHT, K_RIGHTARROW },
 			};
+
 		int i;
-
-		/*if (!joy_found.value)
-			return;*/
-
 		for (i = 0; i < HLARRAYSIZE (keys); i++)
 			{
 			if (value & keys[i].mask)
@@ -273,8 +288,11 @@ static void Joy_ProcessStick (const engineAxis_t engineAxis, short value)
 			break;
 		}
 
+	// [FWGS, 15.04.26]
+	joyaxis[engineAxis].rawval = value;
+
 	if ((value < deadzone) && (value > -deadzone))
-		value = 0; // caught new event in deadzone, fill it with zero(no motion)
+		value = 0;	// caught new event in deadzone, fill it with zero(no motion)
 
 	// update axis values
 	joyaxis[engineAxis].prevval = joyaxis[engineAxis].val;
@@ -298,35 +316,23 @@ static void Joy_ProcessStick (const engineAxis_t engineAxis, short value)
 
 /***
 =============
-Joy_AxisMotionEvent [FWGS, 01.03.25]
+Joy_AxisMotionEvent [FWGS, 15.04.26]
 
 Axis events
 =============
 ***/
-/*void Joy_AxisMotionEvent (byte axis, short value)*/
 void Joy_AxisMotionEvent (engineAxis_t engineAxis, short value)
 	{
-	/*if (!joy_found.value)
+	/*if (engineAxis >= JOY_AXIS_NULL)*/
+	if (engineAxis >= MAX_AXES)
 		return;
 
-	if (axis >= MAX_AXES)
-		{
-		Con_Reportf ("Only 6 axes is supported\n");
-		return;
-		}
-
-	// [FWGS, 01.04.23]
-	Joy_KnownAxisMotionEvent (joyaxesmap[axis], value);
-	}
-
-void Joy_KnownAxisMotionEvent (engineAxis_t engineAxis, short value)
-	{
-	if (engineAxis == JOY_AXIS_NULL)*/
-	if (engineAxis >= JOY_AXIS_NULL)
+	engineAxis = joyaxesmap[engineAxis];
+	if (engineAxis >= MAX_AXES)
 		return;
 
 	if (value == joyaxis[engineAxis].val)
-		return; // it is not an update
+		return;	// it is not an update
 
 	if (engineAxis >= JOY_AXIS_RT)
 		Joy_ProcessTrigger (engineAxis, value);
@@ -338,82 +344,29 @@ void Joy_KnownAxisMotionEvent (engineAxis_t engineAxis, short value)
 
 /***
 =============
-Joy_GyroEvent
+Joy_GyroEvent [FWGS, 15.04.26]
 
 Gyroscope events
 =============
 ***/
-/*void Joy_BallMotionEvent (byte ball, short xrel, short yrel)*/
 void Joy_GyroEvent (vec3_t data)
 	{
+	VectorCopy (data, joy_gyro_speed);
+	VectorCopy (data, joy_gyro_speed_display);
 	}
 
 // [FWGS, 01.03.25] removed Joy_ButtonEvent, Joy_RemoveEvent, Joy_AddEvent
 
-/*
-=============
-Joy_ButtonEvent
-
-Button events
-=============
-/
-void Joy_ButtonEvent (byte button, byte down)
-	{
-	if (!joy_found.value)
-		return;
-
-	// generic game button code.
-	if (button > 32)
-		{
-		int origbutton = button;
-		button = (button & 31) + K_AUX1;
-
-		Con_Reportf ("Only 32 joybuttons is supported, converting %i button ID to %s\n", origbutton,
-			Key_KeynumToString (button));
-		}
-	else
-		{
-		button += K_AUX1;
-		}
-
-	Key_Event (button, down);
-	}*/
-
-/*
-=============
-Joy_RemoveEvent
-
-Called when joystick is removed. For future expansion
-=============
-/
-void Joy_RemoveEvent (void)
-	{
-	if (joy_found.value)
-		Cvar_FullSet ("joy_found", "0", FCVAR_READ_ONLY);
-	}*/
-
-/*
-=============
-Joy_RemoveEvent
-
-Called when joystick is removed. For future expansion
-=============
-/
-void Joy_AddEvent (void)
-	{
-	if (joy_enable.value && !joy_found.value)
-		Cvar_FullSet ("joy_found", "1", FCVAR_READ_ONLY);
-	}*/
-
 /***
 =============
-Joy_FinalizeMove
+Joy_FinalizeMove [FWGS, 15.04.26]
 
 Append movement from axis. Called everyframe
 =============
 ***/
 void Joy_FinalizeMove (float *fw, float *side, float *dpitch, float *dyaw)
 	{
+	/*if (!Joy_IsActive ())*/
 	if (!Joy_IsActive ())
 		return;
 
@@ -426,13 +379,34 @@ void Joy_FinalizeMove (float *fw, float *side, float *dpitch, float *dyaw)
 			{
 			switch (bind[i])
 				{
-				case 's': joyaxesmap[i] = JOY_AXIS_SIDE; break;
-				case 'f': joyaxesmap[i] = JOY_AXIS_FWD; break;
-				case 'y': joyaxesmap[i] = JOY_AXIS_YAW; break;
-				case 'p': joyaxesmap[i] = JOY_AXIS_PITCH; break;
-				case 'r': joyaxesmap[i] = JOY_AXIS_RT; break;
-				case 'l': joyaxesmap[i] = JOY_AXIS_LT; break;
-				default: joyaxesmap[i] = JOY_AXIS_NULL; break;
+				case 's':
+					joyaxesmap[i] = JOY_AXIS_SIDE;
+					break;
+
+				case 'f':
+					joyaxesmap[i] = JOY_AXIS_FWD;
+					break;
+
+				case 'y':
+					joyaxesmap[i] = JOY_AXIS_YAW;
+					break;
+
+				case 'p':
+					joyaxesmap[i] = JOY_AXIS_PITCH;
+					break;
+
+				case 'r':
+					joyaxesmap[i] = JOY_AXIS_RT;
+					break;
+
+				case 'l':
+					joyaxesmap[i] = JOY_AXIS_LT;
+					break;
+
+				/*default: joyaxesmap[i] = JOY_AXIS_NULL; break;*/
+				default:
+					joyaxesmap[i] = MAX_AXES;
+					break;
 				}
 			}
 
@@ -442,16 +416,229 @@ void Joy_FinalizeMove (float *fw, float *side, float *dpitch, float *dyaw)
 	*fw -= joy_forward.value * (float)joyaxis[JOY_AXIS_FWD].val / (float)SHRT_MAX;  // must be form -1.0 to 1.0
 	*side += joy_side.value * (float)joyaxis[JOY_AXIS_SIDE].val / (float)SHRT_MAX;
 
-	// [FWGS, 01.03.25]
-	/*if !defined(XASH_SDL)
-	*dpitch += joy_pitch.value * (float)joyaxis[JOY_AXIS_PITCH].val / (float)SHRT_MAX * host.realframetime;
-	// abs axis rotate is frametime related
-	*dyaw -= joy_yaw.value * (float)joyaxis[JOY_AXIS_YAW].val / (float)SHRT_MAX * host.realframetime;
-else
-	// HACKHACK: SDL have inverted look axis.*/
+	/*// [FWGS, 01.03.25]
 	*dpitch -= joy_pitch.value * (float)joyaxis[JOY_AXIS_PITCH].val / (float)SHRT_MAX * host.realframetime;
-	*dyaw += joy_yaw.value * (float)joyaxis[JOY_AXIS_YAW].val / (float)SHRT_MAX * host.realframetime;
-	/*endif*/
+	*dyaw += joy_yaw.value * (float)joyaxis[JOY_AXIS_YAW].val / (float)SHRT_MAX * host.realframetime;*/
+	*dpitch += joy_pitch.value * (float)joyaxis[JOY_AXIS_PITCH].val / (float)SHRT_MAX * host.realframetime;
+	*dyaw -= joy_yaw.value * (float)joyaxis[JOY_AXIS_YAW].val / (float)SHRT_MAX * host.realframetime;
+
+	if (joy_have_gyro.value && ((int)joy_calibrated.value == JOY_CALIBRATED))
+		{
+		float pitch_speed = joy_gyro_speed[0] * (180.0f / M_PI);
+		float yaw_speed = joy_gyro_speed[1] * (180.0f / M_PI);
+		float roll_speed = joy_gyro_speed[2] * (180.0f / M_PI);
+
+		if (fabs (pitch_speed) < joy_gyro_pitch_deadzone.value)
+			pitch_speed = 0.0f;
+		if (fabs (yaw_speed) < joy_gyro_yaw_deadzone.value)
+			yaw_speed = 0.0f;
+		if (fabs (roll_speed) < joy_gyro_roll_deadzone.value)
+			roll_speed = 0.0f;
+
+		*dpitch -= joy_gyro_pitch.value * pitch_speed * host.realframetime;
+		*dyaw += joy_gyro_yaw.value * yaw_speed * host.realframetime;
+		*dyaw += joy_gyro_roll.value * roll_speed * host.realframetime;
+		}
+
+	VectorClear (joy_gyro_speed);
+	}
+
+/***
+=============
+Joy_DrawDebug [FWGS, 15.04.26]
+
+Draw gamepad axes and buttons for debugging (joy_debug 1)
+=============
+***/
+void Joy_DrawDebug (void)
+	{
+	static const int buttons[] =
+		{
+		K_A_BUTTON, K_B_BUTTON, K_X_BUTTON, K_Y_BUTTON, 0,
+		K_L1_BUTTON, K_R1_BUTTON, 0,
+		K_L2_BUTTON, K_R2_BUTTON, 0,
+		K_BACK_BUTTON, K_MODE_BUTTON, K_START_BUTTON, 0,
+		K_LSTICK, K_RSTICK, 0,
+
+		// simulated buttons
+		K_DPAD_UP, K_DPAD_DOWN, K_DPAD_LEFT, K_DPAD_RIGHT, 0,
+		K_LTRIGGER, K_RTRIGGER, 0,
+
+		// additional buttons
+		K_C_BUTTON, K_Z_BUTTON, K_MISC_BUTTON, 0,
+		K_PADDLE1_BUTTON, K_PADDLE2_BUTTON, K_PADDLE3_BUTTON, K_PADDLE4_BUTTON, 0
+		};
+	static const char *const axisnames[MAX_AXES] = { "SIDE", "FWD", "PITCH", "YAW", "RT", "LT" };
+
+	// deadzone for sticks, threshold for triggers
+	static const convar_t *const axis_threshold[MAX_AXES] =
+		{
+		&joy_side_deadzone,
+		&joy_forward_deadzone,
+		&joy_pitch_deadzone,
+		&joy_yaw_deadzone,
+		&joy_rt_threshold,
+		&joy_lt_threshold,
+		};
+
+	cl_font_t *font = Con_GetCurFont ();
+
+	if (!joy_debug.value || !Joy_IsActive ())
+		return;
+
+	float x = 8;
+	float y = 100;
+	const float bar_w = 100;
+	const float halfbar_w = bar_w * 0.5f;
+	const float bar_h = font->charHeight - 2;
+	const float center = x + halfbar_w;
+
+	const rgba_t bar_backcolor = { 40, 40, 40, 180 };
+	const rgba_t bar_fillcolor = { 100, 200, 100, 200 };
+
+	// draw axes as labeled bars
+	for (int i = 0; i < MAX_AXES; i++)
+		{
+
+		qboolean	is_trigger = (i >= JOY_AXIS_RT);
+		float	fval = (float)joyaxis[i].val / SHRT_MAX;
+		float	fprev = (float)joyaxis[i].prevval / SHRT_MAX;
+		float	fthreshold = axis_threshold[i]->value / SHRT_MAX;
+
+		CL_DrawString (x, y, axisnames[i], g_color_table[7], font, 0);
+		y += font->charHeight;
+
+		// background
+		ref.dllFuncs.FillRGBA (kRenderTransTexture, x, y, bar_w, bar_h, bar_backcolor[0], bar_backcolor[1],
+			bar_backcolor[2], bar_backcolor[3]);
+
+		if (is_trigger)
+			{
+			// fill bar from the left for triggers
+			float filled = fval * bar_w;
+
+			if (filled > 0)
+				{
+				ref.dllFuncs.FillRGBA (kRenderTransTexture, x, y, filled, bar_h, bar_fillcolor[0], bar_fillcolor[1],
+					bar_fillcolor[2], bar_fillcolor[3]);
+				}
+
+			// fill threshold with red, and yellow edge marker
+			float thresh_x = x + fthreshold * bar_w;
+			ref.dllFuncs.FillRGBA (kRenderTransTexture, x, y, thresh_x - x, bar_h, 180, 40, 40, 120);
+			ref.dllFuncs.FillRGBA (kRenderTransTexture, thresh_x, y, 1, bar_h, 255, 200, 0, 220);
+
+			// prevval marker
+			float prev_x = x + fprev * bar_w;
+			ref.dllFuncs.FillRGBA (kRenderTransTexture, prev_x, y, 1, bar_h, 200, 200, 200, 180);
+			}
+		else
+			{
+			// for sticks bar is filled from the center
+			float filled = fval * halfbar_w;
+
+			ref.dllFuncs.FillRGBA (kRenderTransTexture, center + Q_min (0, filled), y, fabs (filled), bar_h,
+				bar_fillcolor[0], bar_fillcolor[1], bar_fillcolor[2], bar_fillcolor[3]);
+
+			// fill deadzone with red, and yellow edge marker
+			float thresh_x = fthreshold * halfbar_w;
+			ref.dllFuncs.FillRGBA (kRenderTransTexture, center - thresh_x, y, thresh_x * 2, bar_h, 180, 40, 40, 120);
+			ref.dllFuncs.FillRGBA (kRenderTransTexture, center + thresh_x, y, 1, bar_h, 255, 200, 0, 220);
+			ref.dllFuncs.FillRGBA (kRenderTransTexture, center - thresh_x, y, 1, bar_h, 255, 200, 0, 220);
+
+			// mark the center
+			ref.dllFuncs.FillRGBA (kRenderTransTexture, center, y, 1, bar_h, 180, 180, 180, 220);
+
+			// now draw the actual value
+			float raw_x = center + ((float)joyaxis[i].rawval / SHRT_MAX * halfbar_w);
+			ref.dllFuncs.FillRGBA (kRenderTransTexture, raw_x, y, 1, bar_h, 255, 255, 100, 200);
+
+			// prevval marker
+			float prev_x = center + fprev * halfbar_w;
+			ref.dllFuncs.FillRGBA (kRenderTransTexture, prev_x, y, 1, bar_h, 200, 200, 200, 180);
+			}
+
+		y += bar_h + 2;
+		}
+
+	// draw gyro if available
+	if (joy_have_gyro.value)
+		{
+		static const char *gyronames[3] = { "GYRO P", "GYRO Y", "GYRO R" };
+		static const convar_t *const gyro_deadzone[3] =
+			{
+			&joy_gyro_pitch_deadzone,
+			&joy_gyro_yaw_deadzone,
+			&joy_gyro_roll_deadzone,
+			};
+
+		for (int i = 0; i < 3; i++)
+			{
+			// clamp to +-5 rad/s for display
+			float fval = joy_gyro_speed_display[i] / 5.0f;
+			fval = bound (-1.0f, fval, 1.0f);
+
+			CL_DrawString (x, y, gyronames[i], g_color_table[7], font, 0);
+			y += font->charHeight;
+
+			// background
+			ref.dllFuncs.FillRGBA (kRenderTransTexture, x, y, bar_w, bar_h, bar_backcolor[0], bar_backcolor[1],
+				bar_backcolor[2], bar_backcolor[3]);
+
+			// for gyro bar is filled from the center
+			float filled = fval * halfbar_w;
+
+			ref.dllFuncs.FillRGBA (kRenderTransTexture, center + Q_min (0, filled), y, fabs (filled), bar_h,
+				bar_fillcolor[0], bar_fillcolor[1], bar_fillcolor[2], bar_fillcolor[3]);
+
+			// deadzone in deg/s; display scale is +-5 rad/s
+			float fthreshold = gyro_deadzone[i]->value * (M_PI / 180.0f) / 5.0f;
+			fthreshold = bound (0.0f, fthreshold, 1.0f);
+
+			if (fthreshold > 0.0f)
+				{
+				float thresh_x = fthreshold * halfbar_w;
+				ref.dllFuncs.FillRGBA (kRenderTransTexture, center - thresh_x, y, thresh_x * 2, bar_h, 180, 40, 40, 120);
+				ref.dllFuncs.FillRGBA (kRenderTransTexture, center + thresh_x, y, 1, bar_h, 255, 200, 0, 220);
+				ref.dllFuncs.FillRGBA (kRenderTransTexture, center - thresh_x, y, 1, bar_h, 255, 200, 0, 220);
+				}
+
+			// mark the center
+			ref.dllFuncs.FillRGBA (kRenderTransTexture, center, y, 1, bar_h, 180, 180, 180, 220);
+
+			// gyro doesn't have prevval like axes
+			y += bar_h + 2;
+			}
+		}
+
+	// draw buttons in a row
+	y += 4;
+	x = 8;
+	for (int i = 0; i < HLARRAYSIZE (buttons); i++)
+		{
+		if (!buttons[i])
+			{
+			x = 8;
+			y += font->charHeight;
+			continue;
+			}
+
+		qboolean	pressed = Key_IsDown (buttons[i]);
+		int		btn_w = 0;
+		rgba_t	color;
+		string	name;
+
+		Q_strncpy (name, Key_KeynumToString (buttons[i]), sizeof (name));
+
+		char *p = Q_strstr (name, "_BUTTON");
+		if (p)
+			*p = 0;
+
+		MakeRGBA (color, pressed ? 0 : 255, pressed ? 255 : 0, 0, 255);
+		CL_DrawString (x, y, name, color, font, 0);
+		CL_DrawStringLen (font, name, &btn_w, NULL, 0);
+		x += btn_w + 6;
+		}
 	}
 
 // [FWGS, 01.03.25]
@@ -499,14 +686,20 @@ void Joy_Init (void)
 	Cvar_RegisterVariable (&joy_axis_binding);
 
 	// [FWGS, 01.03.25]
-	/*Cvar_RegisterVariable (&joy_found);
-
-	// we doesn't loaded config.cfg yet, so this cvar is not archive.
-	// change by +set joy_index in cmdline
-	Cvar_RegisterVariable (&joy_index);*/
 	Cvar_RegisterVariable (&joy_have_gyro);
 	Cvar_RegisterVariable (&joy_calibrated);
 	Cvar_RegisterVariable (&joy_enable);
+
+	// [FWGS, 15.04.26]
+	Cvar_RegisterVariable (&joy_gyro_pitch);
+	Cvar_RegisterVariable (&joy_gyro_yaw);
+	Cvar_RegisterVariable (&joy_gyro_roll);
+
+	Cvar_RegisterVariable (&joy_gyro_pitch_deadzone);
+	Cvar_RegisterVariable (&joy_gyro_yaw_deadzone);
+	Cvar_RegisterVariable (&joy_gyro_roll_deadzone);
+
+	Cvar_RegisterVariable (&joy_debug);
 
 	// renamed from -nojoy to -noenginejoy to not conflict with
 	// client.dll's joystick support
@@ -517,7 +710,6 @@ void Joy_Init (void)
 		}
 
 	// [FWGS, 01.03.25]
-	/*Cvar_FullSet ("joy_found", va ("%d", Platform_JoyInit (joy_index.value)), FCVAR_READ_ONLY);*/
 	Platform_JoyInit ();
 	joy_initialized = true;
 	}
@@ -531,7 +723,5 @@ Shutdown joystick code
 ***/
 void Joy_Shutdown (void)
 	{
-	/*if (joy_initialized)
-		Cvar_FullSet ("joy_found", 0, FCVAR_READ_ONLY);*/
 	Platform_JoyShutdown ();
 	}

@@ -1419,12 +1419,16 @@ static void GL_ProcessImage (gl_texture_t *tex, rgbdata_t *pic)
 	if (pic->flags & IMAGE_HAS_ALPHA)
 		tex->flags |= TF_HAS_ALPHA;
 
-	tex->encode = pic->encode; // share encode method
+	// [FWGS, 15.04.26]
+	if (FBitSet (pic->flags, IMAGE_PREMULTIPLIED))
+		SetBits (tex->flags, TF_PREMULTIPLIED);
+
+	tex->encode = pic->encode;	// share encode method
 
 	if (ImageCompressed (pic->type))
 		{
 		if (!pic->numMips)
-			tex->flags |= TF_NOMIPMAP; // disable mipmapping by user request
+			tex->flags |= TF_NOMIPMAP;	// disable mipmapping by user request
 
 		// clear all the unsupported flags
 		tex->flags &= ~TF_KEEP_SOURCE;
@@ -1446,7 +1450,7 @@ static void GL_ProcessImage (gl_texture_t *tex, rgbdata_t *pic)
 			}
 
 		if (!FBitSet (tex->flags, TF_IMG_UPLOADED) && FBitSet (tex->flags, TF_KEEP_SOURCE))
-			tex->original = gEngfuncs.FS_CopyImage (pic); // because current pic will be expanded to rgba
+			tex->original = gEngfuncs.FS_CopyImage (pic);	// because current pic will be expanded to rgba
 
 		// we need to expand image into RGBA buffer
 		if ((pic->type == PF_INDEXED_24) || (pic->type == PF_INDEXED_32))
@@ -1455,6 +1459,25 @@ static void GL_ProcessImage (gl_texture_t *tex, rgbdata_t *pic)
 		// processing image before uploading (force to rgba, make luma etc)
 		if (pic->buffer)
 			gEngfuncs.Image_Process (&pic, 0, 0, img_flags, 0);
+
+		// [FWGS, 15.04.26]
+		if (FBitSet (pic->flags, IMAGE_PLAYERDECAL) && pic->buffer && (pic->type == PF_RGBA_32) &&
+			FBitSet (pic->flags, IMAGE_HAS_ALPHA) && !FBitSet (pic->flags, IMAGE_PREMULTIPLIED))
+			{
+			int		i, cnt = (int)(pic->width * pic->height);
+			byte	*p = pic->buffer;
+
+			for (i = 0; i < cnt; i++, p += 4)
+				{
+				int a = p[3];
+				p[0] = (p[0] * a + 127) / 255;
+				p[1] = (p[1] * a + 127) / 255;
+				p[2] = (p[2] * a + 127) / 255;
+				}
+
+			SetBits (pic->flags, IMAGE_PREMULTIPLIED);
+			SetBits (tex->flags, TF_PREMULTIPLIED);
+			}
 
 		if (FBitSet (tex->flags, TF_LUMINANCE))
 			ClearBits (pic->flags, IMAGE_HAS_COLOR);

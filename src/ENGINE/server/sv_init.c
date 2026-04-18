@@ -496,7 +496,7 @@ static void SV_WriteVoiceCodec (sizebuf_t *msg)
 
 /***
 ================
-SV_CreateBaseline [FWGS, 01.03.24]
+SV_CreateBaseline
 
 Entity baselines are used to compress the update messages
 to the clients -- only the fields that differ from the
@@ -512,7 +512,9 @@ static void SV_CreateBaseline (void)
 	int		delta_type;
 	int		entnum;
 
-	if (svs.maxclients > 1)
+	// [FWGS, 15.04.26]
+	/*if (svs.maxclients > 1)*/
+	if (svs.maxclients > 1 || sv_voice_singleplayer.value)
 		SV_WriteVoiceCodec (&sv.signon);
 
 	if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))

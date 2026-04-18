@@ -32,20 +32,9 @@ typedef struct
 	int		cursize;
 	} cmdbuf_t;
 
-// [FWGS, 01.04.26]
-static qboolean	cmd_wait;
-/*static byte		cmd_text_buf[MAX_CMD_BUFFER];
-static byte		filteredcmd_text_buf[MAX_CMD_BUFFER];
-static cmdbuf_t	cmd_text =
-	{
-	.data = cmd_text_buf,
-	.maxsize = HLARRAYSIZE (cmd_text_buf),
-	};
-static cmdbuf_t	filteredcmd_text =
-	{
-	.data = filteredcmd_text_buf,
-	.maxsize = HLARRAYSIZE (filteredcmd_text_buf),
-	};*/
+// [FWGS, 15.04.26]
+/*static qboolean	cmd_wait;*/
+static int		cmd_wait;
 static cmdbuf_t	cmd_text;
 static cmdbuf_t	filteredcmd_text;
 
@@ -53,7 +42,7 @@ static cmdalias_t	*cmd_alias;
 static uint			cmd_condition;
 static int			cmd_condlevel;
 static qboolean		cmd_currentCommandIsPrivileged;
-static poolhandle_t cmd_pool;	// [FWGS, 01.02.25]
+static poolhandle_t cmd_pool;
 
 
 static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPrivileged);
@@ -68,7 +57,7 @@ COMMAND BUFFER
 
 /***
 ============
-Cbuf_Clear [FWGS, 01.04.26]
+Cbuf_Clear [FWGS, 15.04.26]
 ============
 ***/
 void Cbuf_Clear (void)
@@ -78,6 +67,7 @@ void Cbuf_Clear (void)
 	cmd_text.cursize = filteredcmd_text.cursize = 0;*/
 	memset (&cmd_text, 0, sizeof (cmd_text));
 	memset (&filteredcmd_text, 0, sizeof (filteredcmd_text));
+	cmd_wait = 0;
 	}
 
 /***
@@ -205,6 +195,13 @@ static void Cbuf_ExecuteCommandsFromBuffer (cmdbuf_t *buf, qboolean isPrivileged
 
 	while (buf->cursize)
 		{
+		// [FWGS, 15.04.26]
+		if (cmd_wait > 0)
+			{
+			cmd_wait--;
+			break;
+			}
+
 		// limit amount of commands that can be issued
 		if (cmdsToExecute >= 0)
 			{
@@ -273,12 +270,13 @@ static void Cbuf_ExecuteCommandsFromBuffer (cmdbuf_t *buf, qboolean isPrivileged
 		// execute the command line
 		Cmd_ExecuteStringWithPrivilegeCheck (line, isPrivileged);
 
-		if (cmd_wait)
+		// [FWGS, 15.04.26]
+		/*if (cmd_wait)
 			{
 			// skip out while text still remains in buffer, leaving it for next frame
 			cmd_wait = false;
 			break;
-			}
+			}*/
 		}
 	}
 
@@ -395,16 +393,24 @@ static void Cmd_StuffCmds_f (void)
 
 /***
 ============
-Cmd_Wait_f
+Cmd_Wait_f [FWGS, 15.04.26]
 
 Causes execution of the remainder of the command buffer to be delayed until
-next frame.  This allows commands like:
+next frame. This allows commands like:
 bind g "cmd use rocket ; +attack ; wait ; -attack ; cmd use blaster"
 ============
 ***/
 static void Cmd_Wait_f (void)
 	{
-	cmd_wait = true;
+	/*cmd_wait = true;*/
+	int frame = 1;
+	if (Cmd_Argc () > 1)
+		{
+		frame = Q_atoi (Cmd_Argv (1));
+		frame = Q_max (1, frame);
+		}
+
+	cmd_wait = frame;
 	}
 
 /***
@@ -1408,26 +1414,70 @@ static void Cmd_MakePrivileged_f (void)
 
 /***
 ===============
-Cmd_Exec_f [FWGS, 01.04.26]
+Cmd_ExecScript [FWGS, 15.04.26]
 ===============
 ***/
-static void Cmd_Exec_f (void)
+/*static void Cmd_Exec_f (void)*/
+static void Cmd_ExecScript (const char *filename)
 	{
-	string		cfgpath;
+	/*string		cfgpath;*/
 	byte		*f;
 	fs_offset_t	len;
 
-	if (Cmd_Argc () != 2)
+	/*if (Cmd_Argc () != 2)*/
+	f = FS_LoadFile (filename, &len, false);
+	if (!f)
 		{
-		Con_Printf (S_USAGE "exec <filename>\n");
+		/*Con_Printf (S_USAGE "exec <filename>\n");*/
+		Con_Reportf ("couldn't exec %s\n", filename);
 		return;
 		}
 
-	Q_strncpy (cfgpath, Cmd_Argv (1), sizeof (cfgpath));
-	COM_DefaultExtension (cfgpath, ".cfg", sizeof (cfgpath)); // append as default
+	// len is fs_offset_t, which can be larger than size_t
+	if (len >= SIZE_MAX)
+		{
+		Con_Reportf ("%s: %s is too long\n", __func__, filename);
+		Mem_Free (f);
+		return;
+		}
 
-#ifndef XASH_DEDICATED
-	if (!Cmd_CurrentCommandIsPrivileged () && !Q_stricmp (GI->gamefolder, "tfc"))
+	if (f[len - 1] != '\n')
+		{
+		Cbuf_InsertTextLen (f, len, len + 1);
+		Cbuf_InsertTextLen ("\n", 1, 1);
+		}
+	else
+		{
+		Cbuf_InsertTextLen (f, len, len);
+		}
+
+	Mem_Free (f);
+	}
+
+/***
+===============
+Cmd_UnprivilegedExec_f [FWGS, 15.04.26]
+===============
+***/
+static void Cmd_UnprivilegedExec_f (void)
+	{
+	string cfgpath;
+	qboolean allow = false;
+
+	if (Cmd_Argc () != 2)
+		return;
+
+	Q_strncpy (cfgpath, Cmd_Argv (1), sizeof (cfgpath));
+	/*COM_DefaultExtension (cfgpath, ".cfg", sizeof (cfgpath));	// append as default*/
+	COM_DefaultExtension (cfgpath, ".cfg", sizeof (cfgpath));
+
+	if (SV_GetMaxClients () == 1)
+		allow = true;
+
+/*ifndef XASH_DEDICATED
+	if (!Cmd_CurrentCommandIsPrivileged () && !Q_stricmp (GI->gamefolder, "tfc"))*/
+#if !XASH_DEDICATED
+	if (!allow && !Q_stricmp (GI->gamefolder, "tfc"))
 		{
 		const char	*const unprivileged_whitelist[] =
 			{
@@ -1454,38 +1504,88 @@ static void Cmd_Exec_f (void)
 				}
 			}
 
-		if (!allow)
+		/*if (!allow)
 			{
 			Con_Printf ("exec %s: not privileged or in whitelist\n", cfgpath);
 			return;
-			}
+			}*/
 		}
 #endif
+
+	/*// don't execute game.cfg in singleplayer
+	if ((SV_GetMaxClients () == 1) && !Q_stricmp ("game.cfg", cfgpath))*/
+	if (allow)
+		Cmd_ExecScript (cfgpath);
+	else
+		Con_Printf ("exec %s: not privileged or in whitelist\n", cfgpath);
+	}
+
+/***
+===============
+Cmd_Exec_f [FWGS, 15.04.26]
+===============
+***/
+static void Cmd_Exec_f (void)
+	{
+	string cfgpath;
+
+	// early exit for stuffcmd
+	if (!Cmd_CurrentCommandIsPrivileged ())
+		{
+		Cmd_UnprivilegedExec_f ();
+		return;
+		}
+
+	/*f = FS_LoadFile (cfgpath, &len, false);
+	if (!f)*/
+	if (Cmd_Argc () != 2)
+		{
+		/*Con_Reportf ("couldn't exec %s\n", Cmd_Argv (1));*/
+		Con_Printf (S_USAGE "exec <PATTERN>\n"
+			"PATTERN single file or wildcard pattern to match\n"
+			"Wildcards: * matches any characters, ? matches single character\n"
+			"Example: file.cfg - single file.cfg\n"
+			"\tdirectory/* - all .cfg files in directory\n"
+			"\tdirectory/???.cfg - all .cfg files in directory with 3 character names\n");
+		return;
+		}
+
+	/*// len is fs_offset_t, which can be larger than size_t
+	if (len >= SIZE_MAX)*/
+	Q_strncpy (cfgpath, Cmd_Argv (1), sizeof (cfgpath));
+	COM_DefaultExtension (cfgpath, ".cfg", sizeof (cfgpath));
+
+	if (Q_strpbrk (cfgpath, "*?"))
+		{
+/*		Con_Reportf ("%s: %s is too long\n", __func__, Cmd_Argv (1));*/
+		search_t *search = FS_Search (cfgpath, true, false);
+		if (!search || !search->numfilenames)
+			{
+			Con_Printf ("couldn't exec %s\n", Cmd_Argv (1));
+			if (search) Mem_Free (search);
+			return;
+			}
+
+		Con_Printf ("execing %d file%s from " S_GREEN "%s" S_DEFAULT "\n",
+			search->numfilenames, search->numfilenames > 1 ? "s" : "", Cmd_Argv (1));
+
+		for (int i = 0; i < search->numfilenames; i++)
+			Cmd_ExecScript (search->filenames[i]);
+
+		Mem_Free (search);
+		return;
+		}
 
 	// don't execute game.cfg in singleplayer
 	if ((SV_GetMaxClients () == 1) && !Q_stricmp ("game.cfg", cfgpath))
 		return;
-
-	f = FS_LoadFile (cfgpath, &len, false);
-	if (!f)
-		{
-		Con_Reportf ("couldn't exec %s\n", Cmd_Argv (1));
-		return;
-		}
-
-	// len is fs_offset_t, which can be larger than size_t
-	if (len >= SIZE_MAX)
-		{
-		Con_Reportf ("%s: %s is too long\n", __func__, Cmd_Argv (1));
-		return;
-		}
 
 	if (!Q_stricmp ("config.cfg", cfgpath))
 		host.config_executed = true;
 
 	Con_Printf ("execing " S_GREEN "%s" S_DEFAULT "\n", Cmd_Argv (1));
 
-	// adds \n at end of the file
+	/*// adds \n at end of the file
 	// FS_LoadFile always null terminates
 	if (f[len - 1] != '\n')
 		{
@@ -1497,7 +1597,8 @@ static void Cmd_Exec_f (void)
 		Cbuf_InsertTextLen (f, len, len);
 		}
 
-	Mem_Free (f);
+	Mem_Free (f);*/
+	Cmd_ExecScript (cfgpath);
 	}
 
 /***
@@ -1564,8 +1665,11 @@ void Cmd_Init (void)
 	// [FWGS, 01.02.25]
 	cmd_pool = Mem_AllocPool ("Console Commands");
 
+	// [FWGS, 15.04.26]
 	cmd_functions = NULL;
 	cmd_condition = 0;
+	cmd_wait = 0;
+
 	cmd_alias = NULL;
 	cmd_args = NULL;
 	cmd_argc = 0;
@@ -1573,7 +1677,11 @@ void Cmd_Init (void)
 	// register our commands
 	Cmd_AddCommand ("echo", Cmd_Echo_f, 
 		"print a message to the console (useful in scripts)");
-	Cmd_AddCommand ("wait", Cmd_Wait_f, 
+
+	// [FWGS, 15.04.26]
+	/*Cmd_AddCommand ("wait", Cmd_Wait_f, 
+		"make script execution wait for some rendered frames");*/
+	Cmd_AddRestrictedCommand ("wait", Cmd_Wait_f,
 		"make script execution wait for some rendered frames");
 
 	// [FWGS, 01.04.26]

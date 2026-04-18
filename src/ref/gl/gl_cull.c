@@ -66,7 +66,7 @@ qboolean R_CullModel (const cl_entity_t *e, const vec3_t absmin, const vec3_t ab
 
 /***
 =================
-R_CullSurface [FWGS, 05.04.26]
+R_CullSurface [FWGS, 15.04.26]
 
 cull invisible surfaces
 =================
@@ -76,23 +76,30 @@ int R_CullSurface (const msurface_t *surf, const gl_frustum_t *frustum, uint cli
 	{
 	cl_entity_t *e = RI.currententity;
 
-	/*if (!surf || !surf->texinfo || !surf->texinfo->texture)*/
-	if (!e || !surf || !surf->texinfo || !surf->texinfo->texture)
-		return CULL_OTHER;
-
-	if (r_nocull.value)
-		return CULL_VISIBLE;
-
-	// world surfaces can be culled by vis frame too
-	/*if ((RI.currententity == CL_GetEntityByIndex (0)) && (surf->visframe != tr.framecount))*/
-	if ((e == CL_GetEntityByIndex (0)) && (surf->visframe != tr.framecount))
+	/*if (!surf || !surf->texinfo || !surf->texinfo->texture)
+	if (!e || !surf || !surf->texinfo || !surf->texinfo->texture)*/
+	if (surf->visframe != tr.framecount && e == CL_GetEntityByIndex (0))
 		return CULL_VISFRAME;
 
+	if (unlikely (!surf->texinfo || !surf->texinfo->texture))
+		return CULL_OTHER;
+
+	/*if (r_nocull.value)*/
+	if (unlikely (r_nocull.value))
+		return CULL_VISIBLE;
+
+	/*// world surfaces can be culled by vis frame too
+	if ((e == CL_GetEntityByIndex (0)) && (surf->visframe != tr.framecount))
+		return CULL_VISFRAME;*/
+
 	// only static ents can be culled by frustum
+	/*if (!R_StaticEntity (e))
+		frustum = NULL;*/
 	if (!R_StaticEntity (e))
 		frustum = NULL;
 
-	if (!VectorIsNull (surf->plane->normal))
+	/*if (!VectorIsNull (surf->plane->normal))*/
+	if ((glState.faceCull != GL_NONE) && !VectorIsNull (surf->plane->normal))
 		{
 		float	dist;
 
@@ -112,22 +119,28 @@ int R_CullSurface (const msurface_t *surf, const gl_frustum_t *frustum, uint cli
 			dist = PlaneDiff (tr.modelorg, surf->plane);
 			}
 
+		if (FBitSet (surf->flags, SURF_PLANEBACK))
+			dist = -dist;
+
 		if (glState.faceCull == GL_FRONT)
 			{
-			if (FBitSet (surf->flags, SURF_PLANEBACK))
+			/*if (FBitSet (surf->flags, SURF_PLANEBACK))
 				{
 				if (dist >= -BACKFACE_EPSILON)
-					return CULL_BACKSIDE; // wrong side
+					return CULL_BACKSIDE;	// wrong side
 				}
 			else
 				{
 				if (dist <= BACKFACE_EPSILON)
 					return CULL_BACKSIDE; // wrong side
-				}
+				}*/
+			if (dist <= BACKFACE_EPSILON)
+				return CULL_BACKSIDE;
 			}
-		else if (glState.faceCull == GL_BACK)
+		/*else if (glState.faceCull == GL_BACK)*/
+		else	// if( glState.faceCull == GL_BACK )
 			{
-			if (FBitSet (surf->flags, SURF_PLANEBACK))
+			/*if (FBitSet (surf->flags, SURF_PLANEBACK))
 				{
 				if (dist <= BACKFACE_EPSILON)
 					return CULL_BACKSIDE; // wrong side
@@ -136,11 +149,14 @@ int R_CullSurface (const msurface_t *surf, const gl_frustum_t *frustum, uint cli
 				{
 				if (dist >= -BACKFACE_EPSILON)
 					return CULL_BACKSIDE; // wrong side
-				}
+				}*/
+			if (dist >= -BACKFACE_EPSILON)
+				return CULL_BACKSIDE;
 			}
 		}
 
-	if (frustum && GL_FrustumCullBox (frustum, surf->info->mins, surf->info->maxs, clipflags))
+	/*if (frustum && GL_FrustumCullBox (frustum, surf->info->mins, surf->info->maxs, clipflags))*/
+	if (frustum && clipflags && GL_FrustumCullBox (frustum, surf->info->mins, surf->info->maxs, clipflags))
 		return CULL_FRUSTUM;
 
 	return CULL_VISIBLE;

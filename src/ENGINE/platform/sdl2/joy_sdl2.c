@@ -16,7 +16,6 @@ GNU General Public License for more details
 #include <SDL.h>
 
 // [FWGS, 01.06.25]
-/*if SDL_VERSION_ATLEAST( 2, 0, 0 )*/
 #include "common.h"
 #include "keydefs.h"
 #include "input.h"
@@ -39,13 +38,15 @@ static const int g_button_mapping[] =
 		K_TOUCHPAD,
 	};
 
-// Swap axis to follow default axis binding:
+// [FWGS, 15.04.26] swap axis to follow default axis binding
 static const engineAxis_t g_axis_mapping[] =
 	{
 	JOY_AXIS_SIDE,		// SDL_CONTROLLER_AXIS_LEFTX,
 	JOY_AXIS_FWD,		// SDL_CONTROLLER_AXIS_LEFTY,
-	JOY_AXIS_PITCH,		// SDL_CONTROLLER_AXIS_RIGHTX,
-	JOY_AXIS_YAW,		// SDL_CONTROLLER_AXIS_RIGHTY,
+	/*JOY_AXIS_PITCH,		// SDL_CONTROLLER_AXIS_RIGHTX,
+	JOY_AXIS_YAW,		// SDL_CONTROLLER_AXIS_RIGHTY,*/
+	JOY_AXIS_YAW,		// SDL_CONTROLLER_AXIS_RIGHTX,
+	JOY_AXIS_PITCH,		// SDL_CONTROLLER_AXIS_RIGHTY,
 	JOY_AXIS_LT,		// SDL_CONTROLLER_AXIS_TRIGGERLEFT,
 	JOY_AXIS_RT,		// SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
 	};
@@ -55,14 +56,23 @@ static SDL_GameController *g_current_gamepad;
 static SDL_GameController **g_gamepads;
 static size_t g_num_gamepads;
 
-#define CALIBRATION_TIME 10.0f
+// [FWGS, 15.04.26]
+/*define CALIBRATION_TIME 10.0f*/
+#define CALIBRATION_TIME	5.0f
 
+// [FWGS, 15.04.26]
 static struct
 	{
-	float  time;
+	/*float  time;
 	vec3_t data;
 	vec3_t calibrated_values;
-	int    samples;
+	int    samples;*/
+	float	time;
+	vec3_t	data;
+	vec3_t	calibrated_values;
+	float	data_rate;
+	int		samples;
+	qboolean	continuous;	// true after first successful calibration
 	} gyrocal;
 
 static void SDLash_RestartCalibration (void)
@@ -73,36 +83,94 @@ static void SDLash_RestartCalibration (void)
 
 	gyrocal.time = host.realtime + CALIBRATION_TIME;
 
-	Con_Printf ("Starting gyroscope calibration...\n");
+	// [FWGS, 15.04.26]
+	/*Con_Printf ("Starting gyroscope calibration...\n");*/
+#if SDL_VERSION_ATLEAST( 2, 0, 16 )
+	gyrocal.data_rate = SDL_GameControllerGetSensorDataRate (g_current_gamepad, SDL_SENSOR_GYRO);
+#endif
+	if (!gyrocal.data_rate)
+		gyrocal.data_rate = 10.0f;
+
+	Con_Printf (S_NOTE "Starting gyroscope calibration at %g data rate for %g seconds...\n",
+		gyrocal.data_rate, CALIBRATION_TIME);
 	}
 
+// [FWGS, 15.04.26]
 static void SDLash_FinalizeCalibration (void)
 	{
-	float data_rate = 10.0f; // let's say we're polling at 10Hz?
+	/*float data_rate = 10.0f; // let's say we're polling at 10Hz?
 	int min_samples;
 
-#if SDL_VERSION_ATLEAST( 2, 0, 16 )
+if SDL_VERSION_ATLEAST( 2, 0, 16 )
 	data_rate = SDL_GameControllerGetSensorDataRate (g_current_gamepad, SDL_SENSOR_GYRO);
 	if (!data_rate)
 		data_rate = 10.0f;
-#endif
+endif
 
-	min_samples = Q_rint (CALIBRATION_TIME * data_rate * 0.75f);
+	min_samples = Q_rint (CALIBRATION_TIME * data_rate * 0.75f);*/
+	int min_samples = Q_rint (CALIBRATION_TIME * gyrocal.data_rate * 0.5f);
 
 	// we waited for few seconds and got too few samples
 	if (gyrocal.samples <= min_samples)
 		{
-		Joy_SetCalibrationState (JOY_FAILED_TO_CALIBRATE);
-		return;
+		/*Joy_SetCalibrationState (JOY_FAILED_TO_CALIBRATE);
+		return;*/
+		if (!gyrocal.continuous)
+			{
+			Joy_SetCalibrationState (JOY_FAILED_TO_CALIBRATE);
+			Con_Printf (S_ERROR "Calibration failed, got samples %d < %d\n", gyrocal.samples, min_samples);
+			gyrocal.time = 0.0f;
+			return;
+			}
+		// Con_Reportf( S_WARN "Continuous calibration: too few samples (%d < %d), retrying\n", gyrocal.samples, min_samples );
+		}
+	else
+		{
+		VectorScale (gyrocal.data, 1.0f / gyrocal.samples, gyrocal.calibrated_values);
+		Joy_SetCalibrationState (JOY_CALIBRATED);
+		if (!gyrocal.continuous)
+			Con_Printf ("Calibration done. Result: %f %f %f at %d samples\n", gyrocal.calibrated_values[0],
+				gyrocal.calibrated_values[1], gyrocal.calibrated_values[2], gyrocal.samples);
+
+		// else
+		// Con_Reportf( "Continuous calibration done. Result: %f %f %f at %d samples\n",
+		// gyrocal.calibrated_values[0], gyrocal.calibrated_values[1], gyrocal.calibrated_values[2], gyrocal.samples );
+		gyrocal.continuous = true;
 		}
 
-	VectorScale (gyrocal.data, 1.0f / gyrocal.samples, gyrocal.calibrated_values);
-	Joy_SetCalibrationState (JOY_CALIBRATED);
+	/*VectorScale (gyrocal.data, 1.0f / gyrocal.samples, gyrocal.calibrated_values);
+	Joy_SetCalibrationState (JOY_CALIBRATED);*/
+	// schedule next calibration window
+	VectorClear (gyrocal.data);
+	gyrocal.samples = 0;
+	gyrocal.time = host.realtime + CALIBRATION_TIME;
+	}
 
-	Con_Printf ("Calibration done. Result: %f %f %f\n", gyrocal.calibrated_values[0],
-		gyrocal.calibrated_values[1], gyrocal.calibrated_values[2]);
+// [FWGS, 15.04.26]
+/*Con_Printf ("Calibration done. Result: %f %f %f\n", gyrocal.calibrated_values[0],
+gyrocal.calibrated_values[1], gyrocal.calibrated_values[2]);*/
+static void SDLash_AccumulateCalibrationData (vec3_t data)
+	{
+	// for continuous background calibration only listen for noise
+	// by comparing it with calibrated values
+	//
+	// for first calibration this might be hurtful as device might
+	// output offset data
+	if (gyrocal.continuous)
+		{
+		vec3_t calibrated;
+		VectorSubtract (data, gyrocal.calibrated_values, calibrated);
 
-	gyrocal.time = 0.0f;
+		if (VectorLength (calibrated) > 0.1f)
+			return;
+		}
+
+	/*gyrocal.time = 0.0f;*/
+	VectorAdd (gyrocal.data, data, gyrocal.data);
+	gyrocal.samples++;
+
+	if (!gyrocal.continuous)
+		Joy_SetCalibrationState (JOY_CALIBRATING);
 	}
 
 static void SDLash_GameControllerAddMappings (const char *name)
@@ -125,18 +193,14 @@ static void SDLash_GameControllerAddMappings (const char *name)
 // [FWGS, 01.06.25]
 static void SDLash_SetActiveGameController (SDL_JoystickID id)
 	{
-	/*SDL_GameController *oldgc;*/
-
 	if (g_current_gamepad_id == id)
 		return;
 
-	/*g_current_gamepad_id = id;
-	oldgc = g_current_gamepad;*/
-
 #if SDL_VERSION_ATLEAST( 2, 0, 14 )
-	/*SDL_GameControllerSetSensorEnabled (oldgc, SDL_SENSOR_GYRO, SDL_FALSE);*/
-	// going to change active controller, disable gyro events in old
-	SDL_GameControllerSetSensorEnabled (g_current_gamepad, SDL_SENSOR_GYRO, SDL_FALSE);
+	// [FWGS, 15.04.26] going to change active controller, disable gyro events in old
+	/*SDL_GameControllerSetSensorEnabled (g_current_gamepad, SDL_SENSOR_GYRO, SDL_FALSE);*/
+	if (g_current_gamepad)
+		SDL_GameControllerSetSensorEnabled (g_current_gamepad, SDL_SENSOR_GYRO, SDL_FALSE);
 #endif
 
 	g_current_gamepad_id = id;
@@ -181,7 +245,7 @@ static void SDLash_GameControllerAdded (int device_index)
 	// this "game controller" only exists on Android within emulator and tries to map
 	// keyboard events into game controller events, which as you can expect, doesn't
 	// work and I don't understand the intention here. When debugging Xash in Android
-	// Studio emulator, just enable hardware input passthrough.
+	// Studio emulator, just enable hardware input passthrough
 #if XASH_ANDROID
 	if (!Q_strcmp (SDL_GameControllerName (gc), "qwerty2"))
 		{
@@ -204,7 +268,8 @@ static void SDLash_GameControllerAdded (int device_index)
 			SDLash_SetActiveGameController (SDL_JoystickInstanceID (joy));
 		}
 
-	Con_Printf ("Detected \"%s\" game controller.\nMapping string: %s\n", SDL_GameControllerName (gc), SDL_GameControllerMapping (gc));
+	Con_Printf ("Detected \"%s\" game controller.\nMapping string: %s\n", SDL_GameControllerName (gc),
+		SDL_GameControllerMapping (gc));
 	}
 
 static void SDLash_GameControllerRemoved (SDL_JoystickID id)
@@ -238,7 +303,6 @@ static void SDLash_GameControllerRemoved (SDL_JoystickID id)
 		}
 	}
 
-// [FWGS, 01.06.25]
 #if SDL_VERSION_ATLEAST( 2, 0, 14 )
 static void SDLash_GameControllerSensorUpdate (SDL_ControllerSensorEvent sensor)
 	{
@@ -252,14 +316,20 @@ static void SDLash_GameControllerSensorUpdate (SDL_ControllerSensorEvent sensor)
 
 	if (gyrocal.time != 0.0f)
 		{
+		// [FWGS, 15.04.26]
 		if (host.realtime > gyrocal.time)
 			SDLash_FinalizeCalibration ();
+		else
+			SDLash_AccumulateCalibrationData (sensor.data);
 
-		VectorAdd (gyrocal.data, sensor.data, gyrocal.data);
+		/*VectorAdd (gyrocal.data, sensor.data, gyrocal.data);
 		gyrocal.samples++;
 
 		Joy_SetCalibrationState (JOY_CALIBRATING);
-		return;
+		return;*/
+		// block gyro events only during initial calibration
+		if (!gyrocal.continuous)
+			return;
 		}
 
 	VectorSubtract (sensor.data, gyrocal.calibrated_values, data);
@@ -348,6 +418,10 @@ int Platform_JoyInit (void)
 	{
 	int count, numJoysticks, i;
 
+	// [FWGS, 15.04.26]
+	SDL_SetHint (SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1");
+	SDL_SetHint (SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE, "1");
+
 	Con_Reportf ("Joystick: SDL GameController API\n");
 	if (SDL_WasInit (SDL_INIT_GAMECONTROLLER) != SDL_INIT_GAMECONTROLLER &&
 		SDL_InitSubSystem (SDL_INIT_GAMECONTROLLER))
@@ -356,7 +430,7 @@ int Platform_JoyInit (void)
 		return 0;
 		}
 
-	SDLash_GameControllerAddMappings ("gamecontrollerdb.txt"); // shipped in extras.pk3
+	SDLash_GameControllerAddMappings ("gamecontrollerdb.txt");	// shipped in extras.pk3
 	SDLash_GameControllerAddMappings ("controllermappings.txt");
 
 	count = 0;
@@ -397,22 +471,4 @@ void Platform_JoyShutdown (void)
 	SDL_QuitSubSystem (SDL_INIT_GAMECONTROLLER);
 	}
 
-// [FWGS, 01.06.25]
-/*else
-
-void Platform_Vibrate (float time, char flags)
-	{
-
-	}
-
-int Platform_JoyInit (void)
-	{
-	return 0;
-	}
-
-void Platform_JoyShutdown (void)
-	{
-
-	}
-
-endif*/
+// [FWGS, 01.06.25] removed stubs for Platform_Vibrate, Platform_JoyInit, Platform_JoyShutdown

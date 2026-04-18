@@ -339,12 +339,13 @@ void CBaseMonster::GibMonster (void)
 				ATTN_MEDIUM, 0, sizeCoeff);
 			break;
 
-		case 1:
+		// ESHQ: этот звук пока не удаётся найти
+		/*case 1:
 			EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, "common/bodysplat.wav", 1.0f, 
 				ATTN_MEDIUM, 0, sizeCoeff);
 			break;
 
-		case 2:
+		case 2:*/
 		default:	// Возможные 3.0f и чуть более
 			EMIT_SOUND_DYN (ENT (pev), CHAN_WEAPON, "common/bodysplat3.wav", 1.0f, 
 				ATTN_MEDIUM, 0, sizeCoeff);

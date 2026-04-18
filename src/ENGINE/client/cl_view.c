@@ -19,8 +19,8 @@ GNU General Public License for more details
 #include "entity_types.h"
 #include "vgui_draw.h"
 #include "sound.h"
-#include "input.h" // touch
-#include "platform/platform.h" // GL_UpdateSwapInterval
+#include "input.h"	// touch
+#include "platform/platform.h"	// GL_UpdateSwapInterval
 
 /***
 ===============
@@ -180,7 +180,6 @@ static void V_SetRefParams (ref_params_t *fd)
 
 	// [FWGS, 01.06.25] get pointers to movement vars and user cmd
 	fd->movevars = &clgame.movevars;
-	/*fd->cmd = cl.cmd;*/
 	fd->cmd = &cl.cmd;
 
 	// setup viewport
@@ -249,7 +248,7 @@ static void V_RefApplyOverview (ref_viewpass_t *rvp)
 
 /***
 ====================
-V_CalcFov [FWGS, 01.05.23]
+V_CalcFov
 ====================
 ***/
 static float V_CalcFov (float *fov_x, float width, float height)
@@ -267,7 +266,7 @@ static float V_CalcFov (float *fov_x, float width, float height)
 
 /***
 ====================
-V_AdjustFov [FWGS, 01.05.23]
+V_AdjustFov
 ====================
 ***/
 static void V_AdjustFov (float *fov_x, float *fov_y, float width, float height, qboolean lock_x)
@@ -382,7 +381,7 @@ V_RenderView
 ***/
 void V_RenderView (void)
 	{
-	// HACKHACK: make ref params static [FWGS, 01.08.23]
+	// HACKHACK: make ref params static
 	// not really critical but allows client.dll to take address of refdef and don't trigger ASan
 	static ref_params_t	rp;
 
@@ -390,7 +389,7 @@ void V_RenderView (void)
 	int		viewnum = 0;
 
 	if (!cl.video_prepped || (!ui_renderworld.value && UI_IsVisible () && !cl.background))
-		return; // still loading
+		return;	// still loading
 
 	V_CalcViewRect ();	// compute viewport rectangle
 	V_SetRefParams (&rp);
@@ -416,9 +415,9 @@ void V_RenderView (void)
 
 		} while (rp.nextView);
 
-		// draw debug triangles on a server
-		SV_DrawDebugTriangles ();
-		ref.dllFuncs.GL_BackendEndFrame ();
+	// draw debug triangles on a server
+	SV_DrawDebugTriangles ();
+	ref.dllFuncs.GL_BackendEndFrame ();
 	}
 
 #define POINT_SIZE		16.0f
@@ -427,7 +426,7 @@ void V_RenderView (void)
 
 static void R_DrawLeafNode (float x, float y, float scale)
 	{
-	float downScale = scale * 0.25f;// * POINT_SIZE;
+	float downScale = scale * 0.25f;	// * POINT_SIZE;
 
 	ref.dllFuncs.R_DrawStretchPic (x - downScale * 0.5f, y - downScale * 0.5f, downScale, downScale,
 		0, 0, 1, 1, R_GetBuiltinTexture (REF_PARTICLE_TEXTURE));
@@ -485,8 +484,6 @@ static void R_ShowTree_r (mnode_t *node, float x, float y, float scale, int show
 		}
 
 	// [FWGS, 01.02.25]
-	/*R_ShowTree_r (node->children[1], x - scale, y + scale, downScale, shownodes, viewleaf);
-	R_ShowTree_r (node->children[0], x + scale, y + scale, downScale, shownodes, viewleaf);*/
 	R_ShowTree_r (node_child (node, 1, cl.worldmodel), x - scale, y + scale, downScale, shownodes, viewleaf);
 	R_ShowTree_r (node_child (node, 0, cl.worldmodel), x + scale, y + scale, downScale, shownodes, viewleaf);
 
@@ -504,7 +501,6 @@ static void R_ShowTree (void)
 
 	// [FWGS, 01.02.25]
 	world.recursion_level = 0;
-	/*viewleaf = Mod_PointInLeaf (refState.vieworg, cl.worldmodel->nodes);*/
 	viewleaf = Mod_PointInLeaf (refState.vieworg, cl.worldmodel->nodes, cl.worldmodel);
 
 	// [FWGS, 01.12.24]
@@ -553,6 +549,9 @@ void V_PostRender (void)
 		SCR_DrawNetGraph ();
 
 		SCR_DrawUserCmd ();
+
+		// [FWGS, 15.04.26]
+		Joy_DrawDebug ();
 
 		SV_DrawOrthoTriangles ();
 		CL_DrawDemoRecording ();
