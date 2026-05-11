@@ -16,18 +16,19 @@ GNU General Public License for more details
 #ifndef GL_LOCAL_H
 #define GL_LOCAL_H
 
-// [FWGS, 01.03.26]
+// [FWGS, 01.05.26]
+#include "ref_common.h"
 #include "port.h"
 #include "xash3d_types.h"
 #include "cvardef.h"
-#include "const.h"
-#include "com_model.h"
-#include "cl_entity.h"
-#include "render_api.h"
+/*include "const.h"
+include "com_model.h"
+include "cl_entity.h"
+include "render_api.h"*/
 #include "protocol.h"
 #include "gl_frustum.h"
-#include "ref_api.h"
-#include "xash3d_mathlib.h"
+/*include "ref_api.h"
+include "xash3d_mathlib.h"*/
 #include "ref_params.h"
 #include "enginefeatures.h"
 #include "com_strings.h"
@@ -35,6 +36,7 @@ GNU General Public License for more details
 #include "wadfile.h"
 #include "common/mod_local.h"
 #include "pmove.h"
+#include "common/ref_common.h"	// ESHQ: требуется для корректной сборки
 
 #if XASH_PSVITA
 	int VGL_ShimInit (void);
@@ -54,15 +56,16 @@ GNU General Public License for more details
 #endif
 #endif
 
-// [FWGS, 01.11.25]
-#define Assert(x) if(!( x )) gEngfuncs.Host_Error( "assert failed at %s:%i\n", __FILE__, __LINE__ )
+// [FWGS, 01.05.26]
+/*// [FWGS, 01.11.25]
+define Assert(x) if(!( x )) gEngfuncs.Host_Error( "assert failed at %s:%i\n", __FILE__, __LINE__ )*/
 
 #include <stdio.h>
 
-// make mod_ref.h?
+// [FWGS, 01.05.26] make mod_ref.h?
 #define LM_SAMPLE_SIZE		16
 
-extern poolhandle_t			r_temppool;
+/*extern poolhandle_t			r_temppool;*/
 
 #define BLOCK_SIZE			tr.block_size	// lightmap blocksize
 #define BLOCK_SIZE_DEFAULT	128		// for keep backward compatibility
@@ -81,22 +84,22 @@ extern poolhandle_t			r_temppool;
 #define SHADE_LAMBERT		1.4953241
 #define DEFAULT_ALPHATEST	0.0f
 
-// refparams
-#define RP_NONE			0
-#define RP_ENVVIEW		BIT( 0 )	// used for cubemapshot
-#define RP_OLDVIEWLEAF	BIT( 1 )
-#define RP_CLIPPLANE	BIT( 2 )
+// [FWGS, 01.05.26]
+/*// refparams
+define RP_NONE			0
+define RP_ENVVIEW		BIT( 0 )	// used for cubemapshot
+define RP_OLDVIEWLEAF	BIT( 1 )
+define RP_CLIPPLANE	BIT( 2 )
 
-#define RP_NONVIEWERREF	(RP_ENVVIEW)
+define RP_NONVIEWERREF	(RP_ENVVIEW)*/
 #define R_ModelOpaque( rm )	( rm == kRenderNormal )
 #define R_StaticEntity( ent )	( VectorIsNull( ent->origin ) && VectorIsNull( ent->angles ))
-
-// [FWGS, 01.01.24]
+/*
+// [FWGS, 01.01.24]*/
 #define RP_LOCALCLIENT( e ) ((e) != NULL && (e)->index == ( gp_cl->playernum + 1 ) && e->player)
+/*define RP_NORMALPASS()	( FBitSet( RI.params, RP_NONVIEWERREF ) == 0 )
 
-#define RP_NORMALPASS()	( FBitSet( RI.params, RP_NONVIEWERREF ) == 0 )
-
-// [FWGS, 01.01.24]
+// [FWGS, 01.01.24]*/
 #define CL_IsViewEntityLocalPlayer() ( gp_cl->viewentity == ( gp_cl->playernum + 1 ))
 
 #define CULL_VISIBLE	0		// not culled
@@ -144,29 +147,31 @@ typedef struct gltexture_s
 	struct gltexture_s *nextHash;
 	} gl_texture_t;
 
+// [FWGS, 01.05.26]
 typedef struct
 	{
-	int			params;		// rendering parameters
+	/*int			params;		// rendering parameters
 
 	qboolean	drawWorld;	// ignore world for drawing PlayerModel
 	qboolean	isSkyVisible;	// sky is visible
 	qboolean	onlyClientDraw;	// disabled by client request
 	qboolean	drawOrtho;	// draw world as orthogonal projection
 
-	float		fov_x, fov_y;	// current view fov
+	float		fov_x, fov_y;	// current view fov*/
+	ref_viewpass_t	rvp;
 
 	cl_entity_t	*currententity;
 	model_t		*currentmodel;
 	cl_entity_t	*currentbeam;	// same as above but for beams
 
-	int			viewport[4];
+	/*int			viewport[4];*/
 	gl_frustum_t	frustum;
 
 	mleaf_t		*viewleaf;
 	mleaf_t		*oldviewleaf;
-	vec3_t		pvsorigin;
+	/*vec3_t		pvsorigin;
 	vec3_t		vieworg;		// locked vieworigin
-	vec3_t		viewangles;
+	vec3_t		viewangles;*/
 	vec3_t		vforward;
 	vec3_t		vright;
 	vec3_t		vup;
@@ -213,6 +218,7 @@ typedef struct
 	uint		num_beam_entities;
 	} draw_list_t;
 
+// [FWGS, 01.05.26]
 typedef struct
 	{
 	int		defaultTexture;   	// use for bad textures
@@ -225,7 +231,7 @@ typedef struct
 	int		lightmapTextures[MAX_LIGHTMAPS];
 	int		dlightTexture;		// custom dlight texture
 	int		skyboxTextures[SKYBOX_MAX_SIDES];	// skybox sides
-	int		cinTexture;      	// cinematic texture
+	/*int		cinTexture;      	// cinematic texture*/
 
 	int		skytexturenum;	// this not a gl_texturenum!
 	int		skyboxbasenum;	// start with 5800
@@ -246,13 +252,12 @@ typedef struct
 	int		realframecount;	// not including viewpasses
 	int		framecount;
 
-	// [FWGS, 01.01.24]
 	qboolean	fCustomRendering;
 	qboolean	fResetVis;
 	qboolean	fFlipViewModel;
 
 	byte		visbytes[(MAX_MAP_LEAFS + 7) / 8];	// member custom PVS
-	int			lightstylevalue[MAX_LIGHTSTYLES];	// value 0 - 65536
+	/*int			lightstylevalue[MAX_LIGHTSTYLES];	// value 0 - 65536*/
 	int			block_size;			// lightmap blocksize
 
 	double		frametime;	// special frametime for multipass rendering (will set to 0 on a nextview)
@@ -261,16 +266,15 @@ typedef struct
 	// cull info
 	vec3_t		modelorg;		// relative to viewpoint
 
-	// [FWGS, 15.04.26] get from engine
+	// get from engine
 	model_t			*worldmodel;
 	world_static_t	*world;
 	cl_entity_t		*entities;
-	movevars_t		*movevars;
+	/*movevars_t		*movevars;*/
 	color24			*palette;
 	cl_entity_t		*viewent;
 
-	// [FWGS, 01.12.24]
-	dlight_t	*dlights;
+	/*dlight_t	*dlights;*/
 	dlight_t	*elights;
 	byte		*texgammatable;
 	uint		*lightgammatable;
@@ -279,7 +283,6 @@ typedef struct
 
 	uint		max_entities;
 
-	// [FWGS, 01.11.25]
 	ref_screen_rotation_t rotation;
 	} gl_globals_t;
 
@@ -340,23 +343,19 @@ void GL_PushPolygonOffset (float factor, float units);
 void GL_PopPolygonOffset (void);
 
 // [FWGS, 01.04.26]
-/*void R_ShowTextures (void);*/
 void SCR_TimeRefresh_f (void);
 
 // 
-//
-// gl_beams.c
+// gl_beams.c [FWGS, 01.05.26]
 //
 void CL_DrawBeams (int fTrans, BEAM *active_beams);
-qboolean R_BeamCull (const vec3_t start, const vec3_t end, qboolean pvsOnly);
+/*qboolean R_BeamCull (const vec3_t start, const vec3_t end, qboolean pvsOnly);*/
 
 //
 // gl_cull.c [FWGS, 05.04.26]
 //
-/*qboolean R_CullModel (cl_entity_t *e, const vec3_t absmin, const vec3_t absmax);*/
 qboolean R_CullModel (const cl_entity_t *e, const vec3_t absmin, const vec3_t absmax);
 qboolean R_CullBox (const vec3_t mins, const vec3_t maxs);
-/*int R_CullSurface (msurface_t *surf, gl_frustum_t *frustum, uint clipflags);*/
 int R_CullSurface (const msurface_t *surf, const gl_frustum_t *frustum, uint clipflags);
 
 //
@@ -370,30 +369,23 @@ void DrawDecalsBatch (void);
 void R_ClearDecals (void);
 
 //
-// gl_draw.c [FWGS, 01.12.24]
+// gl_draw.c [FWGS, 01.05.26]
 //
 void R_Set2DMode (qboolean enable);
-void R_UploadStretchRaw (int texture, int cols, int rows, int width, int height, const byte *data);
-
-// [FWGS, 01.03.26]
-/*//
-// gl_drawhulls.c
-//
-void R_DrawWorldHull (void);
-void R_DrawModelHull (void);*/
+/*void R_UploadStretchRaw (int texture, int cols, int rows, int width, int height, const byte *data);*/
+void GL_UpdateTexture (int texnum, int cols, int rows, int width, int height, const byte *buffer, pixformat_t fmt);
 
 //
 // gl_image.c [FWGS, 01.04.26]
 //
 void R_SetTextureParameters (void);
 gl_texture_t *R_GetTexture (unsigned int texnum);
-/*const char *GL_TargetToString (GLenum target);*/
 #define GL_LoadTextureInternal( name, pic, flags ) GL_LoadTextureFromBuffer( name, pic, flags, false )
 #define GL_UpdateTextureInternal( name, pic, flags ) GL_LoadTextureFromBuffer( name, pic, flags, true )
 int GL_LoadTexture (const char *name, const byte *buf, size_t size, int flags);
 int GL_LoadTextureArray (const char **names, int flags);
 int GL_LoadTextureFromBuffer (const char *name, rgbdata_t *pic, texFlags_t flags, qboolean update);
-byte *GL_ResampleTexture (const byte *source, int in_w, int in_h, int out_w, int out_h, qboolean isNormalMap);
+/*byte *GL_ResampleTexture (const byte *source, int in_w, int in_h, int out_w, int out_h, qboolean isNormalMap);*/
 int GL_CreateTexture (const char *name, int width, int height, const void *buffer, texFlags_t flags);
 int GL_CreateTextureArray (const char *name, int width, int height, int depth, const void *buffer, texFlags_t flags);
 void GL_ProcessTexture (int texnum, float gamma, int topColor, int bottomColor);
@@ -411,7 +403,8 @@ qboolean R_SearchForTextureReplacement (char *out, size_t size, const char *mode
 void R_TextureReplacementReport (const char *modelname, int gl_texturenum, const char *foundpath);
 void R_ShowTextures (void);
 
-//
+// [FWGS, 01.05.26]
+/*//
 // gl_rlight.c [FWGS, 01.03.25]
 //
 void CL_RunLightStyles (lightstyle_t *ls);
@@ -419,7 +412,7 @@ void R_PushDlights (void);
 void R_GetLightSpot (vec3_t lightspot);
 void R_MarkLights (const dlight_t *light, int bit, const mnode_t *node);
 colorVec R_LightVec (const vec3_t start, const vec3_t end, vec3_t lightspot, vec3_t lightvec);
-colorVec R_LightPoint (const vec3_t p0);
+colorVec R_LightPoint (const vec3_t p0);*/
 
 //
 // gl_rmain.c
@@ -441,7 +434,8 @@ void R_PopScene (void);
 void R_DrawFog (void);
 int CL_FxBlend (cl_entity_t *e);
 
-//
+// [FWGS, 01.05.26]
+/*//
 // gl_rmath.c
 //
 void Matrix4x4_ToArrayFloatGL (const matrix4x4 in, float out[16]);
@@ -455,11 +449,10 @@ void Matrix4x4_CreateModelview (matrix4x4 out);
 //
 // gl_rmisc.c [FWGS, 01.03.26]
 //
-/*void R_ClearStaticEntities (void);*/
-void R_NewMap (void);
+void R_NewMap (void);*/
 
 //
-// gl_rsurf.c [FWGS, 01.03.25]
+// gl_rsurf.c [FWGS, 01.05.26]
 //
 void R_MarkLeaves (void);
 void R_DrawWorld (void);
@@ -469,7 +462,7 @@ void GL_SubdivideSurface (model_t *mod, msurface_t *fa);
 void GL_SetupFogColorForSurfaces (void);
 void R_DrawAlphaTextureChains (void);
 void GL_RebuildLightmaps (void);
-void GL_InitRandomTable (void);
+/*void GL_InitRandomTable (void);*/
 void GL_BuildLightmaps (void);
 void GL_ResetFogColor (void);
 void R_GenerateVBO (void);
@@ -488,27 +481,30 @@ void CL_DrawParticles (double frametime, particle_t *cl_active_particles, float 
 void CL_DrawTracers (double frametime, particle_t *cl_active_tracers);
 
 //
-// gl_sprite.c
+// gl_sprite.c [FWGS, 01.05.26]
 //
-void R_SpriteInit (void);
+/*void R_SpriteInit (void);
 void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, uint texFlags);
-mspriteframe_t *R_GetSpriteFrame (const model_t *pModel, int frame, float yaw);
+mspriteframe_t *R_GetSpriteFrame (const model_t *pModel, int frame, float yaw);*/
 void R_DrawSpriteModel (cl_entity_t *e);
 
 //
-// gl_studio.c
+// gl_studio.c [FWGS, 01.05.26]
 //
 void R_StudioInit (void);
+studiohdr_t *R_StudioGetHeader (void);
 void R_StudioLerpMovement (cl_entity_t *e, double time, vec3_t origin, vec3_t angles);
 struct mstudiotex_s *R_StudioGetTexture (cl_entity_t *e);
 int R_GetEntityRenderMode (cl_entity_t *ent);
 void R_DrawStudioModel (cl_entity_t *e);
 player_info_t *pfnPlayerInfo (int index);
-void R_GatherPlayerLight (void);
+/*void R_GatherPlayerLight (void);*/
 float R_StudioEstimateFrame (cl_entity_t *e, mstudioseqdesc_t *pseqdesc, double time);
 void R_StudioLerpMovement (cl_entity_t *e, double time, vec3_t origin, vec3_t angles);
 void R_StudioResetPlayerModels (void);
-void CL_InitStudioAPI (void);
+/*void CL_InitStudioAPI (void);*/
+qboolean R_StudioFillAPI (struct engine_studio_api_s *api, struct r_studio_interface_s *pDefaultDraw);
+void R_StudioSetDrawInterface (struct r_studio_interface_s *pDraw);
 void Mod_StudioLoadTextures (model_t *mod, void *data);
 void Mod_StudioUnloadTextures (void *data);
 
@@ -527,13 +523,12 @@ void R_ClearSkyBox (void);
 void R_DrawSkyBox (void);
 void R_DrawClouds (void);
 void R_UnloadSkybox (void);
-/*void EmitWaterPolys (msurface_t *warp, qboolean reverse, qboolean ripples);*/
 void R_ResetRipples (void);
 void R_AnimateRipples (void);
 qboolean R_UploadRipples (texture_t *image);
 
 //
-// renderer exports [FWGS, 01.03.26]
+// renderer exports [FWGS, 01.05.26]
 //
 qboolean R_Init (void);
 void R_Shutdown (void);
@@ -542,7 +537,6 @@ void GL_OnContextCreated (void);
 void GL_InitExtensions (void);
 void GL_ClearExtensions (void);
 int GL_LoadTexture (const char *name, const byte *buf, size_t size, int flags);
-/*void GL_FreeImage (const char *name);*/
 qboolean VID_ScreenShot (const char *filename, int shot_type);
 qboolean VID_CubemapShot (const char *base, uint size, const float *vieworg, qboolean skyshot);
 void R_GammaChanged (qboolean do_reset_gamma);
@@ -551,38 +545,34 @@ void R_RenderFrame (const struct ref_viewpass_s *vp);
 void R_EndFrame (void);
 void R_ClearScene (void);
 void R_GetTextureParms (int *w, int *h, int texnum);
-void R_GetSpriteParms (int *frameWidth, int *frameHeight, int *numFrames, int curFrame, const struct model_s *pSprite);
-void R_DrawStretchRaw (float x, float y, float w, float h, int cols, int rows, const byte *data, qboolean dirty);
+/*void R_GetSpriteParms (int *frameWidth, int *frameHeight, int *numFrames, int curFrame, const struct model_s *pSprite);
+void R_DrawStretchRaw (float x, float y, float w, float h, int cols, int rows, const byte *data, qboolean dirty);*/
 void R_DrawStretchPic (float x, float y, float w, float h, float s1, float t1, float s2, float t2, int texnum);
 qboolean R_SpeedsMessage (char *out, size_t size);
 qboolean R_CullBox (const vec3_t mins, const vec3_t maxs);
 int R_WorldToScreen (const vec3_t point, vec3_t screen);
 void R_ScreenToWorld (const vec3_t screen, vec3_t point);
 qboolean R_AddEntity (struct cl_entity_s *pRefEntity, int entityType);
-void Mod_SpriteUnloadTextures (void *data);
+/*void Mod_SpriteUnloadTextures (void *data);*/
 void Mod_UnloadAliasModel (struct model_s *mod);
 void Mod_AliasUnloadTextures (void *data);
 void GL_SetRenderMode (int mode);
 void R_RunViewmodelEvents (void);
 void R_DrawViewModel (void);
-int R_GetSpriteTexture (const struct model_s *m_pSpriteModel, int frame);
+/*int R_GetSpriteTexture (const struct model_s *m_pSpriteModel, int frame);*/
 void R_DecalShoot (int textureIndex, int entityIndex, int modelIndex, vec3_t pos, int flags, float scale);
-
-// [FWGS, 01.03.26]
 void R_DecalRemoveAll (int texture);
 int R_CreateDecalList (decallist_t *pList);
 void R_ClearAllDecals (void);
 byte *Mod_GetCurrentVis (void);
 void Mod_SetOrthoBounds (const float *mins, const float *maxs);
-/*void R_NewMap (void);*/
-void CL_AddCustomBeam (cl_entity_t *pEnvBeam);
+/*void CL_AddCustomBeam (cl_entity_t *pEnvBeam);*/
 
 //
 // gl_opengl.c [FWGS, 01.04.26]
 //
 #define GL_CheckForErrors() GL_CheckForErrors_( __FILE__, __LINE__ )
 void GL_CheckForErrors_ (const char *filename, const int fileline);
-/*const char *GL_ErrorString (int err);*/
 const char *GL_ErrorString (int err) RETURNS_NONNULL;
 
 //
@@ -736,17 +726,18 @@ typedef struct
 
 extern glconfig_t		glConfig;
 extern glstate_t		glState;
-// move to engine
+
+// [FWGS, 01.05.26] move to engine
 extern glwstate_t		glw_state;
-extern ref_api_t		gEngfuncs;
+/*extern ref_api_t		gEngfuncs;
 extern ref_globals_t	*gpGlobals;
 
 // [FWGS, 01.01.24]
 extern ref_client_t		*gp_cl;
 extern ref_host_t		*gp_host;
 
-#define ENGINE_GET_PARM_ (*gEngfuncs.EngineGetParm)
-#define ENGINE_GET_PARM( parm ) ENGINE_GET_PARM_( ( parm ), 0 )
+define ENGINE_GET_PARM_ (*gEngfuncs.EngineGetParm)
+define ENGINE_GET_PARM( parm ) ENGINE_GET_PARM_( ( parm ), 0 )*/
 
 // [FWGS, 01.01.24] helper funcs
 static inline cl_entity_t *CL_GetEntityByIndex (int index)
@@ -819,7 +810,6 @@ static inline int GL_MaxTextureUnits (void)
 	}
 
 // [FWGS, 15.04.26]
-/*define WORLDMODEL (gp_cl->models[1])*/
 #define WORLDMODEL (tr.worldmodel)
 
 // renderer cvars
@@ -841,7 +831,8 @@ extern convar_t gl_msaa;
 extern convar_t gl_stencilbits;
 extern convar_t gl_overbright;
 extern convar_t gl_fog;
-extern convar_t r_lighting_extended;
+extern convar_t gl_litwater_force;		// [FWGS, 01.05.26]
+/*extern convar_t r_lighting_extended;*/
 extern convar_t r_lighting_ambient;
 extern convar_t r_studio_lambert;
 extern convar_t r_detailtextures;
@@ -861,19 +852,20 @@ extern convar_t r_ripple;
 extern convar_t r_ripple_updatetime;
 extern convar_t r_ripple_spawntime;
 extern convar_t r_large_lightmaps;	// [FWGS, 01.03.25]
-extern convar_t r_dlight_virtual_radius;	// [FWGS, 01.03.25]
+/*extern convar_t r_dlight_virtual_radius;	// [FWGS, 01.03.25]*/
 
 //
-// engine shared convars
+// engine shared convars [FWGS, 01.05.26]
 //
-DECLARE_ENGINE_SHARED_CVAR_LIST ();
+/*DECLARE_ENGINE_SHARED_CVAR_LIST ();*/
 
 //
 // engine callbacks
 //
 #include "crtlib.h"
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.05.26]
+/*// [FWGS, 01.12.24]
 void _Mem_Free (void *data, const char *filename, int fileline);
 void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)
 	ALLOC_CHECK (2) MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
@@ -884,6 +876,6 @@ void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char 
 #define Mem_Free( mem ) _Mem_Free( mem, __FILE__, __LINE__ )
 #define Mem_AllocPool( name ) gEngfuncs._Mem_AllocPool( name, __FILE__, __LINE__ )
 #define Mem_FreePool( pool ) gEngfuncs._Mem_FreePool( pool, __FILE__, __LINE__ )
-#define Mem_EmptyPool( pool ) gEngfuncs._Mem_EmptyPool( pool, __FILE__, __LINE__ )
+#define Mem_EmptyPool( pool ) gEngfuncs._Mem_EmptyPool( pool, __FILE__, __LINE__ )*/
 
 #endif

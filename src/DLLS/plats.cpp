@@ -160,6 +160,7 @@ void CBasePlatTrain::Precache (void)
 			PRECACHE_SOUND ("plats/talkmove2.wav");
 			pev->noiseMoving = MAKE_STRING ("plats/talkmove2.wav");
 			break;
+
 		// ESHQ: поддержка новых звуков
 		case	14:
 			PRECACHE_SOUND ("plats/gravimover.wav");
@@ -216,6 +217,7 @@ void CBasePlatTrain::Precache (void)
 			PRECACHE_SOUND ("plats/talkstop1.wav");
 			pev->noiseArrived = MAKE_STRING ("plats/talkstop1.wav");
 			break;
+
 		// ESHQ: поддержка новых звуков
 		case	9:
 			PRECACHE_SOUND ("plats/platstop1.wav");
@@ -523,11 +525,13 @@ class CFuncPlatRot: public CFuncPlat
 
 		Vector	m_end, m_start;
 	};
+
 LINK_ENTITY_TO_CLASS (func_platrot, CFuncPlatRot);
+
 TYPEDESCRIPTION	CFuncPlatRot::m_SaveData[] =
 	{
-		DEFINE_FIELD (CFuncPlatRot, m_end, FIELD_VECTOR),
-		DEFINE_FIELD (CFuncPlatRot, m_start, FIELD_VECTOR),
+	DEFINE_FIELD (CFuncPlatRot, m_end, FIELD_VECTOR),
+	DEFINE_FIELD (CFuncPlatRot, m_start, FIELD_VECTOR),
 	};
 
 IMPLEMENT_SAVERESTORE (CFuncPlatRot, CFuncPlat);
@@ -634,10 +638,10 @@ class CFuncTrain: public CBasePlatTrain
 LINK_ENTITY_TO_CLASS (func_train, CFuncTrain);
 TYPEDESCRIPTION	CFuncTrain::m_SaveData[] =
 	{
-		DEFINE_FIELD (CFuncTrain, m_sounds, FIELD_INTEGER),
-		DEFINE_FIELD (CFuncTrain, m_pevCurrentTarget, FIELD_EVARS),
-		DEFINE_FIELD (CFuncTrain, m_activated, FIELD_BOOLEAN),
-		DEFINE_FIELD (CFuncTrain, m_flAttenuation, FIELD_FLOAT),
+	DEFINE_FIELD (CFuncTrain, m_sounds, FIELD_INTEGER),
+	DEFINE_FIELD (CFuncTrain, m_pevCurrentTarget, FIELD_EVARS),
+	DEFINE_FIELD (CFuncTrain, m_activated, FIELD_BOOLEAN),
+	DEFINE_FIELD (CFuncTrain, m_flAttenuation, FIELD_FLOAT),
 	};
 
 IMPLEMENT_SAVERESTORE (CFuncTrain, CBasePlatTrain);
@@ -698,7 +702,7 @@ void CFuncTrain::Wait (void)
 			m_pevCurrentTarget->message = 0;
 		}
 
-	// need pointer to LAST target.
+	// need pointer to LAST target
 	if (FBitSet (m_pevCurrentTarget->spawnflags, SF_TRAIN_WAIT_RETRIGGER) || (pev->spawnflags & SF_TRAIN_WAIT_RETRIGGER))
 		{
 		pev->spawnflags |= SF_TRAIN_WAIT_RETRIGGER;
@@ -725,7 +729,7 @@ void CFuncTrain::Wait (void)
 		}
 	else
 		{
-		Next ();// do it RIGHT now!
+		Next ();	// do it RIGHT now!
 		}
 	}
 

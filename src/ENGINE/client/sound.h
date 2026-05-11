@@ -52,131 +52,6 @@ extern poolhandle_t sndpool;
 // [FWGS, 15.04.26] implemented in sound_api.h: portable_samplepair_t, sfx_t, voxword_t,
 // snd_format_t, dma_t, rawchan_t, channel_t, listener_t
 
-/*// [FWGS, 09.05.24]
-typedef struct
-	{
-	int left;
-	int right;
-	} portable_samplepair_t;
-
-// [FWGS, 01.03.26]
-include "common.h"
-
-typedef struct sfx_s
-	{
-	char		name[MAX_QPATH];
-	wavdata_t	*cache;
-
-	int			servercount;
-	uint		hashValue;
-	struct sfx_s	*hashNext;
-	} sfx_t;
-
-// [FWGS, 01.03.26]
-typedef struct voxword_s
-	{
-	sfx_t		*sfx;
-	uint16_t	volume;			// volume percent
-	uint16_t	pitch;			// pitch shift percent (keep large for extra chipmunk fun)
-	uint16_t	timecompress;	// percent of skipped data (speeds up playback without pitch shift)
-	uint16_t	start : 7;		// percent at which playback starts
-	uint16_t	end : 7;		// percent at which playback ends
-	uint16_t	in_cache : 1;	// if set to 1, it was loaded prior and shouldn't be freed
-	} voxword_t;
-
-// [FWGS, 09.05.24]
-typedef struct snd_format_s
-	{
-	uint	speed;
-	byte	width;
-	byte	channels;
-	} snd_format_t;
-
-// [FWGS, 09.05.24]
-typedef struct
-	{
-	snd_format_t	format;
-	int				samples;		// mono samples in buffer
-	int				samplepos;		// in mono samples
-	qboolean		initialized;	// sound engine is active
-	byte *buffer;
-	const char *backendName;
-	} dma_t;
-
-// [FWGS, 05.04.26]
-typedef struct rawchan_s
-	{
-	int			entnum;
-	short		master_vol;
-	short		leftvol;	// 0-255 left volume
-	short		rightvol;	// 0-255 right volume
-
-	float		dist_mult;	// distance multiplier (attenuation/clipK)
-	vec3_t		origin;		// only use if fixed_origin is set
-	volatile uint	s_rawend;
-	float		oldtime;	// catch time jumps
-	size_t		max_samples;	// buffer length
-
-	portable_samplepair_t	rawsamples[]; // variable sized
-	} rawchan_t;
-
-// [FWGS, 05.04.26]
-typedef struct channel_s
-	{
-	char	name[16];	// keep sentence name
-	sfx_t	*sfx;		// sfx number
-
-	vec3_t	origin;		// only use if fixed_origin is set
-	float	dist_mult;	// distance multiplier (attenuation/clipK)
-
-	int		entnum;		// entity soundsource
-	int		entchannel;	// sound channel (CHAN_STREAM, CHAN_VOICE, etc.)
-
-	short	master_vol; // 0-255 master volume
-	short	leftvol;	// 0-255 left volume
-	short	rightvol;	// 0-255 right volume
-	short	basePitch;	// base pitch percent (100% is normal pitch playback)
-
-	byte	use_loop : 1;		// don't loop default and local sounds
-	byte	staticsound : 1;	// use origin instead of fetching entnum's origin
-	byte	localsound : 1;		// it's a local menu sound (not looped, not paused)
-	byte	is_sentence : 1;	// bit indicating vox sentence
-	byte	sentence_finished : 1;	// if set, finished playing sentence
-	byte	finished : 1;		// if set, finished playing single word
-	byte	word_index;
-
-	// HACKHACK: count when this channel became inaudible
-	// to not free it when it could be respatialized soon
-#define MAX_CHANNEL_INAUDIBLE_TIME	0.1f
-	float	inauduble_free_time;
-
-	double	sample;
-	double	forced_end;
-	wavdata_t	*data;
-
-	voxword_t	words[CVOXWORDMAX];
-	} channel_t;
-
-// [FWGS, 01.03.26]
-typedef struct
-	{
-	vec3_t		origin;		// simorg + view_ofs
-	vec3_t		forward;
-	vec3_t		right;
-	vec3_t		up;
-
-	int			entnum;
-
-	// ESHQ: поддержка собираемых объектов
-	int			collectedItems;
-
-	qboolean	streaming;	// playing AVI-file
-	qboolean	stream_paused;	// pause only background track
-	} listener_t;
-
-// [FWGS, 01.02.25]
-typedef int sound_t;*/
-
 // ====================================================================
 
 // [FWGS, 01.07.25]
@@ -187,16 +62,6 @@ typedef int sound_t;*/
 #define SND_CLIP_DISTANCE	1000.0f
 
 // [FWGS, 15.04.26]
-/*extern sound_t		ambient_sfx[NUM_AMBIENTS];
-extern qboolean		snd_ambient;
-extern channel_t	channels[MAX_CHANNELS];
-extern rawchan_t	*raw_channels[MAX_RAW_CHANNELS];
-extern int			total_channels;
-extern int			paintedtime;
-extern int			soundtime;
-extern listener_t	s_listener;
-extern int			idsp_room;
-extern dma_t		dma;*/
 extern int			idsp_room;
 extern snd_globals_t	snd;
 
@@ -222,20 +87,12 @@ void S_FreeChannel (channel_t *ch);
 //
 // s_mix.c [FWGS, 01.03.26]
 //
-/*int S_MixDataToDevice (channel_t *pChannel, int sampleCount, int outputRate, int outputOffset, int timeCompress);
-void MIX_ClearAllPaintBuffers (int SampleCount, qboolean clearFilters);
-void MIX_InitAllPaintbuffers (void);
-void MIX_FreeAllPaintbuffers (void);
-void MIX_PaintChannels (int endtime);*/
 void S_ClearBuffers (int num_samples);
 void S_PaintChannels (int endtime);
 
 //
 // s_load.c [FWGS, 01.03.26]
 //
-/*qboolean S_TestSoundChar (const char *pch, char c);
-char *S_SkipSoundChar (const char *pch);
-sfx_t *S_FindName (const char *name, int *pfInCache);*/
 static inline qboolean S_TestSoundChar (const char *pch, char c)
 	{
 	if (COM_StringEmptyOrNULL (pch))
@@ -260,13 +117,12 @@ void S_InitSounds (void);
 //
 void SX_Init (void);
 void SX_Free (void);
-/*void CheckNewDspPresets (void);
-void DSP_Process (portable_samplepair_t *pbfront, int sampleCount);
-void DSP_ClearState (void);*/
 void SX_RoomFX (portable_samplepair_t *paint, int num_samples);
 void SX_ClearState (void);
 
+// [FWGS, 01.05.26]
 qboolean S_Init (void);
+qboolean S_InitSoundAPI (void);
 void S_Shutdown (void);
 void S_SoundList_f (void);
 void S_SoundInfo_f (void);
@@ -282,7 +138,6 @@ rawchan_t *S_FindRawChannel (int entnum, qboolean create);
 // [FWGS, 15.04.26]
 uint S_RawSamplesStereo (portable_samplepair_t *rawsamples, uint rawend, uint max_samples, uint samples,
 	uint rate, word width, word channels, const byte *data);
-/*void S_RawEntSamples (int entnum, uint samples, uint rate, word width, word channels, const byte *data, int snd_vol);*/
 void S_RawEntSamples (int entnum, uint samples, uint rate, word width, word channels, const byte *data, int snd_vol, float attn);
 void S_StopSound (int entnum, int channel, const char *soundname);
 void S_UpdateFrame (struct ref_viewpass_s *rvp);
@@ -292,12 +147,7 @@ void S_FreeSounds (void);
 //
 // s_mouth.c [FWGS, 01.03.26]
 //
-/*void SND_InitMouth (int entnum, int entchannel);*/
 void SND_ForceInitMouth (int entnum);
-/*void SND_MoveMouth8 (channel_t *ch, wavdata_t *pSource, int count);
-void SND_MoveMouth16 (channel_t *ch, wavdata_t *pSource, int count);
-void SND_MoveMouthRaw (rawchan_t *ch, portable_samplepair_t *pData, int count);
-void SND_CloseMouth (channel_t *ch);*/
 void SND_ForceCloseMouth (int entnum);
 void SND_MoveMouth8 (mouth_t *mouth, int pos, const wavdata_t *sc, int count, qboolean use_loop);
 void SND_MoveMouth16 (mouth_t *mouth, int pos, const wavdata_t *sc, int count, qboolean use_loop);
@@ -324,15 +174,6 @@ static inline void SND_CloseMouth (const channel_t *ch)
 //
 void S_StreamBackgroundTrack (void);
 void S_PrintBackgroundTrackState (void);
-/*void S_FadeMusicVolume (float fadePercent);
-
-//
-// s_utils.c [FWGS, 01.01.24]
-//
-int S_ZeroCrossingAfter (wavdata_t *pWaveData, int sample);
-int S_ZeroCrossingBefore (wavdata_t *pWaveData, int sample);
-int S_ConvertLoopedPosition (wavdata_t *pSource, int samplePosition, qboolean use_loop);
-int S_GetOutputData (wavdata_t *pSource, void **pData, int samplePosition, int sampleCount, qboolean use_loop);*/
 void S_MusicFade (float fade_percent);
 
 //
@@ -343,7 +184,6 @@ void VOX_Shutdown (void);
 void VOX_SetChanVol (channel_t *ch);
 void VOX_LoadSound (channel_t *pchan, const char *psz);
 float VOX_ModifyPitch (channel_t *ch, float pitch);
-/*int VOX_MixDataToDevice (channel_t *pChannel, int sampleCount, int outputRate, int outputOffset);*/
 void VOX_LoadWord (channel_t *pchan);
 void VOX_FreeWord (channel_t *pchan);
 

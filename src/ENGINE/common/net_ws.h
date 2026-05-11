@@ -59,9 +59,7 @@ extern convar_t net_recv_debug;
 // [FWGS, 05.04.26]
 void NET_Init (void);
 void NET_Shutdown (void);
-/*void NET_Sleep (int msec);*/
 qboolean NET_IsActive (void);
-/*qboolean NET_IsConfigured (void);*/
 void NET_Config (qboolean net_enable, qboolean changeport);
 
 // [FWGS, 01.03.25]
@@ -82,6 +80,11 @@ void NET_SendPacket (netsrc_t sock, size_t length, const void *data, netadr_t to
 void NET_SendPacketEx (netsrc_t sock, size_t length, const void *data, netadr_t to, size_t splitsize);
 void NET_IP6BytesToNetadr (netadr_t *adr, const uint8_t *ip6);
 void NET_NetadrToIP6Bytes (uint8_t *ip6, const netadr_t *adr);
+
+// [FWGS, 01.05.26]
+qboolean NET_IsSocketError (int retval);
+qboolean NET_IsSocketValid (int socket);
+qboolean NET_MakeSocketNonBlocking (int socket_fd);
 
 // [FWGS, 01.03.25]
 static inline qboolean NET_IsLocalAddress (netadr_t adr)

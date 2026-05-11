@@ -11,7 +11,7 @@ the Free Software Foundation, either version 3 of the License, or
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+GNU General Public License for more details
 ***/
 
 // [FWGS, 01.03.26]
@@ -75,7 +75,6 @@ typedef struct bpc_desc_s
 	{
 	int		format;		// pixelformat
 	char	name[16];	// used for debug
-	/*uint	glFormat;	// RGBA format*/
 	rawformat_t	rawformat;
 	int		bpp;		// channels (e.g. rgb = 3, rgba = 4)
 	} bpc_desc_t;
@@ -95,6 +94,9 @@ typedef enum
 
 	// [FWGS, 01.03.26]
 	IL_ALLOW_WAD3_LUMA =	BIT (9),	// allow usage of luma textures in wad3 (tilde textures)
+
+	// [FWGS, 01.05.26]
+	IL_HOST_ENDIAN =		BIT (10),	// buffer is already in host endian, skip byte-swapping
 	} ilFlags_t;
 
 // goes into rgbdata_t->encode

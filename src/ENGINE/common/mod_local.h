@@ -18,7 +18,6 @@ GNU General Public License for more details
 
 // [FWGS, 01.03.26]
 #include "edict.h"
-/*include "eiface.h"*/
 #include "ref_api.h"
 #include "studio.h"
 
@@ -26,8 +25,6 @@ GNU General Public License for more details
 #define LM_SAMPLE_EXTRASIZE		8
 
 // [FWGS, 01.04.26]
-/*define MAX_MAP_WADS			256	// max wads that can be referenced per one map*/
-
 #define CHECKVISBIT( vis, b )		((b) >= 0 ? (byte)((vis)[(b) >> 3] & (1 << ((b) & 7))) : (byte)false )
 #define SETVISBIT( vis, b )( void )	((b) >= 0 ? (byte)((vis)[(b) >> 3] |= (1 << ((b) & 7))) : (byte)false )
 #define CLEARVISBIT( vis, b )( void )	((b) >= 0 ? (byte)((vis)[(b) >> 3] &= ~(1 << ((b) & 7))) : (byte)false )
@@ -58,14 +55,10 @@ typedef struct consistency_s
 typedef struct
 	{
 	int			flags;
-	/*CRC32_t		initialCRC;*/
 	uint32_t	initialCRC;
 	} model_info_t;
 
 // [FWGS, 01.03.26] values for model_t's needload
-/*define NL_UNREFERENCED		0	// this model can be freed after sequence precaching is done
-define NL_NEEDS_LOADED		1
-define NL_PRESENT			2*/
 #define NL_UNREFERENCED		0
 #define NL_NEEDS_LOADED		1
 #define NL_PRESENT			2
@@ -94,90 +87,60 @@ typedef struct
 	} hull_model_t;
 
 // [FWGS, 01.04.26]
-/*typedef struct wadlist_s*/
 typedef struct wadentry_s
 	{
-	/*char	wadnames[MAX_MAP_WADS][36];	// including .wad extension
-	int		wadusage[MAX_MAP_WADS];
-	int		count;
-	} wadlist_t;*/
 	int		usage;
 	string	name;	// including .wad extension
 	} wadentry_t;
 
-// [FWGS, 01.04.26]
 typedef struct world_static_s
 	{
-	/*qboolean	loading;		// true if worldmodel is loading
-	int			flags;			// misc flags*/
 	qboolean	loading;	// true if worldmodel is loading
 	int			flags;		// misc flags
 
 	// mapstats info
-	/*char		message[2048];	// just for debug
-	char		compiler[256];	// map compiler
-	char		generator[256];	// map editor*/
 	char		*message;	// just for debug
 	char		*compiler;	// map compiler
 	char		*generator;	// map editor
 
-	/*hull_model_t	*hull_models;
-	int				num_hull_models;*/
 	hull_model_t	*hull_models;
 	int			num_hull_models;
 
 	// out pointers to light data
-	/*color24		*deluxedata;	// deluxemap data pointer
-	byte		*shadowdata;	// occlusion data pointer*/
 	color24		*deluxedata;	// deluxemap data pointer
 	byte		*shadowdata;	// occlusion data pointer
 
 	// visibility info
-	/*size_t		visbytes;		// cluster size
-	size_t		fatbytes;		// fatpvs size*/
 	size_t		visbytes;	// cluster size
 	size_t		fatbytes;	// fatpvs size
 
 	// world bounds
-	/*vec3_t		mins;			// real accuracy world bounds
-	vec3_t		maxs;
-	vec3_t		size;*/
 	vec3_t		mins;		// real accuracy world bounds
 	vec3_t		maxs;
 	vec3_t		size;
 
 	// tree visualization stuff
-	/*int		recursion_level;
-	int		max_recursion;*/
 	int			recursion_level;
 	int			max_recursion;
 
 	// BSP version
-	/*uint32_t	version;*/
 	uint32_t	version;	// BSP version
 
 	// Potentially Hearable Set
-	/*byte		*compressed_phs;
-	size_t		*phsofs;*/
 	byte		*compressed_phs;
 	size_t		*phsofs;
 
-	/*// [FWGS, 01.12.24]
-	wadlist_t	wadlist;*/
 	wadentry_t	*wadlist;
 	int			wadcount;
+
+	// [FWGS, 01.05.26] lightmapped water extra info
+	float		litwater_scale;
+	int			litwater_minlight;
 	} world_static_t;
 
 #ifndef REF_DLL
 
 // [FWGS, 01.03.26]
-/*extern world_static_t	world;
-extern poolhandle_t     com_studiocache;
-
-// [FWGS, 01.02.25]
-extern convar_t			mod_studiocache;
-extern convar_t			r_wadtextures;
-extern convar_t			r_showhull;*/
 extern world_static_t	world;
 extern poolhandle_t		com_studiocache;
 extern convar_t			mod_studiocache;
@@ -207,10 +170,12 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash);
 model_t *Mod_ForName (const char *name, qboolean crash, qboolean trackCRC);
 
 // [FWGS, 01.03.26]
-/*qboolean Mod_ValidateCRC (const char *name, CRC32_t crc);*/
 qboolean Mod_ValidateCRC (const char *name, uint32_t crc);
 void Mod_NeedCRC (const char *name, qboolean needCRC);
 void Mod_FreeUnused (void);
+
+// [FWGS, 01.05.26]
+void Mod_LoadDetailTextures (model_t *mod);
 
 //
 // mod_alias.c [FWGS, 01.08.24]
@@ -220,8 +185,6 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded);
 //
 // mod_bmodel.c [FWGS, 01.03.26]
 //
-/*void Mod_LoadBrushModel (model_t *mod, const void *buffer, qboolean *loaded);
-qboolean Mod_TestBmodelLumps (file_t *f, const char *name, const byte *mod_base, qboolean silent, dlump_t *entities);*/
 void Mod_LoadBrushModel (model_t *mod, void *buffer, size_t buffersize, qboolean *loaded);
 qboolean Mod_TestBmodelLumps (file_t *f, const char *name, byte *mod_base, size_t buffersize, qboolean silent, dlump_t *entities);
 int Mod_FatPVS (const vec3_t org, float radius, byte *visbuffer, int visbytes, qboolean merge, qboolean fullvis, qboolean phs);
@@ -232,22 +195,13 @@ int Mod_SaveLump (const char *filename, const int lump, void *lumpdata, int lump
 mleaf_t *Mod_PointInLeaf (const vec3_t p, mnode_t *node, model_t *mod);
 int Mod_SampleSizeForFace (const msurface_t *surf);
 byte *Mod_GetPVSForPoint (const vec3_t p);
-/*void Mod_UnloadBrushModel (model_t *mod);*/
 void Mod_PrintWorldStats_f (void);
 
-// [FWGS, 01.03.26]
-/*//
-// mod_dbghulls.c [FWGS, 01.12.24]
 //
-void R_DrawWorldHull (void);
-void R_DrawModelHull (model_t *mod);
-void Mod_ReleaseHullPolygons (void);*/
-
+// mod_studio.c [FWGS, 01.05.26]
 //
-// mod_studio.c [FWGS, 01.03.26]
-//
-void Mod_LoadStudioModel (model_t *mod, const void *buffer, qboolean *loaded);
-/*void Mod_UnloadStudioModel (model_t *mod);*/
+/*void Mod_LoadStudioModel (model_t *mod, const void *buffer, qboolean *loaded);*/
+void Mod_LoadStudioModel (model_t *mod, void *buffer, size_t buffersize, qboolean *loaded);
 void Mod_InitStudioAPI (void);
 void Mod_InitStudioHull (void);
 void Mod_ResetStudioAPI (void);
@@ -258,14 +212,19 @@ void Mod_GetBonePosition (const edict_t *e, int iBone, float *org, float *ang);
 hull_t *Mod_HullForStudio (model_t *m, float frame, int seq, vec3_t ang, vec3_t org, vec3_t size, 
 	byte *pcnt, byte *pbl, int *hitboxes, edict_t *ed);
 void *R_StudioGetAnim (studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstudioseqdesc_t *pseqdesc);
-/*void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qboolean ignore_sequences);*/
+void Mod_SwapStudioSeqGroupAnims (studiohdr_t *phdr, mstudioseqdesc_t *pseq, byte *buf);
 int Mod_HitgroupForStudioHull (int index);
 void Mod_ClearStudioCache (void);
 
 //
-// mod_sprite.c [FWGS, 01.11.25]
+// mod_sprite.c [FWGS, 01.05.26]
 //
-void Mod_LoadSpriteModel (model_t *mod, const void *buffer, size_t buffersize, qboolean *loaded);
+/*void Mod_LoadSpriteModel (model_t *mod, const void *buffer, size_t buffersize, qboolean *loaded);
+
+endif*/
+void Mod_LoadSpriteModel (model_t *mod, void *buffer, size_t buffersize, qboolean *loaded);
+void Mod_SpriteLoadTextures (model_t *mod, const void *buffer);
+void Mod_SpriteUnloadTextures (void *data);
 
 #endif
 

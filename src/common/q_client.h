@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #define QUAKE_CLIENT_H
 
 // ESHQ: для vec3_t и других витальных типов
+#include <stdint.h>
 #include "xash3d_types.h"
 
 // Definitions originally taken from Quake, modified for binary compatibility
@@ -102,7 +103,6 @@ typedef enum
 	pt_static, pt_grav, pt_slowgrav, pt_fire, pt_explode, pt_explode2, pt_blob, pt_blob2,
 
 	// added in HL
-	/*pr_4x_slowgrav, // 4 times faster than pt_slowgrav*/
 	pt_4x_slowgrav,	// 4 times faster than pt_slowgrav
 	pt_8x_slowgrav,	// 8 times faster than pt_slowgrav
 	pt_custom, // will call think function from particle

@@ -43,15 +43,25 @@ void Platform_MessageBox (const char *title, const char *message, qboolean paren
 void Platform_SetStatus (const char *status);
 qboolean Platform_DebuggerPresent (void);
 
+// [FWGS, 01.05.26]
+typedef enum
+	{
+	ORIENTATION_UNKNOWN = 0,
+	ORIENTATION_LANDSCAPE,
+	ORIENTATION_LANDSCAPE_FLIPPED,
+	ORIENTATION_PORTRAIT,
+	ORIENTATION_PORTRAIT_FLIPPED
+	} platform_orientation_t;
+
+platform_orientation_t Platform_GetDisplayOrientation (void);
+
 // [FWGS, 15.04.26] legacy iOS port functions
-/*if TARGET_OS_IOS*/
 #if XASH_IOS
 	int IOS_GetArgs (char ***argv);
 	const char *IOS_GetDocsDir (void);
 	const char *IOS_GetExecDir (void);
 	void IOS_LaunchDialog (void);
 
-/*include "platform/ios/lib_ios.h"*/
 #endif
 
 #if XASH_WIN32 || XASH_LINUX
@@ -67,13 +77,14 @@ qboolean Platform_DebuggerPresent (void);
 	char *Posix_Input (void);
 #endif
 
-// [FWGS, 05.04.26]
+// [FWGS, 01.05.26]
 #if XASH_SDL
-	/*void SDLash_Init (const char *basedir);*/
 	void SDLash_Init (void);
 
 	void SDLash_Shutdown (void);
 	void SDLash_NanoSleep (int nsec);
+
+	qboolean SDLash_GyroIsAvailable (void);
 #endif
 
 #if XASH_ANDROID
@@ -128,7 +139,6 @@ qboolean Platform_DebuggerPresent (void);
 #endif
 
 // [FWGS, 05.04.26]
-/*static inline void Platform_Init (qboolean con_showalways, const char *basedir)*/
 static inline void Platform_Init (qboolean con_showalways)
 	{
 #if XASH_POSIX
@@ -137,7 +147,6 @@ static inline void Platform_Init (qboolean con_showalways)
 #endif
 
 #if XASH_SDL
-	/*SDLash_Init (basedir);*/
 	SDLash_Init ();
 #endif
 
@@ -204,13 +213,13 @@ static inline qboolean Platform_NanoSleep (int nsec)
 #elif XASH_POSIX
 	struct timespec ts = {
 		.tv_sec = 0,
-		.tv_nsec = nsec, // just don't put large numbers here
+		.tv_nsec = nsec,	// just don't put large numbers here
 		};
 
 	// [FWGS, 01.09.25]
 	int ret = nanosleep (&ts, NULL);
 	if (ret < 0)
-		return errno == EINTR; // ignore EINTR error, it just means sleep was interrupted
+		return errno == EINTR;	// ignore EINTR error, it just means sleep was interrupted
 
 	return true;
 
@@ -232,18 +241,22 @@ static inline void Sys_SetupCrashHandler (const char *argv0) { }
 static inline void Sys_RestoreCrashHandler (void) { }
 #endif
 
-// [FWGS, 15.04.26]
+// [FWGS, 01.05.26]
 static inline qboolean Platform_LibraryExists (const char *name, qboolean gamedironly)
 	{
-/*if XASH_IOS
-	return IOS_LibraryExists (name);
-elif XASH_ANDROID*/
 #if XASH_ANDROID
-	// sorry, unimplemented
+	/*// sorry, unimplemented
 	return false;
-#else
-	return g_fsapi.FileExists (name, gamedironly);
+	else
+	return g_fsapi.FileExists (name, gamedironly);*/
+	// when libs come from a separate APK (cs16client, tf15client, …) we can't see them
+	// from the VFS; trust the launcher
+	if (!COM_StringEmptyOrNULL (getenv ("XASH3D_GAMELIBDIR")))
+		return true;
 #endif
+
+	// FIXME: use FS_FindLibrary
+	return g_fsapi.FileExists (name, gamedironly);
 	}
 
 /***
@@ -254,7 +267,7 @@ MOBILE API
 
 // [FWGS, 01.06.25]
 #if XASH_SDL >= 2
-void Platform_Vibrate (float life, char flags); // left for compatibility
+void Platform_Vibrate (float life, char flags);	// left for compatibility
 void Platform_Vibrate2 (float time, int low_freq, int high_freq, uint flags);
 #else
 static inline void Platform_Vibrate (float life, char flags) {}
@@ -315,7 +328,7 @@ static inline void Platform_MouseMove (float *x, float *y)
 #endif
 
 // [FWGS, 01.06.25]
-#if XASH_SDL >= 2 || XASH_PSVITA || XASH_DOS || XASH_USE_EVDEV
+#if (XASH_SDL >= 2) || XASH_PSVITA || XASH_DOS || XASH_USE_EVDEV
 void Platform_EnableTextInput (qboolean enable);
 #else
 static inline void Platform_EnableTextInput (qboolean enable) {}
@@ -380,7 +393,6 @@ typedef enum ref_window_type_e ref_window_type_t;
 typedef enum ref_graphic_apis_e ref_graphic_apis_t;
 
 // Window [FWGS, 01.03.26]
-/*qboolean  R_Init_Video (const int type);*/
 qboolean R_Init_Video (ref_graphic_apis_t type);
 void      R_Free_Video (void);
 qboolean  VID_SetMode (void);
@@ -437,7 +449,7 @@ qboolean VoiceCapture_Lock (qboolean lock);
 #if XASH_LINUX && XASH_X86
 
 	#define INLINE_RAISE(x) asm volatile( "int $3;" );
-	#define INLINE_NANOSLEEP1() // nothing!
+	#define INLINE_NANOSLEEP1()	// nothing!
 
 // [FWGS, 01.12.24]
 #elif XASH_LINUX && XASH_ARM && !XASH_64BIT

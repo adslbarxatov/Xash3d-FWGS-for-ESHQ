@@ -17,30 +17,6 @@ GNU General Public License for more details
 #define COMMON_H
 
 // [FWGS, 05.04.26]
-/*ifdef __cplusplus
-extern "C" {
-endif
-
-/
-=======================================================================================================================
-Legend:
-
-INTERNAL RESOURCE	- function contain hardcoded path to resource that engine required (optional in most cases)
-OBSOLETE, UNUSED	- this function no longer used and leaved here for keep binary compatibility
-TODO				- some functionality not impemented but planned
-FIXME				- code doesn't working properly in some rare cases
-HACKHACK			- unexpected behavior on some input params (or something like)
-BUGBUG				- code doesn't working properly in most cases!
-TESTTEST			- this code may be unstable and needs to be more tested
-g-cont:				- notes from engine author
-XASH SPECIFIC		- sort of hack that works only in Xash3D not in GoldSrc
-=======================================================================================================================
-/
-
-include "port.h"
-include "backends.h"
-include "defaults.h"*/
-
 #include <stdio.h>
 #include <stdlib.h> // rand, adbs
 #include <stdarg.h> // va
@@ -107,11 +83,6 @@ XASH SPECIFIC		- sort of hack that works only in Xash3D not in GoldSrc
 #ifndef XASH_SDL
 
 // [FWGS, 05.04.26]
-/*if XASH_TIMER == TIMER_SDL || XASH_VIDEO == VIDEO_SDL || XASH_SOUND == SOUND_SDL || XASH_INPUT == INPUT_SDL
-error "SDL backends without XASH_SDL not allowed"
-endif
-
-endif*/
 #if XASH_TIMER == TIMER_SDL || XASH_VIDEO == VIDEO_SDL || XASH_SOUND == SOUND_SDL || XASH_INPUT == INPUT_SDL
 	#error "SDL backends without XASH_SDL not allowed"
 #endif
@@ -141,25 +112,6 @@ typedef enum instance_e
 #else
 #define Host_IsDedicated() ( host.type == HOST_DEDICATED )
 #endif
-
-// [FWGS, 05.04.26]
-/*// [FWGS, 01.02.25]
-include "system.h"
-include "com_model.h"
-include "com_strings.h"
-include "crtlib.h"
-
-// [FWGS, 01.12.24]
-define FSCALLBACK_OVERRIDE_OPEN
-define FSCALLBACK_OVERRIDE_LOADFILE
-define FSCALLBACK_OVERRIDE_MALLOC_LIKE
-
-// [FWGS, 01.02.25]
-include "fscallback.h"
-include "cvar.h"
-include "con_nprint.h"
-include "crclib.h"
-include "ref_api.h"*/
 
 // [FWGS, 01.12.24] PERFORMANCE INFO
 #define MIN_FPS			20.0f		// host minimum fps value for maxfps.
@@ -371,7 +323,6 @@ typedef struct host_parm_s
 	void			*hWnd;	// main window
 
 	// [FWGS, 01.03.26] command line parms
-	/*char		**argv;*/
 	const char	**argv;
 	int			argc;
 
@@ -392,25 +343,6 @@ typedef struct host_parm_s
 	vec3_t		player_maxs_backup[MAX_MAP_HULLS];
 
 	// [FWGS, 01.04.26]
-	/*qboolean	trace_bounds_pushed;
-
-	qboolean	allow_console;		// allow console in dev-mode or multiplayer game
-	qboolean	allow_console_init;	// initial value to allow the console
-	qboolean	key_overstrike;		// key overstrike mode
-	qboolean	stuffcmds_pending;	// should execute stuff commands
-	qboolean	allow_cheats;		// this host will allow cheating
-	qboolean	change_game;		// initialize when game is changed
-	qboolean	mouse_visible;		// vgui override cursor control (never change outside Platform_SetCursorType!)
-	qboolean	shutdown_issued;	// engine is shutting down
-	qboolean	apply_game_config;	// when true apply only to game cvars and ignore all other commands
-	qboolean	apply_opengl_config;	// when true apply only to opengl cvars and ignore all other commands
-	qboolean	config_executed;	// a bit who indicated was config.cfg already executed e.g. from valve.rc
-	qboolean	textmode;
-
-	// some settings were changed and needs to global update
-	qboolean	userinfo_changed;
-	qboolean	movevars_changed;
-	qboolean	renderinfo_changed;*/
 	uint		trace_bounds_pushed : 1;
 	uint		allow_console : 1;		// allow console in dev-mode or multiplayer game
 	uint		allow_console_init : 1;	// initial value to allow the console
@@ -464,7 +396,6 @@ void _Mem_FreePool (poolhandle_t *poolptr, const char *filename, int fileline);
 void _Mem_EmptyPool (poolhandle_t poolptr, const char *filename, int fileline);
 void _Mem_Check (const char *filename, int fileline);
 qboolean Mem_IsAllocatedExt (poolhandle_t poolptr, void *data);
-/*void Mem_PrintList (size_t minallocationsize);*/
 void Mem_PrintStats (void);
 void Mem_Stats_f (void);
 
@@ -485,12 +416,9 @@ void Mem_Stats_f (void);
 #define Mem_Check() _Mem_Check( __FILE__, __LINE__ )
 
 //
-// filesystem_engine.c
+// filesystem_engine.c [FWGS, 05.04.26]
 //
-// [FWGS, 05.04.26]
-/*void FS_Init (const char *basedir);*/
 void FS_Init (void);
-
 void FS_Shutdown (void);
 void *FS_GetNativeObject (const char *obj);
 int FS_Close (file_t *file);
@@ -553,9 +481,7 @@ void Cbuf_AddText (const char *text);
 void Cbuf_AddTextf (const char *text, ...) FORMAT_CHECK (1);
 void Cbuf_AddFilteredText (const char *text);
 void Cbuf_InsertText (const char *text);
-/*void Cbuf_InsertTextLen (const char *text, size_t len, size_t requested_len);*/
 void Cbuf_ExecStuffCmds (void);
-/*void Cbuf_Execute (void);*/
 void Cbuf_Execute (void);
 qboolean Cmd_CurrentCommandIsPrivileged (void);
 void Cmd_Init (void);
@@ -585,7 +511,6 @@ static inline int Cmd_AddCommandWithFlags (const char *cmd_name, xcommand_t func
 void Cmd_RemoveCommand (const char *cmd_name);
 cmd_t *Cmd_Exists (const char *cmd_name);
 void Cmd_LookupCmds (void *buffer, void *ptr, setpair_t callback);
-/*int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len, qboolean silent);*/
 int Cmd_ListMaps (search_t *t, char *lastmapname, size_t len, qboolean silent);
 void Cmd_TokenizeString (const char *text);
 void Cmd_ExecuteString (const char *text);
@@ -595,7 +520,6 @@ void Cmd_Escape (char *newCommand, const char *oldCommand, int len);
 //
 // imagelib [FWGS, 05.04.26]
 //
-/*include "com_image.h"*/
 void Image_Setup (void);
 void Image_Init (void);
 void Image_Shutdown (void);
@@ -606,11 +530,7 @@ rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size) 
 qboolean FS_SaveImage (const char *filename, rgbdata_t *pix);
 
 // [FWGS, 01.03.26]
-/*rgbdata_t *FS_CopyImage (rgbdata_t *in) MALLOC_LIKE (FS_FreeImage, 1) WARN_UNUSED_RESULT;
-
-extern const bpc_desc_t PFDesc[];	// image get pixelformat*/
 rgbdata_t *FS_CopyImage (const rgbdata_t *in) MALLOC_LIKE (FS_FreeImage, 1) WARN_UNUSED_RESULT;
-
 qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, float reserved);
 void Image_PaletteHueReplace (byte *palSrc, int newHue, int start, int end, int pal_size);
 void Image_SetForceFlags (uint flags);	// set image force flags on loading
@@ -656,7 +576,6 @@ typedef enum sndFlags_e
 typedef struct wavdata_s
 	{
 	size_t	size;		// for bounds checking
-	/*uint	loopStart;	// offset at this point sound will be looping while playing more than only once*/
 	uint	loop_start;	// offset at this point sound will be looping while playing more than only once
 	uint	samples;	// total samplecount in wav
 	uint	type;		// compression type
@@ -690,7 +609,6 @@ qboolean Sound_SupportedFileFormat (const char *fileext);
 typedef void(*pfnChangeGame)(const char *progname);
 
 // [FWGS, 05.04.26]
-/*qboolean Host_IsQuakeCompatible (void);*/
 static inline qboolean Host_IsQuakeCompatible (void)
 	{
 	return FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE) ? true : false;
@@ -756,7 +674,6 @@ SHARED ENGFUNCS
 ***/
 
 // [FWGS, 01.03.26]
-/*char *COM_MemFgets (byte *pMemFile, int fileSize, int *filePos, char *pBuffer, int bufferSize);*/
 void COM_HexConvert (const char *pszInput, int nInputLength, byte *pOutput);
 
 // [FWGS, 22.01.25]
@@ -771,12 +688,8 @@ void pfnDrawSetTextColor (float r, float g, float b);
 void pfnDrawConsoleStringLen (const char *pText, int *length, int *height);
 
 // [FWGS, 01.03.26]
-/*void *Cache_Check (poolhandle_t mempool, struct cache_user_s *c);
-void COM_TrimSpace (const char *source, char *dest);*/
-
 void pfnGetModelBounds (model_t *mod, float *mins, float *maxs);
 int COM_CheckParm (char *parm, char **ppnext);
-
 int pfnGetModelType (model_t *mod);
 int pfnIsMapValid (char *filename);
 void Con_Reportf (const char *szFmt, ...) FORMAT_CHECK (1);
@@ -786,7 +699,6 @@ void Con_Printf (const char *szFmt, ...) FORMAT_CHECK (1);
 // [FWGS, 01.03.26]
 int pfnNumberOfEntities (void);
 int pfnIsInGame (void);
-/*float pfnTime (void);*/
 #define copystring( s ) _copystring( host.mempool, s, __FILE__, __LINE__ )
 #define copystringpool( pool, s ) _copystring( pool, s, __FILE__, __LINE__ )
 #define SV_CopyString( s ) _copystring( svgame.stringspool, s, __FILE__, __LINE__ )
@@ -816,7 +728,6 @@ MISC COMMON FUNCTIONS
 //
 // con_utils.c [FWGS, 01.03.26]
 //
-/*void Con_CompleteCommand (field_t *field);*/
 void Con_CompleteCommand (field_t *field, qboolean print_suggestions);
 void Cmd_AutoComplete (char *complete_string);
 void Cmd_AutoCompleteClear (void);
@@ -835,7 +746,6 @@ int COM_SizeofResourceList (resource_t *pList, resourceinfo_t *ri);
 // cfgscript.c [FWGS, 01.03.26]
 //
 int CSCR_LoadDefaultCVars (const char *scriptfilename);
-/*int CSCR_WriteGameCVars (file_t *cfg, const char *scriptfilename);*/
 
 //
 // hpak.c
@@ -864,8 +774,6 @@ void HPAK_FlushHostQueue (void);
 typedef enum connprotocol_e
 	{
 	PROTO_CURRENT = 0,	// Xash3D 49
-	/*PROTO_LEGACY,		// Xash3D 48
-	PROTO_QUAKE,		// Quake 15*/
 	// RIP Xash3D 48
 	PROTO_QUAKE = 2,	// Quake 15
 	PROTO_GOLDSRC,		// GoldSrc 48
@@ -881,25 +789,25 @@ int SV_GetMaxClients (void);
 
 // [FWGS, 01.03.25]
 #if !XASH_DEDICATED
-qboolean CL_Initialized (void);
-qboolean CL_IsInGame (void);
-qboolean CL_IsInConsole (void);
-qboolean CL_IsIntermission (void);
-qboolean CL_DisableVisibility (void);
-qboolean CL_IsRecordDemo (void);
-qboolean CL_IsPlaybackDemo (void);
-qboolean UI_CreditsActive (void);
-int CL_GetMaxClients (void);
+	qboolean CL_Initialized (void);
+	qboolean CL_IsInGame (void);
+	qboolean CL_IsInConsole (void);
+	qboolean CL_IsIntermission (void);
+	qboolean CL_DisableVisibility (void);
+	qboolean CL_IsRecordDemo (void);
+	qboolean CL_IsPlaybackDemo (void);
+	qboolean UI_CreditsActive (void);
+	int CL_GetMaxClients (void);
 #else
-static inline qboolean CL_Initialized (void) { return false; }
-static inline qboolean CL_IsInGame (void) { return true; } // always true for dedicated
-static inline qboolean CL_IsInConsole (void) { return false; }
-static inline qboolean CL_IsIntermission (void) { return false; }
-static inline qboolean CL_DisableVisibility (void) { return false; }
-static inline qboolean CL_IsRecordDemo (void) { return false; }
-static inline qboolean CL_IsPlaybackDemo (void) { return false; }
-static inline qboolean UI_CreditsActive (void) { return false; }
-static inline int CL_GetMaxClients (void) { return SV_GetMaxClients (); }
+	static inline qboolean CL_Initialized (void) { return false; }
+	static inline qboolean CL_IsInGame (void) { return true; }	// always true for dedicated
+	static inline qboolean CL_IsInConsole (void) { return false; }
+	static inline qboolean CL_IsIntermission (void) { return false; }
+	static inline qboolean CL_DisableVisibility (void) { return false; }
+	static inline qboolean CL_IsRecordDemo (void) { return false; }
+	static inline qboolean CL_IsPlaybackDemo (void) { return false; }
+	static inline qboolean UI_CreditsActive (void) { return false; }
+	static inline int CL_GetMaxClients (void) { return SV_GetMaxClients (); }
 #endif
 
 // [FWGS, 01.02.25]
@@ -913,7 +821,6 @@ const char *Cmd_GetName (struct cmd_s *cmd);
 void Log_Printf (const char *fmt, ...) FORMAT_CHECK (1);
 void SV_BroadcastCommand (const char *fmt, ...) FORMAT_CHECK (1);
 void SV_BroadcastPrintf (struct sv_client_s *ignore, const char *fmt, ...) FORMAT_CHECK (2);
-
 void CL_ClearStaticEntities (void);
 qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, char *loopTrack, size_t loopTrackSize, int *position);
 void CL_ServerCommand (qboolean reliable, const char *fmt, ...) FORMAT_CHECK (2);
@@ -982,7 +889,6 @@ uint LZSS_Decompress (const byte *pInput, byte *pOutput, size_t input_len, size_
 void GL_FreeImage (const char *name);
 
 // [FWGS, 01.03.26]
-/*void VID_InitDefaultResolution (void);*/
 void VID_Init (void);
 void UI_SetActiveMenu (qboolean fActive);
 void UI_ShowConnectionWarning (void);
@@ -1019,8 +925,10 @@ static inline connprotocol_t CL_Protocol (void)
 	}
 #endif
 
-// [FWGS, 01.07.24]
-static inline qboolean Host_IsLocalGame (void)
+/*// [FWGS, 01.07.24]
+static inline qboolean Host_IsLocalGame (void)*/
+// [FWGS, 01.05.26] true in singleplayer only but not specific to local game
+static inline qboolean Host_IsSinglePlayerGame (void)
 	{
 	if (SV_Active ())
 		return (SV_GetMaxClients () == 1) ? true : false;
@@ -1028,7 +936,7 @@ static inline qboolean Host_IsLocalGame (void)
 	return (CL_GetMaxClients () == 1) ? true : false;
 	}
 
-// [FWGS, 01.07.24]
+// true when both server and client running on the same host
 static inline qboolean Host_IsLocalClient (void)
 	{
 	return CL_Initialized () && SV_Initialized () ? true : false;
@@ -1071,7 +979,6 @@ void COM_Munge (byte *data, size_t len, int seq);
 void COM_UnMunge (byte *data, size_t len, int seq);
 void COM_Munge2 (byte *data, size_t len, int seq);
 void COM_UnMunge2 (byte *data, size_t len, int seq);
-/*void COM_Munge3 (byte *data, size_t len, int seq);*/
 void COM_UnMunge3 (byte *data, size_t len, int seq);
 
 //
@@ -1105,10 +1012,5 @@ void SoundList_Shutdown (void);
 #ifdef REF_DLL
 	#error "common.h in ref_dll"
 #endif
-
-// [FWGS, 05.04.26]
-/*ifdef __cplusplus
-	}
-endif*/
 
 #endif

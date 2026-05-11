@@ -55,18 +55,10 @@ extern int SV_UPDATE_BACKUP;
 #define GROUP_OP_NAND	1
 
 // [FWGS, 05.04.26]
-/*ifdef NDEBUG
-define SV_IsValidEdict( e )	( e && !e->free )
-else*/
 #define SV_IsValidEdict( e )	SV_CheckEdict( e, __FILE__, __LINE__ )
-/*endif*/
 
 // [FWGS, 05.04.26]
 #define NUM_FOR_EDICT(e)	((int)((edict_t *)(e) - svgame.edicts))
-/*define EDICT_NUM( num )	SV_EdictNum( num )
-define STRING( offset )	SV_GetString( offset )
-define ALLOC_STRING(str)	SV_AllocString( str )
-define MAKE_STRING(str)	SV_MakeString( str )*/
 
 #define MAX_PUSHED_ENTS	256
 #define MAX_VIEWENTS	128
@@ -139,7 +131,6 @@ typedef struct server_s
 
 	// [FWGS, 01.03.26]
 	int			hostflags;		// misc server flags: predicting etc
-	/*CRC32_t		worldmapCRC;	// check crc for catch cheater maps*/
 	uint32_t	worldmapCRC; // check crc for catch cheater maps
 	int			progsCRC;		// this is used with feature ENGINE_QUAKE_COMPATIBLE
 
@@ -241,7 +232,6 @@ typedef struct sv_client_s
 	double		next_messagetime;		// time when we should send next world state update
 	double		next_checkpingtime;		// time to send all players pings to client
 	double		next_sendinfotime;		// time to send info about all players
-	/*double		cl_updaterate;			// client requested updaterate*/
 	double		next_messageinterval; // update rate, clamped
 	double		timebase;				// client timebase
 	double		connection_started;
@@ -259,7 +249,6 @@ typedef struct sv_client_s
 
 	// [FWGS, 05.04.26]
 	int			ignored_ents;			// if visibility list is full we should know how many entities will be ignored
-	/*edict_t		*edict;					// EDICT_NUM(clientnum+1)*/
 	edict_t		*edict;					// SV_EdictNum (clientnum + 1)
 	edict_t		*pViewEntity;			// svc_setview member
 	edict_t		*viewentity[MAX_VIEWENTS];	// list of portal cameras in player PVS
@@ -272,6 +261,9 @@ typedef struct sv_client_s
 	double		userinfo_penalty;
 
 	double		overflow_warn_time;
+
+	// [FWGS, 01.05.26]
+	double		resourcelist_next_changetime;
 
 	client_frame_t	*frames;			// updates can be delta'd from here
 	event_state_t	events;				// delta-updated events cycle
@@ -444,8 +436,11 @@ extern convar_t		sv_skyvec_z;
 extern convar_t		sv_consistency;
 extern convar_t		sv_password;
 extern convar_t		sv_uploadmax;
-extern convar_t		sv_trace_messages;
 
+// [FWGS, 01.05.26]
+extern convar_t		sv_upload_penalty_time;
+
+extern convar_t		sv_trace_messages;
 extern convar_t		sv_enttools_enable;
 extern convar_t		sv_enttools_maxfire;
 extern convar_t		sv_autosave;
@@ -501,7 +496,6 @@ qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent);
 //
 // sv_init.c [FWGS, 05.04.26]
 //
-/*qboolean SV_InitGame (void);*/
 qboolean SV_InitGame (qboolean silent);
 void SV_ActivateServer (int runPhysics);
 qboolean SV_SpawnServer (const char *server, const char *startspot, qboolean background);
@@ -553,7 +547,6 @@ void SV_ClientPrintf (sv_client_t *cl, const char *fmt, ...) FORMAT_CHECK (2);
 //
 // sv_client.c [FWGS, 04.05.26]
 //
-/*void SV_RefreshUserinfo (void);*/
 void SV_TogglePause (const char *msg);
 qboolean SV_ShouldUpdatePing (sv_client_t *cl);
 const char *SV_GetClientIDString (sv_client_t *cl);
@@ -576,7 +569,6 @@ void SV_GetPlayerCount (int *clients, int *bots);
 // [FWGS, 01.03.26]
 static inline qboolean SV_HavePassword (void)
 	{
-	/*if (COM_CheckStringEmpty (sv_password.string) && Q_stricmp (sv_password.string, "none"))*/
 	if (!COM_StringEmpty (sv_password.string) && Q_stricmp (sv_password.string, "none"))
 		return true;
 
@@ -634,7 +626,6 @@ void SV_FreeEdict (edict_t *pEdict);
 void SV_InitEdict (edict_t *pEdict);
 const char *SV_ClassName (const edict_t *e);
 void SV_CopyTraceToGlobal (trace_t *trace);
-/*qboolean SV_CheckEdict (const edict_t *e, const char *file, const int line);*/
 void SV_SetMinMaxSize (edict_t *e, const float *min, const float *max, qboolean relink);
 void SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word eventindex, float delay, float *origin,
 	float *angles, float fparam1, float fparam2, int iparam1, int iparam2, int bparam1, int bparam2);

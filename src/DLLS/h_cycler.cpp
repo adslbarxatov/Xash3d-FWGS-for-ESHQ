@@ -13,7 +13,8 @@ without written permission from Valve LLC
 
 /***
 ===== h_cycler.cpp ========================================================
-  The Halflife Cycler Monsters
+
+The Halflife Cycler Monsters
 ***/
 
 #include "extdll.h"
@@ -148,63 +149,6 @@ void CCycler::Precache (void)
 	pGibName = CBreakable::PrecacheSounds (m_Material);
 
 	// ESHQ: обработка звуков и моделей разрушения
-	/*switch (m_Material)
-		{
-		case matWood:
-			pGibName = "models/woodgibs.mdl";
-			PRECACHE_SOUND ("debris/bustcrate1.wav");
-			PRECACHE_SOUND ("debris/bustcrate2.wav");
-			PRECACHE_SOUND ("debris/bustcrate3.wav");
-			break;
-
-		case matFlesh:
-			pGibName = "models/fleshgibs.mdl";
-			PRECACHE_SOUND ("debris/bustflesh1.wav");
-			PRECACHE_SOUND ("debris/bustflesh2.wav");
-			break;
-
-		case matComputer:
-			PRECACHE_SOUND ("buttons/spark5.wav");
-			PRECACHE_SOUND ("buttons/spark6.wav");
-			pGibName = "models/computergibs.mdl";
-			PRECACHE_SOUND ("debris/bustmetal1.wav");
-			PRECACHE_SOUND ("debris/bustmetal2.wav");
-			break;
-
-		case matUnbreakableGlass:
-		case matGlass:
-			pGibName = "models/glassgibs.mdl";
-			PRECACHE_SOUND ("debris/bustglass1.wav");
-			PRECACHE_SOUND ("debris/bustglass2.wav");
-			PRECACHE_SOUND ("debris/bustglass3.wav");
-			break;
-
-		case matMetal:
-		default:
-			pGibName = "models/metalplategibs.mdl";
-			PRECACHE_SOUND ("debris/bustmetal1.wav");
-			PRECACHE_SOUND ("debris/bustmetal2.wav");
-			break;
-
-		case matCinderBlock:
-			pGibName = "models/cindergibs.mdl";
-			PRECACHE_SOUND ("debris/bustconcrete1.wav");
-			PRECACHE_SOUND ("debris/bustconcrete2.wav");
-			break;
-
-		case matRocks:
-			pGibName = "models/rockgibs.mdl";
-			PRECACHE_SOUND ("debris/bustconcrete1.wav");
-			PRECACHE_SOUND ("debris/bustconcrete2.wav");
-			break;
-
-		case matCeilingTile:
-			pGibName = "models/ceilinggibs.mdl";
-			PRECACHE_SOUND ("debris/bustceiling1.wav");
-			PRECACHE_SOUND ("debris/bustceiling2.wav");
-			break;
-		}*/
-
 	m_idShard = PRECACHE_MODEL ((char *)pGibName);
 	}
 
@@ -368,9 +312,10 @@ int CCycler::TakeDamage (entvars_t *pevInflictor, entvars_t *pevAttacker, float 
 		return 0;
 		}
 
-	// Звук материала
-	DamageSound ();
+	if (!FBitSet (pev->spawnflags, HC_CYCLER_PASSABLE))
+		DamageSound ();
 
+	// Звук материала
 	if (!FBitSet (pev->spawnflags, HC_CYCLER_BREAKABLE))
 		return 1;
 

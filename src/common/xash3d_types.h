@@ -210,37 +210,31 @@ typedef int qboolean;
 
 // [FWGS, 01.04.26]
 #if !defined( NORETURN )
-	/*define NORETURN*/
 	#define NORETURN
 #endif
 
 // [FWGS, 01.04.26]
 #if !defined( NONNULL )
-	/*define NONNULL*/
 	#define NONNULL
 #endif
 
 // [FWGS, 01.04.26]
 #if !defined( FORMAT_CHECK )
-	/*define FORMAT_CHECK( x )*/
 	#define FORMAT_CHECK( x )
 #endif
 
 // [FWGS, 01.04.26]
 #if !defined( ALLOC_CHECK )
-	/*define ALLOC_CHECK( x )*/
 	#define ALLOC_CHECK( x )
 #endif
 
 // [FWGS, 01.04.26]
 #if !defined( WARN_UNUSED_RESULT )
-	/*define WARN_UNUSED_RESULT*/
 	#define WARN_UNUSED_RESULT
 #endif
 
 // [FWGS, 01.04.26]
 #if !defined( RENAME_SYMBOL )
-	/*define RENAME_SYMBOL( x )*/
 	#define RENAME_SYMBOL( x )
 #endif
 
@@ -290,8 +284,12 @@ typedef int qboolean;
 #define Swap32Store( x ) ( x = Swap32( x ))
 #define Swap16Store( x ) ( x = Swap16( x ))
 
-// [FWGS, 01.11.25]
-#ifdef XASH_BIG_ENDIAN
+// [FWGS, 01.05.26]
+/*ifdef XASH_BIG_ENDIAN*/
+#define LittleFourCC( a, b, c, d )	(((uint32_t)( d ) << 24 ) | ((uint32_t)( c ) << 16 ) | ((uint32_t)( b ) << 8 ) | (uint32_t)( a ))
+#define BigFourCC( a, b, c, d )		(((uint32_t)( a ) << 24 ) | ((uint32_t)( b ) << 16 ) | ((uint32_t)( c ) << 8 ) | (uint32_t)( d ))
+
+#if XASH_BIG_ENDIAN
 	#define LittleLong( x ) Swap32( x )
 	#define LittleShort( x ) Swap16( x )
 	#define LittleLongSW( x ) Swap32Store( x )
@@ -300,6 +298,7 @@ typedef int qboolean;
 	#define BigLong( x ) ( x )
 	#define BigShort( x ) ( x )
 	#define BigFloat( x ) ( x )
+	#define HostFourCC( a, b, c, d ) BigFourCC( a, b, c, d )
 #else
 	#define LittleLong( x ) ( x )
 	#define LittleShort( x ) ( x )
@@ -309,6 +308,7 @@ typedef int qboolean;
 	#define BigLong( x ) Swap32( x )
 	#define BigShort( x ) Swap16( x )
 	#define BigFloat( x ) SwapFloat( x )
+	#define HostFourCC( a, b, c, d ) LittleFourCC( a, b, c, d )
 #endif
 
 #endif

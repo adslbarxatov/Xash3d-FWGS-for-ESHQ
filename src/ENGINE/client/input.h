@@ -28,7 +28,6 @@ INPUT
 //
 // input.c
 //
-/*extern qboolean	in_mouseinitialized;*/
 void IN_Init (void);
 void Host_InputFrame (void);
 void IN_Shutdown (void);
@@ -39,6 +38,13 @@ void IN_DeactivateMouse (void);
 void IN_MouseSavePos (void);
 void IN_MouseRestorePos (void);
 void IN_ToggleClientMouse (int newstate, int oldstate);
+
+// [FWGS, 01.05.26]
+void IN_GyroInit (void);
+void IN_GyroCheckAvailability (void);
+void IN_GyroEvent (vec3_t data);
+void IN_GyroFinalizeMove (float *fw, float *side, float *dpitch, float *dyaw);
+
 uint IN_CollectInputDevices (void);
 void IN_LockInputDevices (qboolean lock);
 void IN_EngineAppendMove (float frametime, usercmd_t *cmd, qboolean active);	// [FWGS, 01.12.24]
@@ -73,7 +79,6 @@ static inline void Touch_AddDefaultButton (const char *name, const char *texture
 static inline void Touch_WriteConfig (void) {}
 static inline void Touch_Init (void) {}
 static inline void Touch_Shutdown (void) {}
-/*static inline void Touch_GetMove (float *forward, float *side, float *yaw, float *pitch) {}*/
 static inline void Touch_GetMove (float *forward, float *side, float *pitch, float *yaw) {}	// [FWGS, 15.04.26]
 static inline void Touch_ResetDefaultButtons (void) {}
 static inline int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx, float dy) { return 0; }
@@ -94,7 +99,6 @@ void Touch_AddDefaultButton (const char *name, const char *texturefile, const ch
 void Touch_WriteConfig (void);
 void Touch_Init (void);
 void Touch_Shutdown (void);
-/*void Touch_GetMove (float *forward, float *side, float *yaw, float *pitch);*/
 void Touch_GetMove (float *forward, float *side, float *pitch, float *yaw);	// [FWGS, 15.04.26]
 void Touch_ResetDefaultButtons (void);
 int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx, float dy);
@@ -103,6 +107,15 @@ qboolean Touch_WantVisibleCursor (void);
 void Touch_NotifyResize (void);
 
 #endif
+
+//
+// in_osk.c [FWGS, 01.05.26]
+//
+extern convar_t osk_enable;
+void OSK_Init (void);
+qboolean OSK_KeyEvent (int key, int down);
+void OSK_EnableTextInput (qboolean enable, qboolean force);
+void OSK_Draw (void);
 
 //
 // in_joy.c
@@ -129,7 +142,6 @@ typedef enum engineAxis_e
 	JOY_AXIS_YAW,
 	JOY_AXIS_RT,
 	JOY_AXIS_LT,
-	/*JOY_AXIS_NULL*/
 	MAX_AXES,
 	} engineAxis_t;
 

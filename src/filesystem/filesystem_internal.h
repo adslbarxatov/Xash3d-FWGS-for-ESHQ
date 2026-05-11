@@ -187,11 +187,8 @@ fs_offset_t FS_Read (file_t *file, void *buffer, size_t buffersize);
 int FS_Seek (file_t *file, fs_offset_t offset, int whence);
 
 // [FWGS, 01.04.26]
-/*fs_offset_t FS_Tell (file_t *file);
-qboolean FS_Eof (file_t *file);*/
 fs_offset_t FS_Tell (const file_t *file);
 qboolean FS_Eof (const file_t *file);
-
 int FS_Flush (file_t *file);
 int FS_Gets (file_t *file, char *string, size_t bufsize);
 int FS_UnGetc (file_t *file, char c);
@@ -201,9 +198,7 @@ int FS_Printf (file_t *file, const char *format, ...) FORMAT_CHECK (2);
 int FS_Print (file_t *file, const char *msg);
 
 // [FWGS, 01.04.26]
-/*fs_offset_t FS_FileLength (file_t *f);*/
 fs_offset_t FS_FileLength (const file_t *f);
-
 qboolean FS_FileCopy (file_t *pOutput, file_t *pInput, int fileSize);
 
 // [FWGS, 01.12.24] file buffer ops
@@ -236,14 +231,20 @@ qboolean FS_Delete (const char *path);
 qboolean FS_SysFileExists (const char *path);
 const char *FS_GetDiskPath (const char *name, qboolean gamedironly);
 qboolean FS_GetFullDiskPath (char *buffer, size_t size, const char *name, qboolean gamedironly);
-void     FS_CreatePath (char *path);
+
+// [FWGS, 01.05.26]
+/*void     FS_CreatePath (char *path);*/
+void FS_CreatePath (char *path);
 qboolean FS_SysFolderExists (const char *path);
 qboolean FS_SysFileOrFolderExists (const char *path);
 file_t *FS_OpenReadFile (const char *filename, const char *mode, qboolean gamedironly);
-int		FS_SysFileTime (const char *filename);
-file_t *FS_OpenHandle (searchpath_t *search, int handle, fs_offset_t offset, fs_offset_t len);	// [FWGS, 01.07.24]
+/*int		FS_SysFileTime (const char *filename);
+file_t *FS_OpenHandle (searchpath_t *search, int handle, fs_offset_t offset, fs_offset_t len);
 file_t	*FS_SysOpen (const char *filepath, const char *mode);
-searchpath_t *FS_FindFile (const char *name, int *index, char *fixedname, size_t len, qboolean gamedironly);
+searchpath_t *FS_FindFile (const char *name, int *index, char *fixedname, size_t len, qboolean gamedironly);*/
+int FS_SysFileTime (const char *filename);
+file_t *FS_OpenHandle (searchpath_t *search, int handle, fs_offset_t offset, fs_offset_t len);
+file_t *FS_SysOpen (const char *filepath, const char *mode);
 qboolean FS_FullPathToRelativePath (char *dst, const char *src, size_t size);
 
 //

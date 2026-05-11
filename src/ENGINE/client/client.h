@@ -40,12 +40,6 @@ GNU General Public License for more details
 #include "q_client.h"	// [FWGS, 01.03.26]
 #endif
 
-// [FWGS, 05.04.26]
-/*// client sprite types
-define SPR_CLIENT		0	// client sprite for temp-entities or user-textures
-define SPR_HUDSPRITE	1	// hud sprite
-define SPR_MAPSPRITE	2	// contain overview.bmp that diced into frames 128x128*/
-
 // =============================================================================
 typedef struct netbandwithgraph_s
 	{
@@ -756,10 +750,6 @@ extern convar_t cl_fixmodelinterpolationartifacts;
 // =============================================================================
 
 // [FWGS, 05.04.26]
-/*void CL_SetLightstyle (int style, const char *s, float f);
-void CL_DecayLights (void);
-dlight_t *CL_GetDynamicLight (int number);
-dlight_t *CL_GetEntityLight (int number);*/
 extern client_textmessage_t cl_textmessage[MAX_TEXTCHANNELS];
 
 // =================================================
@@ -776,13 +766,14 @@ void SCR_Viewpos_f (void);
 void CL_WavePlayLen_f (void);
 
 //
-// cl_custom.c
+// cl_custom.c [FWGS, 01.05.26]
 //
 qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource);
 void CL_AddToResourceList (resource_t *pResource, resource_t *pList);
 void CL_RemoveFromResourceList (resource_t *pResource);
 void CL_MoveToOnHandList (resource_t *pResource);
 void CL_ClearResourceLists (void);
+void CL_SendResourceList (const resource_t *list, int count);
 
 //
 // cl_debug.c [FWGS, 01.03.25]
@@ -888,9 +879,6 @@ void CL_ClearSpriteTextures (void);
 // [FWGS, 05.04.26]
 void CL_HudMessage (const char *pMessage);
 void CL_CenterPrint (const char *text, float y);
-/*// [FWGS, 01.03.26]
-client_textmessage_t *CL_TextMessageParse (poolhandle_t mempool, byte *pMemFile, int fileSize, int *numTitles);*/
-
 client_textmessage_t *CL_TextMessageGet (const char *pName);
 void NetAPI_CancelAllRequests (void);
 model_t *CL_LoadClientSprite (const char *filename);
@@ -913,7 +901,7 @@ qboolean CL_Scissor (const scissor_state_t *scissor, float *x, float *y, float *
 // [FWGS, 01.11.25]
 static inline cl_entity_t *CL_EDICT_NUM (int index)
 	{
-	if (unlikely (!clgame.entities)) // not in game yet
+	if (unlikely (!clgame.entities))	// not in game yet
 		{
 		Host_Error ("%s: clgame.entities is NULL\n", __func__);
 		return NULL;
@@ -931,7 +919,7 @@ static inline cl_entity_t *CL_EDICT_NUM (int index)
 // [FWGS, 01.11.25]
 static inline cl_entity_t *CL_GetEntityByIndex (int index)
 	{
-	if (unlikely (!clgame.entities)) // not in game yet
+	if (unlikely (!clgame.entities))	// not in game yet
 		return NULL;
 
 	if (unlikely ((index < 0) || (index >= clgame.maxEntities)))
@@ -968,58 +956,25 @@ static inline cl_entity_t *CL_GetLocalPlayer (void)
 //
 // cl_parse.c [FWGS, 05.04.26]
 //
-/*void CL_ParseSetAngle (sizebuf_t *msg);
-void CL_ParseServerData (sizebuf_t *msg, connprotocol_t proto);
-void CL_ParseLightStyle (sizebuf_t *msg, connprotocol_t proto);
-void CL_UpdateUserinfo (sizebuf_t *msg, connprotocol_t proto);*/
 void CL_ParseResource (sizebuf_t * msg);
 void CL_ParseClientData (sizebuf_t *msg, connprotocol_t proto);
 void CL_UpdateUserPings (sizebuf_t * msg);
-/*void CL_ParseParticles (sizebuf_t *msg, connprotocol_t proto);
-void CL_ParseRestoreSoundPacket (sizebuf_t * msg);*/
 void CL_ParseBaseline (sizebuf_t *msg, connprotocol_t proto);
-/*void CL_ParseSignon (sizebuf_t *msg, connprotocol_t proto);
-void CL_ParseRestore (sizebuf_t * msg);*/
 void CL_ParseStaticDecal (sizebuf_t * msg);
-/*void CL_ParseAddAngle (sizebuf_t * msg);
-void CL_RegisterUserMessage (sizebuf_t *msg, connprotocol_t proto);*/
 void CL_ParseResourceList (sizebuf_t *msg, connprotocol_t proto);
 void CL_ParseMovevars (sizebuf_t * msg);
-/*void CL_ParseResourceRequest (sizebuf_t * msg);
-void CL_ParseCustomization (sizebuf_t * msg);
-void CL_ParseCrosshairAngle (sizebuf_t * msg);
-void CL_ParseSoundFade (sizebuf_t * msg);
-void CL_ParseFileTransferFailed (sizebuf_t * msg);
-void CL_ParseHLTV (sizebuf_t * msg);
-void CL_ParseDirector (sizebuf_t * msg);
-void CL_ParseVoiceInit (sizebuf_t *msg);
-void CL_ParseVoiceData (sizebuf_t *msg, connprotocol_t proto);
-void CL_ParseResLocation (sizebuf_t * msg);
-void CL_ParseCvarValue (sizebuf_t *msg, const qboolean ext, const connprotocol_t proto);*/
 void CL_ParseServerMessage (sizebuf_t *msg);
-/*qboolean CL_ParseCommonDLLMessage (sizebuf_t *msg, connprotocol_t proto, int svc_num, int startoffset);*/
 qboolean CL_ParseCommonMessage (sizebuf_t *msg, connprotocol_t proto, int svc_num, int startoffset);
 qboolean CL_ParseCommonHLMessage (sizebuf_t *msg, connprotocol_t proto, int svc_num, int startoffset);
-
 void CL_ParseTempEntity (sizebuf_t *msg, connprotocol_t proto);
 qboolean CL_DispatchUserMessage (const char *pszName, int iSize, void *pbuf);
 qboolean CL_RequestMissingResources (void);
 void CL_RegisterResources (sizebuf_t *msg, connprotocol_t proto);
-/*void CL_ParseViewEntity (sizebuf_t *msg);*/
 void CL_ParseServerTime (sizebuf_t *msg, connprotocol_t proto);
 void CL_ParseUserMessage (sizebuf_t *msg, int svc_num, connprotocol_t proto);
-/*void CL_ParseFinaleCutscene (sizebuf_t *msg, int level);*/
 void CL_ParseTextMessage (sizebuf_t *msg);
-/*void CL_ParseExec (sizebuf_t *msg);*/
 void CL_BatchResourceRequest (qboolean initialize);
 int CL_EstimateNeededResources (void);
-
-// [FWGS, 01.03.26]
-/*//
-// cl_parse_48.c [FWGS, 01.07.24]
-//
-void CL_ParseLegacyServerMessage (sizebuf_t *msg);
-void CL_LegacyPrecache_f (void);*/
 
 //
 // cl_parse_gs.c [FWGS, 01.12.24]
@@ -1044,6 +999,13 @@ void SCR_DrawFPS (int height);
 void SCR_DrawPos (void);
 void SCR_DrawEnts (void);
 void SCR_DrawUserCmd (void);
+
+//
+// cl_sprite.c [FWGS, 01.05.26]
+//
+mspriteframe_t *R_GetSpriteFrame (const model_t *pModel, int frame, float yaw);
+void R_GetSpriteParms (int *frameWidth, int *frameHeight, int *numFrames, int currentFrame, const model_t *pSprite);
+int R_GetSpriteTexture (const model_t *m_pSpriteModel, int frame);
 
 //
 // cl_netgraph.c
@@ -1230,10 +1192,7 @@ void S_StartSound (const vec3_t pos, int ent, int chan, sound_t sfx, float vol, 
 void S_AmbientSound (const vec3_t pos, int ent, sound_t handle, float fvol, float attn, int pitch, int flags);
 
 // [FWGS, 01.03.26]
-/*void S_FadeClientVolume (float fadePercent, float fadeOutSeconds, float holdTime, float fadeInSeconds);
-void S_FadeMusicVolume (float fadePercent);*/
 void S_SoundFade (int fade_percent, int hold_time, int fade_out_seconds, int fade_in_seconds);
-
 void S_StartLocalSound (const char *name, float volume, qboolean reliable);
 void SND_UpdateSound (void);
 void S_ExtraUpdate (void);
@@ -1258,7 +1217,6 @@ qboolean UI_IsVisible (void);
 void UI_ResetPing (void);
 
 // [FWGS, 05.04.26]
-/*void UI_ShowUpdateDialog (qboolean preferStore);*/
 qboolean UI_ShowMessageBox (const char *text);
 void UI_AddTouchButtonToList (const char *name, const char *texture, const char *command, unsigned char *color,
 	int flags);
@@ -1286,19 +1244,21 @@ void Mobile_Shutdown (void);
 void CL_GetSecuredClientAPI (CL_EXPORT_FUNCS F);
 
 //
-// cl_steam.c [FWGS, 01.04.26]
+// cl_steam.c [FWGS, 01.05.26]
 //
 void SteamBroker_Init (void);
 void SteamBroker_Shutdown (void);
 void SteamBroker_Frame (void);
-void SteamBroker_HandlePacket (netadr_t from, sizebuf_t *msg);
-int SteamBroker_InitiateGameConnection (netadr_t serveradr, int challenge);
+/*void SteamBroker_HandlePacket (netadr_t from, sizebuf_t *msg);
+int SteamBroker_InitiateGameConnection (netadr_t serveradr, int challenge);*/
+qboolean SteamBroker_InitiateGameConnection (netadr_t serveradr, int challenge);
 void SteamBroker_TerminateGameConnection (void);
 
 //
-// cl_video.c
+// cl_video.c [FWGS, 01.05.26]
 //
 void SCR_InitCinematic (void);
+int SCR_GetCinematicTexture (void);
 void SCR_FreeCinematic (void);
 qboolean SCR_PlayCinematic (const char *name);
 qboolean SCR_DrawCinematic (void);
@@ -1308,7 +1268,7 @@ void SCR_StopCinematic (void);
 void CL_PlayVideo_f (void);
 
 //
-// keys.c [FWGS, 01.04.26]
+// keys.c [FWGS, 01.05.26]
 //
 int Key_IsDown (int keynum);
 void Key_Event (int key, int down);
@@ -1323,14 +1283,13 @@ void Key_EnumCmds_f (void);
 void Key_SetKeyDest (int key_dest);
 void Key_EnableTextInput (qboolean enable, qboolean force);
 int Key_ToUpper (int key);
-void OSK_Draw (void);
+/*void OSK_Draw (void);*/
 qboolean Cmd_GetKeysList (const char *s, char *completedname, int length, qboolean print_suggestions);
 
 //
 // identification.c [FWGS, 01.03.26]
 //
 void ID_Init (void);
-/*const char *ID_GetMD5 (void);*/
 void ID_GetMD5ForAddress (char *key, netadr_t adr, size_t size);
 
 //

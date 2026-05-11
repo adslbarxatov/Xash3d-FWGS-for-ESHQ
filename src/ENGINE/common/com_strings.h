@@ -62,8 +62,11 @@ GNU General Public License for more details
 #define DEFAULT_SAVE_EXTENSION	"x3v"
 #define EXTENDED_SAVE_EXTENSION	"xv"
 
-// [FWGS, 01.09.24] path to download games
-#define DEFAULT_DOWNLOADED_DIRECTORY "downloaded/"
+// [FWGS, 01.05.26]
+/*// [FWGS, 01.09.24] path to download games
+define DEFAULT_DOWNLOADED_DIRECTORY "downloaded/"*/
+// goldsrc compatible suffix for downloads directory
+#define DEFAULT_DOWNLOADED_DIRECTORY_SUFFIX "_downloads"
 
 // [FWGS, 01.09.24] path to user mod directory
 #define DEFAULT_CUSTOM_DIRECTORY "custom/"
@@ -77,8 +80,6 @@ GNU General Public License for more details
 #define CVAR_GLCONFIG_DESCRIPTION	"enable or disable %s"
 
 // [FWGS, 01.02.25]
-/*define DEFAULT_BSP_BUILD_ERROR	"%s can't be loaded in this build. Please rebuild engine with enabled SUPPORT_BSP2_FORMAT\n"*/
-
 #define DEFAULT_UPDATE_PAGE "https://github.com/FWGS/xash3d-fwgs/releases/latest"
 
 #define XASH_ENGINE_NAME	"Xash3D FWGS"

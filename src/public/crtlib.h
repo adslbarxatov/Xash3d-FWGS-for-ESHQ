@@ -39,12 +39,6 @@ enum
 
 // [FWGS, 01.03.26] a1ba: not using BIT macro, so flags can be copypasted into
 // exported APIs headers and will not get warning in case of changing values
-/*define PFILE_IGNOREBRACKET			(1<<0)
-define PFILE_HANDLECOLON			(1<<1)
-define PFILE_IGNOREHASHCMT			(1<<2)	// [FWGS, 01.12.24]
-
-define PFILE_TOKEN_MAX_LENGTH		1024
-define PFILE_FS_TOKEN_MAX_LENGTH	512*/
 // do NOT interpret brackets as separate token
 // e.g. (a b) will be parsed as "(a", "b)"
 #define PFILE_NO_BRACKETS_AS_TOKEN ( 1U << 0 )
@@ -76,15 +70,7 @@ define PFILE_FS_TOKEN_MAX_LENGTH	512*/
 //
 // build.c [FWGS, 01.03.26]
 //
-/*int Q_buildnum (void);*/
 int Q_buildnum_iso (const char *date);
-/*int Q_buildnum_compat (void);
-const char *Q_PlatformStringByID (const int platform);
-const char *Q_buildos (void);
-
-// [FWGS, 01.03.25]
-const char *Q_ArchitectureStringByID (const int arch, const uint abi, const int endianness, const qboolean is64);
-const char *Q_buildarch (void);*/
 
 // to use build information, add "build_vcs" to dependencies
 int Q_buildnum (void);
@@ -92,7 +78,6 @@ int Q_buildnum (void);
 // [FWGS, 01.03.26]
 extern const char *g_buildcommit;
 extern const char *g_buildbranch;
-/*extern const char *g_build_date;*/
 extern const char *g_buildcommit_date;
 
 // [FWGS, 01.03.26]
@@ -130,23 +115,18 @@ int Q_snprintf (char *buffer, size_t buffersize, const char *format, ...) FORMAT
 #define Q_strpbrk strpbrk
 void COM_StripColors (const char *in, char *out);
 #define Q_memprint( val ) Q_pretifymem( val, 2 )
-/*char *Q_pretifymem (float value, int digitsafterdecimal);*/
 char *Q_pretifymem (float value, int digitsafterdecimal) RETURNS_NONNULL;
 void COM_FileBase (const char *in, char *out, size_t size);
 const char *COM_FileExtension (const char *in) RETURNS_NONNULL;
 void COM_DefaultExtension (char *path, const char *extension, size_t size);
 void COM_ReplaceExtension (char *path, const char *extension, size_t size);
 void COM_ExtractFilePath (const char *path, char *dest);
-/*const char *COM_FileWithoutPath (const char *in);*/
 const char *COM_FileWithoutPath (const char *in) RETURNS_NONNULL;
 void COM_StripExtension (char *path);
 void COM_RemoveLineFeed (char *str, size_t bufsize);
 void COM_PathSlashFix (char *path);
 
 // [FWGS, 01.03.26]
-/* return 0 on empty or null string, 1 otherwise
-define COM_CheckString( string ) ( ( !string || !*string ) ? 0 : 1 )
-define COM_CheckStringEmpty( string ) ( ( !*string ) ? 0 : 1 )*/
 void COM_TrimSpace (char *dst, const char *src, size_t size);
 
 // [FWGS, 01.03.26] returns true on empty or NULL string, false otherwise
@@ -201,12 +181,19 @@ static inline char Q_tolower (const char in)
 	return out;
 	}
 
-// [FWGS, 01.03.25]
+// [FWGS, 01.05.26]
 static inline qboolean Q_istype (const char *str, int (*istype)(int c))
 	{
 	if (likely (str && *str))
 		{
-		while (istype (*str))
+		/*while (istype (*str))
+			str++;
+
+		if (!*str)
+			return true;*/
+		// a1ba: explicitly cast char to unsigned char to not trigger UB
+		// in ctype functions
+		while (istype ((byte)*str))
 			str++;
 
 		if (!*str)
@@ -397,7 +384,6 @@ static inline char *Q_stristr (const char *s1, const char *s2)
 #endif
 
 // [FWGS, 01.03.26]
-/*if HAVE_STRCHRNUL*/
 #if HAVE_STRCHRNUL && !XASH_IOS
 
 	#define Q_strchrnul strchrnul
@@ -432,7 +418,7 @@ static inline int Q_splitstr (char *str, int delim, void *userdata,
 
 	for (; ; prev = next + 1, next = Q_strchrnul (prev, delim))
 		{
-		int ch = *next; // save next value if it's modified by handler
+		int ch = *next;	// save next value if it's modified by handler
 
 		ret = handler (prev, next, userdata);
 		if (!ch || (ret != 0))
@@ -451,8 +437,6 @@ Changes all '\' characters into '/' characters and removes duplicate slashes, in
 ***/
 static inline void COM_FixSlashes (char *pname)
 	{
-	/*while ((pname = Q_strchr (pname, '\\')))
-		*pname = '/';*/
 	char *s = pname;
 	int i, j;
 

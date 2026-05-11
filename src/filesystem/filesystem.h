@@ -21,7 +21,6 @@ GNU General Public License for more details
 #include <stddef.h>
 #include <stdio.h>
 #include "xash3d_types.h"
-/*include "const.h"*/
 #include "com_model.h"
 #include "gameinfo.h"
 
@@ -30,12 +29,14 @@ extern "C"
 	{
 #endif
 
-// [FWGS, 01.11.25]
-#define FS_API_VERSION					4					// not stable yet!
-#define FS_API_CREATEINTERFACE_TAG		"XashFileSystem004"	// follow FS_API_VERSION!!!
+// [FWGS, 01.05.26]
+/*define FS_API_VERSION					4					// not stable yet!
+define FS_API_CREATEINTERFACE_TAG		"XashFileSystem004"	// follow FS_API_VERSION!!!*/
+#define FS_API_VERSION					5					// not stable yet!
+#define FS_API_CREATEINTERFACE_TAG		"XashFileSystem005"	// follow FS_API_VERSION!!!
 #define FILESYSTEM_INTERFACE_VERSION	"VFileSystem009"	// never change this!
 
-// search path flags
+// [FWGS, 01.05.26] search path flags
 enum
 	{
 	FS_STATIC_PATH =		BIT (0),	// FS_ClearSearchPath will be ignore this path
@@ -43,13 +44,23 @@ enum
 	FS_GAMEDIR_PATH =		BIT (2),	// just a marker for gamedir path
 	FS_CUSTOM_PATH =		BIT (3),	// gamedir but with custom/mod data
 	FS_GAMERODIR_PATH =		BIT (4),	// gamedir but read-only
-	FS_SKIP_ARCHIVED_WADS =	BIT (5),	// don't mount wads inside archives automatically
-	FS_LOAD_PACKED_WAD =	BIT (6),	// [FWGS, 01.07.24] this wad is packed inside other archive
+	FS_EXEC_PATH =			BIT (5),	// this directory is allowed to have executable code
 
-	FS_MOUNT_HD =			BIT (7),	// [FWGS, 01.03.25] mount high definition content folder
+	/*FS_SKIP_ARCHIVED_WADS =	BIT (5),	// don't mount wads inside archives automatically
+	FS_LOAD_PACKED_WAD =	BIT (6),	// [FWGS, 01.07.24] this wad is packed inside other archive*/
+	FS_SKIP_ARCHIVED_WADS =	BIT (16),	// don't mount wads inside archives automatically
+	FS_LOAD_PACKED_WAD =	BIT (17),	// this wad is packed inside other archive
+
+	/*FS_MOUNT_HD =			BIT (7),	// [FWGS, 01.03.25] mount high definition content folder
 	FS_MOUNT_LV =			BIT (8),	// [FWGS, 01.03.25] mount low violence content folder
 	FS_MOUNT_ADDON =		BIT (9),	// [FWGS, 01.03.25] mount addon folder
-	FS_MOUNT_L10N =			BIT (10),	// [FWGS, 01.03.25] mount localization folder
+	FS_MOUNT_L10N =			BIT (10),	// [FWGS, 01.03.25] mount localization folder*/
+	FS_MOUNT_HD =			BIT (24),	// mount high definition content folder
+	FS_MOUNT_LV =			BIT (25),	// mount low violence content folder
+	FS_MOUNT_ADDON =		BIT (26),	// mount addon folder
+	FS_MOUNT_L10N =			BIT (27),	// mount localization folder
+
+	FS_MOUNT_FLAGS = FS_MOUNT_HD | FS_MOUNT_LV | FS_MOUNT_ADDON | FS_MOUNT_L10N,
 
 	FS_GAMEDIRONLY_SEARCH_FLAGS = FS_GAMEDIR_PATH | FS_CUSTOM_PATH | FS_GAMERODIR_PATH
 	};
@@ -182,8 +193,6 @@ typedef struct fs_api_t
 	int (*Seek)(file_t *file, fs_offset_t offset, int whence);
 	
 	// [FWGS, 01.04.26]
-	/*fs_offset_t (*Tell)(file_t *file);
-	qboolean (*Eof)(file_t *file);*/
 	fs_offset_t (*Tell)(const file_t *file);
 	qboolean (*Eof)(const file_t *file);
 
@@ -197,9 +206,7 @@ typedef struct fs_api_t
 	int (*Print)(file_t *file, const char *msg);
 
 	// [FWGS, 01.04.26]
-	/*fs_offset_t (*FileLength)(file_t *f);*/
 	fs_offset_t (*FileLength)(const file_t *f);
-
 	qboolean (*FileCopy)(file_t *pOutput, file_t *pInput, int fileSize);
 
 	// file buffer ops

@@ -24,7 +24,10 @@ CVAR_DEFINE_AUTO (gl_check_errors, "1", FCVAR_GLCONFIG,
 	"polygon offset for decals");*/
 CVAR_DEFINE_AUTO (gl_polyoffset, "2", FCVAR_GLCONFIG,
 	"polygon offset for decals");
-CVAR_DEFINE_AUTO (gl_polyoffset_bmodels, "2", FCVAR_GLCONFIG,
+
+// ESHQ: значение по умолчанию изменено с 2 на 0 из-за дефекта отображения границы
+// нестатических брашей
+CVAR_DEFINE_AUTO (gl_polyoffset_bmodels, "0", FCVAR_GLCONFIG,
 	"polygon offset for brush models");
 
 CVAR_DEFINE_AUTO (gl_wireframe, "0", FCVAR_GLCONFIG | FCVAR_SPONLY,
