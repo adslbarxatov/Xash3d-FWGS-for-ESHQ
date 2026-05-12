@@ -69,18 +69,22 @@ void CL_DrawParticles (double frametime, particle_t *cl_active_particles, float 
 	for (p = cl_active_particles; p; p = p->next)
 		{
 		// [FWGS, 01.04.26]
-		/*if ((p->type != pt_blob) || (p->packedColor == 255))*/
 		if ((p->type != pt_blob) || (p->unused == 255))
 			{
-			size = partsize; // get initial size of particle
+			size = partsize;	// get initial size of particle
 
-			// scale up to keep particles from disappearing
-			size += (p->org[0] - RI.vieworg[0]) * RI.cull_vforward[0];
+			// [FWGS, 01.05.26] scale up to keep particles from disappearing
+			/*size += (p->org[0] - RI.vieworg[0]) * RI.cull_vforward[0];
 			size += (p->org[1] - RI.vieworg[1]) * RI.cull_vforward[1];
-			size += (p->org[2] - RI.vieworg[2]) * RI.cull_vforward[2];
+			size += (p->org[2] - RI.vieworg[2]) * RI.cull_vforward[2];*/
+			size += (p->org[0] - RI.rvp.vieworigin[0]) * RI.cull_vforward[0];
+			size += (p->org[1] - RI.rvp.vieworigin[1]) * RI.cull_vforward[1];
+			size += (p->org[2] - RI.rvp.vieworigin[2]) * RI.cull_vforward[2];
 
-			if (size < 20.0f) size = partsize;
-			else size = partsize + size * 0.002f;
+			if (size < 20.0f)
+				size = partsize;
+			else
+				size = partsize + size * 0.002f;
 
 			// scale the axes by radius
 			VectorScale (RI.cull_vright, size, right);
@@ -90,7 +94,7 @@ void CL_DrawParticles (double frametime, particle_t *cl_active_particles, float 
 			color = tr.palette[p->color];
 
 			alpha = 255 * (p->die - gp_cl->time) * 16.0f;
-			if (alpha > 255 || p->type == pt_static)
+			if ((alpha > 255) || (p->type == pt_static))
 				alpha = 255;
 
 			pglColor4ub (color.r, color.g, color.b, alpha);
@@ -191,7 +195,9 @@ void CL_DrawTracers (double frametime, particle_t *cl_active_tracers)
 	pglDisable (GL_ALPHA_TEST);
 	pglDepthMask (GL_FALSE);
 
-	gravity = frametime * tr.movevars->gravity;
+	// [FWGS, 01.05.26]
+	/*gravity = frametime * tr.movevars->gravity;*/
+	gravity = frametime * gp_movevars->gravity;
 	scale = 1.0 - (frametime * 0.9);
 	if (scale < 0.0f)
 		scale = 0.0f;
@@ -241,7 +247,6 @@ void CL_DrawTracers (double frametime, particle_t *cl_active_tracers)
 
 			// [FWGS, 01.04.26]
 			color = gTracerColors[p->color];
-			/*pglColor4ub (color.r, color.g, color.b, p->packedColor);*/
 			pglColor4ub (color.r, color.g, color.b, p->unused);
 
 			pglTexCoord2f (0.0f, 0.8f);
@@ -264,9 +269,6 @@ void CL_DrawTracers (double frametime, particle_t *cl_active_tracers)
 			p->vel[2] -= gravity;
 
 			// [FWGS, 01.04.26]
-			/*p->packedColor = 255 * (p->die - gp_cl->time) * 2;
-			if (p->packedColor > 255)
-				p->packedColor = 255;*/
 			p->unused = 255 * (p->die - gp_cl->time) * 2;
 			if (p->unused > 255)
 				p->unused = 255;
