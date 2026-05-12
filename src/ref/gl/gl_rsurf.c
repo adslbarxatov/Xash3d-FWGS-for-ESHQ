@@ -349,7 +349,6 @@ void GL_SubdivideSurface (model_t *loadmodel, msurface_t *fa)
 		R_GetEdgePosition (loadmodel, fa, i, verts[i]);
 
 	// [FWGS, 15.04.26]
-	/*SetBits (fa->flags, SURF_DRAWTURB_QUADS); // predict state*/
 	if (glConfig.context == CONTEXT_TYPE_GL)
 		SetBits (fa->flags, SURF_DRAWTURB_QUADS);	// predict state
 
@@ -698,7 +697,6 @@ static int LM_AllocBlock (int w, int h, int *x, int *y)
 	best = BLOCK_SIZE;
 
 	// [FWGS, 15.04.26]
-	/*for (i = 0; i < BLOCK_SIZE - w; i++)*/
 	for (i = 0; i < BLOCK_SIZE - w; )
 		{
 		best2 = 0;
@@ -744,15 +742,6 @@ static int LM_AllocBlock (int w, int h, int *x, int *y)
 // [FWGS, 15.04.26]
 static void LM_UploadDynamicBlock (void)
 	{
-	/*int	height = 0, i;
-
-	for (i = 0; i < BLOCK_SIZE; i++)
-		{
-		if (gl_lms.allocated[i] > height)
-			height = gl_lms.allocated[i];
-		}
-
-	pglTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, BLOCK_SIZE, height, GL_RGBA, GL_UNSIGNED_BYTE, gl_lms.lightmap_buffer);*/
 	pglTexSubImage2D (GL_TEXTURE_2D, 0, 0, 0, BLOCK_SIZE, gl_lms.max_height, GL_RGBA, GL_UNSIGNED_BYTE, gl_lms.lightmap_buffer);
 	}
 
@@ -927,17 +916,10 @@ DrawGLPoly [FWGS, 05.04.26]
 ***/
 static void DrawGLPoly (glpoly2_t *p, float xScale, float yScale)
 	{
-	/*float	*v;
-	float	sOffset, sy;
-	float	tOffset, cy;
-	cl_entity_t	*e = RI.currententity;
-	int		i, hasScale = false;*/
 	float	*v;
 	float	sOffset, tOffset;
 	int		i;
 
-	/*if (!p) 
-		return;*/
 	if (!p)
 		return;
 
@@ -955,8 +937,6 @@ static void DrawGLPoly (glpoly2_t *p, float xScale, float yScale)
 		float	flRate, flAngle, sy, cy;
 		gl_texture_t	*texture;
 
-		/*if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) && (RI.currententity == CL_GetEntityByIndex (0)))
-		if ((e == CL_GetEntityByIndex (0)) && ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE))*/
 		if ((e == CL_GetEntityByIndex (0)) && FBitSet (gp_host->features, ENGINE_QUAKE_COMPATIBLE))
 			{
 			// same as doom speed
@@ -992,8 +972,6 @@ static void DrawGLPoly (glpoly2_t *p, float xScale, float yScale)
 		sOffset = tOffset = 0.0f;
 		}
 
-	/*if ((xScale != 0.0f) && (yScale != 0.0f))
-		hasScale = true;*/
 	const qboolean hasScale = (xScale != 0.0f) && (yScale != 0.0f);
 
 	pglBegin (GL_POLYGON);
@@ -1114,10 +1092,6 @@ Render lightmaps
 static void DrawGLPolyChain (glpoly2_t *p, float soffset, float toffset)
 	{
 	// [FWGS, 01.04.26]
-	/*qboolean dynamic = true;
-
-	if ((soffset == 0.0f) && (toffset == 0.0f))
-		dynamic = false;*/
 	const qboolean dynamic = (soffset != 0.0f) || (toffset != 0.0f);
 
 	for (; p != NULL; p = p->chain)
@@ -1158,7 +1132,7 @@ static qboolean R_HasLightmap (void)
 			case kRenderTransColor:
 			case kRenderTransAdd:
 			case kRenderGlow:
-				return false; // no lightmaps
+				return false;	// no lightmaps
 			}
 		}
 
@@ -1313,8 +1287,6 @@ R_RenderFullbrights [FWGS, 05.04.26]
 /*static void R_RenderFullbrights (void)*/
 static void R_RenderFullbrights (qboolean allow_vbo)
 	{
-	/*mextrasurf_t	*es, *p;
-	int		i;*/
 	mextrasurf_t	*es, *p;
 	int		i;
 
@@ -1330,11 +1302,6 @@ static void R_RenderFullbrights (qboolean allow_vbo)
 
 	// if fullbright textures are drawn in separate pass from VBO they
 	// cause z-fighting, this is noticeable on `slide_waifufu.bsp` map
-	/*if (R_HasEnabledVBO () && gl_polyoffset.value)
-		{
-		pglEnable (GL_POLYGON_OFFSET_FILL);
-		pglPolygonOffset (-1.0f, -gl_polyoffset.value);
-		}*/
 	if (allow_vbo && gl_polyoffset.value)
 		GL_PushPolygonOffset (-1.0f, -gl_polyoffset.value);
 
@@ -1353,9 +1320,6 @@ static void R_RenderFullbrights (qboolean allow_vbo)
 		es->lumachain = NULL;
 		}
 
-	/*// [FWGS, 01.03.25]
-	if (R_HasEnabledVBO () && gl_polyoffset.value)
-		pglDisable (GL_POLYGON_OFFSET_FILL);*/
 	if (allow_vbo && gl_polyoffset.value)
 		GL_PopPolygonOffset ();
 
@@ -1390,7 +1354,6 @@ static void R_RenderDetails (int passes)
 	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 
 	// [FWGS, 05.04.26]
-	/*if (passes == 3)*/
 	if (passes == 3)
 		{
 		pglDepthFunc (GL_EQUAL);
@@ -1412,7 +1375,7 @@ static void R_RenderDetails (int passes)
 		for (p = es; p; p = p->detailchain)
 			{
 			fa = p->surf;
-			glt = R_GetTexture (fa->texinfo->texture->gl_texturenum); // get texture scale
+			glt = R_GetTexture (fa->texinfo->texture->gl_texturenum);	// get texture scale
 			DrawGLPoly (fa->polys, glt->xscale, glt->yscale);
 			}
 
@@ -1490,29 +1453,14 @@ static void R_RenderDecalsForSurface (msurface_t *fa, int cull_type)
 // [FWGS, 15.04.26]
 static qboolean R_CheckLightMap (msurface_t *fa)
 	{
-	/*qboolean	is_dynamic = false;*/
 	int		maps;
 
-	/*// check for lightmap modification
-	for (maps = 0; (maps < MAXLIGHTMAPS) && (fa->styles[maps] != 255); maps++)
-		{
-		if (tr.lightstylevalue[fa->styles[maps]] != fa->cached_light[maps])
-			goto dynamic;
-		}*/
 	if (unlikely (!r_dynamic->value))
 		return false;
 
-	/*// dynamic this frame or dynamic previously*/
 	if (fa->dlightframe == tr.framecount)
-		/*{
-dynamic:
-		// NOTE: at this point we have only valid textures
-		if (r_dynamic->value)
-			is_dynamic = true;
-		}*/
 		return true;	// dlighted surfaces are always dynamic
 
-	/*if (is_dynamic)*/
 	// check for light styles
 	for (maps = 0; (maps < MAXLIGHTMAPS) && (fa->styles[maps] != 255); maps++)
 		{
@@ -1521,37 +1469,16 @@ dynamic:
 
 		const int style = fa->styles[maps];
 
-		/*if ((maps < MAXLIGHTMAPS) &&
-			((style >= 32) || (style == 0) || (style == 20)) &&
-			(fa->dlightframe != tr.framecount))
-			{
-			byte		temp[132 * 132 * 4];
-			mextrasurf_t *info = fa->info;
-			int			sample_size;
-			int			smax, tmax;*/
 		// flickering light styles can go to dynamic chain
 		if (!(style >= 32 || style == 0 || style == 20))
 			return true;
 
-		/*sample_size = gEngfuncs.Mod_SampleSizeForFace (fa);
-		smax = (info->lightextents[0] / sample_size) + 1;
-		tmax = (info->lightextents[1] / sample_size) + 1;*/
 		byte temp[132 * 132 * 4];
 		mextrasurf_t *info = fa->info;
 		int sample_size = gEngfuncs.Mod_SampleSizeForFace (fa);
 		int smax = (info->lightextents[0] / sample_size) + 1;
 		int tmax = (info->lightextents[1] / sample_size) + 1;
 
-		/*if ((smax < 132) && (tmax < 132))
-				{
-				R_BuildLightMap (fa, temp, smax * 4, true);
-				}
-			else
-				{
-				smax = Q_min (smax, 132);
-				tmax = Q_min (tmax, 132);
-				memset (temp, 255, sizeof (temp));
-				}*/
 		if ((smax < 132) && (tmax < 132))
 			{
 			R_BuildLightMap (fa, temp, smax * 4, true);
@@ -1563,37 +1490,25 @@ dynamic:
 			memset (temp, 255, sizeof (temp));
 			}
 
-		/*R_SetCacheState (fa);*/
 		R_SetCacheState (fa);
 
 #if XASH_WES
-		/*GL_Bind (XASH_TEXTURE1, tr.lightmapTextures[fa->lightmaptexturenum]);
-		pglTexParameteri (GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);*/
 		GL_Bind (XASH_TEXTURE1, tr.lightmapTextures[fa->lightmaptexturenum]);
 		pglTexParameteri (GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
 #else
-		/*GL_Bind (XASH_TEXTURE0, tr.lightmapTextures[fa->lightmaptexturenum]);*/
 		GL_Bind (XASH_TEXTURE0, tr.lightmapTextures[fa->lightmaptexturenum]);
 #endif
 
-		/*pglTexSubImage2D (GL_TEXTURE_2D, 0, fa->light_s, fa->light_t, smax, tmax, GL_RGBA,
-			GL_UNSIGNED_BYTE, temp);*/
 		pglTexSubImage2D (GL_TEXTURE_2D, 0, fa->light_s, fa->light_t, smax, tmax, GL_RGBA,
 			GL_UNSIGNED_BYTE, temp);
 
 #if XASH_WES
-		/*GL_SelectTexture (XASH_TEXTURE0);*/
 		GL_SelectTexture (XASH_TEXTURE0);
 #endif
-		/*	}
-		else
-			{
-			return true; // add to dynamic chain
-			}*/
+
 		return false;
 		}
 
-	/*return false; // updated*/
 	return false; // no change
 	}
 
@@ -1626,7 +1541,7 @@ static void R_RenderBrushPoly (msurface_t *fa, int cull_type)
 	r_stats.c_world_polys++;
 
 	if (fa->flags & SURF_DRAWSKY)
-		return; // already handled
+		return;	// already handled
 
 	t = R_TextureAnimation (fa);
 	if (FBitSet (fa->flags, SURF_DRAWTURB))
@@ -1707,8 +1622,6 @@ static void R_DrawTextureChains (void)
 			}
 
 		// [FWGS, 05.04.26]
-		/*// [FWGS, 01.12.24]
-		if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) && FBitSet (s->flags, SURF_TRANSPARENT))*/
 		if (FBitSet (gp_host->features, ENGINE_QUAKE_COMPATIBLE) && FBitSet (s->flags, SURF_TRANSPARENT))
 			{
 			R_AddToSeparatePass (&draw_alpha_surfaces, i);
@@ -1740,7 +1653,7 @@ void R_DrawAlphaTextureChains (void)
 
 	// make sure what color is reset
 	pglColor4ub (255, 255, 255, 255);
-	R_LoadIdentity (); // set identity matrix
+	R_LoadIdentity ();	// set identity matrix
 
 	pglDisable (GL_BLEND);
 	pglEnable (GL_ALPHA_TEST);
@@ -1772,7 +1685,7 @@ void R_DrawAlphaTextureChains (void)
 	R_ResetSeparatePass (&draw_alpha_surfaces);
 	GL_ResetFogColor ();
 	R_BlendLightmaps ();
-	RI.currententity->curstate.rendermode = kRenderNormal; // restore world rendermode
+	RI.currententity->curstate.rendermode = kRenderNormal;	// restore world rendermode
 	pglAlphaFunc (GL_GREATER, DEFAULT_ALPHATEST);
 	}
 
@@ -1903,7 +1816,6 @@ static void R_SetRenderMode (cl_entity_t *e)
 		case kRenderTransAlpha:
 			pglEnable (GL_ALPHA_TEST);
 			pglTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-			/*if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE))*/
 			if (FBitSet (gp_host->features, ENGINE_QUAKE_COMPATIBLE))
 				{
 				pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1980,15 +1892,6 @@ R_DrawBrushModel [FWGS, 05.04.26]
 ***/
 void R_DrawBrushModel (cl_entity_t *e)
 	{
-	/*int			i, k, num_sorted;
-	vec3_t		origin_l, oldorigin;
-	int			old_rendermode;
-	vec3_t		mins, maxs;
-	int			cull_type;
-	msurface_t	*psurf;
-	model_t		*clmodel;
-	qboolean	rotated;
-	dlight_t	*l;*/
 	int			old_rendermode;
 	vec3_t		mins, maxs;
 	qboolean	rotated;
@@ -1997,7 +1900,6 @@ void R_DrawBrushModel (cl_entity_t *e)
 	if (!RI.drawWorld)
 		return;
 
-	/*clmodel = e->model;*/
 	model_t *clmodel = e->model;
 
 	// external models not loaded to VBO
@@ -2006,7 +1908,6 @@ void R_DrawBrushModel (cl_entity_t *e)
 
 	if (!VectorIsNull (e->angles))
 		{
-		/*for (i = 0; i < 3; i++)*/
 		for (int i = 0; i < 3; i++)
 			{
 			mins[i] = e->origin[i] - clmodel->radius;
@@ -2029,21 +1930,14 @@ void R_DrawBrushModel (cl_entity_t *e)
 	old_rendermode = e->curstate.rendermode;
 	gl_lms.dynamic_surfaces = NULL;
 
-	/*if (rotated)
-		R_RotateForEntity (e);
-	else
-		R_TranslateForEntity (e);*/
 	if (rotated)
 		{
 		R_RotateForEntity (e);
-
 		Matrix4x4_VectorITransform (RI.objectMatrix, RI.cullorigin, tr.modelorg);
 		}
 	else
 		{
 		R_TranslateForEntity (e);
-
-		/*if (ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE) && FBitSet (clmodel->flags, MODEL_TRANSPARENT))*/
 		VectorSubtract (RI.cullorigin, e->origin, tr.modelorg);
 		}
 
@@ -2053,27 +1947,20 @@ void R_DrawBrushModel (cl_entity_t *e)
 	// visible
 	e->visframe = tr.realframecount;
 
-	/*if (rotated)
-		Matrix4x4_VectorITransform (RI.objectMatrix, RI.cullorigin, tr.modelorg);
-	else
-		VectorSubtract (RI.cullorigin, e->origin, tr.modelorg);*/
-
 	// calculate dynamic lighting for bmodel
-	/*for (k = 0; k < MAX_DLIGHTS; k++)*/
 	for (int k = 0; k < MAX_DLIGHTS; k++)
 		{
-		/*l = &tr.dlights[k];*/
 		dlight_t	*l = &tr.dlights[k];
 		vec3_t		origin_l, oldorigin;
 
 		if ((l->die < gp_cl->time) || !l->radius)
 			continue;
 
-		VectorCopy (l->origin, oldorigin); // save lightorigin
+		VectorCopy (l->origin, oldorigin);	// save lightorigin
 		Matrix4x4_VectorITransform (RI.objectMatrix, l->origin, origin_l);
-		VectorCopy (origin_l, l->origin); // move light in bmodel space
+		VectorCopy (origin_l, l->origin);	// move light in bmodel space
 		R_MarkLights (l, 1 << k, clmodel->nodes + clmodel->hulls[0].firstclipnode);
-		VectorCopy (oldorigin, l->origin); // restore lightorigin
+		VectorCopy (oldorigin, l->origin);	// restore lightorigin
 		}
 
 	// setup the rendermode
@@ -2091,52 +1978,14 @@ void R_DrawBrushModel (cl_entity_t *e)
 	if (!allow_vbo)
 		GL_SetupFogColorForSurfaces ();
 
-	/*psurf = &clmodel->surfaces[clmodel->firstmodelsurface];
-	num_sorted = 0;
-
-	for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
-		{
-		if (FBitSet (psurf->flags, SURF_DRAWTURB) && !ENGINE_GET_PARM (PARM_QUAKE_COMPATIBLE))
-			{
-			if ((psurf->plane->type != PLANE_Z) && !FBitSet (e->curstate.effects, EF_WATERSIDES))
-				continue;
-			if (mins[2] + 1.0f >= psurf->plane->dist)
-				continue;
-			}
-
-		cull_type = R_CullSurface (psurf, &RI.frustum, RI.frustum.clipFlags);
-
-		if (cull_type >= CULL_FRUSTUM)
-			continue;
-
-		if (cull_type == CULL_BACKSIDE)
-			{
-			if (!FBitSet (psurf->flags, SURF_DRAWTURB) &&
-				!(psurf->pdecals && e->curstate.rendermode == kRenderTransTexture))
-				continue;
-			}
-
-		if (num_sorted < gpGlobals->max_surfaces)
-			{
-			gpGlobals->draw_surfaces[num_sorted].surf = psurf;
-			gpGlobals->draw_surfaces[num_sorted].cull = cull_type;
-			num_sorted++;
-			}
-		}*/
 	int num_sorted = R_SortBrushModelSurfaces (e, clmodel, mins);
 
-	/*// sort faces if needs
-	if (!FBitSet (clmodel->flags, MODEL_LIQUID) && (e->curstate.rendermode == kRenderTransTexture) &&
-		!gl_nosort.value)
-		qsort (gpGlobals->draw_surfaces, num_sorted, sizeof (sortedface_t), R_SurfaceCompare);*/
 	// draw bmodels with a polyoffset to avoid flickering when they are too close to world
 	// R_DrawVBO and DrawDecalsBatch will restore polyoffset
 	if (gl_polyoffset_bmodels.value)
 		GL_PushPolygonOffset (-0.5f, -gl_polyoffset_bmodels.value);
 
 	// draw sorted translucent surfaces
-	/*for (i = 0; i < num_sorted; i++)
-		if (!allow_vbo || !R_AddSurfToVBO (gpGlobals->draw_surfaces[i].surf, true))*/
 	for (int i = 0; i < num_sorted; i++)
 		{
 		if (!allow_vbo || !R_AddSurfToVBO (gpGlobals->draw_surfaces[i].surf, true))
@@ -2152,9 +2001,6 @@ void R_DrawBrushModel (cl_entity_t *e)
 	GL_ResetFogColor ();
 	R_BlendLightmaps ();
 
-	/*R_RenderFullbrights ();
-	
-	R_RenderDetails (allow_vbo ? 2 : 3);*/
 	R_RenderFullbrights (allow_vbo);
 	R_RenderDetails (allow_vbo ? 2 : 3);
 
@@ -2175,20 +2021,8 @@ void R_DrawBrushModel (cl_entity_t *e)
 	
 	if (r_showhull->value > 0.0f)
 		{
-		/*GLfloat factor, units;
-
-		pglGetFloatv (GL_POLYGON_OFFSET_FACTOR, &factor);
-		pglGetFloatv (GL_POLYGON_OFFSET_UNITS, &units);
-
-		pglPolygonOffset (1.0f, 2.0f);
-		pglEnable (GL_POLYGON_OFFSET_FILL);*/
 		GL_PushPolygonOffset (1.0f, 2.0f);
-
-		gEngfuncs.R_DrawModelHull (clmodel); // draw before restore
-
-		/*pglDisable (GL_POLYGON_OFFSET_FILL);
-
-		pglPolygonOffset (factor, units);*/
+		gEngfuncs.R_DrawModelHull (clmodel);	// draw before restore
 		GL_PopPolygonOffset ();
 		}
 
@@ -2438,7 +2272,6 @@ void R_GenerateVBO (void)
 					continue;
 
 				// [FWGS, 15.04.26]
-				/*if (surf->flags & (SURF_DRAWSKY | SURF_DRAWTURB | SURF_CONVEYOR | SURF_DRAWTURB_QUADS))*/
 				if (surf->flags & (SURF_DRAWSKY | SURF_DRAWTURB | SURF_CONVEYOR | SURF_DRAWTURB_QUADS | SURF_TRANSPARENT))
 					continue;
 
@@ -2514,7 +2347,6 @@ void R_GenerateVBO (void)
 					continue;
 
 				// [FWGS, 15.04.26]
-				/*if (surf->flags & (SURF_DRAWSKY | SURF_DRAWTURB | SURF_CONVEYOR | SURF_DRAWTURB_QUADS))*/
 				if (surf->flags & (SURF_DRAWSKY | SURF_DRAWTURB | SURF_CONVEYOR | SURF_DRAWTURB_QUADS | SURF_TRANSPARENT))
 					continue;
 
@@ -2834,9 +2666,6 @@ static texture_t *R_SetupVBOTexture (texture_t *tex, int number)
 		}
 
 	// [FWGS, 15.04.26]
-	/*GL_Bind (mtst.tmu_gl, r_lightmap->value ? tr.whiteTexture : tex->gl_texturenum);
-
-	if (number)*/
 	GL_Bind (mtst.tmu_gl, r_lightmap->value ? tr.whiteTexture : tex->gl_texturenum);
 	if (number)
 		vboarray.itexture = number;
@@ -2995,7 +2824,7 @@ static void R_AdditionalPasses (vboarray_t *vbo, int indexlen, void *indexarray,
 		pglScalef (glt->xscale, glt->yscale, 1);
 
 		// draw
-#if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN // WebGL need to know array sizes
+#if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN		// WebGL need to know array sizes
 		if (pglDrawRangeElements)
 			pglDrawRangeElements (GL_TRIANGLES, 0, vbo->array_len, indexlen, GL_VBOINDEX_TYPE, indexarray);
 		else
@@ -3059,7 +2888,6 @@ static void R_DrawDlightedDecals (vboarray_t *vbo, msurface_t *newsurf, msurface
 					pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 				// [FWGS, 15.04.26]
-				/*pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
 				if (FBitSet (glt->flags, TF_PREMULTIPLIED))
 					pglBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				else
@@ -3131,7 +2959,7 @@ static void R_FlushDlights (vboarray_t *vbo, int min_index, int max_index, int d
 
 	LM_UploadDynamicBlock ();
 
-#if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN // WebGL need to know array sizes
+#if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN		// WebGL need to know array sizes
 	if (pglDrawRangeElements)
 		pglDrawRangeElements (GL_TRIANGLES, min_index, max_index, dlightindex, GL_VBOINDEX_TYPE, dlightarray);
 	else
@@ -3216,7 +3044,7 @@ static void R_DrawVBODlights (vboarray_t *vbo, vbotexture_t *vbotex, texture_t *
 	// draw dlights and dlighted decals
 	if (vbotex->dlightchain)
 		{
-		vboindex_t *dlightarray = vbos.dlight_index; // preallocated array
+		vboindex_t *dlightarray = vbos.dlight_index;	// preallocated array
 		unsigned int dlightindex = 0;
 		msurface_t *surf, *newsurf;
 		int decalcount = 0;
@@ -3262,7 +3090,6 @@ static void R_DrawVBODlights (vboarray_t *vbo, vbotexture_t *vbotex, texture_t *
 			uint	indexbase = vbos.surfdata[((char *)surf - (char *)WORLDMODEL->surfaces) / sizeof (*surf)].startindex;
 			uint	index;
 			mextrasurf_t	*info;	// this stores current dlight offset
-			/*decal_t *pdecal;*/
 			int		sample_size;
 
 			info = surf->info;
@@ -3399,7 +3226,7 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 	{
 	if (vbotex->curindex)
 		{
-#if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN	// WebGL need to know array sizes
+#if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN		// WebGL need to know array sizes
 		if (pglDrawRangeElements)
 			pglDrawRangeElements (GL_TRIANGLES, 0, vbo->array_len, vbotex->curindex, GL_VBOINDEX_TYPE,
 				vbotex->indexarray);
@@ -3416,7 +3243,7 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 			pglDisable (GL_TEXTURE_2D);
 			pglDisable (GL_DEPTH_TEST);
 
-#if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN // WebGL need to know array sizes
+#if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN		// WebGL need to know array sizes
 			if (pglDrawRangeElements)
 				pglDrawRangeElements (GL_LINES, 0, vbo->array_len, vbotex->curindex, GL_VBOINDEX_TYPE, vbotex->indexarray);
 			else
@@ -3492,7 +3319,6 @@ static void R_DrawStaticDecals (vboarray_t *vbo, qboolean drawlightmap, int ilig
 	// [FWGS, 05.04.26]
 	pglDepthMask (GL_FALSE);
 	pglEnable (GL_BLEND);
-	/*pglEnable (GL_POLYGON_OFFSET_FILL);*/
 
 	if (RI.currententity->curstate.rendermode == kRenderTransAlpha)
 		pglDisable (GL_ALPHA_TEST);
@@ -3527,7 +3353,6 @@ static void R_DrawStaticDecals (vboarray_t *vbo, qboolean drawlightmap, int ilig
 					pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 				// [FWGS, 15.04.26]
-				/*pglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
 				if (FBitSet (glt->flags, TF_PREMULTIPLIED))
 					pglBlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				else
@@ -3569,7 +3394,6 @@ static void R_DrawStaticDecals (vboarray_t *vbo, qboolean drawlightmap, int ilig
 	// [FWGS, 05.04.26] prepare for next texture
 	pglDepthMask (GL_TRUE);
 	pglDisable (GL_BLEND);
-	/*pglDisable (GL_POLYGON_OFFSET_FILL);*/
 
 	R_SetupVBOArrayStatic (vbo, drawlightmap, true);
 
@@ -3586,7 +3410,7 @@ static void R_ClearVBOState (qboolean drawlightmap, qboolean drawtextures)
 	if (drawlightmap)
 		{
 		// reset states
-		GL_Bind (XASH_TEXTURE1, tr.defaultTexture); // force reset tmu in case we have only one lightmap
+		GL_Bind (XASH_TEXTURE1, tr.defaultTexture);		// force reset tmu in case we have only one lightmap
 		pglDisableClientState (GL_TEXTURE_COORD_ARRAY);
 		pglDisable (GL_TEXTURE_2D);
 		if (drawtextures)
@@ -3816,14 +3640,6 @@ R_RecursiveWorldNode [FWGS, 15.04.26]
 ***/
 static void R_RecursiveWorldNode (mnode_t *node, uint clipflags)
 	{
-	/*int			i, clipped;
-	msurface_t	*surf, **mark;
-	mleaf_t		*pleaf;
-	int			c, side;
-	float		dot;
-	mnode_t		*children[2];
-	int			numsurfaces, firstsurface;*/
-
 loc0:
 	if (node->contents == CONTENTS_SOLID)
 		return;	// hit a solid leaf
@@ -3833,7 +3649,6 @@ loc0:
 
 	if (clipflags && !r_nocull.value)
 		{
-		/*for (i = 0; i < 6; i++)*/
 		for (int i = 0; i < 6; i++)
 			{
 			const mplane_t *p = &RI.frustum.planes[i];
@@ -3841,7 +3656,6 @@ loc0:
 			if (!FBitSet (clipflags, BIT (i)))
 				continue;
 
-			/*clipped = BOX_ON_PLANE_SIDE (node->minmaxs, node->minmaxs + 3, p);*/
 			int clipped = BOX_ON_PLANE_SIDE (node->minmaxs, node->minmaxs + 3, p);
 			if (clipped == 2)
 				return;
@@ -3853,21 +3667,9 @@ loc0:
 	// if a leaf node, draw stuff
 	if (node->contents < 0)
 		{
-		/*pleaf = (mleaf_t *)node;
-
-		mark = pleaf->firstmarksurface;
-		c = pleaf->nummarksurfaces;*/
 		mleaf_t		*pleaf = (mleaf_t *)node;
 		msurface_t	**mark = pleaf->firstmarksurface;
 
-		/*if (c)
-			{
-			do
-				{
-				(*mark)->visframe = tr.framecount;
-				mark++;
-				} while (--c);
-			}*/
 		for (int i = 0; i < pleaf->nummarksurfaces; i++)
 			mark[i]->visframe = tr.framecount;
 
@@ -3882,23 +3684,16 @@ loc0:
 	// node is just a decision point, so go down the apropriate sides
 
 	// find which side of the node we are on
-	/*dot = PlaneDiff (tr.modelorg, node->plane);
-	side = (dot >= 0.0f) ? 0 : 1;*/
 	float dot = PlaneDiff (tr.modelorg, node->plane);
 	int side = (dot >= 0.0f) ? 0 : 1;
 
 	// recurse down the children, front side first
-	/*node_children (children, node, WORLDMODEL);
-	R_RecursiveWorldNode (children[side], clipflags);*/
 	R_RecursiveWorldNode (node_child (node, side, WORLDMODEL), clipflags);
 
-	/*firstsurface = node_firstsurface (node, WORLDMODEL);
-	numsurfaces = node_numsurfaces (node, WORLDMODEL);*/
 	int firstsurface = node_firstsurface (node, WORLDMODEL);
 	int numsurfaces = node_numsurfaces (node, WORLDMODEL);
 
 	// draw stuff
-	/*for (c = numsurfaces, surf = WORLDMODEL->surfaces + firstsurface; c; c--, surf++)*/
 	for (int i = firstsurface; i < firstsurface + numsurfaces; i++)
 		{
 		msurface_t *surf = &WORLDMODEL->surfaces[i];
@@ -3920,7 +3715,6 @@ loc0:
 		}
 
 	// recurse down the back side
-	/*node = children[!side];*/
 	node = node_child (node, !side, WORLDMODEL);
 	goto loc0;
 	}
@@ -3998,7 +3792,6 @@ static void R_DrawWorldTopView (mnode_t *node, uint clipflags)
 	do
 		{
 		// [FWGS, 15.04.26]
-		/*mnode_t	*children[2];*/
 		int		numsurfaces, firstsurface;
 
 		if (node->contents == CONTENTS_SOLID)
@@ -4017,7 +3810,6 @@ static void R_DrawWorldTopView (mnode_t *node, uint clipflags)
 					continue;
 
 				// [FWGS, 05.04.26]
-				/*clipped = BoxOnPlaneSide (node->minmaxs, node->minmaxs + 3, p);*/
 				clipped = BOX_ON_PLANE_SIDE (node->minmaxs, node->minmaxs + 3, p);
 				if (clipped == 2)
 					return;
@@ -4060,9 +3852,6 @@ static void R_DrawWorldTopView (mnode_t *node, uint clipflags)
 			}
 
 		// [FWGS, 15.04.26] recurse down both children, we don't care the order...
-		/*node_children (children, node, WORLDMODEL);
-		R_DrawWorldTopView (children[0], clipflags);
-		node = children[1];*/
 		R_DrawWorldTopView (node_child (node, 0, WORLDMODEL), clipflags);
 		node = node_child (node, 1, WORLDMODEL);
 
@@ -4122,7 +3911,6 @@ void R_DrawWorld (void)
 		R_BlendLightmaps ();
 
 		// [FWGS, 05.04.26]
-		/*R_RenderFullbrights ();*/
 		R_RenderFullbrights (R_HasEnabledVBO ());
 		R_RenderDetails (R_HasEnabledVBO () ? 2 : 3);
 
@@ -4140,7 +3928,6 @@ void R_DrawWorld (void)
 	skychain = NULL;
 
 	// [FWGS, 01.03.26]
-	/*R_DrawTriangleOutlines ();*/
 	gEngfuncs.R_DrawWorldHull ();
 	}
 
@@ -4177,15 +3964,9 @@ void R_MarkLeaves (void)
 		{
 		// [FWGS, 15.04.26] merge two leafs that can be a crossed-line contents
 		if (RI.viewleaf->contents == CONTENTS_EMPTY)
-			/*{*/
 			VectorSet (test, RI.pvsorigin[0], RI.pvsorigin[1], RI.pvsorigin[2] - 16.0f);
-			/*leaf = gEngfuncs.Mod_PointInLeaf (test, WORLDMODEL->nodes);
-			}*/
 		else
-			/*{*/
 			VectorSet (test, RI.pvsorigin[0], RI.pvsorigin[1], RI.pvsorigin[2] + 16.0f);
-			/*leaf = gEngfuncs.Mod_PointInLeaf (test, WORLDMODEL->nodes);
-			}*/
 
 		leaf = gEngfuncs.Mod_PointInLeaf (test, WORLDMODEL->nodes);
 
@@ -4283,7 +4064,7 @@ void GL_RebuildLightmaps (void)
 	model_t	*m;
 
 	if (!ENGINE_GET_PARM (PARM_CLIENT_ACTIVE))
-		return; // wait for worldmodel
+		return;	// wait for worldmodel
 
 	// release old lightmaps
 	for (i = 0; i < MAX_LIGHTMAPS; i++)

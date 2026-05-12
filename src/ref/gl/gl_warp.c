@@ -19,7 +19,6 @@ GNU General Public License for more details
 // [FWGS, 15.04.26]
 #define SKYCLOUDS_QUALITY	12
 #define MAX_CLIP_VERTS		128	// skybox clip vertices
-/*define TURBSCALE			( 256.0f / ( M_PI2 ))*/
 
 // [FWGS, 01.07.24]
 static const int r_skyTexOrder[SKYBOX_MAX_SIDES] = { 0, 2, 1, 3, 4, 5 };
@@ -56,12 +55,6 @@ static const int vec_to_st[SKYBOX_MAX_SIDES][3] =
 	};
 
 // [FWGS, 15.04.26]
-/*// speed up sin calculations
-static float r_turbsin[] =
-	{
-	include "warpsin.h"
-	};*/
-
 #define RIPPLES_CACHEWIDTH_BITS		7
 #define RIPPLES_CACHEWIDTH			( 1 << RIPPLES_CACHEWIDTH_BITS )
 #define RIPPLES_CACHEWIDTH_MASK		(( RIPPLES_CACHEWIDTH ) - 1 )
@@ -316,6 +309,7 @@ void R_AddSkyBoxSurface (msurface_t *fa)
 			pglTexCoord2f (v[3], v[4]);
 			pglVertex3fv (v);
 			}
+
 		pglEnd ();
 		}
 
@@ -355,17 +349,18 @@ void R_UnloadSkybox (void)
 
 /***
 ==============
-R_DrawSkybox
+R_DrawSkybox [FWGS, 01.05.26]
 ==============
 ***/
 void R_DrawSkyBox (void)
 	{
-	int	i;
+	/*int	i;
 
-	RI.isSkyVisible = true;
+	RI.isSkyVisible = true;*/
 
 	// don't fogging skybox (this fix old Half-Life bug)
-	if (!RI.fogSkybox) R_AllowFog (false);
+	if (!RI.fogSkybox)
+		R_AllowFog (false);
 
 	if (RI.fogEnabled)
 		pglFogf (GL_FOG_DENSITY, RI.fogDensity * 0.5f);
@@ -374,7 +369,8 @@ void R_DrawSkyBox (void)
 	pglDisable (GL_ALPHA_TEST);
 	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-	for (i = 0; i < SKYBOX_MAX_SIDES; i++)
+	/*for (i = 0; i < SKYBOX_MAX_SIDES; i++)*/
+	for (int i = 0; i < SKYBOX_MAX_SIDES; i++)
 		{
 		if ((RI.skyMins[0][i] >= RI.skyMaxs[0][i]) || (RI.skyMins[1][i] >= RI.skyMaxs[1][i]))
 			continue;
@@ -382,7 +378,7 @@ void R_DrawSkyBox (void)
 		if (tr.skyboxTextures[r_skyTexOrder[i]])
 			GL_Bind (XASH_TEXTURE0, tr.skyboxTextures[r_skyTexOrder[i]]);
 		else
-			GL_Bind (XASH_TEXTURE0, tr.grayTexture); // stub
+			GL_Bind (XASH_TEXTURE0, tr.grayTexture);	// stub
 
 		pglBegin (GL_QUADS);
 		MakeSkyVec (RI.skyMins[0][i], RI.skyMins[1][i], i);
@@ -433,7 +429,7 @@ static void R_CloudVertex (float s, float t, int axis, vec3_t v)
 
 /***
 =============
-R_CloudTexCoord [FWGS, 01.09.24]
+R_CloudTexCoord
 =============
 ***/
 static void R_CloudTexCoord (const vec3_t v, float speed, float *s, float *t)
@@ -444,8 +440,10 @@ static void R_CloudTexCoord (const vec3_t v, float speed, float *s, float *t)
 	speedscale = gp_cl->time * speed;
 	speedscale -= (int)speedscale & ~127;
 
-	VectorSubtract (v, RI.vieworg, dir);
-	dir[2] *= 3.0f; // flatten the sphere
+	// [FWGS, 01.05.26]
+	/*VectorSubtract (v, RI.vieworg, dir);*/
+	VectorSubtract (v, RI.rvp.vieworigin, dir);
+	dir[2] *= 3.0f;	// flatten the sphere
 
 	length = VectorLength (dir);
 	length = 6.0f * 63.0f / length;
@@ -475,6 +473,7 @@ static void R_CloudDrawPoly (const float *verts)
 		pglTexCoord2f (s, t);
 		pglVertex3fv (v);
 		}
+
 	pglEnd ();
 
 	GL_SetRenderMode (kRenderTransTexture);
@@ -487,6 +486,7 @@ static void R_CloudDrawPoly (const float *verts)
 		pglTexCoord2f (s, t);
 		pglVertex3fv (v);
 		}
+
 	pglEnd ();
 
 	pglDisable (GL_BLEND);
@@ -549,25 +549,26 @@ static void R_CloudRenderSide (int axis)
 
 /***
 ==============
-R_DrawClouds
+R_DrawClouds [FWGS, 01.05.26]
 
 Quake-style clouds
 ==============
 ***/
 void R_DrawClouds (void)
 	{
-	int	i;
+	/*int	i;
 
-	RI.isSkyVisible = true;
+	RI.isSkyVisible = true;*/
 
 	if (RI.fogEnabled)
 		pglFogf (GL_FOG_DENSITY, RI.fogDensity * 0.25f);
 	pglDepthFunc (GL_GEQUAL);
 	pglDepthMask (GL_FALSE);
 
-	for (i = 0; i < SKYBOX_MAX_SIDES; i++)
+	/*for (i = 0; i < SKYBOX_MAX_SIDES; i++)*/
+	for (int i = 0; i < SKYBOX_MAX_SIDES; i++)
 		{
-		if (RI.skyMins[0][i] >= RI.skyMaxs[0][i] || RI.skyMins[1][i] >= RI.skyMaxs[1][i])
+		if ((RI.skyMins[0][i] >= RI.skyMaxs[0][i]) || (RI.skyMins[1][i] >= RI.skyMaxs[1][i]))
 			continue;
 		R_CloudRenderSide (i);
 		}
@@ -580,98 +581,7 @@ void R_DrawClouds (void)
 	}
 
 // [FWGS, 01.07.24] removed R_InitSkyClouds
-
 // [FWGS, 15.04.26] EmitWaterPolys moved to gl_rsurf.c
-
-/*
-=============
-EmitWaterPolys [FWGS, 22.01.25]
-
-Does a water warp on the pre-fragmented glpoly_t chain
-=============
-/
-void EmitWaterPolys (msurface_t *warp, qboolean reverse, qboolean ripples)
-	{
-	float		*v, nv, waveHeight;
-	float		s, t, os, ot;
-	glpoly2_t	*p;
-	int			i;
-	const qboolean	useQuads = FBitSet (warp->flags, SURF_DRAWTURB_QUADS) && (glConfig.context == CONTEXT_TYPE_GL);
-
-	if (!warp->polys)
-		return;
-
-	// set the current waveheight
-	if (warp->polys->verts[0][2] >= RI.vieworg[2])
-		waveHeight = -RI.currententity->curstate.scale;
-	else
-		waveHeight = RI.currententity->curstate.scale;
-
-	// reset fog color for nonlightmapped water
-	GL_ResetFogColor ();
-
-	if (useQuads)
-		pglBegin (GL_QUADS);
-
-	for (p = warp->polys; p; p = p->next)
-		{
-		if (reverse)
-			v = p->verts[0] + (p->numverts - 1) * VERTEXSIZE;
-		else
-			v = p->verts[0];
-
-		if (!useQuads)
-			pglBegin (GL_POLYGON);
-
-		for (i = 0; i < p->numverts; i++)
-			{
-			if (waveHeight)
-				{
-				nv = r_turbsin[(int)(gp_cl->time * 160.0f + v[1] + v[0]) & 255] + 8.0f;
-				nv = (r_turbsin[(int)(v[0] * 5.0f + gp_cl->time * 171.0f - v[1]) & 255] + 8.0f) * 0.8f + nv;
-				nv = nv * waveHeight + v[2];
-				}
-			else
-				{
-				nv = v[2];
-				}
-
-			os = v[3];
-			ot = v[4];
-
-			if (!ripples)
-				{
-				s = os + r_turbsin[(int)((ot * 0.125f + gp_cl->time) * TURBSCALE) & 255];
-				t = ot + r_turbsin[(int)((os * 0.125f + gp_cl->time) * TURBSCALE) & 255];
-				}
-			else
-				{
-				s = os;
-				t = ot;
-				}
-
-			s *= (1.0f / SUBDIVIDE_SIZE);
-			t *= (1.0f / SUBDIVIDE_SIZE);
-
-			pglTexCoord2f (s, t);
-			pglVertex3f (v[0], v[1], nv);
-
-			if (reverse)
-				v -= VERTEXSIZE;
-			else
-				v += VERTEXSIZE;
-			}
-
-		if (!useQuads)
-			pglEnd ();
-		}
-
-	if (useQuads)
-		pglEnd ();
-
-	GL_SetupFogColorForSurfaces ();
-	}
-	*/
 
 /***
 ============================================================

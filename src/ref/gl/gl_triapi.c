@@ -19,7 +19,7 @@ GNU General Public License for more details
 
 static struct
 	{
-	int		renderMode;		// override kRenderMode from TriAPI
+	int		renderMode;	// override kRenderMode from TriAPI
 	vec4_t	triRGBA;
 	} ds;
 
@@ -38,7 +38,6 @@ set rendermode
 ***/
 void TriRenderMode (int mode)
 	{
-	// ??? требует проверки
 	ds.renderMode = mode;
 	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
@@ -233,10 +232,15 @@ int TriWorldToScreen (const float *world, float *screen)
 
 	retval = R_WorldToScreen (world, screen);
 
-	screen[0] = 0.5f * screen[0] * (float)RI.viewport[2];
+	// [FWGS, 01.05.26]
+	/*screen[0] = 0.5f * screen[0] * (float)RI.viewport[2];
 	screen[1] = -0.5f * screen[1] * (float)RI.viewport[3];
 	screen[0] += 0.5f * (float)RI.viewport[2];
-	screen[1] += 0.5f * (float)RI.viewport[3];
+	screen[1] += 0.5f * (float)RI.viewport[3];*/
+	screen[0] = 0.5f * screen[0] * (float)RI.rvp.viewport[2];
+	screen[1] = -0.5f * screen[1] * (float)RI.rvp.viewport[3];
+	screen[0] += 0.5f * (float)RI.rvp.viewport[2];
+	screen[1] += 0.5f * (float)RI.rvp.viewport[3];
 
 	return retval;
 	}
@@ -252,7 +256,12 @@ int TriSpriteTexture (model_t *pSpriteModel, int frame)
 	{
 	int	gl_texturenum;
 
-	if ((gl_texturenum = R_GetSpriteTexture (pSpriteModel, frame)) == 0)
+	// [FWGS, 01.05.26]
+	/*if ((gl_texturenum = R_GetSpriteTexture (pSpriteModel, frame)) == 0)*/
+	if (!pSpriteModel || (pSpriteModel->type != mod_sprite) || !pSpriteModel->cache.data)
+		return 0;
+
+	if ((gl_texturenum = gEngfuncs.R_GetSpriteFrame (pSpriteModel, frame, 0.0f)->gl_texturenum) == 0)
 		return 0;
 
 	// [FWGS, 01.12.24]

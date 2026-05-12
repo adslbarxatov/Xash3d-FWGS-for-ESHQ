@@ -22,34 +22,32 @@ GNU General Public License for more details
 // [FWGS, 01.12.24] it's a Valve default value for LoadMapSprite (probably must be power of two)
 #define GLARE_FALLOFF	19000.0f
 
-// [FWGS, 01.04.26]
-/*char		sprite_name[MAX_QPATH];
-char		group_suffix[8];
-static uint	r_texFlags = 0;
-static int	sprite_version;
-float		sprite_radius;*/
+// [FWGS, 01.05.26] removed R_SpriteInit, R_SpriteLoadFrame, R_SpriteLoadGroup, Mod_LoadSpriteModel,
+// Mod_SpriteUnloadTextures
+
+/*// [FWGS, 01.04.26]
 static char		sprite_name[MAX_QPATH];
 static char		group_suffix[8];
 static uint		r_texFlags = 0;
 static int		sprite_version;
 static float	sprite_radius;
 
-/***
+/
 ====================
 R_SpriteInit
 ====================
-***/
+/
 void R_SpriteInit (void)
 	{
 	}
 
-/***
+/
 ====================
 R_SpriteLoadFrame
 
 upload a single frame
 ====================
-***/
+/
 static const byte *R_SpriteLoadFrame (model_t *mod, const void *pin, mspriteframe_t **ppframe, int num)
 	{
 	dspriteframe_t	pinframe;
@@ -104,13 +102,13 @@ static const byte *R_SpriteLoadFrame (model_t *mod, const void *pin, mspritefram
 	return ((const byte *)pin + sizeof (dspriteframe_t) + pinframe.width * pinframe.height * bytes);
 	}
 
-/***
+/
 ====================
 R_SpriteLoadGroup [FWGS, 01.05.24]
 
 upload a group frames
 ====================
-***/
+/
 static const byte *R_SpriteLoadGroup (model_t *mod, const void *pin, mspriteframe_t **ppframe, int framenum)
 	{
 	const dspritegroup_t	*pingroup;
@@ -136,7 +134,7 @@ static const byte *R_SpriteLoadGroup (model_t *mod, const void *pin, mspritefram
 		{
 		*poutintervals = pin_intervals->interval;
 		if (*poutintervals <= 0.0f)
-			*poutintervals = 1.0f; // set error value
+			*poutintervals = 1.0f;	// set error value
 		poutintervals++;
 		pin_intervals++;
 		}
@@ -150,13 +148,13 @@ static const byte *R_SpriteLoadGroup (model_t *mod, const void *pin, mspritefram
 	return ptemp;
 	}
 
-/***
+/
 ====================
 Mod_LoadSpriteModel [FWGS, 01.06.25]
 
 load sprite model
 ====================
-***/
+/
 void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, uint texFlags)
 	{
 	const dsprite_t	*pin;
@@ -183,8 +181,8 @@ void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, ui
 		rgbdata_t *pal;
 
 		pal = gEngfuncs.FS_LoadImage ("#id.pal", (byte *)&i, 768);
-		pframetype = ((const byte *)buffer + sizeof (dsprite_q1_t)); // pinq1 + 1
-		gEngfuncs.FS_FreeImage (pal); // palette installed, no reason to keep this data
+		pframetype = ((const byte *)buffer + sizeof (dsprite_q1_t));	// pinq1 + 1
+		gEngfuncs.FS_FreeImage (pal);	// palette installed, no reason to keep this data
 		}
 	else if (*numi <= 256)
 		{
@@ -209,7 +207,7 @@ void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, ui
 			}
 
 		pframetype = (const byte *)(src + pal_bytes);
-		gEngfuncs.FS_FreeImage (pal); // palette installed, no reason to keep this data
+		gEngfuncs.FS_FreeImage (pal);	// palette installed, no reason to keep this data
 		}
 	else
 		{
@@ -260,17 +258,19 @@ void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, ui
 	// done
 	if (loaded)
 		*loaded = true;
-	}
+	}*/
 
 // [FWGS, 01.12.24] removed Mod_LoadMapSprite
 
-/***
+// [FWGS, 01.05.26] removed Mod_SpriteUnloadTextures, R_GetSpriteFrame
+
+/*
 ====================
 Mod_SpriteUnloadTextures [FWGS, 01.02.25]
 
 release sprite model and frames
 ====================
-***/
+/
 void Mod_SpriteUnloadTextures (void *data)
 	{
 	msprite_t	*psprite = data;
@@ -303,13 +303,13 @@ void Mod_SpriteUnloadTextures (void *data)
 		}
 	}
 
-/***
+/
 ================
 R_GetSpriteFrame [FWGS, 01.01.24]
 
 assume pModel is valid
 ================
-***/
+/
 mspriteframe_t *R_GetSpriteFrame (const model_t *pModel, int frame, float yaw)
 	{
 	msprite_t		*psprite;
@@ -367,7 +367,7 @@ mspriteframe_t *R_GetSpriteFrame (const model_t *pModel, int frame, float yaw)
 		}
 
 	return pspriteframe;
-	}
+	}*/
 
 /***
 ================
@@ -488,7 +488,7 @@ static float R_GetSpriteFrameInterpolant (cl_entity_t *ent, mspriteframe_t **old
 		if (m_fDoInterp)
 			lerpFrac = (targettime - jtime) / jinterval;
 		else
-			j = i; // no lerping
+			j = i;	// no lerping
 
 		// get the interpolated frames
 		if (oldframe)
@@ -499,9 +499,10 @@ static float R_GetSpriteFrameInterpolant (cl_entity_t *ent, mspriteframe_t **old
 
 	else if (psprite->frames[frame].type == FRAME_ANGLED)
 		{
-		// e.g. doom-style sprite monsters
+		// [FWGS, 01.05.26] e.g. doom-style sprite monsters
 		float	yaw = ent->angles[YAW];
-		int	angleframe = (int)(Q_rint ((RI.viewangles[1] - yaw + 45.0f) / 360 * 8) - 4) & 7;
+		/*int	angleframe = (int)(Q_rint ((RI.viewangles[1] - yaw + 45.0f) / 360 * 8) - 4) & 7;*/
+		int angleframe = (int)(Q_rint ((RI.rvp.viewangles[1] - yaw + 45.0f) / 360 * 8) - 4) & 7;
 
 		if (m_fDoInterp)
 			{
@@ -576,7 +577,8 @@ static qboolean R_CullSpriteModel (cl_entity_t *e, vec3_t origin)
 	VectorScale (e->model->mins, scale, sprite_mins);
 	VectorScale (e->model->maxs, scale, sprite_maxs);
 
-	sprite_radius = RadiusFromBounds (sprite_mins, sprite_maxs);
+	// [FWGS, 01.05.26]
+	/*sprite_radius = RadiusFromBounds (sprite_mins, sprite_maxs);*/
 
 	VectorAdd (sprite_mins, origin, sprite_mins);
 	VectorAdd (sprite_maxs, origin, sprite_maxs);
@@ -597,12 +599,17 @@ static float R_SpriteGlowBlend (vec3_t origin, int rendermode, int renderfx, flo
 	vec3_t		glowDist;
 	pmtrace_t	*tr;
 
-	VectorSubtract (origin, RI.vieworg, glowDist);
+	// [FWGS, 01.05.26]
+	/*VectorSubtract (origin, RI.vieworg, glowDist);*/
+	VectorSubtract (origin, RI.rvp.vieworigin, glowDist);
 	dist = VectorLength (glowDist);
 
-	if (RP_NORMALPASS ())
+	/*if (RP_NORMALPASS ())*/
+	if (!FBitSet (RI.rvp.flags, RF_DRAW_CUBEMAP))
 		{
-		tr = gEngfuncs.EV_VisTraceLine (RI.vieworg, origin, r_traceglow.value ? PM_GLASS_IGNORE :
+		/*tr = gEngfuncs.EV_VisTraceLine (RI.vieworg, origin, r_traceglow.value ? PM_GLASS_IGNORE :
+			(PM_GLASS_IGNORE | PM_STUDIO_IGNORE));*/
+		tr = gEngfuncs.EV_VisTraceLine (RI.rvp.vieworigin, origin, r_traceglow.value ? PM_GLASS_IGNORE :
 			(PM_GLASS_IGNORE | PM_STUDIO_IGNORE));
 
 		if ((1.0f - tr->fraction) * dist > 8.0f)
@@ -635,16 +642,19 @@ static qboolean R_SpriteOccluded (cl_entity_t *e, vec3_t origin, float *pscale)
 
 		TriWorldToScreen (origin, v);
 
-		if (v[0] < RI.viewport[0] || v[0] > RI.viewport[0] + RI.viewport[2])
-			return true; // do scissor
-		if (v[1] < RI.viewport[1] || v[1] > RI.viewport[1] + RI.viewport[3])
-			return true; // do scissor
+		// [FWGS, 01.05.26]
+		/*if (v[0] < RI.viewport[0] || v[0] > RI.viewport[0] + RI.viewport[2])*/
+		if ((v[0] < RI.rvp.viewport[0]) || (v[0] > RI.rvp.viewport[0] + RI.rvp.viewport[2]))
+			return true;	// do scissor
+		/*if (v[1] < RI.viewport[1] || v[1] > RI.viewport[1] + RI.viewport[3])*/
+		if ((v[1] < RI.rvp.viewport[1]) || (v[1] > RI.rvp.viewport[1] + RI.rvp.viewport[3]))
+			return true;	// do scissor
 
 		blend = R_SpriteGlowBlend (origin, e->curstate.rendermode, e->curstate.renderfx, pscale);
 		tr.blend *= blend;
 
 		if (blend <= 0.01f)
-			return true; // faded
+			return true;	// faded
 		}
 	else
 		{
@@ -738,7 +748,7 @@ static qboolean R_SpriteAllowLerping (cl_entity_t *e, msprite_t *psprite)
 
 /***
 =================
-R_DrawSpriteModel [FWGS, 01.04.25]
+R_DrawSpriteModel
 =================
 ***/
 void R_DrawSpriteModel (cl_entity_t *e)
@@ -752,7 +762,9 @@ void R_DrawSpriteModel (cl_entity_t *e)
 	vec3_t		v_forward, v_right, v_up;
 	vec3_t		origin, color, color2 = { 0.0f };
 
-	if (RI.params & RP_ENVVIEW)
+	// [FWGS, 01.05.26]
+	/*if (RI.params & RP_ENVVIEW)*/
+	if (FBitSet (RI.rvp.flags, RF_DRAW_CUBEMAP))
 		return;
 
 	model = e->model;
@@ -784,7 +796,7 @@ void R_DrawSpriteModel (cl_entity_t *e)
 		scale = 1.0f;
 
 	if (R_SpriteOccluded (e, origin, &scale))
-		return; // sprite culled
+		return;	// sprite culled
 
 	r_stats.c_sprite_models_drawn++;
 
@@ -852,10 +864,13 @@ void R_DrawSpriteModel (cl_entity_t *e)
 		pglAlphaFunc (GL_GREATER, 1.0f / 3.0f);
 		}
 
+	// [FWGS, 01.05.26]
 	if (R_SpriteAllowLerping (e, psprite))
 		lerp = R_GetSpriteFrameInterpolant (e, &oldframe, &frame);
+	/*else
+		frame = oldframe = R_GetSpriteFrame (model, e->curstate.frame, e->angles[YAW]);*/
 	else
-		frame = oldframe = R_GetSpriteFrame (model, e->curstate.frame, e->angles[YAW]);
+		frame = oldframe = gEngfuncs.R_GetSpriteFrame (model, e->curstate.frame, e->angles[YAW]);
 
 	type = psprite->type;
 
@@ -871,8 +886,10 @@ void R_DrawSpriteModel (cl_entity_t *e)
 			VectorSubtract (origin, v_forward, origin);
 			break;
 
+		// [FWGS, 01.05.26]
 		case SPR_FACING_UPRIGHT:
-			VectorSet (v_right, origin[1] - RI.vieworg[1], -(origin[0] - RI.vieworg[0]), 0.0f);
+			/*VectorSet (v_right, origin[1] - RI.vieworg[1], -(origin[0] - RI.vieworg[0]), 0.0f);*/
+			VectorSet (v_right, origin[1] - RI.rvp.vieworigin[1], -(origin[0] - RI.rvp.vieworigin[0]), 0.0f);
 			VectorSet (v_up, 0.0f, 0.0f, 1.0f);
 			VectorNormalize (v_right);
 			break;
@@ -880,7 +897,7 @@ void R_DrawSpriteModel (cl_entity_t *e)
 		case SPR_FWD_PARALLEL_UPRIGHT:
 			dot = RI.vforward[2];
 			if ((dot > 0.999848f) || (dot < -0.999848f))	// cos(1 degree) = 0.999848
-				return; // invisible
+				return;	// invisible
 
 			VectorSet (v_up, 0.0f, 0.0f, 1.0f);
 			VectorSet (v_right, RI.vforward[1], -RI.vforward[0], 0.0f);
@@ -897,7 +914,7 @@ void R_DrawSpriteModel (cl_entity_t *e)
 				}
 			break;
 
-		case SPR_FWD_PARALLEL: // normal sprite
+		case SPR_FWD_PARALLEL:	// normal sprite
 		default:
 			VectorCopy (RI.vright, v_right);
 			VectorCopy (RI.vup, v_up);
