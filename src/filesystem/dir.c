@@ -30,7 +30,7 @@ GNU General Public License for more details
 
 #if XASH_LINUX
 #include <linux/fs.h>
-#ifndef FS_CASEFOLD_FL // for compatibility with older distros
+#ifndef FS_CASEFOLD_FL	// for compatibility with older distros
 #define FS_CASEFOLD_FL 0x40000000
 #endif
 #endif
@@ -43,9 +43,9 @@ GNU General Public License for more details
 
 enum
 	{
-	DIRENTRY_EMPTY_DIRECTORY = 0, // don't care if it's not directory or it's empty
+	DIRENTRY_EMPTY_DIRECTORY = 0,	// don't care if it's not directory or it's empty
 	DIRENTRY_NOT_SCANNED = -1,
-	DIRENTRY_CASEINSENSITIVE = -2, // directory is already caseinsensitive, just copy whatever is left
+	DIRENTRY_CASEINSENSITIVE = -2,	// directory is already caseinsensitive, just copy whatever is left
 	};
 
 typedef struct dir_s
@@ -197,7 +197,6 @@ static void FS_MergeDirEntries (dir_t *dir, const stringlist_t *list)
 	// glorified realloc for sorted dir entries
 	// make new array and copy old entries with same name and subentries
 	// everything else get freed
-
 	FS_InitDirEntries (&temp, list);
 
 	for (i = 0; i < dir->numentries; i++)
@@ -243,18 +242,18 @@ static int FS_MaybeUpdateDirEntries (dir_t *dir, const char *path, const char *e
 	stringlistinit (&list);
 	listdirectory (&list, path, false);
 
-	if (list.numstrings == 0) // empty directory
+	if (list.numstrings == 0)	// empty directory
 		{
 		FS_FreeDirEntries (dir);
 		dir->numentries = DIRENTRY_EMPTY_DIRECTORY;
 		ret = -1;
 		}
-	else if (dir->numentries <= DIRENTRY_EMPTY_DIRECTORY) // not initialized or was empty
+	else if (dir->numentries <= DIRENTRY_EMPTY_DIRECTORY)	// not initialized or was empty
 		{
 		FS_InitDirEntries (dir, &list);
 		ret = FS_FindDirEntry (dir, entryname);
 		}
-	else if (list.numstrings != dir->numentries) // quick update
+	else if (list.numstrings != dir->numentries)	// quick update
 		{
 		FS_MergeDirEntries (dir, &list);
 		ret = FS_FindDirEntry (dir, entryname);
@@ -302,25 +301,38 @@ static inline qboolean FS_AppendToPath (char *dst, size_t *pi, const size_t len,
 	return true;
 	}
 
+// [FWGS, 01.05.26]
 qboolean FS_FixFileCase (dir_t *dir, const char *path, char *dst, const size_t len, qboolean createpath)
 	{
-	const char *prev;
-	const char *next;
+	/*const char *prev;
+	const char *next;*/
 	size_t i = 0;
 
 	if (!FS_AppendToPath (dst, &i, len, dir->name, path, "init"))
 		return false;
 
 	// [FWGS, 01.03.26] nothing to fix
-	/*if (!COM_CheckStringEmpty (path))*/
 	if (COM_StringEmpty (path))
 		return true;
 
-	for (prev = path, next = Q_strchrnul (prev, '/');
+	/*for (prev = path, next = Q_strchrnul (prev, '/');*/
+	// we can't and shouldn't track parent directories to not track the whole filesystem
+	// exit early for this case
+	// FIXME: track the path to catch other cases
+	if (!Q_strncmp (path, "..", 2) && ((path[2] == '\0') || (path[2] == '/')))
+		{
+		if (!FS_AppendToPath (dst, &i, len, path, path, "escape to parent directory"))
+			return false;
+
+		// check file existense
+		return createpath ? true : FS_SysFileOrFolderExists (dst);
+		}
+
+	for (const char *prev = path, *next = Q_strchrnul (prev, '/');
 		;
 		prev = next + 1, next = Q_strchrnul (prev, '/'))
 		{
-		qboolean uptodate = false; // do not run second scan if we're just updated our directory list
+		qboolean uptodate = false;	// do not run second scan if we're just updated our directory list
 		size_t temp;
 		char entryname[MAX_SYSPATH];
 		int ret;
@@ -361,9 +373,9 @@ qboolean FS_FixFileCase (dir_t *dir, const char *path, char *dst, const size_t l
 		if (!FS_AppendToPath (dst, &temp, len, dir->name, path, "case fix"))
 			return false;
 
-		if (!uptodate && !FS_SysFileOrFolderExists (dst)) // file not found, rescan...
+		if (!uptodate && !FS_SysFileOrFolderExists (dst))	// file not found, rescan...
 			{
-			dst[i] = 0; // strip failed part
+			dst[i] = 0;	// strip failed part
 
 			// if we're creating files or folders, we don't care if path doesn't exist
 			// so copy everything that's left and exit without an error

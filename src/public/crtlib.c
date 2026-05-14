@@ -14,14 +14,9 @@ GNU General Public License for more details
 ***/
 
 // [FWGS, 01.03.26]
-/*include "port.h"
-include "xash3d_types.h"
-include "const.h"*/
 #include <math.h>
 #include <stdarg.h>
 #include <time.h>
-/*include <stdio.h>
-include "crtlib.h"*/
 #include <stdio.h>
 #include "port.h"
 #include "xash3d_types.h"
@@ -109,12 +104,10 @@ int Q_atoi (const char *str)
 	int	c, sign;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (str))*/
 	if (COM_StringEmptyOrNULL (str))
 		return 0;
 
 	str = Q_atoi_strip_whitespace (str);
-	/*if (!COM_CheckString (str))*/
 	if (COM_StringEmptyOrNULL (str))
 		return 0;
 
@@ -155,12 +148,10 @@ float Q_atof (const char *str)
 	int		c, sign, decimal, total;
 
 	// [FWGS, 01.07.24]
-	/*if (!COM_CheckString (str))*/
 	if (COM_StringEmptyOrNULL (str))
 		return 0;
 
 	str = Q_atoi_strip_whitespace (str);
-	/*if (!COM_CheckString (str))*/
 	if (COM_StringEmptyOrNULL (str))
 		return 0;
 
@@ -322,12 +313,11 @@ const byte *Q_memmem (const byte *haystack, size_t haystacklen, const byte *need
 void Q_memor (byte *XASH_RESTRICT dst, const byte *XASH_RESTRICT src, size_t len)
 	{
 	size_t i;
-	for (i = 0; i < len; i++) // msvc likes to optimize this loop form
+	for (i = 0; i < len; i++)	// msvc likes to optimize this loop form
 		dst[i] |= src[i];
 	}
 
 // [FWGS, 01.04.26]
-/*const char *Q_timestamp (int format)*/
 const char *Q_timestamp (int format)
 	{
 	static string	timestamp;
@@ -367,7 +357,6 @@ const char *Q_timestamp (int format)
 		// [FWGS, 01.03.26]
 		case TIME_FILENAME:
 			// Build a timestamp that can use for filename (ex: "Nov2006-26 (19.14.28)");
-			/*strftime (timestamp, sizeof (timestamp), "%b%Y-%d_%H.%M.%S", crt_tm);*/
 			// a1ba: reordered to make it sortable -> 2006-10-26_19.24.28
 			strftime (timestamp, sizeof (timestamp), "%Y-%m-%d_%H.%M.%S", crt_tm);
 			break;
@@ -421,7 +410,7 @@ int Q_vsnprintf (char *buffer, size_t buffersize, const char *format, va_list ar
 	int	result;
 
 	if (unlikely (buffersize == 0))
-		return -1; // report as overflow
+		return -1;	// report as overflow
 
 #ifndef _MSC_VER
 	result = vsnprintf (buffer, buffersize, format, args);
@@ -533,11 +522,11 @@ char *Q_pretifymem (float value, int digitsafterdecimal)
 				*o++ = ',';
 			}
 
-		pos--;		// count down comma position
+		pos--;			// count down comma position
 		*o++ = *i++;	// copy rest of data as normal
 		}
 
-	*o = 0; // terminate
+	*o = 0;	// terminate
 	return out;
 	}
 
@@ -555,7 +544,6 @@ void COM_FileBase (const char *in, char *out, size_t size)
 	size_t len;
 
 	// [FWGS, 01.03.26]
-	/*if (unlikely (!COM_CheckString (in) || (size <= 1)))*/
 	if (unlikely (COM_StringEmptyOrNULL (in) || (size <= 1)))
 		{
 		out[0] = 0;
@@ -642,7 +630,7 @@ void COM_ExtractFilePath (const char *path, char *dest)
 	if (src > path)
 		{
 		memcpy (dest, path, src - path);
-		dest[src - path - 1] = 0; // cutoff backslash
+		dest[src - path - 1] = 0;	// cutoff backslash
 		}
 	else
 		{
@@ -652,42 +640,48 @@ void COM_ExtractFilePath (const char *path, char *dest)
 
 /***
 ============
-COM_StripExtension
+COM_StripExtension [FWGS, 01.05.26]
 ============
 ***/
 void COM_StripExtension (char *path)
 	{
-	size_t	length;
+	/*size_t	length;*/
+	const char *ext = COM_FileExtension (path);
 
-	length = Q_strlen (path);
+	/*length = Q_strlen (path);*/
+	if (COM_StringEmptyOrNULL (ext))
+		return;	// no extension
 
-	if (length > 0)
+	/*if (length > 0)
 		length--;
 
 	while ((length > 0) && (path[length] != '.'))
 		{
 		length--;
 		if ((path[length] == '/') || (path[length] == '\\') || (path[length] == ':'))
-			return; // no extension
+			return;	// no extension
 		}
 
 	if (length)
-		path[length] = 0;
+		path[length] = 0;*/
+	// ext points one past the dot
+	path[ext - path - 1] = 0;
 	}
 
 /***
 ==================
-COM_DefaultExtension
+COM_DefaultExtension [FWGS, 01.05.26]
 ==================
 ***/
 void COM_DefaultExtension (char *path, const char *extension, size_t size)
 	{
-	const char	*src;
-	size_t		len;
+	/*const char	*src;
+	size_t		len;*/
+	size_t len;
 
 	// if path doesn't have a .EXT, append extension
 	// (extension should include the .)
-	len = Q_strlen (path);
+	/*len = Q_strlen (path);
 	src = path + len - 1;
 
 	while ((*src != '/') && (src != path))
@@ -696,8 +690,11 @@ void COM_DefaultExtension (char *path, const char *extension, size_t size)
 		if (*src == '.')
 			return;
 		src--;
-		}
+		}*/
+	if (!COM_StringEmptyOrNULL (COM_FileExtension (path)))
+		return;
 
+	len = Q_strlen (path);
 	Q_strncpy (&path[len], extension, size - len);
 	}
 
@@ -763,13 +760,6 @@ interpert this character as single
 ***/
 static int COM_IsSingleChar (unsigned int flags, char c)
 	{
-	/*if ((c == '{') || (c == '}') || (c == '\'') || (c == ','))
-		return true;
-
-	if (!FBitSet (flags, PFILE_IGNOREBRACKET) && ((c == ')') || (c == '(')))
-		return true;
-
-	if (FBitSet (flags, PFILE_HANDLECOLON) && (c == ':'))*/
 	switch (c)
 		{
 		case '}':
@@ -835,13 +825,12 @@ skipwhite:
 			{
 			if (plen)
 				*plen = overflow ? -1 : len;
-			return NULL;	// end of file;
+			return NULL;	// end of file
 			}
 		data++;
 		}
 
 	// [FWGS, 01.03.26] skip // or #, if requested, comments
-	/*if (((c == '/') && (data[1] == '/')) || ((c == '#') && FBitSet (flags, PFILE_IGNOREHASHCMT)))*/
 	if (((c == '/') && (data[1] == '/')) || ((c == '#') && FBitSet (flags, PFILE_HASH_AS_COMMENT)))
 		{
 		while (*data && (*data != '\n'))
@@ -850,7 +839,6 @@ skipwhite:
 		}
 
 	// [FWGS, 01.03.26] handle quoted strings specially
-	/*if (c == '\"')*/
 	if ((c == '\"') && !FBitSet (flags, PFILE_NO_QUOTED_TOKENS))
 		{
 		if (quoted)
@@ -909,7 +897,7 @@ skipwhite:
 	// parse single characters
 	if (COM_IsSingleChar (flags, c))
 		{
-		if (size >= 2) // char and \0
+		if (size >= 2)	// char and \0
 			{
 			token[len] = c;
 			len++;
@@ -966,8 +954,8 @@ int matchpattern (const char *in, const char *pattern, qboolean caseinsensitive)
 	return matchpattern_with_separator (in, pattern, caseinsensitive, separators, false);
 	}
 
-// wildcard_least_one: if true * matches 1 or more characters
-//                     if false * matches 0 or more characters
+// wildcard_least_one:	if true * matches 1 or more characters
+//						if false * matches 0 or more characters
 int matchpattern_with_separator (const char *in, const char *pattern, qboolean caseinsensitive,
 	const char *separators, qboolean wildcard_least_one)
 	{
@@ -978,20 +966,20 @@ int matchpattern_with_separator (const char *in, const char *pattern, qboolean c
 		switch (*pattern)
 			{
 			case 0:
-				return 1; // end of pattern
+				return 1;	// end of pattern
 
-			case '?': // match any single character
+			case '?':	// match any single character
 				if ((*in == 0) || Q_strchr (separators, *in))
-					return 0; // no match
+					return 0;	// no match
 				in++;
 				pattern++;
 				break;
 
-			case '*': // match anything until following string
+			case '*':	// match anything until following string
 				if (wildcard_least_one)
 					{
 					if ((*in == 0) || Q_strchr (separators, *in))
-						return 0; // no match
+						return 0;	// no match
 					in++;
 					}
 				pattern++;
@@ -1013,7 +1001,7 @@ int matchpattern_with_separator (const char *in, const char *pattern, qboolean c
 				if (*in != *pattern)
 					{
 					if (!caseinsensitive)
-						return 0; // no match
+						return 0;	// no match
 					c1 = *in;
 					if ((c1 >= 'A') && (c1 <= 'Z'))
 						c1 += 'a' - 'A';
@@ -1023,7 +1011,7 @@ int matchpattern_with_separator (const char *in, const char *pattern, qboolean c
 						c2 += 'a' - 'A';
 
 					if (c1 != c2)
-						return 0; // no match
+						return 0;	// no match
 					}
 
 				in++;
@@ -1033,24 +1021,26 @@ int matchpattern_with_separator (const char *in, const char *pattern, qboolean c
 		}
 
 	if (*in)
-		return 0; // reached end of pattern but not end of input
+		return 0;	// reached end of pattern but not end of input
 
-	return 1; // success
+	return 1;	// success
 	}
 
-// [FWGS, 01.03.26]
+// [FWGS, 01.05.26]
 void COM_TrimSpace (char *dst, const char *src, size_t size)
 	{
 	if (!dst || !src || !size)
 		return;
 
 	// remove spaces from the start
-	for (; *src && isspace (*src); src++);
+	/*for (; *src && isspace (*src); src++);*/
+	for (; *src && isspace ((byte)*src); src++);
 
 	int len = Q_strlen (src);
 
 	// remove spaces from the end
-	for (; len > 0 && isspace (src[len - 1]); len--);
+	/*for (; len > 0 && isspace (src[len - 1]); len--);*/
+	for (; len > 0 && isspace ((byte)src[len - 1]); len--);
 
 	if (len > 0)
 		{

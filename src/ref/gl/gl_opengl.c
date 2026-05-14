@@ -20,8 +20,6 @@ CVAR_DEFINE_AUTO (gl_check_errors, "1", FCVAR_GLCONFIG,
 	"ignore video engine errors");
 
 // [FWGS, 05.04.26]
-/*CVAR_DEFINE_AUTO (gl_polyoffset, "2.0", FCVAR_GLCONFIG,
-	"polygon offset for decals");*/
 CVAR_DEFINE_AUTO (gl_polyoffset, "2", FCVAR_GLCONFIG,
 	"polygon offset for decals");
 
@@ -44,20 +42,19 @@ CVAR_DEFINE_AUTO (gl_stencilbits, "8", FCVAR_GLCONFIG | FCVAR_READ_ONLY,
 	"pixelformat stencil bits (0 - auto)");
 CVAR_DEFINE_AUTO (gl_overbright, "1", FCVAR_GLCONFIG,
 	"enabled the overbright mode");
-
-// [FWGS, 01.12.24]
 CVAR_DEFINE_AUTO (gl_fog, "1", FCVAR_GLCONFIG,
 	"allow for rendering fog using built-in OpenGL fog implementation");
 
-CVAR_DEFINE_AUTO (r_lighting_extended, "1", FCVAR_GLCONFIG,
-	"allow to get lighting from world and bmodels");
+// [FWGS, 01.05.26]
+/*CVAR_DEFINE_AUTO (r_lighting_extended, "1", FCVAR_GLCONFIG,
+	"allow to get lighting from world and bmodels");*/
+CVAR_DEFINE_AUTO (gl_litwater_force, "0", FCVAR_GLCONFIG,
+	"force enable lightmapped water, even if support not declared in the map");
+
 CVAR_DEFINE_AUTO (r_lighting_ambient, "0.3", FCVAR_GLCONFIG,
 	"map ambient lighting scale");
-
-// [FWGS, 01.12.24]
 CVAR_DEFINE_AUTO (r_detailtextures, "1", FCVAR_GLCONFIG,
 	"enable detail textures support");
-
 CVAR_DEFINE_AUTO (r_novis, "0", 0,
 	"ignore vis information (perfomance test)");
 CVAR_DEFINE_AUTO (r_nocull, "0", 0,
@@ -70,8 +67,6 @@ CVAR_DEFINE_AUTO (r_traceglow, "0", FCVAR_GLCONFIG,
 	"cull flares behind models");
 CVAR_DEFINE_AUTO (gl_round_down, "2", FCVAR_GLCONFIG | FCVAR_READ_ONLY,
 	"round texture sizes to nearest POT value");
-
-// [FWGS, 01.12.24]
 CVAR_DEFINE (r_vbo, "gl_vbo", "0", FCVAR_GLCONFIG,
 	"draw world using VBO (known to be glitchy)");
 CVAR_DEFINE (r_vbo_detail, "gl_vbo_detail", "0", FCVAR_GLCONFIG,
@@ -80,7 +75,6 @@ CVAR_DEFINE (r_vbo_dlightmode, "gl_vbo_dlightmode", "1", FCVAR_GLCONFIG,
 	"vbo dlight rendering mode (0-1)");
 CVAR_DEFINE (r_vbo_overbrightmode, "gl_vbo_overbrightmode", "0", FCVAR_GLCONFIG,
 	"vbo overbright rendering mode (0-1)");
-
 CVAR_DEFINE_AUTO (r_ripple, "0", FCVAR_GLCONFIG,
 	"enable software-like water texture ripple simulation");
 CVAR_DEFINE_AUTO (r_ripple_updatetime, "0.05", FCVAR_GLCONFIG,
@@ -91,12 +85,14 @@ CVAR_DEFINE_AUTO (r_ripple_spawntime, "0.1", FCVAR_GLCONFIG,
 // [FWGS, 01.03.25]
 CVAR_DEFINE_AUTO (r_large_lightmaps, "0", FCVAR_GLCONFIG | FCVAR_LATCH,
 	"enable larger lightmap atlas textures (might break custom renderer mods)");
-CVAR_DEFINE_AUTO (r_dlight_virtual_radius, "3", FCVAR_GLCONFIG,
+
+// [FWGS, 01.05.26]
+/*CVAR_DEFINE_AUTO (r_dlight_virtual_radius, "3", FCVAR_GLCONFIG,
 	"increase dlight radius virtually by this amount, should help against ugly cut off dlights on highly scaled textures");
 
 DEFINE_ENGINE_SHARED_CVAR_LIST ()
 
-poolhandle_t r_temppool;
+poolhandle_t r_temppool;*/
 
 gl_globals_t	tr;
 glconfig_t	glConfig;
@@ -501,11 +497,13 @@ static const dllfunc_t multitexturefuncs_es2[] =
 
 /***
 ========================
-DebugCallback
+DebugCallback [FWGS, 01.05.26]
 
 For ARB_debug_output
 ========================
 ***/
+#if !XASH_GL4ES	// GL4ES doesn't provide glDebug functions, even as stubs
+
 static void APIENTRY GL_DebugOutput (GLuint source, GLuint type, GLuint id, GLuint severity, GLint length,
 	const GLcharARB *message, GLvoid *userParam)
 	{
@@ -531,6 +529,8 @@ static void APIENTRY GL_DebugOutput (GLuint source, GLuint type, GLuint id, GLui
 			break;
 		}
 	}
+
+#endif
 
 /***
 =================
@@ -575,7 +575,7 @@ static qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, siz
 		{
 		gEngfuncs.Con_Reportf ("- disabled\n");
 		GL_SetExtension (r_ext, false);
-		return false; // nothing to process at
+		return false;	// nothing to process at
 		}
 
 	extensions_string = glConfig.extensions_string;
@@ -614,10 +614,10 @@ static qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, siz
 				{
 				*end = '\0';
 				}
-			else // I need Q_strstrnul
+			else	// I need Q_strstrnul
 				{
 				end = name + Q_strlen (name);
-				j++; // skip empty suffix
+				j++;	// skip empty suffix
 				}
 
 			for (; j < sizeof (suffixes) / sizeof (suffixes[0]); j++)
@@ -637,7 +637,7 @@ static qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, siz
 					}
 				else
 					{
-					*end = '\0'; // cut suffix, try next
+					*end = '\0';	// cut suffix, try next
 					}
 				}
 
@@ -759,7 +759,6 @@ static void GL_SetDefaults (void)
 R_RenderInfo_f [FWGS, 01.03.26]
 =================
 ***/
-/*static void R_RenderInfo_f (void)*/
 static void R_RenderInfo (qboolean startup)
 	{
 	gEngfuncs.Con_Printf ("\n");
@@ -812,7 +811,6 @@ static void R_RenderInfo (qboolean startup)
 	gEngfuncs.Con_Printf ("MODE: %ix%i\n", gpGlobals->width, gpGlobals->height);
 	gEngfuncs.Con_Printf ("\n");
 
-	/*gEngfuncs.Con_Printf ("VERTICAL SYNC: %s\n", gl_vsync->value ? "enabled" : "disabled");*/
 	if (!startup)
 		gEngfuncs.Con_Printf ("VERTICAL SYNC: %s\n", gl_vsync->value ? "enabled" : "disabled");
 
@@ -868,7 +866,7 @@ static void GL_InitExtensionsGLES (void)
 						break;
 #endif
 					}
-				GL_SetExtension (extid, true); // required to be supported by wrapper
+				GL_SetExtension (extid, true);	// required to be supported by wrapper
 
 				pglGetIntegerv (GL_MAX_TEXTURE_UNITS_ARB, &glConfig.max_texture_units);
 				if (glConfig.max_texture_units <= 1)
@@ -901,8 +899,7 @@ static void GL_InitExtensionsGLES (void)
 
 			// [FWGS, 01.03.26]
 			case GL_ARB_TEXTURE_NPOT_EXT:
-				/*GL_CheckExtension ("GL_OES_texture_npot", NULL, 0, "gl_texture_npot", extid, 0);*/
-					// according to spec, GLES3.0 made NPOT required
+				// according to spec, GLES3.0 made NPOT required
 				// thanks lewa_j for advice
 				if (glConfig.version_major >= 3)
 					GL_SetExtension (extid, true);
@@ -1049,7 +1046,7 @@ static void GL_InitExtensionsBigGL (void)
 		GL_ANISOTROPY_EXT, 0))
 		pglGetFloatv (GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &glConfig.max_texture_anisotropy);
 
-#if XASH_WIN32 // Win32 only drivers?
+#if XASH_WIN32	// Win32 only drivers?
 	// g-cont. because lodbias it too glitchy on Intel's cards
 	if (glConfig.hardware_type != GLHW_INTEL)
 #endif
@@ -1104,9 +1101,24 @@ static void GL_InitExtensionsBigGL (void)
 		pglGetIntegerv (GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB, &glConfig.max_vertex_uniforms);
 		pglGetIntegerv (GL_MAX_VERTEX_ATTRIBS_ARB, &glConfig.max_vertex_attribs);
 
-#if XASH_WIN32 // Win32 only drivers?
-		if ((glConfig.hardware_type == GLHW_RADEON) && (glConfig.max_vertex_uniforms > 512))
-			glConfig.max_vertex_uniforms /= 4; // radeon returns not correct info
+		// [FWGS, 01.05.26] GLSL sanity check
+		if ((glConfig.max_vertex_uniforms <= 0) || (glConfig.max_texture_coords < glConfig.max_texture_units) ||
+			(glConfig.max_teximage_units < glConfig.max_texture_units))
+			{
+			gEngfuncs.Con_Reportf (S_NOTE "driver supports GL_ARB_shading_language_100 but has bogus limits, ignoring\n");
+			GL_SetExtension (GL_SHADER_GLSL100_EXT, false);
+			glConfig.max_texture_coords = glConfig.max_teximage_units = glConfig.max_texture_units;
+			glConfig.max_vertex_uniforms = 0;
+			glConfig.max_vertex_attribs = 0;
+			}
+
+		// [FWGS, 01.05.26]
+#if XASH_WIN32	// Win32 only drivers?
+		/*if ((glConfig.hardware_type == GLHW_RADEON) && (glConfig.max_vertex_uniforms > 512))*/
+		else if ((glConfig.hardware_type == GLHW_RADEON) && (glConfig.max_vertex_uniforms > 512))
+			{
+			glConfig.max_vertex_uniforms /= 4;	// radeon returns not correct info
+			}
 #endif
 		}
 	else
@@ -1118,11 +1130,14 @@ static void GL_InitExtensionsBigGL (void)
 	// rectangle textures support
 	GL_CheckExtension ("GL_ARB_texture_rectangle", NULL, 0, "gl_texture_rectangle", GL_TEXTURE_2D_RECT_EXT, 0);
 
+	// [FWGS, 01.05.26]
 	if (!GL_CheckExtension ("glDrawRangeElements", drawrangeelementsfuncs, HLARRAYSIZE (drawrangeelementsfuncs),
 		"gl_drawrangeelements", GL_DRAW_RANGEELEMENTS_EXT, 0))
 		{
+		/*if (GL_CheckExtension ("glDrawRangeElementsEXT", drawrangeelementsextfuncs, HLARRAYSIZE (drawrangeelementsextfuncs),
+			"gl_drawrangelements", GL_DRAW_RANGEELEMENTS_EXT, 0))*/
 		if (GL_CheckExtension ("glDrawRangeElementsEXT", drawrangeelementsextfuncs, HLARRAYSIZE (drawrangeelementsextfuncs),
-			"gl_drawrangelements", GL_DRAW_RANGEELEMENTS_EXT, 0))
+			"gl_drawrangeelements", GL_DRAW_RANGEELEMENTS_EXT, 0))
 			{
 #if !XASH_GL_STATIC
 			pglDrawRangeElements = pglDrawRangeElementsEXT;
@@ -1231,8 +1246,9 @@ void GL_InitExtensions (void)
 	if (glConfig.max_2d_texture_size <= 0)
 		glConfig.max_2d_texture_size = 256;
 
-	// [FWGS, 01.12.24]
-#if !XASH_GL4ES
+	// [FWGS, 01.05.26]
+/*if !XASH_GL4ES*/
+#if !XASH_GL4ES		// GL4ES doesn't provide glDebugMessage functions, even as stubs
 	// enable gldebug if allowed
 	if (GL_Support (GL_DEBUG_OUTPUT))
 		{
@@ -1248,7 +1264,9 @@ void GL_InitExtensions (void)
 		// enable all the low priority messages
 		pglDebugMessageControlARB (GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW_ARB, 0, NULL, true);
 		}
+/*endif*/
 #endif
+
 	if (GL_Support (GL_TEXTURE_2D_RECT_EXT))
 		pglGetIntegerv (GL_MAX_RECTANGLE_TEXTURE_SIZE_EXT, &glConfig.max_2d_rectangle_size);
 
@@ -1266,7 +1284,6 @@ void GL_InitExtensions (void)
 #endif
 
 	// [FWGS, 01.03.26]
-	/*R_RenderInfo_f ();*/
 	R_RenderInfo (true);
 
 	tr.framecount = tr.visframecount = 1;
@@ -1289,14 +1306,14 @@ void GL_ClearExtensions (void)
 
 /***
 =================
-GL_InitCommands
+GL_InitCommands [FWGS, 01.05.26]
 =================
 ***/
 static void GL_InitCommands (void)
 	{
-	RETRIEVE_ENGINE_SHARED_CVAR_LIST ();
+	/*RETRIEVE_ENGINE_SHARED_CVAR_LIST ();
 
-	gEngfuncs.Cvar_RegisterVariable (&r_lighting_extended);
+	gEngfuncs.Cvar_RegisterVariable (&r_lighting_extended);*/
 	gEngfuncs.Cvar_RegisterVariable (&r_lighting_ambient);
 	gEngfuncs.Cvar_RegisterVariable (&r_novis);
 	gEngfuncs.Cvar_RegisterVariable (&r_nocull);
@@ -1309,17 +1326,15 @@ static void GL_InitCommands (void)
 	gEngfuncs.Cvar_RegisterVariable (&r_ripple);
 	gEngfuncs.Cvar_RegisterVariable (&r_ripple_updatetime);
 	gEngfuncs.Cvar_RegisterVariable (&r_ripple_spawntime);
-
-	// [FWGS, 01.12.24]
 	gEngfuncs.Cvar_RegisterVariable (&r_shadows);
 	gEngfuncs.Cvar_RegisterVariable (&r_vbo);
 	gEngfuncs.Cvar_RegisterVariable (&r_vbo_dlightmode);
 	gEngfuncs.Cvar_RegisterVariable (&r_vbo_overbrightmode);
 	gEngfuncs.Cvar_RegisterVariable (&r_vbo_detail);
 
-	// [FWGS, 01.03.25]
+	// [FWGS, 01.05.26]
 	gEngfuncs.Cvar_RegisterVariable (&r_large_lightmaps);
-	gEngfuncs.Cvar_RegisterVariable (&r_dlight_virtual_radius);
+	/*gEngfuncs.Cvar_RegisterVariable (&r_dlight_virtual_radius);*/
 
 	gEngfuncs.Cvar_RegisterVariable (&gl_extensions);
 	gEngfuncs.Cvar_RegisterVariable (&gl_texture_nearest);
@@ -1336,12 +1351,12 @@ static void GL_InitCommands (void)
 	gEngfuncs.Cvar_RegisterVariable (&gl_stencilbits);
 	gEngfuncs.Cvar_RegisterVariable (&gl_round_down);
 	gEngfuncs.Cvar_RegisterVariable (&gl_overbright);
-
-	// [FWGS, 01.12.24]
 	gEngfuncs.Cvar_RegisterVariable (&gl_fog);
 
+	// [FWGS, 01.05.26]
+	gEngfuncs.Cvar_RegisterVariable (&gl_litwater_force);
+
 	// [FWGS, 05.04.26]
-	/*// these cvar not used by engine but some mods requires this*/
 	gEngfuncs.Cvar_RegisterVariable (&gl_polyoffset);
 	gEngfuncs.Cvar_RegisterVariable (&gl_polyoffset_bmodels);
 
@@ -1418,7 +1433,7 @@ qboolean R_Init (void)
 	r_temppool = Mem_AllocPool ("Render Zone");
 
 	// create the window and set up the context
-	if (!gEngfuncs.R_Init_Video (REF_GL)) // request GL context
+	if (!gEngfuncs.R_Init_Video (REF_GL))	// request GL context
 		{
 		GL_RemoveCommands ();
 		gEngfuncs.R_Free_Video ();
@@ -1427,24 +1442,25 @@ qboolean R_Init (void)
 		return false;
 		}
 
-	// [FWGS, 01.01.24] see R_ProcessEntData for tr.entities initialization
+	// [FWGS, 01.05.26] see R_ProcessEntData for tr.entities initialization
 	tr.world = (struct world_static_s *)ENGINE_GET_PARM (PARM_GET_WORLD_PTR);
-	tr.movevars = (movevars_t *)ENGINE_GET_PARM (PARM_GET_MOVEVARS_PTR);
+	/*tr.movevars = (movevars_t *)ENGINE_GET_PARM (PARM_GET_MOVEVARS_PTR);*/
 	tr.palette = (color24 *)ENGINE_GET_PARM (PARM_GET_PALETTE_PTR);
 	tr.viewent = (cl_entity_t *)ENGINE_GET_PARM (PARM_GET_VIEWENT_PTR);
 
-	// [FWGS, 01.12.24]
+	// [FWGS, 01.05.26]
 	tr.texgammatable = (byte *)ENGINE_GET_PARM (PARM_GET_TEXGAMMATABLE_PTR);
 	tr.lightgammatable = (uint *)ENGINE_GET_PARM (PARM_GET_LIGHTGAMMATABLE_PTR);
 	tr.screengammatable = (uint *)ENGINE_GET_PARM (PARM_GET_SCREENGAMMATABLE_PTR);
 	tr.lineargammatable = (uint *)ENGINE_GET_PARM (PARM_GET_LINEARGAMMATABLE_PTR);
-	tr.dlights = (dlight_t *)ENGINE_GET_PARM (PARM_GET_DLIGHTS_PTR);
+	/*tr.dlights = (dlight_t *)ENGINE_GET_PARM (PARM_GET_DLIGHTS_PTR);*/
 	tr.elights = (dlight_t *)ENGINE_GET_PARM (PARM_GET_ELIGHTS_PTR);
 
+	// [FWGS, 01.05.26]
 	GL_SetDefaults ();
 	R_CheckVBO ();
 	R_InitImages ();
-	R_SpriteInit ();
+	/*R_SpriteInit ();*/
 	R_StudioInit ();
 	R_AliasInit ();
 	R_ClearDecals ();
@@ -1509,18 +1525,14 @@ const char *GL_ErrorString (int err)
 
 /***
 =================
-GL_CheckForErrors [FWGS, 01.04.26]
+GL_CheckForErrors
 =================
 ***/
 void GL_CheckForErrors_ (const char *filename, const int fileline)
 	{
-	/*int	err;
-
-	if (!gl_check_errors.value)*/
 	if (!gl_check_errors.value || !gpGlobals->developer)
 		return;
 
-	/*if ((err = pglGetError ()) == GL_NO_ERROR)*/
 	int err = pglGetError ();
 	if (err == GL_NO_ERROR)
 		return;
@@ -1553,7 +1565,7 @@ void GL_SetupAttributes (int safegl)
 	gEngfuncs.GL_SetAttribute (REF_GL_CONTEXT_MAJOR_VERSION, 2);
 	gEngfuncs.GL_SetAttribute (REF_GL_CONTEXT_MINOR_VERSION, 0);
 
-#else // GL1.x
+#else	// GL1.x
 
 	if (gEngfuncs.Sys_CheckParm ("-glcore"))
 		{
@@ -1586,9 +1598,16 @@ void GL_SetupAttributes (int safegl)
 		glw_state.extended = true;
 		}
 
+	// [FWGS, 01.05.26]
+	if (gEngfuncs.Sys_CheckParm ("-glnoerr"))
+		{
+		gEngfuncs.Con_Reportf ("Creating a no-error GL context...\n");
+		gEngfuncs.GL_SetAttribute (REF_GL_CONTEXT_NO_ERROR, 1);
+		}
+
 	if (safegl > SAFE_DONTCARE)
 		{
-		safegl = -1; // can't retry anymore, can only shutdown engine
+		safegl = -1;	// can't retry anymore, can only shutdown engine
 		return;
 		}
 
@@ -1648,7 +1667,7 @@ void GL_SetupAttributes (int safegl)
 				samples = gEngfuncs.pfnGetCvarFloat ("gl_msaa_samples");
 				break;
 			default:
-				samples = 0; // don't use, because invalid parameter is passed
+				samples = 0;	// don't use, because invalid parameter is passed
 			}
 
 		if (samples)

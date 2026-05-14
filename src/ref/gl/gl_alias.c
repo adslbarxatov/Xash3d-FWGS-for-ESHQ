@@ -21,7 +21,6 @@ GNU General Public License for more details
 #include "triangleapi.h"
 #include "alias.h"
 #include "pm_local.h"
-/*include "pmtrace.h"*/
 
 // [FWGS, 01.12.24]
 typedef struct
@@ -35,14 +34,14 @@ typedef struct
 	float		shadelight;
 	vec3_t		lightvec;		// averaging light direction
 	vec3_t		lightvec_local;	// light direction in local space
-	vec3_t		lightspot;	// shadow spot
-	vec3_t		lightcolor;	// averaging lightcolor
+	vec3_t		lightspot;		// shadow spot
+	vec3_t		lightcolor;		// averaging lightcolor
 	int			oldpose;		// shadow used
 	int			newpose;		// shadow used
 	float		lerpfrac;		// lerp frames
 	} alias_draw_state_t;
 
-static alias_draw_state_t	g_alias;		// global alias state
+static alias_draw_state_t	g_alias;	// global alias state
 
 /***
 =================================================================
@@ -229,9 +228,7 @@ static void BuildTris (void)
 	int		i, j, k;
 	float	s, t;
 
-	//
 	// build tristrips
-	//
 	memset (g_used, 0, sizeof (g_used));
 	g_numcommands = 0;
 	g_numorder = 0;
@@ -293,7 +290,7 @@ static void BuildTris (void)
 			}
 		}
 
-	g_commands[g_numcommands++] = 0; // end of list marker
+	g_commands[g_numcommands++] = 0;	// end of list marker
 	}
 
 /***
@@ -342,7 +339,6 @@ Mod_CreateSkinData [FWGS, 05.04.26]
 static rgbdata_t *Mod_CreateSkinData (model_t *mod, const byte *data, int width, int height)
 	{
 	static rgbdata_t	skin;
-	/*char	name[MAX_QPATH];*/
 	int		i;
 
 	skin.width = width;
@@ -368,10 +364,7 @@ static rgbdata_t *Mod_CreateSkinData (model_t *mod, const byte *data, int width,
 			}
 		}
 
-	/*COM_FileBase (mod->name, name, sizeof (name));*/
-
 	// for alias models only player can have remap textures
-	/*if ((mod != NULL) && !Q_stricmp (name, "player"))*/
 	if ((mod != NULL) && !Q_stricmp (mod->name, "player"))
 		{
 		texture_t *tx = NULL;
@@ -558,7 +551,8 @@ void Mod_AliasUnloadTextures (void *data)
 	int			i, j;
 
 	palias = data;
-	if (!palias) return; // already freed
+	if (!palias)
+		return;	// already freed
 
 	for (i = 0; i < MAX_SKINS; i++)
 		{
@@ -579,13 +573,14 @@ ALIAS MODELS
 =============================================================
 ***/
 
-/***
+// [FWGS, 01.05.26] removed R_AliasDynamicLight
+/*
 ===============
 R_AliasDynamicLight
 
 similar to R_StudioDynamicLight
 ===============
-***/
+/
 static void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 	{
 	movevars_t	*mv = tr.movevars;
@@ -620,7 +615,6 @@ static void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 	light.r = light.g = light.b = light.a = 0;
 
 	// [FWGS, 01.03.26]
-	/*if ((mv->skycolor_r + mv->skycolor_g + mv->skycolor_b) != 0)*/
 	if ((mv->skycolor[0] + mv->skycolor[1] + mv->skycolor[2]) != 0)
 		{
 		msurface_t	*psurf = NULL;
@@ -628,18 +622,8 @@ static void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 		vec3_t		skyvec;
 
 		if (FBitSet (gp_host->features, ENGINE_WRITE_LARGE_COORD))
-			/*{
-			vecEnd[0] = origin[0] - mv->skyvec_x * 65536.0f;
-			vecEnd[1] = origin[1] - mv->skyvec_y * 65536.0f;
-			vecEnd[2] = origin[2] - mv->skyvec_z * 65536.0f;
-			}*/
 			VectorScale (mv->skyvec, 65536.0f, skyvec);
 		else
-			/*{
-			vecEnd[0] = origin[0] - mv->skyvec_x * 8192.0f;
-			vecEnd[1] = origin[1] - mv->skyvec_y * 8192.0f;
-			vecEnd[2] = origin[2] - mv->skyvec_z * 8192.0f;
-			}*/
 			VectorScale (mv->skyvec, 8192.0f, skyvec);
 
 		VectorSubtract (origin, skyvec, vecEnd);
@@ -652,12 +636,8 @@ static void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 
 		if (psurf && FBitSet (psurf->flags, SURF_DRAWSKY))
 			{
-			/*VectorSet (lightDir, mv->skyvec_x, mv->skyvec_y, mv->skyvec_z);*/
 			VectorCopy (mv->skyvec, lightDir);
 
-			/*light.r = mv->skycolor_r;
-			light.g = mv->skycolor_g;
-			light.b = mv->skycolor_b;*/
 			light.r = mv->skycolor[0];
 			light.g = mv->skycolor[1];
 			light.b = mv->skycolor[2];
@@ -776,7 +756,7 @@ static void R_AliasDynamicLight (cl_entity_t *ent, alight_t *plight)
 		plight->shadelight = 255 - plight->ambientlight;
 
 	VectorNormalize2 (lightDir, plight->plightvec);
-	}
+	}*/
 
 /***
 ===============
@@ -808,7 +788,7 @@ static void R_AliasLighting (float *lv, const vec3_t normal)
 	float 	illum = g_alias.ambientlight;
 	float	r, lightcos;
 
-	lightcos = DotProduct (normal, g_alias.lightvec_local); // -1 colinear, 1 opposite
+	lightcos = DotProduct (normal, g_alias.lightvec_local);	// -1 colinear, 1 opposite
 	if (lightcos > 1.0f)
 		lightcos = 1.0f;
 
@@ -870,7 +850,7 @@ static void GL_DrawAliasFrame (aliashdr_t *paliashdr)
 		// get the vertex count and primitive type
 		count = *order++;
 		if (!count)
-			break; // done
+			break;	// done
 
 		if (count < 0)
 			{
@@ -947,7 +927,7 @@ static void GL_DrawAliasShadow (aliashdr_t *paliashdr)
 		{
 		// get the vertex count and primitive type
 		count = *order++;
-		if (!count) break; // done
+		if (!count) break;	// done
 
 		if (count < 0)
 			{
@@ -1010,7 +990,7 @@ static void R_AliasLerpMovement (cl_entity_t *e)
 	g_alias.lerpfrac = bound (0.0f, f, 1.0f);
 
 	if (e->player || (e->curstate.movetype != MOVETYPE_STEP))
-		return; // monsters only
+		return;	// monsters only
 
 	VectorLerp (e->latched.prevorigin, f, e->curstate.origin, e->origin);
 
@@ -1070,8 +1050,8 @@ static void R_SetupAliasFrame (cl_entity_t *e, aliashdr_t *paliashdr)
 		oldpose = newpose = paliashdr->frames[newframe].firstpose;
 		interval = 1.0f / paliashdr->frames[newframe].interval;
 		cycle = (int)(g_alias.time * interval);
-		oldpose += (cycle + 0) % numposes; // lerpframe from
-		newpose += (cycle + 1) % numposes; // lerpframe to
+		oldpose += (cycle + 0) % numposes;	// lerpframe from
+		newpose += (cycle + 1) % numposes;	// lerpframe to
 		g_alias.lerpfrac = (g_alias.time * interval);
 		g_alias.lerpfrac -= (int)g_alias.lerpfrac;
 		}
@@ -1123,8 +1103,8 @@ static void R_AliasDrawAbsBBox (cl_entity_t *e, const vec3_t absmin, const vec3_
 		TriVertex3fv (p[boxpnt[i][2]]);
 		TriVertex3fv (p[boxpnt[i][3]]);
 		}
-	TriEnd ();
 
+	TriEnd ();
 	TriRenderMode (kRenderNormal);
 	}
 
@@ -1164,7 +1144,7 @@ static void R_AliasDrawLightTrace (cl_entity_t *e)
 
 /***
 ================
-R_AliasSetupTimings [FWGS, 01.01.24]
+R_AliasSetupTimings [FWGS, 01.05.26]
 
 init current time for a given model
 ================
@@ -1172,7 +1152,8 @@ init current time for a given model
 static void R_AliasSetupTimings (void)
 	{
 	// synchronize with server time
-	if (RI.drawWorld)
+	/*if (RI.drawWorld)*/
+	if (FBitSet (RI.rvp.flags, RF_DRAW_WORLD))
 		g_alias.time = gp_cl->time;
 
 	// menu stuff
@@ -1207,7 +1188,8 @@ void R_DrawAliasModel (cl_entity_t *e)
 
 	// locate the proper data
 	m_pAliasHeader = (aliashdr_t *)gEngfuncs.Mod_Extradata (mod_alias, RI.currententity->model);
-	if (!m_pAliasHeader) return;
+	if (!m_pAliasHeader)
+		return;
 
 	// init time
 	R_AliasSetupTimings ();
@@ -1219,24 +1201,21 @@ void R_DrawAliasModel (cl_entity_t *e)
 
 	// [FWGS, 01.01.24]
 	if (!FBitSet (gp_host->features, ENGINE_COMPENSATE_QUAKE_BUG))
-		e->angles[PITCH] = -e->angles[PITCH]; // stupid quake bug
+		e->angles[PITCH] = -e->angles[PITCH];	// stupid quake bug
 
 	// don't rotate clients, only aim
 	if (e->player) e->angles[PITCH] = 0.0f;
 
-	//
-	// get lighting information
-	//
+	// [FWGS, 01.05.26] get lighting information
 	lighting.plightvec = dir;
-	R_AliasDynamicLight (e, &lighting);
+	/*R_AliasDynamicLight (e, &lighting);*/
+	R_EntityDynamicLight (e, &lighting, FBitSet (RI.rvp.flags, RF_DRAW_WORLD), g_alias.time, g_alias.lightspot,
+		g_alias.lightvec);
 
 	r_stats.c_alias_polys += m_pAliasHeader->numtris;
 	r_stats.c_alias_models_drawn++;
 
-	//
 	// draw all the triangles
-	//
-
 	R_RotateForEntity (e);
 
 	// model and frame independant
@@ -1265,7 +1244,8 @@ void R_DrawAliasModel (cl_entity_t *e)
 
 	anim = (int)(g_alias.time * 10) & 3;
 	skin = bound (0, RI.currententity->curstate.skin, m_pAliasHeader->numskins - 1);
-	if (m_fDoRemap) pinfo = gEngfuncs.CL_GetRemapInfoForEntity (e);
+	if (m_fDoRemap)
+		pinfo = gEngfuncs.CL_GetRemapInfoForEntity (e);
 
 	if (r_lightmap->value && !r_fullbright->value)
 		GL_Bind (XASH_TEXTURE0, tr.whiteTexture);

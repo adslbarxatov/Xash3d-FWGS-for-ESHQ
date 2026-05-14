@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -93,11 +93,12 @@ static void R_BeamComputeNormal (const vec3_t vStartPos, const vec3_t vNextPos, 
 
 	VectorSubtract (vStartPos, vNextPos, vTangentY);
 
-	// vDirToBeam = vector from viewer origin to beam
-	VectorSubtract (vStartPos, RI.vieworg, vDirToBeam);
+	// [FWGS, 01.05.26] vDirToBeam = vector from viewer origin to beam
+	/*VectorSubtract (vStartPos, RI.vieworg, vDirToBeam);*/
+	VectorSubtract (vStartPos, RI.rvp.vieworigin, vDirToBeam);
 
 	// get a vector that is perpendicular to us and perpendicular to the beam.
-	// this is used to fatten the beam.
+	// this is used to fatten the beam
 	CrossProduct (vTangentY, vDirToBeam, pNormal);
 	VectorNormalizeFast (pNormal);
 	}
@@ -105,12 +106,13 @@ static void R_BeamComputeNormal (const vec3_t vStartPos, const vec3_t vNextPos, 
 
 /***
 ==============
-R_BeamCull
+R_BeamCull [FWGS, 01.05.26]
 
 Cull the beam by bbox
 ==============
 ***/
-qboolean R_BeamCull (const vec3_t start, const vec3_t end, qboolean pvsOnly)
+/*qboolean R_BeamCull (const vec3_t start, const vec3_t end, qboolean pvsOnly)*/
+static qboolean R_BeamCull (const vec3_t start, const vec3_t end, qboolean pvsOnly)
 	{
 	vec3_t	mins, maxs;
 	int	i;
@@ -147,13 +149,14 @@ qboolean R_BeamCull (const vec3_t start, const vec3_t end, qboolean pvsOnly)
 	return true;
 	}
 
-/***
+// [FWGS, 01.05.26] removed CL_AddCustomBeam
+/*
 ================
 CL_AddCustomBeam
 
 Add the beam that encoded as custom entity
 ================
-***/
+/
 void CL_AddCustomBeam (cl_entity_t *pEnvBeam)
 	{
 	if (tr.draw_list->num_beam_entities >= MAX_VISIBLE_PACKET)
@@ -167,7 +170,7 @@ void CL_AddCustomBeam (cl_entity_t *pEnvBeam)
 		tr.draw_list->beam_entities[tr.draw_list->num_beam_entities] = pEnvBeam;
 		tr.draw_list->num_beam_entities++;
 		}
-	}
+	}*/
 
 
 /***
@@ -175,6 +178,7 @@ void CL_AddCustomBeam (cl_entity_t *pEnvBeam)
 BEAM DRAW METHODS
 ==============================================================
 ***/
+
 /***
 ================
 R_DrawSegs
@@ -244,7 +248,7 @@ static void R_DrawSegs (vec3_t source, vec3_t delta, float width, float scale, f
 	total_segs = segments;
 	segs_drawn = 0;
 
-	// specify all the segments.
+	// specify all the segments
 	for (i = 0; i < segments; i++)
 		{
 		beamseg_t	nextSeg;
@@ -277,14 +281,14 @@ static void R_DrawSegs (vec3_t source, vec3_t delta, float width, float scale, f
 				}
 			}
 
-		// specify the next segment.
+		// specify the next segment
 		nextSeg.width = width * 2.0f;
 		nextSeg.texcoord = vLast;
 
 		if (segs_drawn > 0)
 			{
 			// Get a vector that is perpendicular to us and perpendicular to the beam.
-			// This is used to fatten the beam.
+			// This is used to fatten the beam
 			vec3_t	vNormal, vAveNormal;
 
 			R_BeamComputeNormal (curSeg.pos, nextSeg.pos, vNormal);
@@ -353,7 +357,7 @@ static void R_DrawSegs (vec3_t source, vec3_t delta, float width, float scale, f
 			pglVertex3fv (vPoint2);
 			}
 
-		vLast += vStep; // Advance texture scroll (v axis only)
+		vLast += vStep;	// Advance texture scroll (v axis only)
 		noiseIndex += noiseStep;
 		}
 	}
@@ -379,11 +383,11 @@ static void R_DrawTorus (vec3_t source, vec3_t delta, float width, float scale, 
 
 	length = VectorLength (delta) * 0.01f;
 	if (length < 0.5f)
-		length = 0.5f; // don't lose all of the noise/texture on short beams
+		length = 0.5f;	// don't lose all of the noise/texture on short beams
 
 	div = 1.0f / (segments - 1);
 
-	vStep = length * div; // Texture length texels per space pixel
+	vStep = length * div;	// Texture length texels per space pixel
 
 	// Scroll speed 3.5 -- initial texture position, scrolls 3.5/sec (1.0 is entire texture)
 	vLast = fmod (freq * speed, 1);
@@ -436,7 +440,7 @@ static void R_DrawTorus (vec3_t source, vec3_t delta, float width, float scale, 
 			VectorMA (point, width, normal, last1);
 			VectorMA (point, -width, normal, last2);
 
-			vLast += vStep; // advance texture scroll (v axis only)
+			vLast += vStep;	// advance texture scroll (v axis only)
 			TriTexCoord2f (1, vLast);
 			TriVertex3fv (last2);
 			TriTexCoord2f (0, vLast);
@@ -473,8 +477,8 @@ static void R_DrawDisk (vec3_t source, vec3_t delta, float width, float scale, f
 		length = 0.5f;	// don't lose all of the noise/texture on short beams
 
 	div = 1.0f / (segments - 1);
-	vStep = length * div;		// Texture length texels per space pixel
-
+	vStep = length * div;	// Texture length texels per space pixel
+	
 	// scroll speed 3.5 -- initial texture position, scrolls 3.5/sec (1.0 is entire texture)
 	vLast = fmod (freq * speed, 1);
 	scale = scale * length;
@@ -532,7 +536,7 @@ static void R_DrawCylinder (vec3_t source, vec3_t delta, float width, float scal
 		length = 0.5f;	// don't lose all of the noise/texture on short beams
 
 	div = 1.0f / (segments - 1);
-	vStep = length * div;		// texture length texels per space pixel
+	vStep = length * div;	// texture length texels per space pixel
 
 	// Scroll speed 3.5 -- initial texture position, scrolls 3.5/sec (1.0 is entire texture)
 	vLast = fmod (freq * speed, 1);
@@ -742,11 +746,11 @@ static void R_DrawRing (vec3_t source, vec3_t delta, float width, float amplitud
 
 	length = VectorLength (delta) * 0.01f * M_PI_F;
 	if (length < 0.5f)
-		length = 0.5f;		// Don't lose all of the noise/texture on short beams
+		length = 0.5f;	// Don't lose all of the noise/texture on short beams
 
 	div = 1.0f / (segments - 1);
 
-	vStep = length * div / 8.0f;			// texture length texels per space pixel
+	vStep = length * div / 8.0f;	// texture length texels per space pixel
 
 	// Scroll speed 3.5 -- initial texture position, scrolls 3.5/sec (1.0 is entire texture)
 	vLast = fmod (freq * speed, 1.0f);
@@ -948,7 +952,7 @@ static void R_BeamDraw (BEAM *pbeam, float frametime)
 
 	if (!model || (model->type != mod_sprite))
 		{
-		pbeam->flags &= ~FBEAM_ISACTIVE; // force to ignore
+		pbeam->flags &= ~FBEAM_ISACTIVE;	// force to ignore
 		pbeam->die = gp_cl->time;
 		return;
 		}
@@ -977,7 +981,7 @@ static void R_BeamDraw (BEAM *pbeam, float frametime)
 		// makes sure attachment[0] + attachment[1] are valid
 		if (!R_BeamRecomputeEndpoints (pbeam))
 			{
-			ClearBits (pbeam->flags, FBEAM_ISACTIVE); // force to ignore
+			ClearBits (pbeam->flags, FBEAM_ISACTIVE);	// force to ignore
 			return;
 			}
 
@@ -989,9 +993,9 @@ static void R_BeamDraw (BEAM *pbeam, float frametime)
 			VectorCopy (delta, pbeam->delta);
 
 		if (pbeam->amplitude >= 0.50f)
-			pbeam->segments = VectorLength (pbeam->delta) * 0.25f + 3.0f; // one per 4 pixels
+			pbeam->segments = VectorLength (pbeam->delta) * 0.25f + 3.0f;	// one per 4 pixels
 		else
-			pbeam->segments = VectorLength (pbeam->delta) * 0.075f + 3.0f; // one per 16 pixels
+			pbeam->segments = VectorLength (pbeam->delta) * 0.075f + 3.0f;	// one per 16 pixels
 		}
 
 	if ((pbeam->type == TE_BEAMPOINTS) && R_BeamCull (pbeam->source, pbeam->target, 0))
@@ -1032,8 +1036,9 @@ static void R_BeamDraw (BEAM *pbeam, float frametime)
 			vec3_t	localDir, vecProjection, tmp;
 			float	flDistance;
 
-			// fade the beam if the player's not looking at the source
-			VectorSubtract (RI.vieworg, pbeam->source, localDir);
+			// [FWGS, 01.05.26] fade the beam if the player's not looking at the source
+			/*VectorSubtract (RI.vieworg, pbeam->source, localDir);*/
+			VectorSubtract (RI.rvp.vieworigin, pbeam->source, localDir);
 			flDot = DotProduct (delta, localDir);
 			VectorScale (delta, flDot, vecProjection);
 			VectorSubtract (localDir, vecProjection, tmp);
@@ -1211,7 +1216,6 @@ static void R_BeamDrawCustomEntity (cl_entity_t *ent)
 	g = ent->curstate.rendercolor.g / 255.0f;
 	b = ent->curstate.rendercolor.b / 255.0f;
 
-	// [FWGS, 01.04.23]
 	R_BeamSetup (&beam, ent->origin, ent->curstate.angles, ent->curstate.modelindex, 0, ent->curstate.scale,
 		amp, blend, ent->curstate.animtime);
 

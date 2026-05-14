@@ -13,13 +13,14 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-#include <string.h>
-#include <stdio.h>
+// [FWGS, 01.05.26]
+/*include <string.h>
+include <stdio.h>*/
 #include <time.h>
 #include <stdarg.h>
-#include <malloc.h>		// [FWGS, 01.12.24]
+#include <malloc.h>
 #include "crtlib.h"
-#include "filesystem.h"
+/*include "filesystem.h"*/
 #include "filesystem_internal.h"
 #include "VFileSystem009.h"
 #include "common/com_strings.h"
@@ -52,29 +53,30 @@ static inline bool IsIdGamedir (const char *id)
 		!Q_strcmp (id, "GAMEDOWNLOAD");
 	}
 
-// [FWGS, 01.09.24]
 static inline const char *IdToDir (char *dir, size_t size, const char *id)
 	{
 	if (!Q_strcmp (id, "GAME"))
 		return GI->gamefolder;
 
+	// [FWGS, 01.05.26]
 	if (!Q_strcmp (id, "GAMEDOWNLOAD"))
 		{
-		Q_snprintf (dir, size, "%s/" DEFAULT_DOWNLOADED_DIRECTORY, GI->gamefolder);
+		/*Q_snprintf (dir, size, "%s/" DEFAULT_DOWNLOADED_DIRECTORY, GI->gamefolder);*/
+		Q_snprintf (dir, size, "%s" DEFAULT_DOWNLOADED_DIRECTORY_SUFFIX, GI->gamefolder);
 		return dir;
 		}
 
 	if (!Q_strcmp (id, "GAMECONFIG"))
-		return fs_writepath->filename; // full path here so it's totally our write allowed directory
+		return fs_writepath->filename;	// full path here so it's totally our write allowed directory
 
 	if (!Q_strcmp (id, "PLATFORM"))
-		return "platform"; // stub
+		return "platform";	// stub
 
 	if (!Q_strcmp (id, "CONFIG"))
-		return "platform/config"; // stub
+		return "platform/config";	// stub
 
 	// ROOT || BASE
-	return fs_rootdir; // give at least root directory
+	return fs_rootdir;	// give at least root directory
 	}
 
 // [FWGS, 01.12.24]
@@ -165,7 +167,7 @@ class CXashFS : public IFileSystem
 			char dir[MAX_VA_STRING], fullpath[MAX_VA_STRING];
 
 			Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", IdToDir (dir, sizeof (dir), id), path);
-			FS_CreatePath (fullpath); // FS_CreatePath is aware of slashes
+			FS_CreatePath (fullpath);	// FS_CreatePath is aware of slashes
 			}
 
 		bool FileExists (const char *path) override
@@ -421,7 +423,6 @@ class CXashFS : public IFileSystem
 			char *p;
 
 			// [FWGS, 01.03.26]
-			/*p = COM_ParseFileSafe (buf, token, PFILE_FS_TOKEN_MAX_LENGTH, 0, nullptr, &qquoted);*/
 			// filesystem_stdio expects 512 byte buffers
 			p = COM_ParseFileSafe (buf, token, 512, 0, nullptr, &qquoted);
 			if (quoted)
@@ -433,7 +434,6 @@ class CXashFS : public IFileSystem
 		bool FullPathToRelativePath (const char *path, char *out) override
 			{
 			// [FWGS, 01.03.26]
-			/*if (!COM_CheckString (path))*/
 			if (COM_StringEmptyOrNULL (path))
 				{
 				*out = 0;
