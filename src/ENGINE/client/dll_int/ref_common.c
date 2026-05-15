@@ -24,7 +24,6 @@ GNU General Public License for more details
 
 // [FWGS, 01.03.26]
 struct ref_state_s ref;
-/*ref_globals_t refState;*/
 ref_globals_t refState =
 	{
 	// just have something valid until video subsystem is finished initializing
@@ -90,7 +89,7 @@ REF_HOST_CHECK (features);
 static qboolean CheckSkybox (const char *name, char out[SKYBOX_MAX_SIDES][MAX_STRING])
 	{
 	static const char *skybox_ext[3] = { "dds", "tga", "bmp" };
-	static const char *skybox_delim[2] = { "", "_" }; // no space for HL style, underscore for Q1 style
+	static const char *skybox_delim[2] = { "", "_" };	// no space for HL style, underscore for Q1 style
 	int i;
 
 	// search for skybox images
@@ -116,7 +115,7 @@ static qboolean CheckSkybox (const char *name, char out[SKYBOX_MAX_SIDES][MAX_ST
 				}
 
 			if (num_checked_sides == SKYBOX_MAX_SIDES)
-				return true; // image exists
+				return true;	// image exists
 			}
 		}
 
@@ -132,10 +131,9 @@ void R_SetupSky (const char *name)
 	qboolean	result;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (name))*/
 	if (COM_StringEmptyOrNULL (name))
 		{
-		ref.dllFuncs.R_SetupSky (NULL); // unload skybox
+		ref.dllFuncs.R_SetupSky (NULL);	// unload skybox
 		return;
 		}
 
@@ -153,11 +151,11 @@ void R_SetupSky (const char *name)
 	if (!result && Q_stricmp (name, DEFAULT_SKYBOX_NAME))
 		{
 		Con_Reportf (S_WARN "missed or incomplete skybox '%s'\n", name);
-		R_SetupSky (DEFAULT_SKYBOX_NAME); // force to default
+		R_SetupSky (DEFAULT_SKYBOX_NAME);	// force to default
 		return;
 		}
 
-	ref.dllFuncs.R_SetupSky (NULL); // unload skybox
+	ref.dllFuncs.R_SetupSky (NULL);	// unload skybox
 	Con_DPrintf ("SKY: ");
 
 	for (i = 0; i < SKYBOX_MAX_SIDES; i++)
@@ -175,7 +173,7 @@ void R_SetupSky (const char *name)
 		SetBits (world.flags, FWORLD_CUSTOM_SKYBOX);
 		Con_DPrintf ("done\n");
 		ref.dllFuncs.R_SetupSky (skyboxTextures);
-		return; // loaded
+		return;	// loaded
 		}
 
 	Con_DPrintf ("^2failed\n");
@@ -215,7 +213,7 @@ void GL_RenderFrame (const ref_viewpass_t *rvp)
 
 static intptr_t pfnEngineGetParm (int parm, int arg)
 	{
-	return CL_RenderGetParm (parm, arg, false); // prevent recursion
+	return CL_RenderGetParm (parm, arg, false);	// prevent recursion
 	}
 
 // [FWGS, 01.01.24] removed pfnGetWorld
@@ -273,18 +271,6 @@ static void *pfnMod_Extradata (int type, model_t *m)
 	/*switch (type)*/
 	if ((type == mod_alias) || (type == mod_studio))
 		{
-		/*case mod_alias:
-			return Mod_AliasExtradata (m);
-
-		case mod_studio:
-			return Mod_StudioExtradata (m);
-
-		case mod_sprite: // fallthrough
-		case mod_brush:
-			return NULL;
-
-		default:
-			Host_Error ("%s: unknown type %d\n", __func__, type);*/
 		if (m && (m->type == type))
 			return m->cache.data;
 
@@ -307,7 +293,7 @@ static void CL_ExtraUpdate (void)
 	S_ExtraUpdate ();
 	}
 
-static void pfnCL_GetScreenInfo (int *width, int *height) // clgame.scrInfo, ptrs may be NULL
+static void pfnCL_GetScreenInfo (int *width, int *height)	// clgame.scrInfo, ptrs may be NULL
 	{
 	if (width)
 		*width = clgame.scrInfo.iWidth;
@@ -327,7 +313,7 @@ pfnPlayerInfo
 ***/
 static player_info_t *pfnPlayerInfo (int index)
 	{
-	if (index == -1) // special index for menu
+	if (index == -1)	// special index for menu
 		return &gameui.playerinfo;
 
 	if ((index < 0) || (index >= cl.maxclients))
@@ -349,12 +335,13 @@ static entity_state_t *R_StudioGetPlayerState (int index)
 	return &cl.frames[cl.parsecountmod].playerstate[index];
 	}
 
-static int pfnGetStudioModelInterface (int version, struct r_studio_interface_s **ppinterface,
+// [FWGS, 01.05.26] removed pfnGetStudioModelInterface
+/*static int pfnGetStudioModelInterface (int version, struct r_studio_interface_s **ppinterface,
 	struct engine_studio_api_s *pstudio)
 	{
 	return clgame.dllFuncs.pfnGetStudioModelInterface ?
 		clgame.dllFuncs.pfnGetStudioModelInterface (version, ppinterface, pstudio) : 0;
-	}
+	}*/
 
 // [FWGS, 01.01.24] removed pfnImage_GetPool
 
@@ -381,15 +368,8 @@ static screenfade_t *pfnRefGetScreenFade (void)
 // [FWGS, 01.01.24] removed R_DoResetGamma
 
 // [FWGS, 01.03.26]
-/*static qboolean R_Init_Video_ (const int type)*/
 static qboolean R_Init_Video_ (ref_graphic_apis_t type)
 	{
-	/*host.apply_opengl_config = true;
-
-	Cbuf_AddTextf ("exec %s.cfg\n", ref.dllFuncs.R_GetConfigName ());
-
-	Cbuf_Execute ();
-	host.apply_opengl_config = false;*/
 	const char *config_name = ref.dllFuncs.R_GetConfigName ? ref.dllFuncs.R_GetConfigName () : NULL;
 
 	if (config_name)
@@ -403,19 +383,17 @@ static qboolean R_Init_Video_ (ref_graphic_apis_t type)
 	return R_Init_Video (type);
 	}
 
-// [FWGS, 01.02.25]
-static mleaf_t *pfnMod_PointInLeaf (const vec3_t p, mnode_t *node)
+// [FWGS, 01.05.26] removed pfnMod_PointInLeaf
+/*static mleaf_t *pfnMod_PointInLeaf (const vec3_t p, mnode_t *node)
 	{
 	// FIXME: get rid of this on next RefAPI update
 	return Mod_PointInLeaf (p, node, cl.models[1]);
-	}
+	}*/
 
-// [FWGS, 01.03.26]
 static const ref_api_t gEngfuncs =
 	{
 	pfnEngineGetParm,
 	pfnCvar_Get,
-	/*(void *)Cvar_FindVarExt,*/
 	(void *)Cvar_FindVar,
 	Cvar_VariableValue,
 	Cvar_VariableString,
@@ -446,9 +424,11 @@ static const ref_api_t gEngfuncs =
 	CL_GetWaterEntity,
 	CL_AddVisibleEntity,
 
+	// [FWGS, 01.05.26]
 	Mod_SampleSizeForFace,
 	Mod_BoxVisible,
-	pfnMod_PointInLeaf,
+	/*pfnMod_PointInLeaf,*/
+	Mod_PointInLeaf,
 	R_DrawWorldHull,
 	R_DrawModelHull,
 	R_StudioGetAnim,
@@ -473,6 +453,7 @@ static const ref_api_t gEngfuncs =
 	COM_RandomLong,
 	pfnRefGetScreenFade,
 
+	// [FWGS, 01.05.26]
 	pfnCL_GetScreenInfo,
 	pfnSetLocalLightLevel,
 	Sys_CheckParm,
@@ -481,7 +462,7 @@ static const ref_api_t gEngfuncs =
 	Mod_CacheCheck,
 	Mod_LoadCacheFile,
 	Mod_Calloc,
-	pfnGetStudioModelInterface,
+	/*pfnGetStudioModelInterface,*/
 
 	_Mem_AllocPool,
 	_Mem_FreePool,
@@ -533,6 +514,9 @@ static const ref_api_t gEngfuncs =
 	&clgame.drawFuncs,
 	&g_fsapi,
 	R_GetWindowHandle,
+
+	// [FWGS, 01.05.26]
+	R_GetSpriteFrame,
 	};
 
 // [FWGS, 01.03.26]
@@ -542,7 +526,6 @@ static void R_UnloadProgs (void)
 		return;
 
 	// [FWGS, 01.03.26] deinitialize renderer
-	/*ref.dllFuncs.R_Shutdown ();*/
 	if (ref.dllFuncs.R_Shutdown)
 		ref.dllFuncs.R_Shutdown ();
 
@@ -559,35 +542,97 @@ static void R_UnloadProgs (void)
 	memset (&ref.dllFuncs, 0, sizeof (ref.dllFuncs));
 	}
 
-static void CL_FillTriAPIFromRef (triangleapi_t *dst, const ref_interface_t *src)
+// [FWGS, 01.05.26]
+/*static void CL_FillTriAPIFromRef (triangleapi_t *dst, const ref_interface_t *src)*/
+static void CL_FillTriAPI (triangleapi_t *dst)
 	{
 	dst->version = TRI_API_VERSION;
-	dst->Begin = src->Begin;
+	/*dst->Begin = src->Begin;*/
 	dst->RenderMode = TriRenderMode;
-	dst->End = src->End;
+	/*dst->End = src->End;*/
 	dst->Color4f = TriColor4f;
 	dst->Color4ub = TriColor4ub;
-	dst->TexCoord2f = src->TexCoord2f;
+	/*dst->TexCoord2f = src->TexCoord2f;
 	dst->Vertex3f = src->Vertex3f;
-	dst->Vertex3fv = src->Vertex3fv;
+	dst->Vertex3fv = src->Vertex3fv;*/
 	dst->Brightness = TriBrightness;
 	dst->CullFace = TriCullFace;
 	dst->SpriteTexture = TriSpriteTexture;
 	dst->WorldToScreen = TriWorldToScreen;
-	dst->Fog = src->Fog;
+	/*dst->Fog = src->Fog;
 	dst->ScreenToWorld = src->ScreenToWorld;
-	dst->GetMatrix = src->GetMatrix;
+	dst->GetMatrix = src->GetMatrix;*/
 	dst->BoxInPVS = TriBoxInPVS;
 	dst->LightAtPoint = TriLightAtPoint;
 	dst->Color4fRendermode = TriColor4fRendermode;
-	dst->FogParams = src->FogParams;
+	/*dst->FogParams = src->FogParams;*/
+	dst->Begin = ref.dllFuncs.Begin;
+	dst->End = ref.dllFuncs.End;
+	dst->Vertex3f = ref.dllFuncs.Vertex3f;
+	dst->Vertex3fv = ref.dllFuncs.Vertex3fv;
+
+	ref.dllFuncs.R_FillTriAPI (dst);
+	}
+
+// [FWGS, 01.05.26]
+static void R_CreateBuiltinTextures (void)
+	{
+	// default checkerboard
+	uint data16x16[256];
+	for (int y = 0; y < 16; y++)
+		{
+		for (int x = 0; x < 16; x++)
+			{
+			if ((y < 8) ^ (x < 8))
+				data16x16[y * 16 + x] = HostFourCC (255, 0, 255, 255);
+			else
+				data16x16[y * 16 + x] = HostFourCC (0, 0, 0, 255);
+			}
+		}
+	ref.dllFuncs.GL_CreateTexture (REF_DEFAULT_TEXTURE, 16, 16, data16x16, 0);
+
+	// particle texture
+	uint particle[64];
+	for (int y = 0; y < 8; y++)
+		{
+		for (int x = 0; x < 8; x++)
+			particle[y * 8 + x] = HostFourCC (255, 255, 255, 0);	// fill it with invisible white
+		}
+
+	// a1ba: moved one pixel down and to the right to make it look better with linear interpolation
+	// set to 0 to make it look like in goldsrc
+	const int corner = 1;
+	for (int y = corner; y < 4 + corner; y++)
+		{
+		for (int x = corner; x < 4 + corner; x++)
+			{
+			if (((x == corner) || (x == 3 + corner)) && ((y == corner) || (y == 3 + corner)))
+				continue;
+
+			particle[y * 8 + x] = HostFourCC (255, 255, 255, 255);
+			}
+		}
+	ref.dllFuncs.GL_CreateTexture (REF_PARTICLE_TEXTURE, 8, 8, particle, TF_CLAMP | TF_HAS_ALPHA);
+
+	// solid colors
+	uint data4x4[16];
+	memset (data4x4, 0xFF, sizeof (data4x4));
+	ref.dllFuncs.GL_CreateTexture (REF_WHITE_TEXTURE, 4, 4, data4x4, 0);
+
+	for (int x = 0; x < 16; x++)
+		data4x4[x] = HostFourCC (127, 127, 127, 255);
+	ref.dllFuncs.GL_CreateTexture (REF_GRAY_TEXTURE, 4, 4, data4x4, 0);
+
+	for (int x = 0; x < 16; x++)
+		data4x4[x] = HostFourCC (0, 0, 0, 255);
+	ref.dllFuncs.GL_CreateTexture (REF_BLACK_TEXTURE, 4, 4, data4x4, 0);
 	}
 
 // [FWGS, 01.12.24]
 static qboolean R_LoadProgs (const char *name)
 	{
 	static ref_api_t gpEngfuncs;
-	REFAPI GetRefAPI; // single export
+	REFAPI GetRefAPI;	// single export
 
 	if (ref.hInstance)
 		R_UnloadProgs ();
@@ -626,8 +671,11 @@ static qboolean R_LoadProgs (const char *name)
 	Cvar_FullSet ("host_refloaded", "1", FCVAR_READ_ONLY);
 	ref.initialized = true;
 
-	// initialize TriAPI callbacks
-	CL_FillTriAPIFromRef (&gTriApi, &ref.dllFuncs);
+	// [FWGS, 01.05.26]
+	/*// initialize TriAPI callbacks
+	CL_FillTriAPIFromRef (&gTriApi, &ref.dllFuncs);*/
+	R_CreateBuiltinTextures ();
+	CL_FillTriAPI (&gTriApi);
 
 	return true;
 	}
@@ -716,13 +764,9 @@ static void SetWidthAndHeightFromCommandLine (void)
 	Sys_GetIntFromCmdLine ("-width", &width);
 	Sys_GetIntFromCmdLine ("-height", &height);
 
-	// [FWGS, 01.03.26]
-	/*if ((width < 1) || (height < 1))*/
+	// [FWGS, 01.03.26] Not specified or invalid, so don't bother
 	if ((width < VID_MIN_WIDTH) || (height < VID_MIN_HEIGHT))
-		{
-		// Not specified or invalid, so don't bother
 		return;
-		}
 
 	R_SaveVideoMode (width, height, width, height, false);
 	}
@@ -732,15 +776,12 @@ static void SetFullscreenModeFromCommandLine (void)
 	{
 	if (Sys_CheckParm ("-borderless"))
 		Cvar_DirectSetValue (&vid_fullscreen, WINDOW_MODE_BORDERLESS);
-		/*Cvar_DirectSet (&vid_fullscreen, "2");*/
 
 	else if (Sys_CheckParm ("-fullscreen"))
 		Cvar_DirectSetValue (&vid_fullscreen, WINDOW_MODE_FULLSCREEN);
-		/*Cvar_DirectSet (&vid_fullscreen, "1");*/
 
 	else if (Sys_CheckParm ("-windowed"))
 		Cvar_DirectSetValue (&vid_fullscreen, WINDOW_MODE_WINDOWED);
-		/*Cvar_DirectSet (&vid_fullscreen, "0");*/
 	}
 
 // [FWGS, 01.04.25]
@@ -853,7 +894,7 @@ qboolean R_Init (void)
 	Cbuf_Execute ();
 
 	// Set screen resolution and fullscreen mode if passed in on command line.
-	// this is done after executing video.cfg, as the command line values should take priority.
+	// this is done after executing video.cfg, as the command line values should take priority
 	SetWidthAndHeightFromCommandLine ();
 	SetFullscreenModeFromCommandLine ();
 
@@ -871,7 +912,6 @@ qboolean R_Init (void)
 		success = R_LoadRenderer (requested_cmdline, false);
 
 	// [FWGS, 01.03.26]
-	/*if (!success && COM_CheckString (r_refdll.string) && Q_stricmp (requested_cmdline, r_refdll.string))*/
 	if (!success && !COM_StringEmptyOrNULL (r_refdll.string) && Q_stricmp (requested_cmdline, r_refdll.string))
 		{
 		Q_strncpy (requested_cvar, r_refdll.string, sizeof (requested_cvar));

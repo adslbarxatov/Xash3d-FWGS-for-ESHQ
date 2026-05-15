@@ -18,7 +18,7 @@ GNU General Public License for more details
 #include "const.h"
 #include "library.h"
 #include "input.h"
-#include "server.h" // !!svgame.hInstance
+#include "server.h"	// !!svgame.hInstance
 #include "vid_common.h"
 
 static void 	UI_UpdateUserinfo (void);
@@ -44,7 +44,6 @@ void UI_UpdateMenu (float realtime)
 		return;
 
 	// if some deferred cmds is waiting
-	/*if (UI_IsVisible () && COM_CheckString (host.deferred_cmd))*/
 	if (UI_IsVisible () && !COM_StringEmptyOrNULL (host.deferred_cmd))
 		{
 		Cbuf_AddText (host.deferred_cmd);
@@ -195,6 +194,8 @@ void UI_ShowConnectionWarning (void)
 	if (cls.state != ca_connected)
 		return;
 
+	// [FWGS, 01.05.26]
+	/*if (Host_IsLocalClient ())*/
 	if (Host_IsLocalClient ())
 		return;
 
@@ -211,22 +212,6 @@ void UI_ShowConnectionWarning (void)
 	}
 
 // [FWGS, 05.04.26] removed UI_ShowUpdateDialog
-
-/*
-/
-=================
-UI_ShowConnectionWarning
-
-show update dialog
-=================
-/
-void UI_ShowUpdateDialog (qboolean preferStore)
-	{
-	if (gameui.dllFuncs2.pfnShowUpdateDialog)
-		gameui.dllFuncs2.pfnShowUpdateDialog (preferStore);
-
-	Con_Printf (S_WARN "This version is not supported anymore. To continue, install latest engine version\n");
-	}*/
 
 /***
 =================
@@ -283,7 +268,7 @@ void UI_ConnectionProgress_Precache (void)
 		gameui.dllFuncs2.pfnConnectionProgress_Precache ();
 	}
 
-void UI_ConnectionProgress_Connect (const char *server) // NULL for local server
+void UI_ConnectionProgress_Connect (const char *server)	// NULL for local server
 	{
 	if (gameui.dllFuncs2.pfnConnectionProgress_Connect)
 		gameui.dllFuncs2.pfnConnectionProgress_Connect (server);
@@ -521,7 +506,6 @@ static HIMAGE GAME_EXPORT pfnPIC_Load (const char *szPicName, const byte *image_
 	HIMAGE	tx;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (szPicName))*/
 	if (COM_StringEmptyOrNULL (szPicName))
 		{
 		Con_Reportf (S_ERROR "%s: refusing to load image with empty name\n", __func__);
@@ -531,7 +515,7 @@ static HIMAGE GAME_EXPORT pfnPIC_Load (const char *szPicName, const byte *image_
 	// add default parms to image
 	SetBits (flags, TF_IMAGE);
 
-	Image_SetForceFlags (IL_LOAD_DECAL); // allow decal images for menu
+	Image_SetForceFlags (IL_LOAD_DECAL);	// allow decal images for menu
 	tx = ref.dllFuncs.GL_LoadTexture (szPicName, image_buf, image_size, flags);
 	Image_ClearForceFlags ();
 
@@ -709,8 +693,6 @@ pfnPlaySound
 static void GAME_EXPORT pfnPlaySound (const char *szSound)
 	{
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (szSound))
-		return;*/
 	if (COM_StringEmptyOrNULL (szSound))
 		return;
 
@@ -824,7 +806,7 @@ for drawing playermodel previews
 static void GAME_EXPORT pfnSetPlayerModel (cl_entity_t *ent, const char *path)
 	{
 	ent->model = Mod_ForName (path, false, false);
-	ent->curstate.modelindex = MAX_MODELS; // unreachable index
+	ent->curstate.modelindex = MAX_MODELS;	// unreachable index
 	}
 
 /***
@@ -1003,12 +985,11 @@ pfnGetFilesList [FWGS, 01.03.26]
 release prev search on a next call
 =========
 ***/
-/*static char **GAME_EXPORT pfnGetFilesList (const char *pattern, int *numFiles, int gamedironly)*/
 char **GAME_EXPORT CL_GetFilesList (const char *pattern, int *numFiles, int gamedironly)
 	{
 	static search_t *t = NULL;
 	if (t)
-		Mem_Free (t); // release prev search
+		Mem_Free (t);	// release prev search
 
 	t = FS_Search (pattern, true, gamedironly);
 	if (!t)
@@ -1160,7 +1141,7 @@ static void GAME_EXPORT pfnSetCursor (void *hCursor)
 	uintptr_t cursor;
 
 	if (!gameui.use_extended_api)
-		return; // ignore original Xash menus
+		return;	// ignore original Xash menus
 
 	cursor = (uintptr_t)hCursor;
 	if ((cursor < dc_user) || (cursor > dc_last))
@@ -1245,7 +1226,6 @@ static const ui_enginefuncs_t gEngfuncs =
 	pfnMemFree,
 	pfnGetOldGameInfo,	// [FWGS, 01.09.24]
 	pfnGetGamesList,
-	/*pfnGetFilesList,*/
 	CL_GetFilesList,	// [FWGS, 01.03.26]
 	SV_GetSaveComment,
 	CL_GetDemoComment,
@@ -1338,11 +1318,11 @@ static ui_extendedfuncs_t gExtendedfuncs =
 	pfnParseFileSafe,
 	NET_AdrToString,
 	NET_CompareAdrSort,
-	Sys_GetNativeObject,	// [FWGS, 01.03.24]
-	&gNetApi,				// [FWGS, 01.07.24]
-	pfnGetGameInfo,			// [FWGS, 01.09.24]
-	pfnGetModInfo,			// [FWGS, 01.09.24]
-	pfnIsCvarReadOnly,		// [FWGS, 01.12.24]
+	Sys_GetNativeObject,
+	&gNetApi,
+	pfnGetGameInfo,
+	pfnGetModInfo,
+	pfnIsCvarReadOnly,
 	};
 
 // [FWGS, 01.09.24]
@@ -1375,7 +1355,6 @@ qboolean UI_LoadProgs (void)
 	UITEXTAPI		GiveTextApi;
 	MENUAPI			GetMenuAPI;
 	string			dllpath;
-	/*int				i;*/
 
 	if (gameui.hInstance)
 		UI_UnloadProgs ();
@@ -1474,7 +1453,7 @@ qboolean UI_LoadProgs (void)
 	Cmd_AddRestrictedCommand ("ui_allowconsole", UI_ToggleAllowConsole_f, "unlocks developer console");
 
 	// [FWGS, 01.12.24]
-	UI_ConvertGameInfo (&gameui.gameInfo, FI->GameInfo); // current gameinfo
+	UI_ConvertGameInfo (&gameui.gameInfo, FI->GameInfo);	// current gameinfo
 
 	// setup globals
 	gameui.globals->developer = host.allow_console;

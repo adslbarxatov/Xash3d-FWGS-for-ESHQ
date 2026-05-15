@@ -155,12 +155,6 @@ static qboolean CL_EntityCustomLerp (cl_entity_t *e)
 		case MOVETYPE_FLY:
 		case MOVETYPE_COMPOUND:
 			return false;
-
-		/*// [FWGS, 01.12.24] ABSOLUTELY STUPID HACK TO ALLOW MONSTERS INTERPOLATION IN GRAVGUNMOD COOP
-		// MUST BE REMOVED ONCE WE REMOVE 48 PROTO SUPPORT
-		case MOVETYPE_TOSS:
-			if ((cls.legacymode == PROTO_LEGACY) && e->model && (e->model->type == mod_studio))
-				return false;*/
 		}
 
 	return true;
@@ -200,7 +194,7 @@ static qboolean CL_ParametricMove (cl_entity_t *ent)
 
 	VectorNormalize (delta);
 	if (VectorLength (delta) > 0.0f)
-		VectorAngles (delta, ent->curstate.angles); // re-aim projectile
+		VectorAngles (delta, ent->curstate.angles);	// re-aim projectile
 
 	return true;
 	}
@@ -213,7 +207,7 @@ CL_UpdateLatchedVars
 static void CL_UpdateLatchedVars (cl_entity_t *ent)
 	{
 	if (!ent->model || ((ent->model->type != mod_alias) && (ent->model->type != mod_studio)))
-		return; // below fields used only for alias and studio interpolation
+		return;	// below fields used only for alias and studio interpolation
 
 	VectorCopy (ent->prevstate.origin, ent->latched.prevorigin);
 	VectorCopy (ent->prevstate.angles, ent->latched.prevangles);
@@ -272,7 +266,7 @@ CL_ResetLatchedVars
 void CL_ResetLatchedVars (cl_entity_t *ent, qboolean full_reset)
 	{
 	if (!ent->model || ((ent->model->type != mod_alias) && (ent->model->type != mod_studio)))
-		return; // below fields used only for alias and studio interpolation
+		return;	// below fields used only for alias and studio interpolation
 
 	if (full_reset)
 		{
@@ -667,18 +661,6 @@ FRAME PARSING
 // [FWGS, 01.03.26]
 static qboolean CL_ParseEntityNumFromPacket (sizebuf_t *msg, int *newnum, connprotocol_t proto)
 	{
-	/*if (proto == PROTO_LEGACY)
-		{
-		*newnum = MSG_ReadWord (msg);
-		if (*newnum == 0)
-			return false;
-		}
-	else
-		{
-		*newnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
-		if (*newnum == LAST_EDICT)
-			return false;
-		}*/
 	*newnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
 	if (*newnum == LAST_EDICT)
 		return false;
@@ -701,13 +683,13 @@ static void CL_FlushEntityPacket (sizebuf_t *msg, connprotocol_t proto)
 	memset (&from, 0, sizeof (from));
 
 	cl.frames[cl.parsecountmod].valid = false;
-	cl.validsequence = 0; // can't render a frame
+	cl.validsequence = 0;	// can't render a frame
 
 	// read it all, but ignore it
 	while (1)
 		{
 		if (!CL_ParseEntityNumFromPacket (msg, &newnum, proto))
-			break; // done
+			break;	// done
 
 		if (MSG_CheckOverflow (msg))
 			Host_Error ("%s: overflow\n", __func__);	// [FWGS, 01.07.24]
@@ -789,7 +771,7 @@ static void CL_DeltaEntity (sizebuf_t *msg, frame_t *frame, int newnum, entity_s
 		}
 
 	ent = CL_EDICT_NUM (newnum);
-	ent->index = newnum; // enumerate entity index
+	ent->index = newnum;	// enumerate entity index
 	if (newent)
 		old = &ent->baseline;
 
@@ -801,7 +783,7 @@ static void CL_DeltaEntity (sizebuf_t *msg, frame_t *frame, int newnum, entity_s
 
 	if (!alive)
 		{
-		CL_KillDeadBeams (ent); // release dead beams
+		CL_KillDeadBeams (ent);	// release dead beams
 		return;
 		}
 
@@ -847,10 +829,6 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta, connprotocol_t proto
 		CL_WriteDemoJumpTime ();
 
 	// [FWGS, 01.03.26] Sentinel count. Save it for debug checking
-	/*if (proto == PROTO_LEGACY)
-		count = MSG_ReadWord (msg);
-	else
-		count = MSG_ReadUBitLong (msg, MAX_VISIBLE_PACKET_BITS) + 1;*/
 	count = MSG_ReadUBitLong (msg, MAX_VISIBLE_PACKET_BITS) + 1;
 
 	newframe = &cl.frames[cl.parsecountmod];
@@ -859,7 +837,7 @@ int CL_ParsePacketEntities (sizebuf_t *msg, qboolean delta, connprotocol_t proto
 	memset (newframe->flags, 0, sizeof (newframe->flags));
 	newframe->first_entity = cls.next_client_entities;
 	newframe->num_entities = 0;
-	newframe->valid = true; // assume valid
+	newframe->valid = true;	// assume valid
 
 	if (delta)
 		{
@@ -1004,15 +982,17 @@ qboolean CL_AddVisibleEntity (cl_entity_t *ent, int entityType)
 	if (!draw_player)
 		return false;
 
-	if (entityType == ET_BEAM)
+	// [FWGS, 01.05.26]
+	/*if (entityType == ET_BEAM)
 		{
 		ref.dllFuncs.CL_AddCustomBeam (ent);
 		return true;
 		}
 	else if (!ref.dllFuncs.R_AddEntity (ent, entityType))
-		{
+		{*/
+	if (!ref.dllFuncs.R_AddEntity (ent, entityType))
 		return false;
-		}
+	/*}*/
 
 	// because pTemp->entity.curstate.effects
 	// is already occupied by FTENT_FLICKER
@@ -1037,7 +1017,7 @@ Add server beam to draw list
 ***/
 static void CL_LinkCustomEntity (cl_entity_t *ent, entity_state_t *state)
 	{
-	ent->curstate.movetype = state->modelindex; // !!
+	ent->curstate.movetype = state->modelindex;	// !!
 
 	if (ent->model->type != mod_sprite)
 		Con_Reportf (S_WARN "bad model on beam ( %s )\n", ent->model->name);
@@ -1344,7 +1324,8 @@ process frame interpolation etc
 ***/
 void CL_EmitEntities (void)
 	{
-	if (cl.paused) return; // don't waste time
+	if (cl.paused)
+		return;	// don't waste time
 
 	// not in server yet, no entities to redraw
 	if ((cls.state != ca_active) || !cl.validsequence)
@@ -1403,7 +1384,6 @@ qboolean CL_GetEntitySpatialization (channel_t *ch)
 	// [FWGS, 15.04.26]
 	if (ch->entnum == 0)
 		{
-		/*ch->staticsound = true;*/
 		SetBits (ch->flags, FL_CHAN_STATIC_SOUND);
 
 		return true;	// static sound

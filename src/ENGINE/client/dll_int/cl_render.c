@@ -49,33 +49,6 @@ static void R_Mem_Free (void *mem, const char *filename, const int fileline)
 	}
 
 // [FWGS, 01.03.26] removed pfnGetFilesList
-/*
-/
-=========
-pfnGetFilesList
-=========
-/
-static char **pfnGetFilesList (const char *pattern, int *numFiles, int gamedironly)
-	{
-	static search_t *t = NULL;
-
-	if (t)
-		Mem_Free (t); // release prev search
-
-	t = FS_Search (pattern, true, gamedironly);
-
-	if (!t)
-		{
-		if (numFiles)
-			*numFiles = 0;
-		return NULL;
-		}
-
-	if (numFiles)
-		*numFiles = t->numfilenames;
-
-	return t->filenames;
-	}*/
 
 static uint pfnFileBufferCRC32 (const void *buffer, const int length)
 	{
@@ -99,7 +72,6 @@ static void R_EnvShot (const float *vieworg, const char *name, qboolean skyshot,
 	static vec3_t viewPoint;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (name))*/
 	if (COM_StringEmptyOrNULL (name))
 		return;
 
@@ -110,7 +82,7 @@ static void R_EnvShot (const float *vieworg, const char *name, qboolean skyshot,
 		return;
 		}
 
-	cls.envshot_vieworg = NULL; // use client view
+	cls.envshot_vieworg = NULL;	// use client view
 	Q_strncpy (cls.shotname, name, sizeof (cls.shotname));
 
 	if (vieworg)
@@ -184,7 +156,6 @@ intptr_t CL_RenderGetParm (const int parm, const int arg, const qboolean checkRe
 		// [FWGS, 01.03.26]
 		case PARM_FULLSCREEN:
 			return (refState.window_mode == WINDOW_MODE_BORDERLESS) || (refState.window_mode == WINDOW_MODE_FULLSCREEN);
-			/*return refState.fullScreen;*/
 
 		case PARM_WIDESCREEN:
 			return refState.wideScreen;
@@ -236,17 +207,20 @@ intptr_t CL_RenderGetParm (const int parm, const int arg, const qboolean checkRe
 				case PARM_LOCAL_HEALTH:
 					return cl.local.health;
 
-				case PARM_LOCAL_GAME:
-					return Host_IsLocalGame ();
+				// [FWGS, 01.05.26]
+				/*case PARM_LOCAL_GAME:
+					return Host_IsLocalGame ();*/
+				case PARM_SINGLEPLAYER_GAME:
+					return Host_IsSinglePlayerGame ();
 
 				case PARM_NUMENTITIES:
 					return pfnNumberOfEntities ();
 
 				case PARM_GET_CLIENT_PTR:
-					return (intptr_t)&cl.time; // with the offset
+					return (intptr_t)&cl.time;	// with the offset
 
 				case PARM_GET_HOST_PTR:
-					return (intptr_t)&host.realtime; // with the offset
+					return (intptr_t)&host.realtime;	// with the offset
 
 				case PARM_GET_WORLD_PTR:
 					return (intptr_t)&world;
@@ -289,7 +263,13 @@ static intptr_t pfnRenderGetParm (int parm, int arg)
 // [FWGS, 01.07.25]
 static void pfnAVI_StreamSound (movie_state_t *avi, int entnum, float fvol, float attn, float synctime)
 	{
-	return; // stub, use AVI_SetParm and AVI_Think to stream AVI sound
+	return;	// stub, use AVI_SetParm and AVI_Think to stream AVI sound
+	}
+
+// [FWGS, 01.05.26]
+static void pfnAVI_UploadRawFrame (int texture, int cols, int rows, int width, int height, const byte *data)
+	{
+	ref.dllFuncs.GL_UpdateTexture (texture, cols, rows, width, height, data, PF_BGRA_32);
 	}
 
 // [FWGS, 01.03.26]
@@ -322,8 +302,12 @@ static render_api_t gRenderAPI =
 	AVI_GetVideoInfo,
 	AVI_GetVideoFrameNumber,
 	AVI_GetVideoFrame,
-	NULL,				// R_UploadStretchRaw
-		AVI_FreeVideo,
+
+	// [FWGS, 01.05.26]
+	/*NULL,				// R_UploadStretchRaw*/
+	pfnAVI_UploadRawFrame,	// AVI_UploadRawFrame
+
+	AVI_FreeVideo,
 	AVI_IsActive,
 	pfnAVI_StreamSound,
 	AVI_Think,
@@ -351,21 +335,19 @@ static render_api_t gRenderAPI =
 	NULL,
 	R_Mem_Alloc,
 	R_Mem_Free,
-	/*pfnGetFilesList,*/
 	CL_GetFilesList,
 	pfnFileBufferCRC32,
 	pfnCompareFileTime,
 	Host_Error,
 	(void *)CL_ModelHandle,
-	/*pfnTime,*/
 	Sys_FloatTime,
 	Cvar_Set,
-	/*S_FadeMusicVolume,*/
 	S_MusicFade,
 	COM_SetRandomSeed,
 	};
 
-static void R_FillRenderAPIFromRef (render_api_t *to, const ref_interface_t *from)
+// [FWGS, 01.05.26] removed R_FillRenderAPIFromRef
+/*static void R_FillRenderAPIFromRef (render_api_t *to, const ref_interface_t *from)
 	{
 	to->GetDetailScaleForTexture = from->GetDetailScaleForTexture;
 	to->GetExtraParmsForTexture = from->GetExtraParmsForTexture;
@@ -397,7 +379,7 @@ static void R_FillRenderAPIFromRef (render_api_t *to, const ref_interface_t *fro
 	to->LightVec = from->LightVec;
 	to->StudioGetTexture = from->StudioGetTexture;
 	to->GL_GetProcAddress = from->R_GetProcAddress;
-	}
+	}*/
 
 /***
 ===============
@@ -411,8 +393,18 @@ qboolean R_InitRenderAPI (void)
 	// make sure what render functions is cleared
 	memset (&clgame.drawFuncs, 0, sizeof (clgame.drawFuncs));
 
-	// fill missing functions from renderer
-	R_FillRenderAPIFromRef (&gRenderAPI, &ref.dllFuncs);
+	// [FWGS, 01.05.26]
+	/*// fill missing functions from renderer
+	R_FillRenderAPIFromRef (&gRenderAPI, &ref.dllFuncs);*/
+	gRenderAPI.GetDetailScaleForTexture = ref.dllFuncs.R_GetDetailScaleForTexture;
+	gRenderAPI.GL_FindTexture = ref.dllFuncs.GL_FindTexture;
+	gRenderAPI.GL_TextureName = ref.dllFuncs.GL_TextureName;
+	gRenderAPI.GL_TextureData = ref.dllFuncs.GL_TextureData;
+	gRenderAPI.GL_LoadTexture = ref.dllFuncs.GL_LoadTexture;
+	gRenderAPI.GL_FreeTexture = ref.dllFuncs.GL_FreeTexture;
+	gRenderAPI.GL_Bind = ref.dllFuncs.GL_Bind;
+
+	ref.dllFuncs.R_FillRenderAPI (&gRenderAPI);
 
 	if (clgame.dllFuncs.pfnGetRenderInterface)
 		{
@@ -425,7 +417,7 @@ qboolean R_InitRenderAPI (void)
 
 		// make sure what render functions is cleared
 		memset (&clgame.drawFuncs, 0, sizeof (clgame.drawFuncs));
-		return false; // just tell user about problems
+		return false;	// just tell user about problems
 		}
 
 	// render interface is missed

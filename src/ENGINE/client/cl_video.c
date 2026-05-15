@@ -22,8 +22,9 @@ AVI PLAYING
 =================================================================
 ***/
 
-// [FWGS, 01.07.25]
+// [FWGS, 01.05.26]
 static movie_state_t	*cin_state;
+static int				cin_texture;
 
 /***
 ==================
@@ -42,7 +43,7 @@ qboolean SCR_NextMovie (void)
 		S_StopAllSounds (true);
 		SCR_StopCinematic ();
 		CL_CheckStartupDemos ();
-		return false; // don't play movies
+		return false;	// don't play movies
 		}
 
 	if (!cls.movies[cls.movienum][0] || (cls.movienum == MAX_MOVIES))
@@ -68,8 +69,6 @@ static void SCR_CreateStartupVids (void)
 
 	// [FWGS, 01.03.26]
 	f = FS_Open (DEFAULT_VIDEOLIST_PATH, "w", false);
-	/*if (!f)
-		return;*/
 	if (!f)
 		{
 		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, DEFAULT_VIDEOLIST_PATH);
@@ -113,7 +112,7 @@ void SCR_CheckStartupVids (void)
 
 	afile = FS_LoadFile (DEFAULT_VIDEOLIST_PATH, NULL, false);
 	if (!afile)
-		return; // something bad happens
+		return;		// something bad happens
 
 	pfile = (char *)afile;
 	while ((pfile = COM_ParseFile (pfile, token, sizeof (token))) != NULL)
@@ -274,13 +273,21 @@ void SCR_StopCinematic (void)
 
 /***
 ==================
-SCR_InitCinematic
+SCR_InitCinematic [FWGS, 01.05.26]
 ==================
 ***/
 void SCR_InitCinematic (void)
 	{
 	AVI_Initailize ();
 	cin_state = AVI_GetState (CIN_MAIN);
+	cin_texture = ref.dllFuncs.GL_CreateTexture ("*cintexture", 64, 64, NULL,
+		TF_NOMIPMAP | TF_CLAMP);
+	}
+
+// [FWGS, 01.05.26]
+int SCR_GetCinematicTexture (void)
+	{
+	return cin_texture;
 	}
 
 /***

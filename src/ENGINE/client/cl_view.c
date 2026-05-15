@@ -256,7 +256,7 @@ static float V_CalcFov (float *fov_x, float width, float height)
 	float	x, half_fov_y;
 
 	if ((*fov_x < 1.0f) || (*fov_x > 179.0f))
-		*fov_x = 90.0f; // default value
+		*fov_x = 90.0f;	// default value
 
 	x = width / tan (DEG2RAD (*fov_x) * 0.5f);
 	half_fov_y = atan (height / x);
@@ -322,7 +322,7 @@ static void V_GetRefParams (ref_params_t *fd, ref_viewpass_t *rvp)
 	rvp->viewentity = fd->viewentity;
 
 	// calc FOV
-	rvp->fov_x = bound (10.0f, cl.local.scr_fov, 150.0f); // this is a final fov value
+	rvp->fov_x = bound (10.0f, cl.local.scr_fov, 150.0f);	// this is a final fov value
 
 	// first we need to compute FOV and other things that needs for frustum properly work
 	rvp->fov_y = V_CalcFov (&rvp->fov_x, clgame.viewport[2], clgame.viewport[3]);
@@ -375,6 +375,30 @@ qboolean V_PreRender (void)
 // ============================================================================
 
 /***
+====================
+V_ApplyRefUnderwater [FWGS, 01.05.26]
+
+apply underwater fov effect
+====================
+***/
+static void V_ApplyRefUnderwater (ref_viewpass_t *rvp)
+	{
+	if (!FBitSet (rvp->flags, RF_DRAW_CUBEMAP | RF_DRAW_OVERVIEW))
+		return;
+
+	if (!FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
+		return;
+
+	if (cl.local.waterlevel < 3)
+		return;
+
+	rvp->fov_x = atan (tan (DEG2RAD (rvp->fov_x) / 2) * (0.97f + sin (cl.time * 1.5f) * 0.03f)) *
+		2 / (M_PI_F / 180.0f);
+	rvp->fov_y = atan (tan (DEG2RAD (rvp->fov_y) / 2) * (1.03f - sin (cl.time * 1.5f) * 0.03f)) *
+		2 / (M_PI_F / 180.0f);
+	}
+
+/***
 ==================
 V_RenderView
 ==================
@@ -404,7 +428,10 @@ void V_RenderView (void)
 		V_GetRefParams (&rp, &rvp);
 		V_RefApplyOverview (&rvp);
 
-		if (viewnum == 0 && FBitSet (rvp.flags, RF_ONLY_CLIENTDRAW))
+		// [FWGS, 01.05.26]
+		V_ApplyRefUnderwater (&rvp);
+
+		if ((viewnum == 0) && FBitSet (rvp.flags, RF_ONLY_CLIENTDRAW))
 			{
 			ref.dllFuncs.R_ClearScreen ();
 			}
@@ -561,7 +588,7 @@ void V_PostRender (void)
 		Con_DrawConsole ();
 		UI_UpdateMenu (host.realtime);
 		Con_DrawVersion ();
-		Con_DrawDebug (); // must be last
+		Con_DrawDebug ();	// must be last
 		Touch_Draw ();
 		OSK_Draw ();
 

@@ -24,10 +24,7 @@ GNU General Public License for more details
 #define SHRT_MAX 0x7FFF
 #endif
 
-// [FWGS, 15.04.26]
-/*define MAX_AXES JOY_AXIS_NULL*/
-
-// index - axis num come from event
+// [FWGS, 15.04.26] index - axis num come from event
 // value - inner axis
 static engineAxis_t joyaxesmap[MAX_AXES] =
 	{
@@ -98,6 +95,11 @@ static CVAR_DEFINE_AUTO (joy_gyro_yaw_deadzone, "0.5", FCVAR_ARCHIVE | FCVAR_FIL
 	"gyroscope yaw axis deadzone (deg/s)");
 static CVAR_DEFINE_AUTO (joy_gyro_roll_deadzone, "0.5", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"gyroscope roll axis deadzone (deg/s)");
+
+// [FWGS, 01.05.26]
+static CVAR_DEFINE_AUTO (joy_gyro_enable, "1", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"enables aiming with gamepad gyroscope");
+
 static CVAR_DEFINE_AUTO (joy_debug, "0", 0,
 	"visualize gamepad axes and buttons");
 
@@ -208,12 +210,12 @@ static void Joy_ProcessTrigger (const engineAxis_t engineAxis, short value)
 	joyaxis[engineAxis].val = value;
 
 	if (joyaxis[engineAxis].val > trigThreshold &&
-		joyaxis[engineAxis].prevval <= trigThreshold) // ignore random press
+		joyaxis[engineAxis].prevval <= trigThreshold)	// ignore random press
 		{
 		Key_Event (trigButton, true);
 		}
 	else if (joyaxis[engineAxis].val < trigThreshold &&
-		joyaxis[engineAxis].prevval >= trigThreshold) // we're unpressing (inverted)
+		joyaxis[engineAxis].prevval >= trigThreshold)	// we're unpressing (inverted)
 		{
 		Key_Event (trigButton, false);
 		}
@@ -231,28 +233,31 @@ static int Joy_GetHatValueForAxis (const engineAxis_t engineAxis)
 			positive = JOY_HAT_RIGHT;
 			break;
 
+		// [FWGS, 01.05.26]
 		case JOY_AXIS_FWD:
-			threshold = joy_side_key_threshold.value;
+			/*threshold = joy_side_key_threshold.value;*/
+			threshold = joy_forward_key_threshold.value;
 			negative = JOY_HAT_UP;
 			positive = JOY_HAT_DOWN;
 			break;
 
 		default:
-			ASSERT (false); // only fwd/side axes can emit key events
+			ASSERT (false);	// only fwd/side axes can emit key events
 			return 0;
 		}
 
 	// similar code in Joy_ProcessTrigger
 	if (joyaxis[engineAxis].val > threshold &&
-		joyaxis[engineAxis].prevval <= threshold) // ignore random press
+		joyaxis[engineAxis].prevval <= threshold)	// ignore random press
 		{
 		return positive;
 		}
 	if (joyaxis[engineAxis].val < -threshold &&
-		joyaxis[engineAxis].prevval >= -threshold) // we're unpressing (inverted)
+		joyaxis[engineAxis].prevval >= -threshold)	// we're unpressing (inverted)
 		{
 		return negative;
 		}
+
 	return 0;
 	}
 
@@ -307,7 +312,6 @@ static void Joy_ProcessStick (const engineAxis_t engineAxis, short value)
 		val |= Joy_GetHatValueForAxis (JOY_AXIS_SIDE);
 		val |= Joy_GetHatValueForAxis (JOY_AXIS_FWD);
 
-		/*Joy_HatMotionEvent (0, val);*/
 		Joy_HatMotionEvent (val);
 		}
 	}
@@ -323,7 +327,6 @@ Axis events
 ***/
 void Joy_AxisMotionEvent (engineAxis_t engineAxis, short value)
 	{
-	/*if (engineAxis >= JOY_AXIS_NULL)*/
 	if (engineAxis >= MAX_AXES)
 		return;
 
@@ -359,14 +362,13 @@ void Joy_GyroEvent (vec3_t data)
 
 /***
 =============
-Joy_FinalizeMove [FWGS, 15.04.26]
+Joy_FinalizeMove
 
 Append movement from axis. Called everyframe
 =============
 ***/
 void Joy_FinalizeMove (float *fw, float *side, float *dpitch, float *dyaw)
 	{
-	/*if (!Joy_IsActive ())*/
 	if (!Joy_IsActive ())
 		return;
 
@@ -375,7 +377,9 @@ void Joy_FinalizeMove (float *fw, float *side, float *dpitch, float *dyaw)
 		const char *bind = joy_axis_binding.string;
 		size_t i;
 
-		for (i = 0; bind[i]; i++)
+		// [FWGS, 01.05.26]
+		/*for (i = 0; bind[i]; i++)*/
+		for (i = 0; bind[i] && (i < MAX_AXES); i++)
 			{
 			switch (bind[i])
 				{
@@ -403,7 +407,6 @@ void Joy_FinalizeMove (float *fw, float *side, float *dpitch, float *dyaw)
 					joyaxesmap[i] = JOY_AXIS_LT;
 					break;
 
-				/*default: joyaxesmap[i] = JOY_AXIS_NULL; break;*/
 				default:
 					joyaxesmap[i] = MAX_AXES;
 					break;
@@ -413,16 +416,14 @@ void Joy_FinalizeMove (float *fw, float *side, float *dpitch, float *dyaw)
 		ClearBits (joy_axis_binding.flags, FCVAR_CHANGED);
 		}
 
-	*fw -= joy_forward.value * (float)joyaxis[JOY_AXIS_FWD].val / (float)SHRT_MAX;  // must be form -1.0 to 1.0
+	*fw -= joy_forward.value * (float)joyaxis[JOY_AXIS_FWD].val / (float)SHRT_MAX;	// must be form -1.0 to 1.0
 	*side += joy_side.value * (float)joyaxis[JOY_AXIS_SIDE].val / (float)SHRT_MAX;
-
-	/*// [FWGS, 01.03.25]
-	*dpitch -= joy_pitch.value * (float)joyaxis[JOY_AXIS_PITCH].val / (float)SHRT_MAX * host.realframetime;
-	*dyaw += joy_yaw.value * (float)joyaxis[JOY_AXIS_YAW].val / (float)SHRT_MAX * host.realframetime;*/
 	*dpitch += joy_pitch.value * (float)joyaxis[JOY_AXIS_PITCH].val / (float)SHRT_MAX * host.realframetime;
 	*dyaw -= joy_yaw.value * (float)joyaxis[JOY_AXIS_YAW].val / (float)SHRT_MAX * host.realframetime;
 
-	if (joy_have_gyro.value && ((int)joy_calibrated.value == JOY_CALIBRATED))
+	// [FWGS, 01.05.26]
+	/*if (joy_have_gyro.value && ((int)joy_calibrated.value == JOY_CALIBRATED))*/
+	if (joy_gyro_enable.value && joy_have_gyro.value && ((int)joy_calibrated.value == JOY_CALIBRATED))
 		{
 		float pitch_speed = joy_gyro_speed[0] * (180.0f / M_PI);
 		float yaw_speed = joy_gyro_speed[1] * (180.0f / M_PI);
@@ -685,10 +686,11 @@ void Joy_Init (void)
 	Cvar_RegisterVariable (&joy_yaw_deadzone);
 	Cvar_RegisterVariable (&joy_axis_binding);
 
-	// [FWGS, 01.03.25]
+	// [FWGS, 01.05.25]
 	Cvar_RegisterVariable (&joy_have_gyro);
 	Cvar_RegisterVariable (&joy_calibrated);
 	Cvar_RegisterVariable (&joy_enable);
+	Cvar_RegisterVariable (&joy_gyro_enable);
 
 	// [FWGS, 15.04.26]
 	Cvar_RegisterVariable (&joy_gyro_pitch);

@@ -28,13 +28,7 @@ GNU General Public License for more details
 #include "platform/platform.h"
 
 // [FWGS, 01.03.26]
-/*void		*in_mousecursor;
-qboolean	in_mouseactive;				// false when not focus app
-qboolean	in_mouseinitialized;
-qboolean	in_mouse_suspended;
-POINT		in_lastvalidpos;
-qboolean	in_mouse_savedpos;*/
-static qboolean in_mouseactive; // false when not focus app
+static qboolean in_mouseactive;	// false when not focus app
 static qboolean in_mouseinitialized;
 static qboolean in_mouse_suspended;
 
@@ -67,8 +61,6 @@ static CVAR_DEFINE_AUTO (cl_backspeed, "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | 
 	"Default back move speed");
 static CVAR_DEFINE_AUTO (cl_sidespeed, "400", FCVAR_ARCHIVE | FCVAR_CLIENTDLL | FCVAR_FILTERABLE,
 	"Default side move speed");
-
-// [FWGS, 01.12.24]
 static CVAR_DEFINE_AUTO (m_grab_debug, "0", FCVAR_PRIVILEGED,
 	"show debug messages on mouse state change");
 
@@ -87,13 +79,13 @@ uint IN_CollectInputDevices (void)
 	{
 	uint ret = 0;
 
-	if (!m_ignore.value) // no way to check is mouse connected, so use cvar only
+	if (!m_ignore.value)	// no way to check is mouse connected, so use cvar only
 		ret |= INPUT_DEVICE_MOUSE;
 
 	if (touch_enable.value)
 		ret |= INPUT_DEVICE_TOUCH;
 
-	if (Joy_IsActive ()) // connected or enabled
+	if (Joy_IsActive ())	// connected or enabled
 		ret |= INPUT_DEVICE_JOYSTICK;
 
 	Con_Reportf ("Connected devices: %s%s%s%s\n",
@@ -115,7 +107,7 @@ player is connected to the server
 ***/
 void IN_LockInputDevices (qboolean lock)
 	{
-	extern convar_t joy_enable; // private to input system
+	extern convar_t joy_enable;	// private to input system
 
 	if (lock)
 		{
@@ -307,7 +299,7 @@ static void IN_CheckMouseState (qboolean active)
 #if XASH_WIN32
 	use_raw_input = (m_rawinput.value && clgame.client_dll_uses_sdl) || (clgame.dllFuncs.pfnLookEvent != NULL);
 #else
-	use_raw_input = true; // always use SDL code
+	use_raw_input = true;	// always use SDL code
 #endif
 
 	if (m_ignore.value)
@@ -472,7 +464,12 @@ void IN_Init (void)
 	if (!Host_IsDedicated ())
 		{
 		IN_StartupMouse ();
-		Joy_Init (); // common joystick support init
+
+		// [FWGS, 01.05.26]
+		IN_GyroInit ();
+		OSK_Init ();
+
+		Joy_Init ();	// common joystick support init
 		Touch_Init ();
 
 #if XASH_USE_EVDEV
@@ -588,9 +585,10 @@ static void IN_CollectInput (float *forward, float *side, float *pitch, float *y
 #endif
 		}
 
+	// [FWGS, 01.05.26]
+	IN_GyroFinalizeMove (forward, side, pitch, yaw);
+
 	// [FWGS, 15.04.26]
-	/*Joy_FinalizeMove (forward, side, yaw, pitch);
-	Touch_GetMove (forward, side, yaw, pitch);*/
 	Joy_FinalizeMove (forward, side, pitch, yaw);
 	Touch_GetMove (forward, side, pitch, yaw);
 

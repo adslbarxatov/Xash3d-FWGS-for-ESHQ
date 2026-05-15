@@ -25,12 +25,12 @@ GNU General Public License for more details
 
 typedef enum
 	{
-	touch_command, // just tap a button
-	touch_move,    // like a joystick stick
-	touch_joy,     // like a joystick stick, centered
-	touch_dpad,    // only two directions
-	touch_look,    // like a touchpad
-	touch_wheel    // scroll-like
+	touch_command,	// just tap a button
+	touch_move,		// like a joystick stick
+	touch_joy,		// like a joystick stick, centered
+	touch_dpad,		// only two directions
+	touch_look,		// like a touchpad
+	touch_wheel		// scroll-like
 	} touchButtonType;
 
 typedef enum
@@ -132,10 +132,10 @@ static struct touch_s
 
 	// textures
 	int whitetexture;
-	int joytexture; // touch indicator
+	int joytexture;	// touch indicator
 	qboolean configchanged;
-	float actual_aspect_ratio; // maximum aspect ratio from launch, or aspect ratio when entering editor
-	float config_aspect_ratio; // aspect ratio set by command from config or after entering editor
+	float actual_aspect_ratio;	// maximum aspect ratio from launch, or aspect ratio when entering editor
+	float config_aspect_ratio;	// aspect ratio set by command from config or after entering editor
 	} touch;
 
 // private to the engine flags
@@ -209,12 +209,15 @@ void Touch_NotifyResize (void)
 		}
 	}
 
+// [FWGS, 01.05.26]
 static inline float Touch_AspectRatio (void)
 	{
-	if (touch.config_aspect_ratio)
+	/*if (touch.config_aspect_ratio)*/
+	if (touch.config_aspect_ratio >= 0.25f)
 		return touch.config_aspect_ratio;
 
-	if (touch.actual_aspect_ratio)
+	/*if (touch.actual_aspect_ratio)*/
+	if (touch.actual_aspect_ratio >= 0.25f)
 		return touch.actual_aspect_ratio;
 
 	if (refState.width && refState.height)
@@ -242,7 +245,7 @@ static void Touch_ExportButtonToConfig (file_t *f, const touch_button_t *button,
 	int flags = button->flags;
 
 	if (FBitSet (flags, TOUCH_FL_CLIENT))
-		return; // skip temporary buttons
+		return;	// skip temporary buttons
 
 	if (FBitSet (flags, TOUCH_FL_DEF_SHOW))
 		ClearBits (flags, TOUCH_FL_HIDE);
@@ -399,8 +402,10 @@ static void Touch_ExportConfig_f (void)
 		{
 		string profilebase;
 
+		// [FWGS, 01.05.26]
 		COM_FileBase (name, profilebase, sizeof (profilebase));
-		Q_snprintf (profilename, sizeof (profilebase), "touch_profiles/%s (copy).cfg", profilebase);
+		/*Q_snprintf (profilename, sizeof (profilebase), "touch_profiles/%s (copy).cfg", profilebase);*/
+		Q_snprintf (profilename, sizeof (profilename), "touch_profiles/%s (copy).cfg", profilebase);
 		}
 	else
 		{
@@ -622,7 +627,9 @@ static void Touch_RemoveButtonFromList (touchbuttonlist_t *list, const char *nam
 
 	IN_TouchEditClear ();
 
-	while ((button = Touch_FindFirst (&touch.list_user, name, privileged)))
+	// [FWGS, 01.05.26]
+	/*while ((button = Touch_FindFirst (&touch.list_user, name, privileged)))*/
+	while ((button = Touch_FindFirst (list, name, privileged)))
 		{
 		if (button->prev)
 			button->prev->next = button->next;
@@ -687,7 +694,7 @@ static void Touch_SetTexture (touchbuttonlist_t *list, const char *name, const c
 	if (!button)
 		return;
 
-	button->gl_texturenum = -1; // mark for texture load
+	button->gl_texturenum = -1;	// mark for texture load
 	Q_strncpy (button->texture, texture, sizeof (button->texture));
 	}
 
@@ -912,7 +919,9 @@ void Touch_AddClientButton (const char *name, const char *texture, const char *c
 	if (!touch.initialized)
 		return;
 
+	// [FWGS, 01.05.26]
 	if (round)
+		/*IN_TouchCheckCoords (&x1, &y1, &x2, &y2);*/
 		IN_TouchCheckCoords (&x1, &y1, &x2, &y2);
 
 	if (round == round_aspect)
@@ -1129,7 +1138,9 @@ static void Touch_InitEditor (void)
 		y, x, y + 0.1f, color, true);
 	SetBits (temp->flags, TOUCH_FL_NOEDIT);
 
-	temp = Touch_AddButton (&touch.list_edit, "close", "#Close and save", "", x, y, x + 0.2f, y + 0.1f, color, true);
+	// [FWGS, 01.05.26]
+	/*temp = Touch_AddButton (&touch.list_edit, "close", "#Close and save", "", x, y, x + 0.2f, y + 0.1f, color, true);*/
+	temp = Touch_AddButton (&touch.list_edit, "close_label", "#Close and save", "", x, y, x + 0.2f, y + 0.1f, color, true);
 	SetBits (temp->flags, TOUCH_FL_NOEDIT);
 
 	y += 0.2f;
@@ -1138,7 +1149,9 @@ static void Touch_InitEditor (void)
 		y, x, y + 0.1f, color, true);
 	SetBits (temp->flags, TOUCH_FL_NOEDIT);
 
-	temp = Touch_AddButton (&touch.list_edit, "close", "#Cancel and reset", "", x, y, x + 0.2f, y + 0.1f, color, true);
+	// [FWGS, 01.05.26]
+	/*temp = Touch_AddButton (&touch.list_edit, "close", "#Cancel and reset", "", x, y, x + 0.2f, y + 0.1f, color, true);*/
+	temp = Touch_AddButton (&touch.list_edit, "cancel_label", "#Cancel and reset", "", x, y, x + 0.2f, y + 0.1f, color, true);
 	SetBits (temp->flags, TOUCH_FL_NOEDIT);
 
 	y += 0.2f;
@@ -1331,17 +1344,34 @@ static void Touch_DrawTexture (float x1, float y1, float x2, float y2, int textu
 		return;
 
 	ref.dllFuncs.Color4ub (color[0], color[1], color[2], color[3]);
-	ref.dllFuncs.R_DrawStretchPic (TO_SCRN_X (x1), TO_SCRN_Y (y1),
-		TO_SCRN_X (x2 - x1), TO_SCRN_Y (y2 - y1),
+	ref.dllFuncs.R_DrawStretchPic (TO_SCRN_X (x1), TO_SCRN_Y (y1), TO_SCRN_X (x2 - x1), TO_SCRN_Y (y2 - y1),
 		0, 0, 1, 1, texture);
 	}
 
-#define GRID_COUNT_X ((int)touch_grid_count.value )
-#define GRID_COUNT_Y (((int)touch_grid_count.value ) * Touch_AspectRatio( ))
-#define GRID_X ( 1.0f / GRID_COUNT_X )
-#define GRID_Y ( 1.0f / Touch_AspectRatio() / GRID_COUNT_X )
-#define GRID_ROUND_X( x ) ((float)round(( x ) * GRID_COUNT_X ) / GRID_COUNT_X )
-#define GRID_ROUND_Y( x ) ((float)round(( x ) * GRID_COUNT_Y ) / GRID_COUNT_Y )
+// [FWGS, 01.05.26]
+/*define GRID_COUNT_X ((int)touch_grid_count.value )
+define GRID_COUNT_Y (((int)touch_grid_count.value ) * Touch_AspectRatio( ))
+define GRID_X ( 1.0f / GRID_COUNT_X )
+define GRID_Y ( 1.0f / Touch_AspectRatio() / GRID_COUNT_X )
+define GRID_ROUND_X( x ) ((float)round(( x ) * GRID_COUNT_X ) / GRID_COUNT_X )
+define GRID_ROUND_Y( x ) ((float)round(( x ) * GRID_COUNT_Y ) / GRID_COUNT_Y )*/
+static inline int Touch_GridCountX (void)
+	{
+	return Q_max ((int)touch_grid_count.value, 1);
+	}
+
+// [FWGS, 01.05.26]
+static inline int Touch_GridCountY (void)
+	{
+	float grid_count_y = touch_grid_count.value * Touch_AspectRatio ();
+	return Q_max ((int)grid_count_y, 1);
+	}
+
+// [FWGS, 01.05.26]
+#define GRID_X ( 1.0f / Touch_GridCountX( ))
+#define GRID_Y ( 1.0f / Touch_GridCountY( ))
+#define GRID_ROUND_X( x ) ((float)round(( x ) * Touch_GridCountX() ) / Touch_GridCountX())
+#define GRID_ROUND_Y( x ) ((float)round(( x ) * Touch_GridCountY() ) / Touch_GridCountY())
 
 static void IN_TouchCheckCoords (float *x1, float *y1, float *x2, float *y2)
 	{
@@ -2271,12 +2301,10 @@ int IN_TouchEvent (touchEventType type, int fingerID, float x, float y, float dx
 	}
 
 // [FWGS, 15.04.26]
-/*void Touch_GetMove (float *forward, float *side, float *yaw, float *pitch)*/
 void Touch_GetMove (float *forward, float *side, float *pitch, float *yaw)
 	{
 	*forward += touch.forward;
 	*side += touch.side;
-	/**yaw += touch.yaw;*/
 	*pitch += touch.pitch;
 	*yaw += touch.yaw;
 	touch.yaw = touch.pitch = 0;

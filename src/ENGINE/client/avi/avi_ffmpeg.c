@@ -25,7 +25,6 @@ static poolhandle_t avi_mempool;
 #if XASH_AVI == AVI_FFMPEG
 
 // [FWGS, 05.04.26]
-/*define XASH_FFMPEG_DLOPEN 1*/
 #include "avi_ffmpeg.h"
 
 struct movie_state_s
@@ -227,7 +226,7 @@ static int AVI_OpenCodecContext (AVCodecContext **dst_dec_ctx, AVFormatContext *
 		}
 
 	*dst_dec_ctx = dec_ctx;
-	return idx; // always positive
+	return idx;	// always positive
 	}
 
 int AVI_GetVideoFrameNumber (movie_state_t *Avi, float time)
@@ -236,10 +235,6 @@ int AVI_GetVideoFrameNumber (movie_state_t *Avi, float time)
 	}
 
 // [FWGS, 05.04.26] removed AVI_TimeToSoundPosition
-/*int AVI_TimeToSoundPosition (movie_state_t *Avi, int time)
-	{
-	return 0;
-	}*/
 
 qboolean AVI_GetVideoInfo (movie_state_t *Avi, int *xres, int *yres, float *duration)
 	{
@@ -275,10 +270,8 @@ static void AVI_StreamAudio (movie_state_t *Avi)
 	rawchan_t *ch = NULL;
 
 	// [FWGS, 15.04.26] keep the same semantics, when S_RAW_SOUND_SOUNDTRACK doesn't play if S_StartStreaming wasn't enabled
-	/*qboolean disable_stream = Avi->entnum == S_RAW_SOUND_SOUNDTRACK ? !s_listener.streaming : false;*/
 	qboolean disable_stream = Avi->entnum == S_RAW_SOUND_SOUNDTRACK ? !snd.streaming : false;
 
-	/*if (!dma.initialized || disable_stream || cl.paused || !Avi->cached_audio)*/
 	if (!snd.initialized || disable_stream || cl.paused || !Avi->cached_audio)
 		return;
 
@@ -291,22 +284,18 @@ static void AVI_StreamAudio (movie_state_t *Avi)
 	ch->dist_mult = (Avi->attn / SND_CLIP_DISTANCE);
 
 	// [FWGS, 15.04.26]
-	/*if (ch->s_rawend < soundtime)
-		ch->s_rawend = soundtime;*/
 	if (ch->s_rawend < snd.soundtime)
 		ch->s_rawend = snd.soundtime;
 
-	/*while (ch->s_rawend < soundtime + ch->max_samples)*/
 	while (ch->s_rawend < snd.soundtime + ch->max_samples)
 		{
 		size_t copy;
 
 		// [FWGS, 15.04.26]
-		/*buffer_samples = ch->max_samples - (ch->s_rawend - soundtime);*/
 		buffer_samples = ch->max_samples - (ch->s_rawend - snd.soundtime);
 
 		file_samples = buffer_samples * ((float)Avi->rate / SOUND_DMA_SPEED);
-		if (file_samples <= 1) return; // no more samples need
+		if (file_samples <= 1) return;	// no more samples need
 
 		file_bytes = file_samples * pav_get_bytes_per_sample (Avi->s_fmt) * Avi->channels;
 		if (file_bytes > ch->max_samples)
@@ -380,7 +369,7 @@ qboolean AVI_Think (movie_state_t *Avi)
 	const double timebase = (double)Avi->video_ctx->pkt_timebase.den / Avi->video_ctx->pkt_timebase.num;
 	int64_t curtime = round (Platform_DoubleTime () * timebase);
 
-	if (!Avi->first_time) // always remember at which timestamp we started playing
+	if (!Avi->first_time)	// always remember at which timestamp we started playing
 		Avi->first_time = curtime;
 
 	if (Avi->paused)
@@ -390,11 +379,11 @@ qboolean AVI_Think (movie_state_t *Avi)
 		return true;
 		}
 
-	while (1) // try to get multiple decoded frames to keep up when we're running at low fps
+	while (1)	// try to get multiple decoded frames to keep up when we're running at low fps
 		{
 		int res;
 
-		AVI_StreamAudio (Avi); // always flush audio buffers
+		AVI_StreamAudio (Avi);	// always flush audio buffers
 
 		// recalc time so we always play last possible frame
 		curtime = round (Platform_DoubleTime () * timebase);
@@ -405,7 +394,6 @@ qboolean AVI_Think (movie_state_t *Avi)
 		// [FWGS, 01.03.26]
 		if ((res = pav_read_frame (Avi->fmt_ctx, Avi->pkt)) >= 0)
 			{
-			/*if (Avi->pkt->stream_index == Avi->audio_stream)*/
 			if ((Avi->pkt->stream_index == Avi->audio_stream) && Avi->audio_ctx)
 				{
 				res = pavcodec_send_packet (Avi->audio_ctx, Avi->pkt);
@@ -467,18 +455,26 @@ qboolean AVI_Think (movie_state_t *Avi)
 		pav_frame_unref (Avi->vframe_copy);
 		}
 
+	// [FWGS, 01.05.26]
 	if (Avi->texture == 0)
 		{
+		int cinTexture = SCR_GetCinematicTexture ();
 		int w = Avi->w >= 0 ? Avi->w : refState.width;
 		int h = Avi->h >= 0 ? Avi->h : refState.height;
 
-		ref.dllFuncs.R_DrawStretchRaw (Avi->x, Avi->y, w, h, Avi->xres, Avi->yres, Avi->dst, redraw);
+		/*ref.dllFuncs.R_DrawStretchRaw (Avi->x, Avi->y, w, h, Avi->xres, Avi->yres, Avi->dst, redraw);*/
+		if (redraw)
+			ref.dllFuncs.GL_UpdateTexture (cinTexture, Avi->xres, Avi->yres, Avi->xres, Avi->yres, Avi->dst, PF_BGRA_32);
+		ref.dllFuncs.R_DrawStretchPic (Avi->x, Avi->y, w, h, 0, 0, 1, 1, cinTexture);
 		}
 	else if (redraw && Avi->texture > 0)
-		ref.dllFuncs.AVI_UploadRawFrame (Avi->texture, Avi->xres, Avi->yres, Avi->w, Avi->h, Avi->dst);
+		{
+		/*ref.dllFuncs.AVI_UploadRawFrame (Avi->texture, Avi->xres, Avi->yres, Avi->w, Avi->h, Avi->dst);*/
+		ref.dllFuncs.GL_UpdateTexture (Avi->texture, Avi->xres, Avi->yres, Avi->w, Avi->h, Avi->dst, PF_BGRA_32);
+		}
 
 	if (flushing && !decoded)
-		return false; // probably hit an EOF
+		return false;	// probably hit an EOF
 
 	return true;
 	}
@@ -870,10 +866,6 @@ void AVI_OpenVideo (movie_state_t *Avi, const char *filename, qboolean load_audi
 	}
 
 // [FWGS, 05.04.26] removed AVI_TimeToSoundPosition
-/*int AVI_TimeToSoundPosition (movie_state_t *Avi, int time)
-	{
-	return 0;
-	}*/
 
 void AVI_CloseVideo (movie_state_t *Avi)
 	{

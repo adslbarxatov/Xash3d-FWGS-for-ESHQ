@@ -24,6 +24,11 @@ GNU General Public License for more details
 #include "client.h"
 #include "const.h"
 #include "triangleapi.h"
+
+// [FWGS, 01.05.26]
+#include "r_studioint.h"
+#include "mod_local.h"
+
 #include "r_efx.h"
 #include "demo_api.h"
 #include "ivoicetweak.h"
@@ -40,15 +45,12 @@ GNU General Public License for more details
 #define TEXT_MSGNAME	"TextMessage"
 
 #define MAX_LINELENGTH	80
-/*define MAX_TEXTCHANNELS	8		// must be power of two (GoldSrc uses 4 channels)
-define TEXT_MSGNAME		"TextMessage%i"*/
 #define TEXT_MSGNAME	"TextMessage"
 
 // [FWGS, 01.12.24]
 static char	cl_textbuffer[MAX_TEXTCHANNELS][2048];
 
 // [FWGS, 05.04.26]
-/*static client_textmessage_t	cl_textmessage[MAX_TEXTCHANNELS];*/
 client_textmessage_t cl_textmessage[MAX_TEXTCHANNELS] =
 	{
 	{.pName = "TextMessage0", .pMessage = cl_textbuffer[0] },
@@ -139,8 +141,6 @@ static void CL_CreatePlaylist (const char *filename)
 
 	// [FWGS, 01.03.26]
 	f = FS_Open (filename, "w", false);
-	/*if (!f)
-		return;*/
 	if (!f)
 		{
 		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, filename);
@@ -212,7 +212,7 @@ static void CL_InitCDAudio (const char *filename)
 			{
 			clgame.cdtracks[c][0] = '\0';
 			}
-		else if (token[0] == '/') // allow custom path
+		else if (token[0] == '/')	// allow custom path
 			{
 			Q_strncpy (clgame.cdtracks[c], &token[1], sizeof (clgame.cdtracks[c]));
 			}
@@ -274,7 +274,7 @@ static int CL_AdjustYPos (float y, int height)
 	{
 	int	yPos;
 
-	if (y == -1) // centered?
+	if (y == -1)	// centered?
 		{
 		yPos = (clgame.scrInfo.iHeight - height) * 0.5f;
 		}
@@ -309,12 +309,11 @@ void CL_CenterPrint (const char *text, float y)
 	cl_font_t *font = Con_GetCurFont ();
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (text) || !font || !font->valid)*/
 	if (COM_StringEmptyOrNULL (text) || !font || !font->valid)
 		return;
 
 	clgame.centerPrint.totalWidth = 0;
-	clgame.centerPrint.time = cl.mtime[0]; // allow pause for centerprint
+	clgame.centerPrint.time = cl.mtime[0];	// allow pause for centerprint
 	Q_strncpy (clgame.centerPrint.message, text, sizeof (clgame.centerPrint.message));
 
 	CL_DrawStringLen (font, clgame.centerPrint.message, &clgame.centerPrint.totalWidth,
@@ -381,7 +380,7 @@ static void SPR_AdjustTexCoords (int texnum, float width, float height, float *s
 
 /***
 ====================
-SPR_DrawGeneric [FWGS, 01.02.24]
+SPR_DrawGeneric
 
 draw hudsprite routine
 ====================
@@ -395,14 +394,16 @@ static void SPR_DrawGeneric (int frame, float x, float y, float width, float hei
 		{
 		int	w, h;
 
-		// assume we get sizes from image
-		ref.dllFuncs.R_GetSpriteParms (&w, &h, NULL, frame, clgame.ds.pSprite);
+		// [FWGS, 01.05.26] assume we get sizes from image
+		/*ref.dllFuncs.R_GetSpriteParms (&w, &h, NULL, frame, clgame.ds.pSprite);*/
+		R_GetSpriteParms (&w, &h, NULL, frame, clgame.ds.pSprite);
 
 		width = w;
 		height = h;
 		}
 
-	texnum = ref.dllFuncs.R_GetSpriteTexture (clgame.ds.pSprite, frame);
+	/*texnum = ref.dllFuncs.R_GetSpriteTexture (clgame.ds.pSprite, frame);*/
+	texnum = R_GetSpriteTexture (clgame.ds.pSprite, frame);
 
 	if (prc)
 		{
@@ -471,7 +472,7 @@ void CL_DrawCenterPrint (void)
 		return;
 		}
 
-	y = clgame.centerPrint.y; // start y
+	y = clgame.centerPrint.y;	// start y
 	colorDefault = g_color_table[7];
 	pText = clgame.centerPrint.message;
 
@@ -504,7 +505,7 @@ void CL_DrawCenterPrint (void)
 		if (lineLength == MAX_LINELENGTH)
 			lineLength--;
 
-		pText++; // Skip LineFeed
+		pText++;	// Skip LineFeed
 		line[lineLength] = 0;
 
 		x = CL_AdjustXPos (-1, width, clgame.centerPrint.totalWidth);
@@ -513,7 +514,6 @@ void CL_DrawCenterPrint (void)
 		for (j = 0; j < lineLength; j++)
 			{
 			if ((x >= 0) && (y >= 0) && (x <= refState.width))
-				/*x += CL_DrawCharacter (x, y, line[j], colorDefault, font, FONT_DRAW_HUD | FONT_DRAW_NORENDERMODE);*/
 				x += CL_DrawCharacter (x, y, line[j], NULL, font, FONT_DRAW_HUD | FONT_DRAW_NORENDERMODE | FONT_DRAW_NOCOLOR);
 			}
 
@@ -606,37 +606,17 @@ and hold them into permament memory pool
 ***/
 static void CL_InitTitles (const char *filename)
 	{
-	/*fs_offset_t	fileSize;
-	byte	*pMemFile;
-	int		i;
-
-	// [FWGS, 01.02.25] initialize text messages (game_text)
-	for (i = 0; i < MAX_TEXTCHANNELS; i++)
-		{
-		char name[MAX_VA_STRING];
-		Q_snprintf (name, sizeof (name), TEXT_MSGNAME, i);
-
-		cl_textmessage[i].pName = copystringpool (clgame.mempool, name);
-		cl_textmessage[i].pMessage = cl_textbuffer[i];
-		}*/
-
 	// clear out any old data that's sitting around
-	/*if (clgame.titles)
-		Mem_Free (clgame.titles);*/
 	Mem_Free (clgame.titles);
 
 	clgame.titles = NULL;
 	clgame.numTitles = 0;
 
-	/*pMemFile = FS_LoadFile (filename, &fileSize, false);
-	if (!pMemFile)
-		return;*/
 	fs_offset_t fileSize = 0;
 	char *pMemFile = (char *)FS_LoadFile (filename, &fileSize, false);
 	if (!pMemFile)
 		return;
 
-	/*CL_TextMessageParse (pMemFile, fileSize);*/
 	clgame.titles = CL_TextMessageParse (clgame.mempool, pMemFile, fileSize, &clgame.numTitles);
 	Mem_Free (pMemFile);
 	}
@@ -650,7 +630,6 @@ Template to show hud messages
 ***/
 void CL_HudMessage (const char *pMessage)
 	{
-	/*if (!COM_CheckString (pMessage))*/
 	if (COM_StringEmptyOrNULL (pMessage))
 		return;
 
@@ -710,56 +689,6 @@ void CL_ParseTextMessage (sizebuf_t *msg)
 	}
 
 // [FWGS, 05.04.26] removed CL_ParseFinaleCutscene
-
-/*
-/
-================
-CL_ParseFinaleCutscene
-
-show display finale or cutscene message
-================
-/
-void CL_ParseFinaleCutscene (sizebuf_t *msg, int level)
-	{
-	static int		msgindex = 0;
-	client_textmessage_t *text;
-	int			channel;
-
-	cl.intermission = level;
-
-	channel = msgindex;
-	msgindex = (msgindex + 1) & (MAX_TEXTCHANNELS - 1);
-
-	// grab message channel
-	text = &cl_textmessage[channel];
-
-	// NOTE: svc_finale and svc_cutscene has a
-	// predefined settings like Quake-style
-	text->x = -1.0f;
-	text->y = 0.15f;
-	text->effect = 2;	// scan out effect
-	text->r1 = 245;
-	text->g1 = 245;
-	text->b1 = 245;
-	text->a1 = 0;	// unused
-	text->r2 = 0;
-	text->g2 = 0;
-	text->b2 = 0;
-	text->a2 = 0;
-	text->fadein = 0.15f;
-	text->fadeout = 0.0f;
-	text->holdtime = 99999.0f;
-	text->fxtime = 0.0f;
-
-	// to prevent grab too long messages
-	Q_strncpy ((char *)text->pMessage, MSG_ReadString (msg), 2048);
-
-	if (*text->pMessage == '\0')
-		return; // no real text
-
-	CL_HudMessage (text->pName);
-	}*/
-
 // [FWGS, 01.12.24] removed CL_GetLocalPlayer
 
 /***
@@ -1102,7 +1031,7 @@ void CL_LinkUserMessage (char *pszName, const int svc_num, int iSize)
 
 void CL_ClearWorld (void)
 	{
-	if (clgame.entities) // check if we have entities, legacy protocol support kinda breaks this logic
+	if (clgame.entities)	// check if we have entities, legacy protocol support kinda breaks this logic
 		{
 		cl_entity_t *worldmodel = clgame.entities;
 
@@ -1123,7 +1052,7 @@ void CL_InitEdicts (int maxclients)
 	Assert (clgame.entities == NULL);
 
 	if (!clgame.mempool)
-		return; // Host_Error without client
+		return;	// Host_Error without client
 
 #if XASH_LOW_MEMORY != 2
 	CL_UPDATE_BACKUP = (maxclients <= 1) ? SINGLEPLAYER_BACKUP : MULTIPLAYER_BACKUP;
@@ -1134,12 +1063,12 @@ void CL_InitEdicts (int maxclients)
 		sizeof (entity_state_t) * cls.num_client_entities);
 	clgame.entities = Mem_Calloc (clgame.mempool, sizeof (cl_entity_t) * clgame.maxEntities);
 	
-	clgame.static_entities = NULL; // [FWGS, 25.12.24] will be initialized later
+	clgame.static_entities = NULL;	// [FWGS, 25.12.24] will be initialized later
 	clgame.numStatics = 0;
 
 	if ((clgame.maxRemapInfos - 1) != clgame.maxEntities)
 		{
-		CL_ClearAllRemaps (); // purge old remap info
+		CL_ClearAllRemaps ();	// purge old remap info
 		clgame.maxRemapInfos = clgame.maxEntities + 1;
 		clgame.remap_info = (remap_info_t **)Mem_Calloc (clgame.mempool, sizeof (remap_info_t *) *
 			clgame.maxRemapInfos);
@@ -1199,7 +1128,6 @@ void CL_ClearSpriteTextures (void)
 
 		clgame.sprites[i].needload = NL_FREE_UNUSED;
 		}
-	/*clgame.sprites[i].needload = NL_UNREFERENCED;*/
 	}
 
 // [FWGS, 01.12.24] it's a Valve default value for LoadMapSprite (probably must be power of two)
@@ -1267,7 +1195,7 @@ static void Mod_LoadMapSprite (model_t *mod, const void *buffer, size_t size, qb
 	Q_snprintf (poolname, sizeof (poolname), "^2%s^7", mod->name);
 	mod->mempool = Mem_AllocPool (poolname);
 	psprite = Mem_Calloc (mod->mempool, sizeof (msprite_t) + (numframes - 1) * sizeof (psprite->frames));
-	mod->cache.data = psprite; // make link to extradata
+	mod->cache.data = psprite;	// make link to extradata
 
 	psprite->type = SPR_FWD_PARALLEL_ORIENTED;
 	psprite->texFormat = SPR_ALPHTEST;
@@ -1417,7 +1345,6 @@ static model_t *CL_LoadSpriteModel (const char *filename, uint type, uint texFla
 	int		i, start;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (filename))*/
 	if (COM_StringEmptyOrNULL (filename))
 		{
 		Con_Reportf (S_ERROR "%s: bad name!\n", __func__);
@@ -1449,9 +1376,8 @@ static model_t *CL_LoadSpriteModel (const char *filename, uint type, uint texFla
 	// [FWGS, 01.03.26]
 	for (i = 0, mod = &clgame.sprites[start]; i < MAX_CLIENT_SPRITES / 2; i++, mod++)
 		{
-		/*if (!mod->name[0])*/
 		if (mod->needload == NL_UNREFERENCED)
-			break; // this is a valid spot
+			break;	// this is a valid spot
 		}
 
 	if (i == MAX_CLIENT_SPRITES / 2)
@@ -1496,7 +1422,7 @@ HLSPRITE pfnSPR_LoadExt (const char *szPicName, uint texFlags)
 	if ((spr = CL_LoadSpriteModel (szPicName, SPR_CLIENT, texFlags)) == NULL)
 		return 0;
 
-	return (spr - clgame.sprites) + 1; // return index
+	return (spr - clgame.sprites) + 1;	// return index
 	}
 
 /***
@@ -1553,7 +1479,7 @@ static const model_t *CL_GetSpritePointer (HLSPRITE hSprite)
 
 /***
 =========
-pfnSPR_Frames [FWGS, 01.02.24]
+pfnSPR_Frames
 
 function exported for support GoldSrc Monitor utility
 =========
@@ -1563,7 +1489,10 @@ int HLEXPORT pfnSPR_Frames (HLSPRITE hPic);
 int HLEXPORT pfnSPR_Frames (HLSPRITE hPic)
 	{
 	int	numFrames = 0;
-	ref.dllFuncs.R_GetSpriteParms (NULL, NULL, &numFrames, 0, CL_GetSpritePointer (hPic));
+
+	// [FWGS, 01.05.26]
+	/*ref.dllFuncs.R_GetSpriteParms (NULL, NULL, &numFrames, 0, CL_GetSpritePointer (hPic));*/
+	R_GetSpriteParms (NULL, NULL, &numFrames, 0, CL_GetSpritePointer (hPic));
 
 	return numFrames;
 	}
@@ -1577,7 +1506,9 @@ static int GAME_EXPORT pfnSPR_Height (HLSPRITE hPic, int frame)
 	{
 	int	sprHeight = 0;
 
-	ref.dllFuncs.R_GetSpriteParms (NULL, &sprHeight, NULL, frame, CL_GetSpritePointer (hPic));
+	// [FWGS, 01.05.26]
+	/*ref.dllFuncs.R_GetSpriteParms (NULL, &sprHeight, NULL, frame, CL_GetSpritePointer (hPic));*/
+	R_GetSpriteParms (NULL, &sprHeight, NULL, frame, CL_GetSpritePointer (hPic));
 
 	return sprHeight;
 	}
@@ -1591,7 +1522,9 @@ static int GAME_EXPORT pfnSPR_Width (HLSPRITE hPic, int frame)
 	{
 	int	sprWidth = 0;
 
-	ref.dllFuncs.R_GetSpriteParms (&sprWidth, NULL, NULL, frame, CL_GetSpritePointer (hPic));
+	// [FWGS, 01.05.26]
+	/*ref.dllFuncs.R_GetSpriteParms (&sprWidth, NULL, NULL, frame, CL_GetSpritePointer (hPic));*/
+	R_GetSpriteParms (&sprWidth, NULL, NULL, frame, CL_GetSpritePointer (hPic));
 
 	return sprWidth;
 	}
@@ -1776,7 +1709,7 @@ get actual screen info
 ***/
 int GAME_EXPORT CL_GetScreenInfo (SCREENINFO *pscrinfo)
 	{
-	qboolean	apply_scale_factor = false; // we don't want floating point inaccuracies
+	qboolean	apply_scale_factor = false;	// we don't want floating point inaccuracies
 	float		scale_factor = hud_scale.value;
 
 	if (FBitSet (hud_fontscale.flags, FCVAR_CHANGED))
@@ -1913,7 +1846,6 @@ pfnServerCmd
 static int GAME_EXPORT pfnServerCmd (const char *szCmdString)
 	{
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (szCmdString))*/
 	if (COM_StringEmptyOrNULL (szCmdString))
 		return 0;
 
@@ -1932,7 +1864,6 @@ pfnClientCmd
 static int GAME_EXPORT pfnClientCmd (const char *szCmdString)
 	{
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (szCmdString))*/
 	if (COM_StringEmptyOrNULL (szCmdString))
 		return 0;
 
@@ -1959,7 +1890,6 @@ pfnFilteredClientCmd
 static int GAME_EXPORT pfnFilteredClientCmd (const char *szCmdString)
 	{
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (szCmdString))*/
 	if (COM_StringEmptyOrNULL (szCmdString))
 		return 0;
 
@@ -1984,7 +1914,7 @@ static void GAME_EXPORT pfnGetPlayerInfo (int ent_num, hud_player_info_t *pinfo)
 	{
 	player_info_t *player;
 
-	ent_num -= 1; // player list if offset by 1 from ents
+	ent_num -= 1;	// player list if offset by 1 from ents
 
 	if ((ent_num >= cl.maxclients) || (ent_num < 0) || !cl.players[ent_num].name[0])
 		{
@@ -2048,16 +1978,11 @@ client_textmessage_t *CL_TextMessageGet (const char *pName)
 	int	i;
 
 	// [FWGS, 05.04.26] first check internal messages
-	/*for (i = 0; i < MAX_TEXTCHANNELS; i++)*/
 	if ((Q_strlen (pName) == sizeof (TEXT_MSGNAME)) &&	// including the digit
 		!Q_strncmp (pName, TEXT_MSGNAME, sizeof (TEXT_MSGNAME) - 1))
 		{
-		/*char name[MAX_VA_STRING];
-
-		Q_snprintf (name, sizeof (name), TEXT_MSGNAME, i);*/
 		i = pName[sizeof (TEXT_MSGNAME) - 1] - '0';
 
-		/*if (!Q_strcmp (pName, name))*/
 		if ((i >= 0) && (i < MAX_TEXTCHANNELS))
 			return cl_textmessage + i;
 		}
@@ -2069,7 +1994,7 @@ client_textmessage_t *CL_TextMessageGet (const char *pName)
 			return clgame.titles + i;
 		}
 
-	return NULL; // found nothing
+	return NULL;	// found nothing
 	}
 
 /***
@@ -2149,7 +2074,6 @@ prints directly into console (can skip notify)
 static void GAME_EXPORT pfnConsolePrint (const char *string)
 	{
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (string))*/
 	if (COM_StringEmptyOrNULL (string))
 		return;
 
@@ -2199,9 +2123,9 @@ static int GAME_EXPORT pfnGetWindowCenterX (void)
 	}
 
 /***
-=========
+=============
 GetWindowCenterY
-=========
+=============
 ***/
 static int GAME_EXPORT pfnGetWindowCenterY (void)
 	{
@@ -2293,9 +2217,10 @@ static int GAME_EXPORT pfnIsNoClipping (void)
 
 /***
 =============
-pfnGetViewModel
+pfnGetViewModel [FWGS, 01.05.26]
 =============
 ***/
+/*static cl_entity_t *GAME_EXPORT CL_GetViewModel (void)*/
 static cl_entity_t *GAME_EXPORT CL_GetViewModel (void)
 	{
 	return &clgame.viewent;
@@ -2517,7 +2442,6 @@ static int GAME_EXPORT CL_FindModelIndex (const char *m)
 	int		i;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (m))*/
 	if (COM_StringEmptyOrNULL (m))
 		return 0;
 
@@ -2807,11 +2731,10 @@ static const char *pfnGetLevelName (void)
 	// [FWGS, 01.03.26] a1ba: don't return maps/.bsp if no map is loaded yet
 	// in GoldSrc this is handled by cl.levelname field but we don't have it
 	// so emulate this behavior here
-	/*if ((cls.state >= ca_connected) && COM_CheckStringEmpty (clgame.mapname))*/
 	if ((cls.state >= ca_connected) && !COM_StringEmpty (clgame.mapname))
 		Q_snprintf (mapname, sizeof (mapname), "maps/%s.bsp", clgame.mapname);
 	else
-		mapname[0] = '\0'; // not in game
+		mapname[0] = '\0';	// not in game
 
 	return mapname;
 	}
@@ -2877,7 +2800,6 @@ static int GAME_EXPORT COM_ExpandFilename (const char *fileName, char *nameOutBu
 	char result[MAX_SYSPATH];
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (fileName) || !nameOutBuffer || nameOutBufferSize <= 0)*/
 	if (COM_StringEmptyOrNULL (fileName) || !nameOutBuffer || (nameOutBufferSize <= 0))
 		return 0;
 
@@ -2893,6 +2815,7 @@ static int GAME_EXPORT COM_ExpandFilename (const char *fileName, char *nameOutBu
 		Q_strncpy (nameOutBuffer, result, nameOutBufferSize);
 		return 1;
 		}
+
 	return 0;
 	}
 
@@ -2923,7 +2846,7 @@ static void GAME_EXPORT PlayerInfo_SetValueForKey (const char *key, const char *
 	convar_t *var;
 
 	if (!Q_strcmp (Info_ValueForKey (cls.userinfo, key), value))
-		return; // no changes ?
+		return;	// no changes ?
 
 	var = Cvar_FindVar (key);
 
@@ -2988,7 +2911,6 @@ pfnServerCmdUnreliable
 static int GAME_EXPORT pfnServerCmdUnreliable (char *szCmdString)
 	{
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (szCmdString))*/
 	if (COM_StringEmptyOrNULL (szCmdString))
 		return 0;
 
@@ -3010,7 +2932,6 @@ static void GAME_EXPORT pfnGetMousePos (struct tagPOINT *ppt)
 	if (!ppt)
 		return;
 
-	/*Platform_GetMousePos (&ppt->x, &ppt->y);*/
 	Platform_GetMousePos (&x, &y);
 
 	ppt->x = x;
@@ -3255,7 +3176,6 @@ handle colon separately
 ***/
 static char *pfnParseFile (char *data, char *token)
 	{
-	/*return COM_ParseFileSafe (data, token, PFILE_TOKEN_MAX_LENGTH, PFILE_HANDLECOLON, NULL, NULL);*/
 	// GoldSrc uses 1024 byte tokens
 	return COM_ParseFileSafe (data, token, 1024, PFILE_HANDLECOLON, NULL, NULL);
 	}
@@ -3410,7 +3330,9 @@ int TriSpriteTexture (model_t *pSpriteModel, int frame)
 	{
 	int	gl_texturenum;
 
-	if ((gl_texturenum = ref.dllFuncs.R_GetSpriteTexture (pSpriteModel, frame)) <= 0)
+	// [FWGS, 01.05.26]
+	/*if ((gl_texturenum = ref.dllFuncs.R_GetSpriteTexture (pSpriteModel, frame)) <= 0)*/
+	if ((gl_texturenum = R_GetSpriteTexture (pSpriteModel, frame)) <= 0)
 		return 0;
 
 	ref.dllFuncs.GL_Bind (XASH_TEXTURE0, gl_texturenum);
@@ -3451,7 +3373,7 @@ NetAPI_InitNetworking
 ***/
 static void GAME_EXPORT NetAPI_InitNetworking (void)
 	{
-	NET_Config (true, false); // allow remote
+	NET_Config (true, false);	// allow remote
 	}
 
 /***
@@ -3478,7 +3400,7 @@ static void GAME_EXPORT NetAPI_Status (net_status_t *status)
 	status->latency = (connected) ? cl.frames[cl.parsecountmod].latency : 0.0;
 	status->remote_address = cls.netchan.remote_address;
 	status->packet_loss = packet_loss;
-	NET_GetLocalAddress (&status->local_address, NULL); // NetAPI doesn't know about IPv6
+	NET_GetLocalAddress (&status->local_address, NULL);	// NetAPI doesn't know about IPv6
 	status->rate = rate.value;
 	}
 
@@ -3501,7 +3423,7 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 
 	// [FWGS, 01.03.25]
 	if ((NET_NetadrType (remote_address) == NA_IPX) || (NET_NetadrType (remote_address) == NA_BROADCAST_IPX))
-		return; // IPX no longer support
+		return;	// IPX no longer support
 
 	if (request == NETAPI_REQUEST_SERVERLIST)
 		return;	// no support for server list requests
@@ -3544,8 +3466,6 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 	nr->flags = flags;
 	
 	// [FWGS, 01.03.26] local servers request
-	/*Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, A2A_NETINFO " %i %i %i", FBitSet (flags,
-		FNETAPI_LEGACY_PROTOCOL) ? PROTOCOL_LEGACY_VERSION : PROTOCOL_VERSION, context, request);*/
 	Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, A2A_NETINFO" %i %i %i", PROTOCOL_VERSION, context, request);
 	}
 
@@ -4006,7 +3926,6 @@ void CL_UnloadProgs (void)
 		VGui_Shutdown ();
 
 	// [FWGS, 01.03.26]
-	/*Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);*/
 	Cvar_DirectFullSet (&cl_background, "0", FCVAR_READ_ONLY);
 	Cvar_FullSet ("host_clientloaded", "0", FCVAR_READ_ONLY);
 
@@ -4017,6 +3936,79 @@ void CL_UnloadProgs (void)
 	Mem_FreePool (&cls.mempool);
 	Mem_FreePool (&clgame.mempool);
 	memset (&clgame, 0, sizeof (clgame));
+	}
+
+// [FWGS, 01.05.26]
+static model_t *pfnStudio_Mod_ForName (const char *name, int crash)
+	{
+	return Mod_ForName (name, crash, false);
+	}
+
+// [FWGS, 01.05.26]
+static void *pfnStudio_Mod_Extradata (model_t *mod)
+	{
+	return Mod_StudioExtradata (mod);
+	}
+
+// [FWGS, 01.05.26]
+static void pfnStudio_GetAliasScale (float *x, float *y)
+	{
+	if (x)
+		*x = 1.0f;
+	if (y)
+		*y = 1.0f;
+	}
+
+// [FWGS, 01.05.26]
+static float ***pfnStudio_GetAliasTransform (void)
+	{
+	return NULL;
+	}
+
+// [FWGS, 01.05.26]
+static model_t *pfnStudio_GetChromeSprite (void)
+	{
+	return cl_sprite_shell;
+	}
+
+// [FWGS, 01.05.26]
+static int pfnStudio_IsHardware (void)
+	{
+	return 1;
+	}
+
+// [FWGS, 01.05.26]
+static engine_studio_api_t gStudioAPI =
+	{
+	.Mem_Calloc = Mod_Calloc,
+	.Cache_Check = Mod_CacheCheck,
+	.LoadCacheFile = Mod_LoadCacheFile,
+	.Mod_ForName = pfnStudio_Mod_ForName,
+	.Mod_Extradata = pfnStudio_Mod_Extradata,
+	.GetModelByIndex = CL_ModelHandle,
+	.GetCvar = pfnCVarGetPointer,
+	.GetChromeSprite = pfnStudio_GetChromeSprite,
+	.GetAliasScale = pfnStudio_GetAliasScale,
+	.StudioGetAliasTransform = pfnStudio_GetAliasTransform,
+	.GetViewEntity = CL_GetViewModel,
+	.IsHardware = pfnStudio_IsHardware,
+	};
+
+// [FWGS, 01.05.26]
+static void CL_InitStudioAPI (void)
+	{
+	static r_studio_interface_t gDefaultStudioDraw;
+	r_studio_interface_t *pStudioDraw;
+
+	if (!ref.dllFuncs.R_StudioFillAPI (&gStudioAPI, &gDefaultStudioDraw))
+		return;
+
+	pStudioDraw = &gDefaultStudioDraw;
+
+	if (clgame.dllFuncs.pfnGetStudioModelInterface)
+		clgame.dllFuncs.pfnGetStudioModelInterface (STUDIO_INTERFACE_VERSION, &pStudioDraw, &gStudioAPI);
+
+	ref.dllFuncs.R_StudioSetDrawInterface (pStudioDraw);
 	}
 
 qboolean CL_LoadProgs (const char *name)
@@ -4069,7 +4061,6 @@ qboolean CL_LoadProgs (const char *name)
 	ClearExports (cdll_exports, HLARRAYSIZE (cdll_exports));
 
 	// [FWGS, 01.03.26] trying to get single export
-	/*if ((GetClientAPI = (void *)COM_GetProcAddress (clgame.hInstance, "GetClientAPI")) != NULL)*/
 	if ((GetClientAPI = COM_GetProcAddress (clgame.hInstance, "GetClientAPI")) != NULL)
 		{
 		Con_Reportf ("%s: found single callback export\n", __func__);
@@ -4077,7 +4068,6 @@ qboolean CL_LoadProgs (const char *name)
 		// trying to fill interface now
 		GetClientAPI (&clgame.dllFuncs);
 		}
-	/*else if ((GetClientAPI = (void *)COM_GetProcAddress (clgame.hInstance, "F")) != NULL)*/
 	else if ((GetClientAPI = COM_GetProcAddress (clgame.hInstance, "F")) != NULL)
 		{
 		Con_Reportf ("%s: found single callback export (secured client dlls)\n", __func__);
@@ -4086,15 +4076,14 @@ qboolean CL_LoadProgs (const char *name)
 		CL_GetSecuredClientAPI (GetClientAPI);
 		}
 
-	if (GetClientAPI != NULL) // check critical functions again
+	if (GetClientAPI != NULL)	// check critical functions again
 		valid_single_export = ValidateExports (cdll_exports, HLARRAYSIZE (cdll_exports));
 
 	// [FWGS, 01.03.26]
 	for (i = 0; i < HLARRAYSIZE (cdll_exports); i++)
 		{
 		if (*(cdll_exports[i].func) != NULL)
-			/*continue;	// already gott through 'F' or 'GetClientAPI'*/
-			continue; // already got through 'F' or 'GetClientAPI'
+			continue;	// already got through 'F' or 'GetClientAPI'
 
 		// functions are cleared before all the extensions are evaluated
 		if ((*(cdll_exports[i].func) = (void *)COM_GetProcAddress (clgame.hInstance, cdll_exports[i].name)) == NULL)
@@ -4154,28 +4143,25 @@ qboolean CL_LoadProgs (const char *name)
 	// [FWGS, 05.04.26]
 	CL_InitCDAudio ("media/cdaudio.txt");
 	CL_InitTitles ("titles.txt");
-	/*CL_InitParticles ();
-	CL_InitViewBeams ();
-	CL_InitTempEnts ();*/
 	CL_InitParticles ();
 	CL_InitViewBeams ();
 	CL_InitTempEnts ();
 
 	// [FWGS, 05.04.26]
-	/*if (!R_InitRenderAPI ())	// Xash3D extension*/
 	if (!R_InitRenderAPI ())	// Xash3D extension
 		Con_Reportf (S_WARN "%s: couldn't get render API\n", __func__);
 
 	// [FWGS, 05.04.26]
-	/*if (!Mobile_Init ()) // Xash3D FWGS extension: mobile interface*/
 	if (!Mobile_Init ())	// Xash3D FWGS extension: mobile interface
 		Con_Reportf (S_WARN "%s: couldn't get mobility API\n", __func__);
 
 	CL_InitEdicts (cl.maxclients);	// initailize local player and world
 	CL_InitClientMove ();	// initialize pm_shared
 
-	// initialize game
+	// [FWGS, 01.05.26] initialize game
 	clgame.dllFuncs.pfnInit ();
-	ref.dllFuncs.CL_InitStudioAPI ();
+	/*ref.dllFuncs.CL_InitStudioAPI ();*/
+	CL_InitStudioAPI ();
+	S_InitSoundAPI ();
 	return true;
 	}
