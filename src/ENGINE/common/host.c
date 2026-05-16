@@ -48,7 +48,6 @@ GNU General Public License for more details
 
 // [FWGS, 01.03.26]
 host_parm_t		host;	// host parms
-/*static pfnChangeGame	pChangeGame = NULL;*/
 static jmp_buf	return_from_main_buf;
 
 /***
@@ -152,7 +151,6 @@ static const feature_message_t engine_features[] =
 	};
 
 // [FWGS, 01.03.26]
-/*static void Sys_MakeVersionString (char *out, size_t len)*/
 static void Host_MakeVersionString (char *out, size_t len)
 	{
 	Q_snprintf (out, len, XASH_ENGINE_NAME " %i/" XASH_VERSION " (%s-%s build %i)", PROTOCOL_VERSION,
@@ -160,13 +158,11 @@ static void Host_MakeVersionString (char *out, size_t len)
 	}
 
 // [FWGS, 01.03.26]
-/*static void Sys_PrintUsage (const char *exename)*/
 static void Host_PrintUsage (const char *exename)
 	{
 	string		version_str;
 	const char	*usage_str;
 
-	/*Sys_MakeVersionString (version_str, sizeof (version_str));*/
 	Host_MakeVersionString (version_str, sizeof (version_str));
 
 #if XASH_MESSAGEBOX != MSGBOX_STDERR
@@ -282,7 +278,6 @@ static void Host_PrintUsage (const char *exename)
 	}
 
 // [FWGS, 01.03.26]
-/*static void Sys_PrintBugcompUsage (const char *exename)*/
 static void Host_PrintBugcompUsage (const char *exename)
 	{
 	string	version_str;
@@ -290,7 +285,6 @@ static void Host_PrintBugcompUsage (const char *exename)
 	char	*p = usage_str;
 	int		i;
 
-	/*Sys_MakeVersionString (version_str, sizeof (version_str));*/
 	Host_MakeVersionString (version_str, sizeof (version_str));
 
 	p += Q_snprintf (p, sizeof (usage_str) - (usage_str - p), "Known bugcomp flags are:\n");
@@ -362,27 +356,6 @@ void Host_ValidateEngineFeatures (uint32_t mask, uint32_t features)
 	}
 
 // [FWGS, 05.04.26] removed Host_IsQuakeCompatible
-
-/*
-/
-==============
-Host_IsQuakeCompatible
-==============
-/
-qboolean Host_IsQuakeCompatible (void)
-	{
-	// feature set
-	if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
-		return true;
-
-if !XASH_DEDICATED
-	// quake demo playing
-	if (cls.demoplayback == DEMO_QUAKE1)
-		return true;
-endif
-
-	return false;
-	}*/
 
 /***
 ================
@@ -461,13 +434,9 @@ static int Host_CalcSleep (void)
 // [FWGS, 01.03.26]
 static void Host_NewInstance (const char *name, const char *finalmsg)
 	{
-	/*if (!pChangeGame)
-		return;*/
-
 	host.change_game = true;
 
 	if (!Sys_NewInstance (name, finalmsg))
-		/*pChangeGame (name); // call from hl.exe*/
 		Con_Printf (S_ERROR "Failed to restart the engine\n");
 	}
 
@@ -513,127 +482,6 @@ static void Host_ChangeGame_f (void)
 	}
 
 // [FWGS, 01.04.26] removed Host_Exec_f, Host_MemStats_f
-
-/*
-/
-===============
-Host_Exec_f [FWGS, 22.01.25]
-===============
-/
-static void Host_Exec_f (void)
-	{
-	string		cfgpath;
-	byte		*f;
-	fs_offset_t	len;
-
-	if (Cmd_Argc () != 2)
-		{
-		Con_Printf (S_USAGE "exec <filename>\n");
-		return;
-		}
-
-	Q_strncpy (cfgpath, Cmd_Argv (1), sizeof (cfgpath));
-	COM_DefaultExtension (cfgpath, ".cfg", sizeof (cfgpath)); // append as default
-
-ifndef XASH_DEDICATED
-	if (!Cmd_CurrentCommandIsPrivileged ())
-		{
-		const char *unprivilegedWhitelist[] =
-			{
-			NULL, "mapdefault.cfg", "scout.cfg", "sniper.cfg",
-			"soldier.cfg", "demoman.cfg", "medic.cfg", "hwguy.cfg",
-			"pyro.cfg", "spy.cfg", "engineer.cfg", "civilian.cfg"
-			};
-
-		int i;
-		char temp[MAX_VA_STRING];
-		qboolean allow = false;
-
-		Q_snprintf (temp, sizeof (temp), "%s.cfg", clgame.mapname);
-		unprivilegedWhitelist[0] = temp;
-
-		for (i = 0; i < HLARRAYSIZE (unprivilegedWhitelist); i++)
-			{
-			if (!Q_strcmp (cfgpath, unprivilegedWhitelist[i]))
-				{
-				allow = true;
-				break;
-				}
-			}
-
-		if (!allow)
-			{
-			Con_Printf ("exec %s: not privileged or in whitelist\n", cfgpath);
-			return;
-			}
-		}
-endif
-
-	// don't execute game.cfg in singleplayer
-	if ((SV_GetMaxClients () == 1) && !Q_stricmp ("game.cfg", cfgpath))
-		return;
-
-	f = FS_LoadFile (cfgpath, &len, false);
-	if (!f)
-		{
-		Con_Reportf ("couldn't exec %s\n", Cmd_Argv (1));
-		return;
-		}
-
-	// len is fs_offset_t, which can be larger than size_t
-	if (len >= SIZE_MAX)
-		{
-		Con_Reportf ("%s: %s is too long\n", __func__, Cmd_Argv (1));
-		return;
-		}
-
-	if (!Q_stricmp ("config.cfg", cfgpath))
-		host.config_executed = true;
-
-	if (!host.apply_game_config)
-		Con_Printf ("execing %s\n", Cmd_Argv (1));
-
-	// adds \n at end of the file
-	// FS_LoadFile always null terminates
-	if (f[len - 1] != '\n')
-		{
-		Cbuf_InsertTextLen (f, len, len + 1);
-		Cbuf_InsertTextLen ("\n", 1, 1);
-		}
-	else
-		{
-		Cbuf_InsertTextLen (f, len, len);
-		}
-
-	Mem_Free (f);
-	}*/
-
-/*
-/
-===============
-Host_MemStats_f
-===============
-/
-static void Host_MemStats_f (void)
-	{
-	switch (Cmd_Argc ())
-		{
-		case 1:
-			Mem_PrintList (1 << 30);
-			Mem_PrintStats ();
-			break;
-
-		case 2:
-			Mem_PrintList (Q_atoi (Cmd_Argv (1)) * 1024);
-			Mem_PrintStats ();
-			break;
-
-		default:
-			Con_Printf (S_USAGE "memlist <all>\n");
-			break;
-		}
-	}*/
-
 // [FWGS, 01.06.25] removed Host_Minimize_f
 // [FWGS, 01.07.24] removed Host_IsLocalGame, Host_IsLocalClient
 
@@ -648,7 +496,6 @@ static qboolean Host_RegisterDecal (const char *name, int *count)
 	int		i;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (name))*/
 	if (COM_StringEmptyOrNULL (name))
 		return 0;
 
@@ -743,7 +590,9 @@ static double Host_CalcFPS (void)
 		fps = CL_GetDemoFramerate ();
 		}
 
-	else if (Host_IsLocalGame ())
+	// [FWGS, 01.05.26]
+	/*else if (Host_IsLocalGame ())*/
+	else if (Host_IsSinglePlayerGame ())
 		{
 		if (!gl_vsync.value)
 			fps = host_maxfps.value;
@@ -777,10 +626,8 @@ static double Host_CalcFPS (void)
 // [FWGS, 01.03.26]
 static qboolean Host_Autosleep (double dt, double scale)
 	{
-	/*double	targetframetime, fps;*/
 	double	targetframetime;
 	int		sleep;
-	/*fps = Host_CalcFPS ();*/
 	double	fps = Host_CalcFPS ();
 
 	if (fps <= 0)
@@ -791,15 +638,11 @@ static qboolean Host_Autosleep (double dt, double scale)
 
 	if (Host_IsDedicated ())
 		targetframetime = (1.0 / (fps + 1.0));
-	/*else
-		targetframetime = (1.0 / fps);*/
 	else
 		targetframetime = (1.0 / fps);
 
 	sleep = Host_CalcSleep ();
 
-	/*// no sleeps between frames, much simpler code
-	if (sleep == 0)*/
 	// no sleeps between frames, much simpler code
 	if (sleep <= 0)
 		{
@@ -808,8 +651,8 @@ static qboolean Host_Autosleep (double dt, double scale)
 		}
 	else
 		{
-		static double	timewindow; // allocate a time window for sleeps
-		static int		counter; // for debug
+		static double	timewindow;	// allocate a time window for sleeps
+		static int		counter;	// for debug
 		static double	realsleeptime;
 		const double	sleeptime = sleep * 0.000001;
 
@@ -820,12 +663,6 @@ static qboolean Host_Autosleep (double dt, double scale)
 				{
 				// Platform_Sleep isn't guaranteed to sleep an exact amount of microseconds
 				// so we measure the real sleep time and use it to decrease the window
-				/*double t1 = Sys_DoubleTime (), t2;
-
-				Platform_NanoSleep (sleep * 1000); // in usec!
-
-				t2 = Sys_DoubleTime ();
-				realsleeptime = t2 - t1;*/
 				double t = Platform_DoubleTime ();
 
 				Platform_NanoSleep (sleep * 1000 * 100);	// sleeptime 1 ~ 100 usecs
@@ -835,7 +672,6 @@ static qboolean Host_Autosleep (double dt, double scale)
 				if (host_sleeptime_debug.value)
 					{
 					counter++;
-					/*Con_NPrintf (counter, "%d: %.4f %.4f", counter, timewindow, realsleeptime);*/
 					Con_NPrintf (counter, "%d: %.6f %.6f", counter, timewindow, realsleeptime);
 					}
 				}
@@ -850,8 +686,6 @@ static qboolean Host_Autosleep (double dt, double scale)
 
 			if (targetsleeptime > 0)
 				timewindow = targetsleeptime;
-			/*else
-				timewindow = 0;*/
 			else
 				timewindow = 0;
 
@@ -871,7 +705,7 @@ static qboolean Host_Autosleep (double dt, double scale)
 
 /***
 ===================
-Host_FilterTime [FWGS, 01.07.24]
+Host_FilterTime
 
 Returns false if the time is too short to run a frame
 ===================
@@ -893,9 +727,12 @@ static qboolean Host_FilterTime (double time)
 	host.realframetime = bound (MIN_FRAMETIME, host.frametime, MAX_FRAMETIME);
 	oldtime = host.realtime;
 
-	// NOTE: allow only in singleplayer while demos are not active
-	if ((host_framerate.value > 0.0f) && Host_IsLocalGame () && !CL_IsPlaybackDemo () && !CL_IsRecordDemo ())
+	// [FWGS, 01.05.26] NOTE: allow only in singleplayer while demos are not active
+	/*if ((host_framerate.value > 0.0f) && Host_IsLocalGame () && !CL_IsPlaybackDemo () && !CL_IsRecordDemo ())*/
+	if (host_framerate.value > 0.0f && Host_IsSinglePlayerGame () && !CL_IsPlaybackDemo () && !CL_IsRecordDemo ())
 		host.frametime = bound (MIN_FRAMETIME, host_framerate.value * scale, MAX_FRAMETIME);
+	/*else
+		host.frametime = bound (MIN_FRAMETIME, host.frametime, MAX_FRAMETIME);*/
 	else
 		host.frametime = bound (MIN_FRAMETIME, host.frametime, MAX_FRAMETIME);
 
@@ -915,7 +752,6 @@ void Host_Frame (double time)
 	if (!Host_FilterTime (time))
 		return;
 
-	/*t1 = Sys_DoubleTime ();*/
 	t1 = Platform_DoubleTime ();
 	if (host.framecount == 0)
 		Con_DPrintf ("Time to first frame: %.3f seconds\n", t1 - host.starttime);
@@ -928,7 +764,6 @@ void Host_Frame (double time)
 	HTTP_Run ();			// both server and client
 
 	host.framecount++;
-	/*host.pureframetime = Sys_DoubleTime () - t1;*/
 	host.pureframetime = Platform_DoubleTime () - t1;
 	}
 
@@ -962,9 +797,6 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 	else
 		{
 		// [FWGS, 01.03.26]
-		/*Con_Printf ("%s: %s", __func__, hosterror1);
-
-		if (host.allow_console)*/
 		Con_Printf (S_RED "%s" S_DEFAULT ": %s", __func__, hosterror1);
 		if (host_developer.value)
 			{
@@ -984,7 +816,6 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 	// [FWGS, 01.03.26]
 	if (recursive)
 		{
-		/*Con_Printf ("%sRecursive: %s", __func__, hosterror2);*/
 		Con_Printf (S_RED "%sRecursive" S_DEFAULT ": %s", __func__, hosterror2);
 		Sys_Error ("%s", hosterror1);
 		}
@@ -1043,35 +874,13 @@ static void Host_Crash_f (void)
 
 // [FWGS, 01.04.26] removed Host_Userconfigd_f
 
-/*
-/
-=================
-Host_Userconfigd_f
-=================
-/
-static void Host_Userconfigd_f (void)
-	{
-	search_t	*t;
-	int			i;
-
-	t = FS_Search ("userconfig.d/*.cfg", true, false);
-	if (!t)
-		return;
-
-	for (i = 0; i < t->numfilenames; i++)
-		Cbuf_AddTextf ("exec %s\n", t->filenames[i]);
-
-	Mem_Free (t);
-	}*/
-
 #if XASH_ENGINE_TESTS
 
-// [FWGS, 22.01.25]
 static void Host_RunTests (int stage)
 	{
 	switch (stage)
 		{
-		case 0: // early engine load
+		case 0:	// early engine load
 			memset (&tests_stats, 0, sizeof (tests_stats));
 			TEST_LIST_0;
 #if !XASH_DEDICATED
@@ -1079,7 +888,7 @@ static void Host_RunTests (int stage)
 #endif
 			break;
 
-		case 1: // after FS load
+		case 1:	// after FS load
 			TEST_LIST_1;
 #if !XASH_DEDICATED
 			TEST_LIST_1_CLIENT;
@@ -1089,6 +898,7 @@ static void Host_RunTests (int stage)
 			Sys_Quit (NULL);
 		}
 	}
+
 #endif
 
 static int Host_CheckBugcomp_splitstr_handler (char *prev, char *next, void *userdata)
@@ -1099,7 +909,6 @@ static int Host_CheckBugcomp_splitstr_handler (char *prev, char *next, void *use
 	*next = '\0';
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckStringEmpty (prev))*/
 	if (COM_StringEmpty (prev))
 		return 0;
 
@@ -1123,7 +932,6 @@ static int Host_CheckBugcomp_splitstr_handler (char *prev, char *next, void *use
 	return 0;
 	}
 
-// [FWGS, 01.12.24]
 static uint32_t Host_CheckBugcomp (void)
 	{
 	uint32_t	flags = 0;
@@ -1132,7 +940,9 @@ static uint32_t Host_CheckBugcomp (void)
 	if (!Sys_CheckParm ("-bugcomp"))
 		return 0;
 
-	if (Sys_GetParmFromCmdLine ("-bugcomp", args) && isalpha (args[0]))
+	// [FWGS, 01.05.26]
+	/*if (Sys_GetParmFromCmdLine ("-bugcomp", args) && isalpha (args[0]))*/
+	if (Sys_GetParmFromCmdLine ("-bugcomp", args) && isalpha ((byte)args[0]))
 		{
 		Q_splitstr (args, '+', &flags, Host_CheckBugcomp_splitstr_handler);
 		}
@@ -1206,12 +1016,13 @@ static qboolean Host_CollectX86Libraries (ECommonLibraryType lib_type, const cha
 	return has_any;
 	}
 
-// [FWGS, 05.04.26]
 static void Host_CheckGameLibraries (void)
 	{
-	// on Android, game libraries are loaded from APKs and are invisible to FS_FileExists,
+	// [FWGS, 01.05.26]
+	/*// on Android, game libraries are loaded from APKs and are invisible to FS_FileExists,
 	// so the check cannot work there; iOS is handled via Platform_LibraryExists -> IOS_LibraryExists
-#if !defined( XASH_INTERNAL_GAMELIBS ) && !XASH_ANDROID
+if !defined( XASH_INTERNAL_GAMELIBS ) && !XASH_ANDROID*/
+#if !defined( XASH_INTERNAL_GAMELIBS )
 	struct
 		{
 		const char	*name;
@@ -1234,6 +1045,12 @@ static void Host_CheckGameLibraries (void)
 		// if the user explicitly set a library path, trust them and skip the check
 		if (!COM_StringEmpty (libs[i].override))
 			continue;
+
+		// [FWGS, 01.05.26]
+#if XASH_ANDROID
+		if (libs[i].type == LIBRARY_CLIENT)
+			continue;
+#endif
 
 		if (libs[i].type == LIBRARY_SERVER)
 			{
@@ -1282,13 +1099,10 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	char *exename, size_t exename_size)
 	{
 	const char	*basedir = (progname[0] == '#') ? (progname + 1) : progname;
-	/*char		dev_level[4], ticrate[16];
-	int			developer = DEFAULT_DEV;*/
-	int			ticrate, developer = DEFAULT_DEV;
+	int		ticrate, developer = DEFAULT_DEV;
 
 	// some commands may turn engine into infinite loop, e.g. xash.exe +game xash -game xash
 	// so we clear all cmd_args, but leave dbg states as well
-	/*Sys_ParseCommandLine (argc, argv);*/
 	Sys_ParseCommandLine (argc, (const char **)argv);
 	Host_DetermineExecutableName (exename, exename_size);
 
@@ -1297,11 +1111,9 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 		string arg;
 
 		if (Sys_CheckParm ("-help") || Sys_CheckParm ("-h") || Sys_CheckParm ("--help"))
-			/*Sys_PrintUsage (exename);*/
 			Host_PrintUsage (exename);
 
 		if (Sys_GetParmFromCmdLine ("-bugcomp", arg) && !Q_stricmp (arg, "help"))
-			/*Sys_PrintBugcompUsage (exename);*/
 			Host_PrintBugcompUsage (exename);
 		}
 
@@ -1317,7 +1129,7 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 		host.type = HOST_NORMAL;
 #endif
 
-	Memory_Init (); // init memory subsystem
+	Memory_Init ();	// init memory subsystem
 
 	host.mempool = Mem_AllocPool ("Zone Engine");
 	host.allow_console = DEFAULT_ALLOWCONSOLE || (DEFAULT_DEV > 0);
@@ -1327,11 +1139,6 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 		host.allow_console = true;
 		developer = DEV_NORMAL;
 
-		/*if (Sys_GetParmFromCmdLine ("-dev", dev_level))
-			{
-			if (Q_isdigit (dev_level))
-				developer = bound (DEV_NONE, abs (Q_atoi (dev_level)), DEV_EXTENDED);
-			}*/
 		if (Sys_GetIntFromCmdLine ("-dev", &developer))
 			developer = bound (DEV_NONE, developer, DEV_EXTENDED);
 		}
@@ -1351,9 +1158,6 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	// member console allowing
 	host.allow_console_init = host.allow_console;
 
-	/*// get default screen res
-	VID_InitDefaultResolution ();*/
-
 	// init host state machine
 	COM_InitHostState ();
 
@@ -1365,16 +1169,9 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	Cvar_Init ();
 
 	// share developer level across all dlls
-	/*Q_snprintf (dev_level, sizeof (dev_level), "%i", developer);
-	Cvar_DirectSet (&host_developer, dev_level);*/
 	Cvar_DirectSetValue (&host_developer, developer);
 	Cvar_RegisterVariable (&sys_ticrate);
 
-	/*if (Sys_GetParmFromCmdLine ("-sys_ticrate", ticrate))
-		{
-		double fps = bound (MIN_FPS, atof (ticrate), MAX_FPS_HARD);
-		Cvar_SetValue ("sys_ticrate", fps);
-		}*/
 	if (Sys_GetIntFromCmdLine ("-sys_ticrate", &ticrate))
 		Cvar_DirectSetValue (&sys_ticrate, bound (MIN_FPS, ticrate, MAX_FPS_HARD));
 
@@ -1394,8 +1191,6 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	Platform_SetupSigtermHandling ();
 #endif
 
-	/*Platform_Init (Host_IsDedicated () || (developer >= DEV_EXTENDED), basedir);
-	FS_Init (basedir);*/
 	Platform_Init (Host_IsDedicated () || (developer >= DEV_EXTENDED));
 	FS_Init ();
 
@@ -1414,12 +1209,6 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 
 	host.bugcomp = Host_CheckBugcomp ();
 
-	/*Cmd_AddCommand ("exec", Host_Exec_f,
-		"execute a script file");
-	Cmd_AddCommand ("memlist", Host_MemStats_f,
-		"prints memory pool information");
-	Cmd_AddRestrictedCommand ("userconfigd", Host_Userconfigd_f,
-		"execute all scripts from userconfig.d");*/
 	Cmd_AddCommand ("memlist", Mem_Stats_f,
 		"prints memory pool information");
 
@@ -1472,7 +1261,7 @@ static void Sys_Quit_f (void)
 
 /***
 =================
-Host_Main [FWGS, 01.03.26]
+Host_Main
 =================
 ***/
 /*int HLEXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame func)*/
@@ -1485,8 +1274,6 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 	if (setjmp (return_from_main_buf))
 		return error_on_exit;
 
-	/*host.starttime = Sys_DoubleTime ();
-	pChangeGame = func;		// may be NULL*/
 	host.starttime = Platform_DoubleTime ();
 
 	Host_InitCommon (argc, argv, progname, bChangeGame, exename, sizeof (exename));
@@ -1546,7 +1333,6 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 	Netchan_Init ();
 
 	// allow to change game from the console
-	/*if (pChangeGame != NULL)*/
 	if ((pChangeGame != NULL) && Sys_CanRestart ())
 		{
 		Cmd_AddRestrictedCommand ("game", Host_ChangeGame_f, "change game");
@@ -1589,16 +1375,16 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 		{
 		case HOST_NORMAL:
 #ifdef _WIN32
-			Wcon_ShowConsole (false); // hide console
+			Wcon_ShowConsole (false);	// hide console
 #endif
 			// execute startup config and cmdline
-			if (FS_FileExists (va ("%s.rc", progname), false)) // e.g. valve.rc
+			if (FS_FileExists (va ("%s.rc", progname), false))	// e.g. valve.rc
 				Cbuf_AddTextf ("exec %s.rc\n", progname);
 
-			else if (FS_FileExists (va ("%s.rc", exename), false)) // e.g. quake.rc
+			else if (FS_FileExists (va ("%s.rc", exename), false))	// e.g. quake.rc
 				Cbuf_AddTextf ("exec %s.rc\n", exename);
 
-			else if (FS_FileExists (va ("%s.rc", GI->gamefolder), false)) // e.g. game.rc (ran from default launcher)
+			else if (FS_FileExists (va ("%s.rc", GI->gamefolder), false))	// e.g. game.rc (ran from default launcher)
 				Cbuf_AddTextf ("exec %s.rc\n", GI->gamefolder);
 
 			Cbuf_Execute ();
@@ -1619,7 +1405,6 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 				}
 
 			// exec all files from userconfig.d
-			/*Host_Userconfigd_f ();*/
 			Cbuf_AddText ("userconfigd\n");
 			Cbuf_Execute ();
 			break;
@@ -1631,7 +1416,6 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 		}
 
 	host.change_game = false;	// done
-	/*Cmd_RemoveCommand ("setgl");*/
 	Cbuf_ExecStuffCmds ();	// execute stuffcmds (commandline)
 
 	// ESHQ: поддержка достижений
@@ -1647,10 +1431,14 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 
 	SCR_CheckStartupVids ();	// must be last
 
+	// [FWGS, 01.05.26]
+#ifndef XASH_DEDICATED
+	IN_GyroCheckAvailability ();
+#endif
+
 	if (Sys_GetParmFromCmdLine ("-timedemo", demoname))
 		Cbuf_AddTextf ("timedemo %s\n", demoname);
 
-	/*oldtime = Sys_DoubleTime () - 0.1;*/
 	oldtime = Platform_DoubleTime () - 0.1;
 
 	if (Host_IsDedicated ())
@@ -1679,7 +1467,6 @@ int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGa
 	// main window message loop
 	while (host.status != HOST_CRASHED)
 		{
-		/*double newtime = Sys_DoubleTime ();*/
 		double newtime = Platform_DoubleTime ();
 		COM_Frame (newtime - oldtime);
 		oldtime = newtime;
@@ -1713,7 +1500,7 @@ void Host_ShutdownWithReason (const char *reason)
 		Con_Printf (S_NOTE "Issuing host shutdown due to reason \"%s\"\n", reason);
 
 	if (host.status != HOST_ERR_FATAL)
-		host.status = HOST_SHUTDOWN; // prepare host to normal shutdown
+		host.status = HOST_SHUTDOWN;	// prepare host to normal shutdown
 
 	// [FWGS, 01.02.25]
 #if !XASH_DEDICATED

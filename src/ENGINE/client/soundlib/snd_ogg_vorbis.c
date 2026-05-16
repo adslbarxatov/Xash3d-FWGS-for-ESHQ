@@ -149,7 +149,7 @@ qboolean Sound_LoadOggVorbis (const char *name, const byte *buffer, fs_offset_t 
 
 	sound.channels = info->channels;
 	sound.rate = info->rate;
-	sound.width = 2; // always 16-bit PCM
+	sound.width = 2;	// always 16-bit PCM
 	sound.type = WF_PCMDATA;
 	sound.samples = ov_pcm_total (&vorbisFile, -1);
 	sound.size = sound.samples * sound.width * sound.channels;
@@ -158,13 +158,16 @@ qboolean Sound_LoadOggVorbis (const char *name, const byte *buffer, fs_offset_t 
 	SetBits (sound.flags, SOUND_RESAMPLE);
 	Sound_ScanVorbisComments (&vorbisFile);
 
-	while ((ret = ov_read (&vorbisFile, (char *)sound.wav + written, sound.size - written, 0, sound.width, 1, &section)) != 0)
+	// [FWGS, 01.05.26]
+	/*while ((ret = ov_read (&vorbisFile, (char *)sound.wav + written, sound.size - written, 0, sound.width, 1, &section)) != 0)*/
+	while ((ret = ov_read (&vorbisFile, (char *)sound.wav + written, sound.size - written, XASH_BIG_ENDIAN, sound.width, 1, &section)) != 0)
 		{
 		if (ret < 0)
 			{
 			Con_DPrintf (S_ERROR "%s: failed to load (%s): %s\n", __func__, file.name, Vorbis_GetErrorDesc (ret));
 			return false;
 			}
+
 		written += ret;
 		}
 
@@ -210,10 +213,10 @@ stream_t *Stream_OpenOggVorbis (const char *filename)
 		return NULL;
 		}
 
-	stream->buffsize = 0; // how many samples left from previous frame
+	stream->buffsize = 0;	// how many samples left from previous frame
 	stream->channels = info->channels;
 	stream->rate = info->rate;
-	stream->width = 2; // always 16 bit
+	stream->width = 2;	// always 16 bit
 	stream->ptr = ctx;
 	stream->type = WF_VORBISDATA;
 
@@ -233,10 +236,12 @@ int Stream_ReadOggVorbis (stream_t *stream, int needBytes, void *buffer)
 
 		if (!stream->buffsize)
 			{
-			stream->pos = ov_read (&ctx->vf, (char *)stream->temp, OUTBUF_SIZE, 0, stream->width, 1, &section);
+			// [FWGS, 01.05.26]
+			/*stream->pos = ov_read (&ctx->vf, (char *)stream->temp, OUTBUF_SIZE, 0, stream->width, 1, &section);*/
+			stream->pos = ov_read (&ctx->vf, (char *)stream->temp, OUTBUF_SIZE, XASH_BIG_ENDIAN, stream->width, 1, &section);
 			if (stream->pos == 0)
 				{
-				break; // end of file
+				break;	// end of file
 				}
 			else if (stream->pos < 0)
 				{
@@ -261,7 +266,7 @@ int Stream_ReadOggVorbis (stream_t *stream, int needBytes, void *buffer)
 		if (bytesWritten >= needBytes)
 			return bytesWritten;
 
-		stream->buffsize = 0; // no bytes remaining
+		stream->buffsize = 0;	// no bytes remaining
 		}
 
 	return 0;
@@ -273,11 +278,11 @@ int Stream_SetPosOggVorbis (stream_t *stream, int newpos)
 	vorbis_streaming_ctx_t *ctx = (vorbis_streaming_ctx_t *)stream->ptr;
 	if ((ret = ov_raw_seek_lap (&ctx->vf, newpos)) == 0)
 		{
-		stream->buffsize = 0; // flush any previous data
+		stream->buffsize = 0;	// flush any previous data
 		return true;
 		}
 	Con_DPrintf (S_ERROR "%s: error during seek: %s\n", __func__, Vorbis_GetErrorDesc (ret));
-	return false; // failed to seek
+	return false;	// failed to seek
 	}
 
 int Stream_GetPosOggVorbis (stream_t *stream)

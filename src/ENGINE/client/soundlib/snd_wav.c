@@ -52,13 +52,8 @@ GetLittleLong [FWGS, 05.04.26]
 ***/
 static int GetLittleLong (void)
 	{
-	/*int	val = 0;*/
 	uint	val = 0;
 
-	/*val += (*(iff_dataPtr + 0) << 0);
-	val += (*(iff_dataPtr + 1) << 8);
-	val += (*(iff_dataPtr + 2) << 16);
-	val += (*(iff_dataPtr + 3) << 24);*/
 	val += ((uint) * (iff_dataPtr + 0) << 0);
 	val += ((uint) * (iff_dataPtr + 1) << 8);
 	val += ((uint) * (iff_dataPtr + 2) << 16);
@@ -139,7 +134,7 @@ static void FindChunk (const char *filename, const char *name)
 
 /***
 ============
-StreamFindNextChunk [FWGS, 01.05.24]
+StreamFindNextChunk
 ============
 ***/
 static qboolean StreamFindNextChunk (file_t *file, const char *name, int *last_chunk)
@@ -158,6 +153,8 @@ static qboolean StreamFindNextChunk (file_t *file, const char *name, int *last_c
 		if (FS_Read (file, &iff_chunk_len, sizeof (iff_chunk_len)) != sizeof (iff_chunk_len))
 			return false;
 
+		// [FWGS, 01.05.26]
+		iff_chunk_len = LittleLong (iff_chunk_len);
 		if (iff_chunk_len < 0)
 			return false;	// didn't find the chunk
 
@@ -241,7 +238,7 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 
 	sound.width = GetLittleShort () / 8;
 	if (mpeg_stream)
-		sound.width = 2; // mp3 always 16bit
+		sound.width = 2;	// mp3 always 16bit
 
 	// [FWGS, 01.07.24]
 	if ((sound.width != 1) && (sound.width != 2))
@@ -267,7 +264,7 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 				{
 				// this is not a proper parse, but it works with CoolEdit...
 				iff_dataPtr += 24;
-				sound.samples = sound.loopstart + GetLittleLong (); // samples in loop
+				sound.samples = sound.loopstart + GetLittleLong ();	// samples in loop
 				}
 			}
 		}
@@ -336,6 +333,15 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 
 	memcpy (sound.wav, buffer + (iff_dataPtr - buffer), sound.size);
 
+	// [FWGS, 01.05.26] swap 16-bit samples from little endian to native
+	if (sound.width == 2)
+		{
+		short *p = (short *)sound.wav;
+		int count = sound.size / 2;
+		for (int i = 0; i < count; i++)
+			p[i] = LittleShort (p[i]);
+		}
+
 	// now convert 8-bit sounds to signed
 	if (sound.width == 1)
 		{
@@ -350,6 +356,18 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 				pData++;
 				}
 			}
+		}
+
+	// [FWGS, 01.05.26] silence known-broken WAVs that contain stray non-zero samples masquerading as silence
+	if (Q_stristr (name, "null.wav"))
+		{
+		uint32_t crc;
+		CRC32_Init (&crc);
+		CRC32_ProcessBuffer (&crc, buffer, filesize);
+		crc = CRC32_Final (crc);
+
+		if (crc == 0x14a36f29)	// common/null.wav (Half-Life)
+			memset (sound.wav, 0, sound.size);
 		}
 
 	return true;
@@ -415,23 +433,30 @@ stream_t *Stream_OpenWAV (const char *filename)
 
 	FS_Read (file, chunkName, 4);
 
+	// [FWGS, 01.05.26]
 	FS_Read (file, &t, sizeof (t));
+	t = LittleShort (t);
+
 	if (t != 1)
 		{
-		// [FWGS, 01.07.24]
 		Con_DPrintf (S_ERROR "%s: %s not a Microsoft PCM format\n", __func__, filename);
 		FS_Close (file);
 		return NULL;
 		}
 
+	// [FWGS, 01.05.26]
 	FS_Read (file, &t, sizeof (t));
-	sound.channels = t;
+	/*sound.channels = t;*/
+	sound.channels = LittleShort (t);
 
 	FS_Read (file, &sound.rate, sizeof (int));
+	sound.rate = LittleLong (sound.rate);
+
 	FS_Seek (file, 6, SEEK_CUR);
-	FS_Read (file, &t, sizeof (t));
-	
-	sound.width = t / 8;
+	FS_Read (file, &t, sizeof (t));	
+	/*sound.width = t / 8;*/
+	sound.width = LittleShort (t) / 8;
+
 	sound.loopstart = 0;
 
 	// [FWGS, 01.07.24] find data chunk
@@ -443,14 +468,16 @@ stream_t *Stream_OpenWAV (const char *filename)
 		return NULL;
 		}
 
+	// [FWGS, 01.05.26]
 	FS_Read (file, &sound.samples, sizeof (int));
-	sound.samples = (sound.samples / sound.width) / sound.channels;
+	/*sound.samples = (sound.samples / sound.width) / sound.channels;*/
+	sound.samples = (LittleLong (sound.samples) / sound.width) / sound.channels;
 
 	// at this point we have valid stream
 	stream = Mem_Calloc (host.soundpool, sizeof (stream_t));
 	stream->file = file;
 	stream->size = sound.samples * sound.width * sound.channels;
-	stream->buffsize = FS_Tell (file); // header length
+	stream->buffsize = FS_Tell (file);	// header length
 	stream->channels = sound.channels;
 	stream->width = sound.width;
 	stream->rate = sound.rate;
@@ -482,6 +509,15 @@ int Stream_ReadWAV (stream_t *stream, int bytes, void *buffer)
 
 	stream->pos += bytes;
 	FS_Read (stream->file, buffer, bytes);
+
+	// [FWGS, 01.05.26]
+	if (stream->width == 2)
+		{
+		short *p = (short *)buffer;
+		int count = bytes / 2;
+		for (int i = 0; i < count; i++)
+			p[i] = LittleShort (p[i]);
+		}
 
 	return bytes;
 	}

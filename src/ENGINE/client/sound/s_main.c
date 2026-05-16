@@ -61,9 +61,9 @@ static CVAR_DEFINE_AUTO (s_show, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"show playing sounds");
 
 // [FWGS, 01.03.26]
-// ESHQ: было отменено в силу неисправности; вынужденно применено снова из-за фундаментальной
+/*// ESHQ: было отменено в силу неисправности; вынужденно применено снова из-за фундаментальной
 // отмены поддержки механизма в s_mix.c
-#define DISABLE_UPSAMPLING
+define DISABLE_ UPSAMPLING*/
 CVAR_DEFINE_AUTO (s_lerping, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"apply interpolation to sound output");
 static CVAR_DEFINE (s_ambient_level, "ambient_level", "0.3", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
@@ -2057,10 +2057,11 @@ static const sound_api_t gSoundAPI = {
 
 /***
 ================
-S_InitSoundAPI [FWGS, 15.04.26]
+S_InitSoundAPI [FWGS, 01.05.26]
 ================
 ***/
-static qboolean S_InitSoundAPI (void)
+/*static qboolean S_InitSoundAPI (void)*/
+qboolean S_InitSoundAPI (void)
 	{
 	// make sure what sound functions is cleared
 	memset (&clgame.soundFuncs, 0, sizeof (clgame.soundFuncs));
@@ -2081,6 +2082,9 @@ static qboolean S_InitSoundAPI (void)
 		// make sure what sound functions is cleared
 		memset (&clgame.soundFuncs, 0, sizeof (clgame.soundFuncs));
 		}
+
+	if (clgame.soundFuncs.pfnS_Init)
+		clgame.soundFuncs.pfnS_Init (&snd);
 
 	return false;
 	}
@@ -2153,18 +2157,20 @@ qboolean S_Init (void)
 	S_InitSounds ();
 	VOX_Init ();
 
-	// [FWGS, 15.04.26]
-	S_InitSoundAPI ();
+	// [FWGS, 01.05.26]
+	/*S_InitSoundAPI ();
 
 	if (clgame.soundFuncs.pfnS_Init)
-		clgame.soundFuncs.pfnS_Init (&snd);
+		clgame.soundFuncs.pfnS_Init (&snd);*/
 
 	return true;
 	}
 
-// =======================================================================
-// Shutdown sound engine
-// =======================================================================
+/***
+============
+S_Shutdown
+============
+***/
 void S_Shutdown (void)
 	{
 	// [FWGS, 15.04.26]

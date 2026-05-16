@@ -131,8 +131,8 @@ float GAME_EXPORT COM_RandomFloat (float flLow, float flHigh)
 	if (idum == 0)
 		COM_SetRandomSeed (0);
 
-	fl = fran1 (); // float in [0,1]
-	return (fl * (flHigh - flLow)) + flLow; // float in [low, high)
+	fl = fran1 ();	// float in [0,1]
+	return (fl * (flHigh - flLow)) + flLow;	// float in [low, high)
 	}
 
 int GAME_EXPORT COM_RandomLong (int lLow, int lHigh)
@@ -225,7 +225,6 @@ typedef struct
 	int			window_size;
 	} lzss_state_t;
 
-// [FWGS, 01.12.24]
 qboolean LZSS_IsCompressed (const byte *source, size_t input_len)
 	{
 	const lzss_header_t *phdr;
@@ -233,14 +232,15 @@ qboolean LZSS_IsCompressed (const byte *source, size_t input_len)
 	if (input_len <= sizeof (lzss_header_t))
 		return 0;
 
+	// [FWGS, 01.05.26]
 	phdr = (const lzss_header_t *)source;
-	if (phdr && (phdr->id == LZSS_ID))
+	/*if (phdr && (phdr->id == LZSS_ID))*/
+	if (phdr && (phdr->id == LittleLong (LZSS_ID)))
 		return true;
 
 	return false;
 	}
 
-// [FWGS, 01.12.24]
 uint LZSS_GetActualSize (const byte *source, size_t input_len)
 	{
 	const lzss_header_t *phdr;
@@ -248,9 +248,12 @@ uint LZSS_GetActualSize (const byte *source, size_t input_len)
 	if (input_len <= sizeof (lzss_header_t))
 		return 0;
 
+	// [FWGS, 01.05.26]
 	phdr = (const lzss_header_t *)source;
-	if (phdr && (phdr->id == LZSS_ID))
-		return phdr->size;
+	/*if (phdr && (phdr->id == LZSS_ID))
+		return phdr->size;*/
+	if (phdr && phdr->id == LittleLong (LZSS_ID))
+		return LittleLong (phdr->size);
 
 	return 0;
 	}
@@ -294,8 +297,8 @@ static void LZSS_BuildHash (lzss_state_t *state, const byte *source)
 static byte *LZSS_CompressNoAlloc (lzss_state_t *state, byte *pInput, int input_length, byte *pOutputBuf,
 	uint *pOutputSize)
 	{
-	byte	*pStart = pOutputBuf; // allocate the output buffer, compressed buffer is expected to be less, caller will free
-	byte	*pEnd = pStart + input_length - sizeof (lzss_header_t) - 8; // prevent compression failure
+	byte	*pStart = pOutputBuf;	// allocate the output buffer, compressed buffer is expected to be less, caller will free
+	byte	*pEnd = pStart + input_length - sizeof (lzss_header_t) - 8;	// prevent compression failure
 	lzss_header_t	*header = (lzss_header_t *)pStart;
 	byte	*pOutput = pStart + sizeof (lzss_header_t);
 	const byte		*pEncodedPosition = NULL;
@@ -307,9 +310,11 @@ static byte *LZSS_CompressNoAlloc (lzss_state_t *state, byte *pInput, int input_
 	if (input_length <= sizeof (lzss_header_t) + 8)
 		return NULL;
 
-	// set LZSS header
-	header->id = LZSS_ID;
-	header->size = input_length;
+	// [FWGS, 01.05.26] set LZSS header
+	/*header->id = LZSS_ID;
+	header->size = input_length;*/
+	header->id = LittleLong (LZSS_ID);
+	header->size = LittleLong (input_length);
 
 	// create the compression work buffers, small enough (~64K) for stack
 	state->hash_table = (lzss_list_t *)alloca (256 * sizeof (lzss_list_t));
@@ -442,7 +447,7 @@ uint LZSS_Decompress (const byte *pInput, byte *pOutput, size_t input_len, size_
 	int		getCmdByte = 0;
 	int		cmdByte = 0;
 	uint	actualSize;
-	const byte	*pInputEnd = pInput + input_len - 1; // thanks to nillerusr for the fix!
+	const byte	*pInputEnd = pInput + input_len - 1;	// thanks to nillerusr for the fix!
 	byte	*pOrigOutput = pOutput;
 
 	if (input_len <= sizeof (lzss_header_t))
@@ -510,20 +515,6 @@ uint LZSS_Decompress (const byte *pInput, byte *pOutput, size_t input_len, size_
 	}
 
 // [FWGS, 01.03.26] removed COM_IsWhiteSpace
-/*
-/
-==============
-COM_IsWhiteSpace
-
-interpret symbol as whitespace
-==============
-/
-static int COM_IsWhiteSpace (char space)
-	{
-	if ((space == ' ') || (space == '\t') || (space == '\r') || (space == '\n'))
-		return 1;
-	return 0;
-	}*/
 
 /***
 ================
@@ -556,7 +547,8 @@ qboolean COM_ParseVector (char **pfile, float *v, size_t size)
 
 	if (token[0] == '(')
 		bracket = true;
-	else *pfile = saved; // restore token to right get it again
+	else
+		*pfile = saved;	// restore token to right get it again
 
 	for (i = 0; i < size; i++)
 		{
@@ -564,7 +556,8 @@ qboolean COM_ParseVector (char **pfile, float *v, size_t size)
 		v[i] = Q_atof (token);
 		}
 
-	if (!bracket) return true;	// done
+	if (!bracket)
+		return true;	// done
 
 	if ((*pfile = COM_ParseFile (*pfile, token, sizeof (token))) == NULL)
 		return false;
@@ -585,42 +578,7 @@ int GAME_EXPORT COM_FileSize (const char *filename)
 	}
 
 // [FWGS, 01.02.24] removed COM_AddAppDirectoryToSearchPath, COM_ExpandFilename
-
 // [FWGS, 01.03.26] removed COM_TrimSpace
-/*
-/
-=============
-COM_TrimSpace
-
-trims all whitespace from the front
-and end of a string
-=============
-/
-void COM_TrimSpace (const char *source, char *dest)
-	{
-	int	start, end, length;
-
-	start = 0;
-	end = Q_strlen (source);
-
-	while (source[start] && COM_IsWhiteSpace (source[start]))
-		start++;
-	end--;
-
-	while (end > 0 && COM_IsWhiteSpace (source[end]))
-		end--;
-	end++;
-
-	length = end - start;
-
-	if (length > 0)
-		memcpy (dest, source + start, length);
-	else
-		length = 0;
-
-	// terminate the dest string
-	dest[length] = 0;
-	}*/
 
 /***
 ==================
@@ -665,77 +623,6 @@ void COM_HexConvert (const char *pszInput, int nInputLength, byte *pOutput)
 	}
 
 // [FWGS, 01.03.26] removed COM_MemFgets, Cache_Check
-/*
-/
-=============
-COM_MemFgets
-=============
-/
-char *GAME_EXPORT COM_MemFgets (byte *pMemFile, int fileSize, int *filePos, char *pBuffer, int bufferSize)
-	{
-	int	i, last, stop;
-
-	if (!pMemFile || !pBuffer || !filePos)
-		return NULL;
-
-	if (*filePos >= fileSize)
-		return NULL;
-
-	i = *filePos;
-	last = fileSize;
-
-	// fgets always NULL terminates, so only read bufferSize-1 characters
-	if (last - *filePos > (bufferSize - 1))
-		last = *filePos + (bufferSize - 1);
-
-	stop = 0;
-
-	// stop at the next newline (inclusive) or end of buffer
-	while ((i < last) && !stop)
-		{
-		if (pMemFile[i] == '\n')
-			stop = 1;
-		i++;
-		}
-
-	// if we actually advanced the pointer, copy it over
-	if (i != *filePos)
-		{
-		// we read in size bytes
-		int	size = i - *filePos;
-
-		// copy it out
-		memcpy (pBuffer, pMemFile + *filePos, size);
-
-		// If the buffer isn't full, terminate (this is always true)
-		if (size < bufferSize) pBuffer[size] = 0;
-
-		// update file pointer
-		*filePos = i;
-		return pBuffer;
-		}
-
-	return NULL;
-	}*/
-
-/*
-/
-====================
-Cache_Check
-
-consistency check
-====================
-/
-void *GAME_EXPORT Cache_Check (poolhandle_t mempool, cache_user_t *c)
-	{
-	if (!c->data)
-		return NULL;
-
-	if (!Mem_IsAllocatedExt (mempool, c->data))
-		return NULL;
-
-	return c->data;
-	}*/
 
 /***
 =============
@@ -749,7 +636,6 @@ byte *GAME_EXPORT COM_LoadFileForMe (const char *filename, int *pLength)
 	fs_offset_t	iLength;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (filename))*/
 	if (COM_StringEmptyOrNULL (filename))
 		{
 		if (pLength)
@@ -785,7 +671,6 @@ COM_SaveFile
 int GAME_EXPORT COM_SaveFile (const char *filename, const void *data, int len)
 	{
 	// [FWGS, 01.03.26] check for empty filename
-	/*if (!COM_CheckString (filename))*/
 	if (COM_StringEmptyOrNULL (filename))
 		return false;
 
@@ -908,17 +793,6 @@ int GAME_EXPORT COM_CheckParm (char *parm, char **ppnext)
 	}
 
 // [FWGS, 01.03.26] removed pfnTime
-/*
-/
-=============
-pfnTime
-=============
-/
-float GAME_EXPORT pfnTime (void)
-	{
-	return (float)Sys_DoubleTime ();
-	}*/
-
 // [FWGS, 25.12.24] removed pfnGetGameDir
 
 qboolean COM_IsSafeFileToDownload (const char *filename)
@@ -930,7 +804,6 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 	int			i;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (filename))*/
 	if (COM_StringEmptyOrNULL (filename))
 		return false;
 
@@ -940,7 +813,6 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 	// [FWGS, 01.03.26] only allow extensionless files that start with !MD5
 	if (!Q_strncmp (filename, "!MD5", 4))
 		{
-		/*if (COM_CheckStringEmpty (ext))*/
 		if (!COM_StringEmpty (ext))
 			return false;
 
@@ -1093,12 +965,10 @@ void GAME_EXPORT pfnResetTutorMessageDecayData (void)
 
 #include "tests.h"
 
-// [FWGS, 01.12.24]
 #ifdef USE_ASAN
 #include <sanitizer/asan_interface.h>
 #endif
 
-// [FWGS, 01.12.24]
 static void Test_LZSS (void)
 	{
 	char poison1[8192];
@@ -1119,16 +989,17 @@ static void Test_LZSS (void)
 		};
 	const char decompressed[] = "Do you like what you see?";
 
-// [FWGS, 05.04.26]
-/*ifdef USING_ASAN*/
 #ifdef USE_ASAN
 	ASAN_POISON_MEMORY_REGION (poison1, sizeof (poison1));
 	ASAN_POISON_MEMORY_REGION (poison2, sizeof (poison2));
 	ASAN_POISON_MEMORY_REGION (poison3, sizeof (poison3));
 #endif
 
-	hdr->size = sizeof (in) - sizeof (*hdr);
-	hdr->id = LZSS_ID;
+	// [FWGS, 01.05.26]
+	/*hdr->size = sizeof (in) - sizeof (*hdr);
+	hdr->id = LZSS_ID;*/
+	hdr->size = LittleLong (sizeof (in) - sizeof (*hdr));
+	hdr->id = LittleLong (LZSS_ID);
 
 	memset (in + sizeof (*hdr), 0xff, sizeof (in) - sizeof (*hdr));
 	result = LZSS_Decompress (in, out, sizeof (in), sizeof (out));
@@ -1138,18 +1009,27 @@ static void Test_LZSS (void)
 	result = LZSS_Decompress (in, out, sizeof (in), sizeof (out));
 	TASSERT_EQi (result, 0);
 
-	hdr->size = 1;
-	hdr->id = LZSS_ID;
+	// [FWGS, 01.05.26]
+	/*hdr->size = 1;
+	hdr->id = LZSS_ID;*/
+	hdr->size = LittleLong (1);
+	hdr->id = LittleLong (LZSS_ID);
 	result = LZSS_Decompress (in, out, sizeof (in), sizeof (out));
 	TASSERT_EQi (result, 0);
 
-	hdr->size = 999;
-	hdr->id = LZSS_ID;
+	// [FWGS, 01.05.26]
+	/*hdr->size = 999;
+	hdr->id = LZSS_ID;*/
+	hdr->size = LittleLong (999);
+	hdr->id = LittleLong (LZSS_ID);
 	result = LZSS_Decompress (in, out, sizeof (in), sizeof (out));
 	TASSERT_EQi (result, 0);
 
-	hdr->size = sizeof (in) - sizeof (*hdr);
-	hdr->id = 0xa1ba;
+	// [FWGS, 01.05.26]
+	/*hdr->size = sizeof (in) - sizeof (*hdr);
+	hdr->id = 0xa1ba;*/
+	hdr->size = LittleLong (sizeof (in) - sizeof (*hdr));
+	hdr->id = LittleLong (0xa1ba);
 	result = LZSS_Decompress (in, out, sizeof (in), sizeof (out));
 	TASSERT_EQi (result, 0);
 
@@ -1158,7 +1038,6 @@ static void Test_LZSS (void)
 	TASSERT_STR (out, decompressed);
 	}
 
-// [FWGS, 01.06.25]
 void Test_RunCommon (void)
 	{
 	Msg ("Checking COM_IsSafeFileToDownload...\n");
