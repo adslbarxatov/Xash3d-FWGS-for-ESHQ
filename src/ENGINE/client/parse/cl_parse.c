@@ -13,9 +13,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-// [FWGS, 01.04.26]
 #include "common.h"
 #include "client.h"
+#include "mod_local.h"	// [FWGS, 01.05.26]
 #include "net_encode.h"
 #include "cl_tent.h"
 #include "shake.h"
@@ -715,16 +715,42 @@ static void CL_ParseCustomization (sizebuf_t *msg)
 
 /***
 ==================
-CL_ParseResourceRequest [FWGS, 05.04.26]
+CL_SendResourceList [FWGS, 01.05.26]
 ==================
 ***/
-static void CL_ParseResourceRequest (sizebuf_t *msg)
+/*static void CL_ParseResourceRequest (sizebuf_t *msg)*/
+void CL_SendResourceList (const resource_t *list, int count)
 	{
 	byte	buffer[MAX_INIT_MSG];
-	int		i, arg, nStartIndex;
+	/*int		i, arg, nStartIndex;*/
 	sizebuf_t	sbuf;
+	int		i;
 
 	MSG_Init (&sbuf, "ResourceBlock", buffer, sizeof (buffer));
+
+	MSG_BeginClientCmd (&sbuf, clc_resourcelist);
+	MSG_WriteShort (&sbuf, count);
+
+	for (i = 0; i < count; i++)
+		{
+		MSG_WriteString (&sbuf, list[i].szFileName);
+		MSG_WriteByte (&sbuf, list[i].type);
+		MSG_WriteShort (&sbuf, list[i].nIndex);
+		MSG_WriteLong (&sbuf, list[i].nDownloadSize);
+		MSG_WriteByte (&sbuf, list[i].ucFlags);
+
+		if (FBitSet (list[i].ucFlags, RES_CUSTOM))
+			MSG_WriteBytes (&sbuf, list[i].rgucMD5_hash, 16);
+		}
+
+	Netchan_CreateFragments (&cls.netchan, &sbuf);
+	Netchan_FragSend (&cls.netchan);
+	}
+
+// [FWGS, 01.05.26]
+static void CL_ParseResourceRequest (sizebuf_t *msg)
+	{
+	int arg, nStartIndex;
 
 	arg = MSG_ReadLong (msg);
 	nStartIndex = MSG_ReadLong (msg);
@@ -732,10 +758,11 @@ static void CL_ParseResourceRequest (sizebuf_t *msg)
 	if (cl.servercount != arg)
 		return;
 
-	if ((nStartIndex < 0) && (nStartIndex > cl.num_resources))
+	/*if ((nStartIndex < 0) && (nStartIndex > cl.num_resources))*/
+	if ((nStartIndex < 0) || (nStartIndex >= cl.num_resources))
 		return;
 
-	MSG_BeginClientCmd (&sbuf, clc_resourcelist);
+	/*MSG_BeginClientCmd (&sbuf, clc_resourcelist);
 	MSG_WriteShort (&sbuf, cl.num_resources);
 
 	for (i = nStartIndex; i < cl.num_resources; i++)
@@ -756,7 +783,8 @@ static void CL_ParseResourceRequest (sizebuf_t *msg)
 		{
 		Netchan_CreateFragments (&cls.netchan, &sbuf);
 		Netchan_FragSend (&cls.netchan);
-		}
+		}*/
+	CL_SendResourceList (&cl.resourcelist[nStartIndex], cl.num_resources - nStartIndex);
 	}
 
 /***
@@ -1785,6 +1813,9 @@ void CL_RegisterResources (sizebuf_t *msg, connprotocol_t proto)
 
 			// tell rendering system we have a new set of models
 			ref.dllFuncs.R_NewMap ();
+
+			// [FWGS, 01.05.26]
+			Mod_LoadDetailTextures (cl.worldmodel);
 
 			// check if this map must start from dark screen
 			CL_StartDark ();

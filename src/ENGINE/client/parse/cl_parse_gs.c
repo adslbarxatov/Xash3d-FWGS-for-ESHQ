@@ -17,10 +17,8 @@ GNU General Public License for more details
 #include "common.h"
 #include "client.h"
 #include "net_encode.h"
-/*include "particledef.h"*/
 #include "cl_tent.h"
 #include "shake.h"
-/*include "hltv.h"*/
 #include "input.h"
 #include "server.h"
 
@@ -30,7 +28,6 @@ static void CL_ParseExtraInfo (sizebuf_t *msg)
 	string clientfallback;
 
 	Q_strncpy (clientfallback, MSG_ReadString (msg), sizeof (clientfallback));
-	/*if (COM_CheckStringEmpty (clientfallback))*/
 	if (!COM_StringEmpty (clientfallback))
 		Con_Reportf (S_ERROR "%s: TODO: add fallback directory %s!\n", __func__, clientfallback);
 
@@ -40,7 +37,7 @@ static void CL_ParseExtraInfo (sizebuf_t *msg)
 
 static void CL_ParseNewMovevars (sizebuf_t *msg)
 	{
-	Delta_InitClient (); // finalize client delta's
+	Delta_InitClient ();	// finalize client delta's
 
 	clgame.movevars.gravity = MSG_ReadFloat (msg);
 	clgame.movevars.stopspeed = MSG_ReadFloat (msg);
@@ -63,12 +60,6 @@ static void CL_ParseNewMovevars (sizebuf_t *msg)
 	clgame.movevars.rollspeed = MSG_ReadFloat (msg);
 
 	// [FWGS, 01.03.26]
-	/*clgame.movevars.skycolor_r = MSG_ReadFloat (msg);
-	clgame.movevars.skycolor_g = MSG_ReadFloat (msg);
-	clgame.movevars.skycolor_b = MSG_ReadFloat (msg);
-	clgame.movevars.skyvec_x = MSG_ReadFloat (msg);
-	clgame.movevars.skyvec_y = MSG_ReadFloat (msg);
-	clgame.movevars.skyvec_z = MSG_ReadFloat (msg);*/
 	clgame.movevars.skycolor[0] = MSG_ReadFloat (msg);
 	clgame.movevars.skycolor[1] = MSG_ReadFloat (msg);
 	clgame.movevars.skycolor[2] = MSG_ReadFloat (msg);
@@ -175,7 +166,7 @@ static int CL_FlushEntityPacketGS (frame_t *frame, sizebuf_t *msg)
 	int playerbytes = 0, numbase = 0;
 
 	frame->valid = false;
-	cl.validsequence = 0; // can't render a frame
+	cl.validsequence = 0;	// can't render a frame
 
 	// read it all but ignore it
 	while (1)
@@ -247,7 +238,7 @@ static void CL_DeltaEntityGS (const delta_header_t *hdr, sizebuf_t *msg, frame_t
 		return;
 		}
 
-	ent->index = newnum; // enumerate entity index
+	ent->index = newnum;	// enumerate entity index
 	if (newent)
 		{
 		if (hdr->instanced)
@@ -255,7 +246,6 @@ static void CL_DeltaEntityGS (const delta_header_t *hdr, sizebuf_t *msg, frame_t
 			from = &cl.instanced_baseline[hdr->instanced_baseline_index];
 			}
 		else if (hdr->offset != 0)
-			/*from = &cls.packet_entities[(cls.next_client_entities - hdr->offset) % cls.num_client_entities];*/
 			{
 			// FIXME: the usage of `offset` is incorrect here as the entities might
 			// not be ordered in cls.packet_entities the same way as on server
@@ -516,7 +506,6 @@ static void CL_ParseSoundPacketGS (sizebuf_t *msg)
 	// [FWGS, 01.03.26]
 	chan = MSG_ReadUBitLong (msg, 3);
 	entnum = MSG_ReadUBitLong (msg, MAX_GOLDSRC_ENTITY_BITS);
-	/*if (FBitSet (flags, SND_LEGACY_LARGE_INDEX))*/
 	if (FBitSet (flags, SND_GOLDSRC_LARGE_INDEX))
 		sound = MSG_ReadWord (msg);
 	else
@@ -531,7 +520,6 @@ static void CL_ParseSoundPacketGS (sizebuf_t *msg)
 	MSG_EndBitWriting (msg);
 
 	// [FWGS, 01.03.26]
-	/*ClearBits (flags, SND_LEGACY_LARGE_INDEX);*/
 	ClearBits (flags, SND_GOLDSRC_LARGE_INDEX);
 
 	if (FBitSet (flags, SND_SENTENCE))
@@ -546,7 +534,7 @@ static void CL_ParseSoundPacketGS (sizebuf_t *msg)
 		}
 
 	if (!cl.audio_prepped)
-		return; // too early
+		return;	// too early
 
 	// g-cont. sound and ambient sound have only difference with channel
 	if (chan == CHAN_STATIC)
@@ -559,19 +547,35 @@ static void CL_ParseSoundPacketGS (sizebuf_t *msg)
 		}
 	}
 
+// [FWGS, 01.05.26]
 static void CL_ParseSpawnStaticSound (sizebuf_t *msg)
 	{
-	vec3_t pos;
-	int handle, entnum, pitch, flags;
-	float volume, attn;
+	vec3_t	pos;
+	/*int handle, entnum, pitch, flags;*/
+	int		sound, entnum, pitch, flags;
+	float	volume, attn;
+	sound_t	handle = 0;
 
 	MSG_ReadVec3Coord (msg, pos);
-	handle = MSG_ReadShort (msg);
+	/*handle = MSG_ReadShort (msg);*/
+	sound = MSG_ReadShort (msg);
+
 	volume = MSG_ReadByte (msg) * (1.0f / 255.0f);
 	attn = MSG_ReadByte (msg) * (1.0f / 64.0f);
 	entnum = MSG_ReadShort (msg);
 	pitch = MSG_ReadByte (msg);
 	flags = MSG_ReadByte (msg);
+
+	if (FBitSet (flags, SND_SENTENCE))
+		{
+		char sentenceName[32];
+		Q_snprintf (sentenceName, sizeof (sentenceName), "!%i", sound);
+		handle = S_RegisterSound (sentenceName);
+		}
+	else
+		{
+		handle = cl.sound_index[sound];	// see precached sound
+		}
 
 	S_AmbientSound (pos, entnum, handle, volume, attn, pitch, flags);
 	}
@@ -617,7 +621,6 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 		CL_Parse_RecordCommand (cmd, bufStart);
 
 		// [FWGS, 05.04.26]
-		/*if (CL_ParseCommonDLLMessage (msg, PROTO_GOLDSRC, cmd, bufStart))*/
 		if (CL_ParseCommonMessage (msg, PROTO_GOLDSRC, cmd, bufStart))
 			continue;
 
@@ -627,23 +630,9 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 		// other commands
 		switch (cmd)
 			{
-			// [FWGS, 05.04.26]
-			/*case svc_bad:
-				Host_Error ("svc_bad\n");
-				break;
-
-			case svc_nop:
-			case svc_spawnstatic:
-			case svc_goldsrc_damage:
-			case svc_goldsrc_killedmonster:
-			case svc_goldsrc_foundsecret:
-				// this does nothing
-				break;*/
-
 			// [FWGS, 01.03.26]
 			case svc_disconnect:
 				s = MSG_ReadString (msg);
-				/*if (COM_CheckStringEmpty (s))*/
 				if (!COM_StringEmpty (s))
 					Con_Printf ("Server issued disconnect. Reason: %s\n", s);
 				CL_Drop ();
@@ -664,59 +653,12 @@ void CL_ParseGoldSrcServerMessage (sizebuf_t *msg)
 				break;
 
 			// [FWGS, 05.04.26]
-			/*case svc_setview:
-				CL_ParseViewEntity (msg);
-				break;*/
-
 			case svc_sound:
 				CL_ParseSoundPacketGS (msg);
 				cl.frames[cl.parsecountmod].graphdata.sound += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
 
 			// [FWGS, 05.04.26]
-			/*case svc_time:
-				CL_ParseServerTime (msg, PROTO_GOLDSRC);
-				break;
-
-			case svc_print:
-				Con_Printf ("%s", MSG_ReadString (msg));
-				break;
-
-			case svc_stufftext:
-				s = MSG_ReadString (msg);
-				if (cl_trace_stufftext.value)
-					{
-					size_t len = Q_strlen (s);
-					Con_Printf ("Stufftext: %s%c", s, len && s[len - 1] == '\n' ? '\0' : '\n');
-					}
-
-ifdef HACKS_RELATED_HLMODS
-				// disable Cry Of Fear antisave protection
-				if (!Q_strnicmp (s, "disconnect", 10) && cls.signon != SIGNONS)
-					break; // too early
-endif
-				Cbuf_AddFilteredText (s);
-				break;
-
-			case svc_setangle:
-				CL_ParseSetAngle (msg);
-				break;
-
-			// [FWGS, 25.12.24]
-			case svc_serverdata:
-				Cbuf_Execute (); // make sure any stuffed commands are done
-				CL_ParseServerData (msg, PROTO_GOLDSRC);
-				break;
-
-			case svc_lightstyle:
-				CL_ParseLightStyle (msg, PROTO_GOLDSRC);
-				break;
-
-			case svc_updateuserinfo:
-				CL_UpdateUserinfo (msg, PROTO_GOLDSRC);
-				break;
-
-			// [FWGS, 25.12.24]*/
 			case svc_deltatable:
 				Delta_ParseTableField_GS (msg);
 				break;
@@ -741,8 +683,6 @@ endif
 				break;
 
 			// [FWGS, 05.04.26]
-			/*case svc_particle:
-				CL_ParseParticles (msg, PROTO_GOLDSRC);*/
 			case svc_goldsrc_damage:
 			case svc_spawnstatic:
 				// this does nothing
@@ -766,12 +706,6 @@ endif
 				break;
 
 			// [FWGS, 05.04.26]
-			/*case svc_signonnum:
-				CL_ParseSignon (msg, PROTO_GOLDSRC);
-				break;
-
-			case svc_centerprint:
-				CL_CenterPrint (MSG_ReadString (msg), 0.25f);*/
 			case svc_goldsrc_killedmonster:
 			case svc_goldsrc_foundsecret:
 				// this does nothing
@@ -782,18 +716,6 @@ endif
 				break;
 
 			// [FWGS, 05.04.26]
-			/*case svc_finale:
-				CL_ParseFinaleCutscene (msg, 2);
-				break;
-
-			case svc_restore:
-				CL_ParseRestore (msg);
-				break;
-
-			case svc_cutscene:
-				CL_ParseFinaleCutscene (msg, 3);
-				break;*/
-
 			case svc_goldsrc_decalname:
 				param1 = MSG_ReadByte (msg);
 				s = MSG_ReadString (msg);
@@ -801,15 +723,6 @@ endif
 				break;
 
 			// [FWGS, 05.04.26]
-			/*case svc_addangle:
-				CL_ParseAddAngle (msg);
-				break;
-
-			// [FWGS, 25.12.24]
-			case svc_usermessage:
-				CL_RegisterUserMessage (msg, PROTO_GOLDSRC);
-				break;*/
-
 			case svc_packetentities:
 				playerbytes = CL_ParsePacketEntitiesGS (msg, false);
 				cl.frames[cl.parsecountmod].graphdata.players += playerbytes;
@@ -823,11 +736,6 @@ endif
 				break;
 
 			// [FWGS, 05.04.26]
-			/*case svc_choke:
-				cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK].choked = true;
-				cl.frames[cls.netchan.incoming_sequence & CL_UPDATE_MASK].receivedtime = -2.0;
-				break;*/
-
 			case svc_resourcelist:
 				MSG_StartBitWriting (msg);
 				CL_ParseResourceList (msg, PROTO_GOLDSRC);
@@ -841,43 +749,6 @@ endif
 
 
 			// [FWGS, 05.04.26]
-			/*case svc_resourcerequest:
-				CL_ParseResourceRequest (msg);
-				break;
-
-			case svc_customization:
-				CL_ParseCustomization (msg);
-				break;
-
-			case svc_crosshairangle:
-				CL_ParseCrosshairAngle (msg);
-				break;
-
-			case svc_soundfade:
-				CL_ParseSoundFade (msg);
-				break;
-
-			case svc_filetxferfailed:
-				CL_ParseFileTransferFailed (msg);
-				break;
-
-			case svc_hltv:
-				CL_ParseHLTV (msg);
-				break;
-
-			case svc_voiceinit:
-				CL_ParseVoiceInit (msg);
-				break;
-
-			case svc_voicedata:
-				CL_ParseVoiceData (msg, PROTO_GOLDSRC);
-				cl.frames[cl.parsecountmod].graphdata.voicebytes += MSG_GetNumBytesRead (msg) - bufStart;
-				break;
-
-			case svc_resourcelocation:
-				CL_ParseResLocation (msg);
-				break;*/
-
 			case svc_goldsrc_sendextrainfo:
 				CL_ParseExtraInfo (msg);
 				break;
@@ -889,24 +760,8 @@ endif
 				MSG_ReadFloat (msg);
 				break;
 
-			// [FWGS, 05.04.26]
-			/*// [FWGS, 25.12.24]
-			case svc_querycvarvalue:
-				CL_ParseCvarValue (msg, false, PROTO_GOLDSRC);
-				break;
-
-			// [FWGS, 25.12.24]
-			case svc_querycvarvalue2:
-				CL_ParseCvarValue (msg, true, PROTO_GOLDSRC);
-				break;
-
-			case svc_exec:
-				CL_ParseExec (msg);
-				break;*/
-
 			// [FWGS, 01.03.26]
 			default:
-				/*CL_ParseUserMessage (msg, cmd, PROTO_LEGACY);*/
 				CL_ParseUserMessage (msg, cmd, PROTO_GOLDSRC);
 				cl.frames[cl.parsecountmod].graphdata.usr += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
