@@ -17,6 +17,52 @@ GNU General Public License for more details
 #include "xash3d_mathlib.h"
 #include "img_dds.h"
 
+// [FWGS, 01.05.26]
+#include "swaplib.h"
+
+// [FWGS, 01.05.26]
+le_struct_begin (dds_pixf_swap)
+le_struct_field (dds_pixf_t, dwSize)
+le_struct_field (dds_pixf_t, dwFlags)
+le_struct_field (dds_pixf_t, dwFourCC)
+le_struct_field (dds_pixf_t, dwRGBBitCount)
+le_struct_field (dds_pixf_t, dwRBitMask)
+le_struct_field (dds_pixf_t, dwGBitMask)
+le_struct_field (dds_pixf_t, dwBBitMask)
+le_struct_field (dds_pixf_t, dwABitMask)
+le_struct_end ();
+
+le_struct_begin (dds_caps_swap)
+le_struct_field (dds_caps_t, dwCaps1)
+le_struct_field (dds_caps_t, dwCaps2)
+le_struct_field (dds_caps_t, dwCaps3)
+le_struct_field (dds_caps_t, dwCaps4)
+le_struct_end ();
+
+le_struct_begin (dds_swap)
+le_struct_field (dds_t, dwIdent)
+le_struct_field (dds_t, dwSize)
+le_struct_field (dds_t, dwFlags)
+le_struct_field (dds_t, dwHeight)
+le_struct_field (dds_t, dwWidth)
+le_struct_field (dds_t, dwLinearSize)
+le_struct_field (dds_t, dwDepth)
+le_struct_field (dds_t, dwMipMapCount)
+le_struct_field (dds_t, dwAlphaBitDepth)
+le_struct_array (dds_t, dwReserved1, 10)
+le_struct_child (dds_t, dsPixelFormat, dds_pixf_swap)
+le_struct_child (dds_t, dsCaps, dds_caps_swap)
+le_struct_field (dds_t, dwTextureStage)
+le_struct_end ();
+
+le_struct_begin (dds_dxt10_swap)
+le_struct_field (dds_header_dxt10_t, dxgiFormat)
+le_struct_field (dds_header_dxt10_t, resourceDimension)
+le_struct_field (dds_header_dxt10_t, miscFlag)
+le_struct_field (dds_header_dxt10_t, arraySize)
+le_struct_field (dds_header_dxt10_t, miscFlags2)
+le_struct_end ();
+
 static qboolean Image_CheckDXT3Alpha (dds_t *hdr, byte *fin)
 	{
 	word	sAlpha;
@@ -157,7 +203,7 @@ static void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 					break;
 
 				case TYPE_DXT2:
-					image.flags &= ~IMAGE_HAS_ALPHA; // alpha is already premultiplied by color
+					image.flags &= ~IMAGE_HAS_ALPHA;	// alpha is already premultiplied by color
 					// intentionally fallthrough
 
 				case TYPE_DXT3:
@@ -165,7 +211,7 @@ static void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 					break;
 
 				case TYPE_DXT4:
-					image.flags &= ~IMAGE_HAS_ALPHA; // alpha is already premultiplied by color
+					image.flags &= ~IMAGE_HAS_ALPHA;	// alpha is already premultiplied by color
 					// intentionally fallthrough
 
 				case TYPE_DXT5:
@@ -189,7 +235,7 @@ static void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 					break;
 
 				default:
-					image.type = PF_UNKNOWN; // assume error
+					image.type = PF_UNKNOWN;	// assume error
 					break;
 				}
 			}
@@ -199,11 +245,11 @@ static void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 		// this dds texture isn't compressed so write out ARGB or luminance format
 		if (hdr->dsPixelFormat.dwFlags & DDS_DUDV)
 			{
-			image.type = PF_UNKNOWN; // assume error
+			image.type = PF_UNKNOWN;	// assume error
 			}
 		else if (hdr->dsPixelFormat.dwFlags & DDS_LUMINANCE)
 			{
-			image.type = PF_UNKNOWN; // assume error
+			image.type = PF_UNKNOWN;	// assume error
 			}
 		else
 			{
@@ -233,14 +279,13 @@ static void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 		image.flags |= IMAGE_CUBEMAP;
 
 	if (hdr->dwFlags & DDS_MIPMAPCOUNT)
-		image.num_mips = hdr->dwMipMapCount; // get actual mip count
+		image.num_mips = hdr->dwMipMapCount;	// get actual mip count
 	}
 
 // [FWGS, 01.03.26]
 static size_t Image_DXTCalcMipmapSize (dds_t *hdr)
 	{
 	size_t	buffsize = 0;
-	/*int		i, width, height;*/
 	int		i, width, height, depth;
 
 	// now correct buffer size
@@ -249,7 +294,6 @@ static size_t Image_DXTCalcMipmapSize (dds_t *hdr)
 		width = Q_max (1, (hdr->dwWidth >> i));
 		height = Q_max (1, (hdr->dwHeight >> i));
 
-		/*buffsize += Image_ComputeSize (image.type, width, height, image.depth);*/
 		depth = Q_max (1, (image.depth >> i));
 		buffsize += Image_ComputeSize (image.type, width, height, depth);
 		}
@@ -285,7 +329,7 @@ static uint Image_DXTCalcSize (const char *name, dds_t *hdr, size_t filesize)
 		buffsize = Image_DXTCalcMipmapSize (hdr);
 		}
 
-	if (filesize != buffsize) // main check
+	if (filesize != buffsize)	// main check
 		{
 		// [FWGS, 01.07.24]
 		Con_DPrintf (S_WARN "%s: (%s) probably corrupted (%zu should be %zu)\n", __func__,
@@ -323,7 +367,8 @@ qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesi
 
 	memcpy (&header, buffer, sizeof (header));
 
-	// it's not a dds file, just skip it
+	// [FWGS, 01.05.26] it's not a dds file, just skip it
+	le_struct_swap (dds_swap, &header);
 	if (header.dwIdent != DDSHEADER)
 		return false;
 
@@ -344,7 +389,9 @@ qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesi
 	headersOffset = sizeof (header);
 	if (header.dsPixelFormat.dwFourCC == TYPE_DX10)
 		{
+		// [FWGS, 01.05.26]
 		memcpy (&header2, buffer + sizeof (header), sizeof (header2));
+		le_struct_swap (dds_dxt10_swap, &header2);
 		headersOffset += sizeof (header2);
 		}
 
@@ -376,7 +423,7 @@ qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesi
 
 	image.size = Image_DXTCalcSize (name, &header, filesize - headersOffset);
 	if (image.size == 0)
-		return false; // just in case
+		return false;	// just in case
 
 	fin = (byte *)(buffer + headersOffset);
 

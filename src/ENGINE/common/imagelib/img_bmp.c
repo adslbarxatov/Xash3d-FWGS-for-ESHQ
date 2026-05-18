@@ -17,6 +17,27 @@ GNU General Public License for more details
 #include "xash3d_mathlib.h"
 #include "img_bmp.h"
 
+// [FWGS, 01.05.26]
+#include "swaplib.h"
+
+// [FWGS, 01.05.26]
+le_struct_begin (bmp_swap)
+le_struct_field (bmp_t, fileSize)
+le_struct_field (bmp_t, reserved0)
+le_struct_field (bmp_t, bitmapDataOffset)
+le_struct_field (bmp_t, bitmapHeaderSize)
+le_struct_field (bmp_t, width)
+le_struct_field (bmp_t, height)
+le_struct_field (bmp_t, planes)
+le_struct_field (bmp_t, bitsPerPixel)
+le_struct_field (bmp_t, compression)
+le_struct_field (bmp_t, bitmapDataSize)
+le_struct_field (bmp_t, hRes)
+le_struct_field (bmp_t, vRes)
+le_struct_field (bmp_t, colors)
+le_struct_field (bmp_t, importantColors)
+le_struct_end ();
+
 /***
 =============
 Image_LoadBMP
@@ -42,6 +63,10 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 
 	buf_p = (byte *)buffer;
 	memcpy (&bhdr, buf_p, sizeof (bmp_t));
+
+	// [FWGS, 01.05.26]
+	le_struct_swap (bmp_swap, &bhdr);
+
 	buf_p += BI_FILE_HEADER_SIZE + bhdr.bitmapHeaderSize;
 
 	// bogus file header check
@@ -168,7 +193,7 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 			*pixbuf++ = palette[i][0];
 			*pixbuf++ = palette[i][3];
 			}
-		image.type = PF_INDEXED_32; // 32 bit palette
+		image.type = PF_INDEXED_32;	// 32 bit palette
 		}
 	else
 		{
@@ -185,12 +210,15 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 		case 1:
 			padSize = ((32 - (bhdr.width % 32)) / 8) % 4;
 			break;
+
 		case 4:
 			padSize = ((8 - (bhdr.width % 8)) / 2) % 4;
 			break;
+
 		case 16:
 			padSize = (4 - (image.width * 2 % 4)) % 4;
 			break;
+
 		case 8:
 		case 24:
 			padSize = (4 - (bps % 4)) % 4;
@@ -242,8 +270,6 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 						*pixbuf++ = green;
 						*pixbuf++ = blue;
 						*pixbuf++ = 0x00;
-						/*if (++column == columns)
-							break;*/
 						}
 					break;
 
@@ -304,8 +330,12 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 						}
 					break;
 
+				// [FWGS, 01.05.26]
 				case 16:
-					shortPixel = *(word *)buf_p, buf_p += 2;
+					/*shortPixel = *(word *)buf_p, buf_p += 2;*/
+					shortPixel = buf_p[0] | (buf_p[1] << 8);
+					buf_p += 2;
+
 					*pixbuf++ = blue = (shortPixel & (31 << 10)) >> 7;
 					*pixbuf++ = green = (shortPixel & (31 << 5)) >> 2;
 					*pixbuf++ = red = (shortPixel & (31)) << 3;
@@ -362,10 +392,8 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 qboolean Image_SaveBMP (const char *name, rgbdata_t *pix)
 	{
 	file_t	*pfile = NULL;
-	/*size_t	total_size, cur_size;*/
 	rgba_t	rgrgbPalette[256];
 	dword	cbBmpBits;
-	/*byte	*clipbuf = NULL;*/
 	byte	*pb, *pbBmpBits;
 	dword	cbPalBytes;
 	dword	biTrueWidth;
@@ -374,7 +402,7 @@ qboolean Image_SaveBMP (const char *name, rgbdata_t *pix)
 	bmp_t	hdr;
 
 	if (FS_FileExists (name, false) && !Image_CheckFlag (IL_ALLOW_OVERWRITE))
-		return false; // already existed
+		return false;	// already existed
 
 	// bogus parameter check
 	if (!pix->buffer)
@@ -430,7 +458,10 @@ qboolean Image_SaveBMP (const char *name, rgbdata_t *pix)
 	hdr.colors = (pixel_size == 1) ? 256 : 0;
 	hdr.importantColors = 0;
 
+	// [FWGS, 01.05.26]
+	le_struct_swap (bmp_swap, &hdr);
 	FS_Write (pfile, &hdr, sizeof (bmp_t));
+	le_struct_swap (bmp_swap, &hdr);
 
 	pbBmpBits = Mem_Malloc (host.imagepool, cbBmpBits);
 
@@ -449,8 +480,6 @@ qboolean Image_SaveBMP (const char *name, rgbdata_t *pix)
 			// some viewers e.g. fimg.exe can show alpha-chanell for it
 			if (pix->type == PF_INDEXED_32)
 				rgrgbPalette[i][3] = *pb++;
-			/*else
-				rgrgbPalette[i][3] = 0;*/
 			else
 				rgrgbPalette[i][3] = 0;
 			}
@@ -465,15 +494,8 @@ qboolean Image_SaveBMP (const char *name, rgbdata_t *pix)
 		{
 		i = (hdr.height - 1 - y) * (hdr.width);
 
-		/*for (x = 0; x < pix->width; x++)*/
 		if (pixel_size == 1)
 			{
-			/*if (pixel_size == 1)
-				{
-				// 8-bit
-				pbBmpBits[i] = pb[x];
-				}
-			else*/
 			memcpy (&pbBmpBits[i], pb, pix->width);
 			}
 		else
@@ -481,20 +503,13 @@ qboolean Image_SaveBMP (const char *name, rgbdata_t *pix)
 			for (x = 0; x < pix->width; x++)
 				{
 				// 24 bit
-				/*pbBmpBits[i * pixel_size + 0] = pb[x * pixel_size + 2];
-				pbBmpBits[i * pixel_size + 1] = pb[x * pixel_size + 1];
-				pbBmpBits[i * pixel_size + 2] = pb[x * pixel_size + 0];
-				}*/
 				qboolean be = ImageBigEndian (pix->type);
 
 				pbBmpBits[i * pixel_size + 0] = be ? pb[x * pixel_size + 0] : pb[x * pixel_size + 2];
 				pbBmpBits[i * pixel_size + 1] = pb[x * pixel_size + 1];
 				pbBmpBits[i * pixel_size + 2] = be ? pb[x * pixel_size + 2] : pb[x * pixel_size + 0];
 
-				/*if (pixel_size == 4) // write alpha channel
-				pbBmpBits[i * pixel_size + 3] = pb[x * pixel_size + 3];
-				i++;*/
-				if (pixel_size == 4) // write alpha channel
+				if (pixel_size == 4)	// write alpha channel
 					pbBmpBits[i * pixel_size + 3] = pb[x * pixel_size + 3];
 				i++;
 				}

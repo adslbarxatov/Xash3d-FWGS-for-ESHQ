@@ -36,12 +36,6 @@ GNU General Public License for more details
 // [FWGS, 01.03.26]
 typedef struct leaflist_s
 	{
-	/*int		count;
-	int		maxcount;
-	qboolean	overflowed;
-	int		*list;
-	vec3_t	mins, maxs;
-	int		topnode;	// for overflows where each leaf can't be stored individually*/
 	int		count;
 	int		maxcount;
 	qboolean overflowed;
@@ -54,143 +48,88 @@ typedef struct leaflist_s
 typedef struct
 	{
 	// generic lumps
-	/*dmodel_t	*submodels;
-	size_t		numsubmodels;*/
 	dmodel_t	*submodels;
 	size_t		numsubmodels;
-
-	/*dvertex_t	*vertexes;
-	size_t		numvertexes;*/
 	dvertex_t	*vertexes;
 	size_t		numvertexes;
-
-	/*dplane_t	*planes;
-	size_t		numplanes;*/
 	dplane_t	*planes;
 	size_t		numplanes;
 
 	union
 		{
-		/*dnode_t		*nodes;
-		dnode32_t	*nodes32;*/
 		dnode_t		*nodes;
 		dnode32_t	*nodes32;
 		};
-	/*size_t		numnodes;*/
 	size_t		numnodes;
 
 	union
 		{
-		/*dleaf_t		*leafs;
-		dleaf32_t	*leafs32;*/
 		dleaf_t		*leafs;
 		dleaf32_t	*leafs32;
 		};
-	/*size_t		numleafs;*/
 	size_t		numleafs;
 
 	union
 		{
-		/*dclipnode_t		*clipnodes;
-		dclipnode32_t	*clipnodes32;*/
 		dclipnode_t		*clipnodes;
 		dclipnode32_t	*clipnodes32;
 		};
-	/*size_t		numclipnodes;*/
 	size_t		numclipnodes;
 
-	/*dtexinfo_t	*texinfo;
-	size_t		numtexinfo;*/
 	dtexinfo_t	*texinfo;
 	size_t		numtexinfo;
 
 	union
 		{
-		/*dmarkface_t		*markfaces;
-		dmarkface32_t	*markfaces32;*/
 		dmarkface_t		*markfaces;
 		dmarkface32_t	*markfaces32;
 		};
-	/*size_t		nummarkfaces;*/
 	size_t		nummarkfaces;
 
-	/*dsurfedge_t	*surfedges;
-	size_t		numsurfedges;*/
 	dsurfedge_t	*surfedges;
 	size_t		numsurfedges;
 
 	union
 		{
-		/*dedge_t		*edges;
-		dedge32_t	*edges32;*/
 		dedge_t		*edges;
 		dedge32_t	*edges32;
 		};
-	/*size_t		numedges;*/
 	size_t		numedges;
 
 	union
 		{
-		/*dface_t		*surfaces;
-		dface32_t	*surfaces32;*/
 		dface_t		*surfaces;
 		dface32_t	*surfaces32;
 		};
 
-	/*size_t			numsurfaces;*/
 	size_t		numsurfaces;
-
-	/*dfaceinfo_t		*faceinfo;
-	size_t			numfaceinfo;*/
 	dfaceinfo_t	*faceinfo;
 	size_t		numfaceinfo;
 
 	// array lumps
-	/*byte		*visdata;
-	size_t		visdatasize;*/
 	byte		*visdata;
 	size_t		visdatasize;
-
-	/*byte		*lightdata;
-	size_t		lightdatasize;*/
 	byte		*lightdata;
 	size_t		lightdatasize;
-
-	/*byte		*deluxdata;
-	size_t		deluxdatasize;*/
 	byte		*deluxdata;
 	size_t		deluxdatasize;
-
-	/*byte		*shadowdata;
-	size_t		shadowdatasize;*/
 	byte		*shadowdata;
 	size_t		shadowdatasize;
-
-	/*byte		*entdata;
-	size_t		entdatasize;*/
 	byte		*entdata;
 	size_t		entdatasize;
-
 	byte		*rgblightdata;
 	size_t		rgblightdatasize;
 
 	// lumps that required personal handler
-	/*dmiptexlump_t	*textures;
-	size_t			texdatasize;*/
 	dmiptexlump_t	*textures;
 	size_t			texdatasize;
 
 	// intermediate arrays (pointers will lost after loading, but keep the data)
-	/*color24		*deluxedata_out;	// deluxemap data pointer
-	byte		*shadowdata_out;	// occlusion data pointer
-	dclipnode32_t	*clipnodes_out;	// temporary 32-bit array to hold clipnodes*/
 	color24			*deluxedata_out;	// deluxemap data pointer
 	byte			*shadowdata_out;	// occlusion data pointer
 	dclipnode32_t	*clipnodes_out;		// temporary 32-bit array to hold clipnodes
 
 	// misc stuff
-	/*int			lightmap_samples; // samples per lightmap (1 or 3)
-	int			version; // model version*/
 	int		lightmap_samples;	// samples per lightmap (1 or 3)
 	int		version;			// model version
 
@@ -201,10 +140,6 @@ typedef struct
 // [FWGS, 01.03.26]
 typedef struct
 	{
-	/*const char	*lumpname;
-	size_t		entrysize;
-	size_t		maxcount;
-	size_t		count;*/
 	const char	*lumpname;
 	size_t		entrysize;
 	size_t		maxcount;
@@ -214,26 +149,17 @@ typedef struct
 // [FWGS, 01.03.26]
 typedef struct
 	{
-	/*char	name[64];		// just for debug*/
 	char	name[64];	// just for debug
 
 	// count errors and warnings
-	/*int		numerrors;
-	int		numwarnings;*/
 	int		numerrors;
 	int		numwarnings;
 	} loadstat_t;
 
 // [FWGS, 01.03.26]
-/*define CHECK_OVERFLOW	BIT( 0 )	// if some of lumps will be overflowed this non fatal for us. 
-									// But some lumps are critical. mark them
-define USE_EXTRAHEADER	BIT( 1 )*/
 #define CHECK_OVERFLOW	BIT( 0 )	// if some of lumps will be overflowed this non fatal for us. But some lumps are critical. Mark them
 
 // [FWGS, 01.03.26]
-/*define LUMP_SAVESTATS	BIT( 0 )
-define LUMP_TESTONLY	BIT( 1 )
-define LUMP_SILENT		BIT( 2 )*/
 typedef enum
 	{
 	LOADLUMP_STANDARD,	// load lump from standard BSP header
@@ -261,10 +187,6 @@ typedef struct
 	const size_t	maxcount;
 	const int		entrysize;
 
-	/*const int		entrysize32;	// alternative (-1 by default)
-	const char		*loadname;
-	const void		**dataptr;
-	size_t			*count;*/
 	const int		entrysize32;	// extended size (0 if not available)
 	const char		*loadname;
 	const void		**dataptr;
@@ -272,14 +194,6 @@ typedef struct
 	} mlumpinfo_t;
 
 // [FWGS, 01.03.26]
-/*world_static_t		world;
-static dbspmodel_t	srcmodel;
-static loadstat_t	loadstat;
-static model_t		*worldmodel;
-static byte			g_visdata[(MAX_MAP_LEAFS + 7) / 8];	// intermediate buffer
-
-// [FWGS, 01.12.24]
-static mlumpstat_t worldstats[HEADER_LUMPS + EXTRA_LUMPS];*/
 world_static_t		world;
 static dbspmodel_t	srcmodel;
 static loadstat_t	loadstat;
@@ -290,15 +204,6 @@ static byte			g_visdata[(MAX_MAP_LEAFS + 7) / 8];	// intermediate buffer
 static mlumpinfo_t srclumps[HEADER_LUMPS] =
 	{
 	{
-	/*.lumpnumber = LUMP_ENTITIES,
-	.mincount = 32,
-	.maxcount = MAX_MAP_ENTSTRING,
-	.entrysize = sizeof (byte),
-	.entrysize32 = -1,
-	.loadname = "entities",
-	.flags = 0,
-	.dataptr = (const void **)&srcmodel.entdata,
-	.count = &srcmodel.entdatasize,*/
 	.lumpnumber = LUMP_ENTITIES,
 	.mincount = 32,
 	.maxcount = MAX_MAP_ENTSTRING,
@@ -308,15 +213,6 @@ static mlumpinfo_t srclumps[HEADER_LUMPS] =
 	.count = &srcmodel.entdatasize,
 	},
 	{
-	/*.lumpnumber = LUMP_PLANES,
-	.mincount = 1,
-	.maxcount = MAX_MAP_PLANES,
-	.entrysize = sizeof (dplane_t),
-	.entrysize32 = -1,
-	.loadname = "planes",
-	.flags = 0,
-	.dataptr = (const void **)&srcmodel.planes,
-	.count = &srcmodel.numplanes,*/
 	.lumpnumber = LUMP_PLANES,
 	.mincount = 1,
 	.maxcount = MAX_MAP_PLANES,
@@ -326,15 +222,6 @@ static mlumpinfo_t srclumps[HEADER_LUMPS] =
 	.count = &srcmodel.numplanes,
 	},
 	{
-	/*.lumpnumber = LUMP_TEXTURES,
-	.mincount = 1,
-	.maxcount = MAX_MAP_MIPTEX,
-	.entrysize = sizeof (byte),
-	.entrysize32 = -1,
-	.loadname = "textures",
-	.flags = 0,
-	.dataptr = (const void **)&srcmodel.textures,
-	.count = &srcmodel.texdatasize,*/
 	.lumpnumber = LUMP_TEXTURES,
 	.mincount = 1,
 	.maxcount = MAX_MAP_MIPTEX,
@@ -344,15 +231,6 @@ static mlumpinfo_t srclumps[HEADER_LUMPS] =
 	.count = &srcmodel.texdatasize,
 	},
 	{
-	/*.lumpnumber = LUMP_VERTEXES,
-	.mincount = 0,
-	.maxcount = MAX_MAP_VERTS,
-	.entrysize = sizeof (dvertex_t),
-	.entrysize32 = -1,
-	.loadname = "vertexes",
-	.flags = 0,
-	.dataptr = (const void **)&srcmodel.vertexes,
-	.count = &srcmodel.numvertexes,*/
 	.lumpnumber = LUMP_VERTEXES,
 	.maxcount = MAX_MAP_VERTS,
 	.entrysize = sizeof (dvertex_t),
@@ -361,15 +239,6 @@ static mlumpinfo_t srclumps[HEADER_LUMPS] =
 	.count = &srcmodel.numvertexes,
 	},
 	{
-	/*.lumpnumber = LUMP_VISIBILITY,
-	.mincount = 0,
-	.maxcount = MAX_MAP_VISIBILITY,
-	.entrysize = sizeof (byte),
-	.entrysize32 = -1,
-	.loadname = "visibility",
-	.flags = 0,
-	.dataptr = (const void **)&srcmodel.visdata,
-	.count = &srcmodel.visdatasize,*/
 	.lumpnumber = LUMP_VISIBILITY,
 	.maxcount = MAX_MAP_VISIBILITY,
 	.entrysize = sizeof (byte),
@@ -378,34 +247,17 @@ static mlumpinfo_t srclumps[HEADER_LUMPS] =
 	.count = &srcmodel.visdatasize,
 	},
 	{
-	/*.lumpnumber = LUMP_NODES,
-	.mincount = 1,
-	.maxcount = MAX_MAP_NODES,
-	.entrysize = sizeof (dnode_t),*/
 	.lumpnumber = LUMP_NODES,
 	.mincount = 1,
 	.maxcount = MAX_MAP_NODES,
 	.entrysize = sizeof (dnode_t),
 	.entrysize32 = sizeof (dnode32_t),
-	/*.loadname = "nodes",
-	.flags = CHECK_OVERFLOW,
-	.dataptr = (const void **)&srcmodel.nodes,
-	.count = &srcmodel.numnodes,*/
 	.loadname = "nodes",
 	.flags = CHECK_OVERFLOW,
 	.dataptr = (const void **)&srcmodel.nodes,
 	.count = &srcmodel.numnodes,
 	},
 	{
-	/*.lumpnumber = LUMP_TEXINFO,
-	.mincount = 0,
-	.maxcount = MAX_MAP_TEXINFO,
-	.entrysize = sizeof (dtexinfo_t),
-	.entrysize32 = -1,
-	.loadname = "texinfo",
-	.flags = CHECK_OVERFLOW,
-	.dataptr = (const void **)&srcmodel.texinfo,
-	.count = &srcmodel.numtexinfo,*/
 	.lumpnumber = LUMP_TEXINFO,
 	.mincount = 0,
 	.maxcount = MAX_MAP_TEXINFO,
@@ -416,34 +268,17 @@ static mlumpinfo_t srclumps[HEADER_LUMPS] =
 	.count = &srcmodel.numtexinfo,
 	},
 	{
-	/*.lumpnumber = LUMP_FACES,
-	.mincount = 0,
-	.maxcount = MAX_MAP_FACES,
-	.entrysize = sizeof (dface_t),*/
 	.lumpnumber = LUMP_FACES,
 	.mincount = 0,
 	.maxcount = MAX_MAP_FACES,
 	.entrysize = sizeof (dface_t),
 	.entrysize32 = sizeof (dface32_t),
-	/*.loadname = "faces",
-	.flags = CHECK_OVERFLOW,
-	.dataptr = (const void **)&srcmodel.surfaces,
-	.count = &srcmodel.numsurfaces,*/
 	.loadname = "faces",
 	.flags = CHECK_OVERFLOW,
 	.dataptr = (const void **)&srcmodel.surfaces,
 	.count = &srcmodel.numsurfaces,
 	},
 	{
-	/*.lumpnumber = LUMP_LIGHTING,
-	.mincount = 0,
-	.maxcount = MAX_MAP_LIGHTING,
-	.entrysize = sizeof (byte),
-	.entrysize32 = -1,
-	.loadname = "lightmaps",
-	.flags = 0,
-	.dataptr = (const void **)&srcmodel.lightdata,
-	.count = &srcmodel.lightdatasize,*/
 	.lumpnumber = LUMP_LIGHTING,
 	.mincount = 0,
 	.maxcount = MAX_MAP_LIGHTING,
@@ -454,91 +289,50 @@ static mlumpinfo_t srclumps[HEADER_LUMPS] =
 	.count = &srcmodel.lightdatasize,
 	},
 	{
-	/*.lumpnumber = LUMP_CLIPNODES,
-	.mincount = 0,
-	.maxcount = MAX_MAP_CLIPNODES,
-	.entrysize = sizeof (dclipnode_t),*/
 	.lumpnumber = LUMP_CLIPNODES,
 	.mincount = 0,
 	.maxcount = MAX_MAP_CLIPNODES,
 	.entrysize = sizeof (dclipnode_t),
 	.entrysize32 = sizeof (dclipnode32_t),
-	/*.loadname = "clipnodes",
-	.flags = 0,
-	.dataptr = (const void **)&srcmodel.clipnodes,
-	.count = &srcmodel.numclipnodes,*/
 	.loadname = "clipnodes",
 	.flags = 0,
 	.dataptr = (const void **)&srcmodel.clipnodes,
 	.count = &srcmodel.numclipnodes,
 	},
 	{
-	/*.lumpnumber = LUMP_LEAFS,
-	.mincount = 1,
-	.maxcount = MAX_MAP_LEAFS,
-	.entrysize = sizeof (dleaf_t),*/
 	.lumpnumber = LUMP_LEAFS,
 	.mincount = 1,
 	.maxcount = MAX_MAP_LEAFS,
 	.entrysize = sizeof (dleaf_t),
 	.entrysize32 = sizeof (dleaf32_t),
-	/*.loadname = "leafs",
-	.flags = CHECK_OVERFLOW,
-	.dataptr = (const void **)&srcmodel.leafs,
-	.count = &srcmodel.numleafs,*/
 	.loadname = "leafs",
 	.flags = CHECK_OVERFLOW,
 	.dataptr = (const void **)&srcmodel.leafs,
 	.count = &srcmodel.numleafs,
 	},
 	{
-	/*.lumpnumber = LUMP_MARKSURFACES,
-	.mincount = 0,
-	.maxcount = MAX_MAP_MARKSURFACES,
-	.entrysize = sizeof (dmarkface_t),*/
 	.lumpnumber = LUMP_MARKSURFACES,
 	.mincount = 0,
 	.maxcount = MAX_MAP_MARKSURFACES,
 	.entrysize = sizeof (dmarkface_t),
 	.entrysize32 = sizeof (dmarkface32_t),
-	/*.loadname = "markfaces",
-	.flags = 0,
-	.dataptr = (const void **)&srcmodel.markfaces,
-	.count = &srcmodel.nummarkfaces,*/
 	.loadname = "markfaces",
 	.flags = 0,
 	.dataptr = (const void **)&srcmodel.markfaces,
 	.count = &srcmodel.nummarkfaces,
 	},
 	{
-	/*.lumpnumber = LUMP_EDGES,
-	.mincount = 0,
-	.maxcount = MAX_MAP_EDGES,
-	.entrysize = sizeof (dedge_t),*/
 	.lumpnumber = LUMP_EDGES,
 	.mincount = 0,
 	.maxcount = MAX_MAP_EDGES,
 	.entrysize = sizeof (dedge_t),
 	.entrysize32 = sizeof (dedge32_t),
-	/*.loadname = "edges",
-	.flags = 0,
-	.dataptr = (const void **)&srcmodel.edges,
-	.count = &srcmodel.numedges,*/
 	.loadname = "edges",
 	.flags = 0,
 	.dataptr = (const void **)&srcmodel.edges,
 	.count = &srcmodel.numedges,
 	},
 	{
-	/*.lumpnumber = LUMP_SURFEDGES,
-	.mincount = 0,
-	.maxcount = MAX_MAP_SURFEDGES,
-	.entrysize = sizeof (dsurfedge_t),
-	.entrysize32 = -1,
-	.loadname = "surfedges",
-	.flags = 0,
-	.dataptr = (const void **)&srcmodel.surfedges,
-	.count = &srcmodel.numsurfedges,*/
 	.lumpnumber = LUMP_SURFEDGES,
 	.mincount = 0,
 	.maxcount = MAX_MAP_SURFEDGES,
@@ -549,15 +343,6 @@ static mlumpinfo_t srclumps[HEADER_LUMPS] =
 	.count = &srcmodel.numsurfedges,
 	},
 	{
-	/*.lumpnumber = LUMP_MODELS,
-	.mincount = 1,
-	.maxcount = MAX_MAP_MODELS,
-	.entrysize = sizeof (dmodel_t),
-	.entrysize32 = -1,
-	.loadname = "models",
-	.flags = CHECK_OVERFLOW,
-	.dataptr = (const void **)&srcmodel.submodels,
-	.count = &srcmodel.numsubmodels,*/
 	.lumpnumber = LUMP_MODELS,
 	.mincount = 1,
 	.maxcount = MAX_MAP_MODELS,
@@ -573,15 +358,6 @@ static mlumpinfo_t srclumps[HEADER_LUMPS] =
 static const mlumpinfo_t extlumps[EXTRA_LUMPS] =
 	{
 	{
-	/*.lumpnumber = LUMP_LIGHTVECS,
-	.mincount = 0,
-	.maxcount = MAX_MAP_LIGHTING,
-	.entrysize = sizeof (byte),
-	.entrysize32 = -1,
-	.loadname = "deluxmaps",
-	.flags = USE_EXTRAHEADER,
-	.dataptr = (const void **)&srcmodel.deluxdata,
-	.count = &srcmodel.deluxdatasize,*/
 	.lumpnumber = LUMP_LIGHTVECS,
 	.mincount = 0,
 	.maxcount = MAX_MAP_LIGHTING,
@@ -591,15 +367,6 @@ static const mlumpinfo_t extlumps[EXTRA_LUMPS] =
 	.count = &srcmodel.deluxdatasize,
 	},
 	{
-	/*.lumpnumber = LUMP_FACEINFO,
-	.mincount = 0,
-	.maxcount = MAX_MAP_FACEINFO,
-	.entrysize = sizeof (dfaceinfo_t),
-	.entrysize32 = -1,
-	.loadname = "faceinfos",
-	.flags = CHECK_OVERFLOW | USE_EXTRAHEADER,
-	.dataptr = (const void **)&srcmodel.faceinfo,
-	.count = &srcmodel.numfaceinfo,*/
 	.lumpnumber = LUMP_FACEINFO,
 	.mincount = 0,
 	.maxcount = MAX_MAP_FACEINFO,
@@ -610,15 +377,6 @@ static const mlumpinfo_t extlumps[EXTRA_LUMPS] =
 	.count = &srcmodel.numfaceinfo,
 	},
 	{
-	/*.lumpnumber = LUMP_SHADOWMAP,
-	.mincount = 0,
-	.maxcount = MAX_MAP_LIGHTING / 3,
-	.entrysize = sizeof (byte),
-	.entrysize32 = -1,
-	.loadname = "shadowmap",
-	.flags = USE_EXTRAHEADER,
-	.dataptr = (const void **)&srcmodel.shadowdata,
-	.count = &srcmodel.shadowdatasize,*/
 	.lumpnumber = LUMP_SHADOWMAP,
 	.mincount = 0,
 	.maxcount = MAX_MAP_LIGHTING / 3,
@@ -699,22 +457,18 @@ static mip_t *Mod_GetMipTexForTexture (dbspmodel_t *bmod, int i)
 	}
 
 // [FWGS, 01.04.26] Returns index of WAD that texture was found in, or -1 if not found
-/*static int Mod_LoadTextureFromWadList (wadlist_t *list, const char *name, rgbdata_t **pic, char *texpath, size_t texpathlen)*/
 static int Mod_LoadTextureFromWadList (wadentry_t *list, int count, const char *name, rgbdata_t **pic, char *texpath, size_t texpathlen)
 	{
 	int i;
 
-	/*if (!list || !COM_CheckString (name))*/
 	if (!list || COM_StringEmptyOrNULL (name))
 		return -1;
 
 	// check wads in reverse order
-	/*for (i = list->count - 1; i >= 0; i--)*/
 	for (i = count - 1; i >= 0; i--)
 		{
 		searchpath_t *sp = NULL;
 
-		/*while ((sp = g_fsapi.GetArchiveByName (list->wadnames[i], sp)))*/
 		while ((sp = g_fsapi.GetArchiveByName (list[i].name, sp)))
 			{
 			fs_offset_t	len;
@@ -729,7 +483,6 @@ static int Mod_LoadTextureFromWadList (wadentry_t *list, int count, const char *
 				continue;
 
 			if (texpath != NULL)
-				/*Q_snprintf (texpath, texpathlen, "%s/%s.mip", list->wadnames[i], name);*/
 				Q_snprintf (texpath, texpathlen, "%s/%s.mip", list[i].name, name);
 
 			if (pic == NULL)
@@ -742,7 +495,6 @@ static int Mod_LoadTextureFromWadList (wadentry_t *list, int count, const char *
 				}
 
 			// tell imagelib to directly load this texture to save time
-			/*Q_snprintf (file, sizeof (file), "#%s/%s.mip", list->wadnames[i], name);*/
 			Q_snprintf (file, sizeof (file), "#%s/%s.mip", list[i].name, name);
 			*pic = FS_LoadImage (file, buf, len);
 
@@ -851,18 +603,12 @@ Mod_LoadLump [FWGS, 01.03.26]
 generic loader
 =================
 ***/
-/*static void Mod_LoadLump (const byte *in, const mlumpinfo_t *info, mlumpstat_t *stat, int flags)*/
 static void Mod_LoadLump (const void *in, const mlumpinfo_t *info, mlumpstat_t *stat, int flags, loadlump_source_t source, const void *bspx_data)
 	{
-	/*int		version = ((dheader_t *)in)->version;
-	size_t	numelems, real_entrysize;
-	char	msg1[32], msg2[32];
-	dlump_t	*l = NULL;*/
 	int		version = ((const dheader_t *)in)->version, i;
 	size_t	numelems, real_entrysize;
 	dlump_t	l = { 0 };
 
-	/*if (FBitSet (info->flags, USE_EXTRAHEADER))*/
 	switch (source)
 		{
 		case LOADLUMP_STANDARD:
@@ -874,21 +620,16 @@ static void Mod_LoadLump (const void *in, const mlumpinfo_t *info, mlumpstat_t *
 
 		case LOADLUMP_BSP30EXT:
 			{
-			/*dextrahdr_t *header = (dextrahdr_t *)((byte *)in + sizeof (dheader_t));*/
 			const dextrahdr_t *header = (const dextrahdr_t *)((const byte *)in + sizeof (dheader_t));
 
 			if ((header->id != IDEXTRAHEADER) || (header->version != EXTRA_VERSION))
 				return;
-			/*l = &header->lumps[info->lumpnumber];*/
 			l = header->lumps[info->lumpnumber];
 			break;
 			}
 		
-		/*else*/
 		case LOADLUMP_BSPX:
 			{
-			/*dheader_t *header = (dheader_t *)in;
-			l = &header->lumps[info->lumpnumber];*/
 			if (!bspx_data)
 				return;
 
@@ -913,23 +654,14 @@ static void Mod_LoadLump (const void *in, const mlumpinfo_t *info, mlumpstat_t *
 		}
 
 	// lump is unused by engine for some reasons ?
-	/*if (!l || (info->entrysize <= 0) || (info->maxcount <= 0))*/
 	if (!l.fileofs || (info->entrysize <= 0) || (info->maxcount <= 0))
 		return;
 
-	real_entrysize = info->entrysize; // default
+	real_entrysize = info->entrysize;	// default
 
 	// analyze real entrysize
-	/*if ((version == QBSP2_VERSION) && (info->entrysize32 > 0))*/
 	switch (version)
 		{
-		/*// always use alternate entrysize for BSP2
-		real_entrysize = info->entrysize32;
-		}
-		else if ((version == HLBSP_VERSION) && FBitSet (flags, LUMP_BSP30EXT) && (info->lumpnumber == LUMP_CLIPNODES))
-		{
-		// if this map is bsp30ext, try to guess extended clipnodes
-		if ((l->filelen % info->entrysize) || ((l->filelen / info->entrysize32) >= MAX_MAP_CLIPNODES_HLBSP))*/
 		case HLBSP_VERSION:
 			if (FBitSet (flags, LUMP_BSP30EXT) && info->lumpnumber == LUMP_CLIPNODES)
 				{
@@ -956,7 +688,7 @@ static void Mod_LoadLump (const void *in, const mlumpinfo_t *info, mlumpstat_t *
 
 	// bmodels not required the visibility
 	if (!FBitSet (flags, LUMP_TESTONLY) && !world.loading && (info->lumpnumber == LUMP_VISIBILITY))
-		SetBits (flags, LUMP_SILENT); // shut up warning
+		SetBits (flags, LUMP_SILENT);	// shut up warning
 
 	// fill the stats for world
 	if (FBitSet (flags, LUMP_SAVESTATS))
@@ -966,20 +698,13 @@ static void Mod_LoadLump (const void *in, const mlumpinfo_t *info, mlumpstat_t *
 		stat->maxcount = info->maxcount;
 
 		if (real_entrysize != 0)
-			/*stat->count = l->filelen / real_entrysize;*/
 			stat->count = l.filelen / real_entrysize;
 		}
 
-	/*Q_strncpy (msg1, info->loadname, sizeof (msg1));
-	Q_strncpy (msg2, info->loadname, sizeof (msg2));
-	msg2[0] = Q_toupper (msg2[0]); // first letter in cap*/
-
 	// lump is not present
-	/*if (l->filelen <= 0)*/
 	if (l.filelen <= 0)
 		{
 		// don't warn about extra lumps - it's optional
-		/*if (!FBitSet (info->flags, USE_EXTRAHEADER))*/
 		if (source == LOADLUMP_STANDARD)
 			{
 			// some data array that may be optional
@@ -987,7 +712,6 @@ static void Mod_LoadLump (const void *in, const mlumpinfo_t *info, mlumpstat_t *
 				{
 				if (!FBitSet (flags, LUMP_SILENT))
 					{
-					/*Con_DPrintf (S_WARN "map ^2%s^7 has no %s\n", loadstat.name, msg1);*/
 					Con_DPrintf (S_WARN "map ^2%s^7 has no %s\n", loadstat.name, info->loadname);
 					loadstat.numwarnings++;
 					}
@@ -996,7 +720,6 @@ static void Mod_LoadLump (const void *in, const mlumpinfo_t *info, mlumpstat_t *
 				{
 				// it has the mincount and the lump is completely missed!
 				if (!FBitSet (flags, LUMP_SILENT))
-					/*Con_DPrintf (S_ERROR "map ^2%s^7 has no %s\n", loadstat.name, msg1);*/
 					Con_DPrintf (S_ERROR "map ^2%s^7 has no %s\n", loadstat.name, info->loadname);
 
 				loadstat.numerrors++;
@@ -1005,7 +728,6 @@ static void Mod_LoadLump (const void *in, const mlumpinfo_t *info, mlumpstat_t *
 		return;
 		}
 
-	/*if (l->filelen % real_entrysize)*/
 	if (l.filelen % real_entrysize)
 		{
 		if (!FBitSet (flags, LUMP_SILENT))
@@ -1013,21 +735,17 @@ static void Mod_LoadLump (const void *in, const mlumpinfo_t *info, mlumpstat_t *
 			Con_DPrintf (S_ERROR "Mod_Load%c%s: Lump size %d was not a multiple of %zu bytes\n", toupper (info->loadname[0]),
 				&info->loadname[1], l.filelen, real_entrysize);
 			}
-			/*Con_DPrintf (S_ERROR "Mod_Load%s: Lump size %d was not a multiple of %zu bytes\n", msg2,
-				l->filelen, real_entrysize);*/
 
 		loadstat.numerrors++;
 		return;
 		}
 
-	/*numelems = l->filelen / real_entrysize;*/
 	numelems = l.filelen / real_entrysize;
 
 	if (numelems < info->mincount)
 		{
 		// it has the mincount and it's smaller than this limit
 		if (!FBitSet (flags, LUMP_SILENT))
-			/*Con_DPrintf (S_ERROR "map ^2%s^7 has no %s\n", loadstat.name, msg1);*/
 			Con_DPrintf (S_ERROR "map ^2%s^7 has no %s\n", loadstat.name, info->loadname);
 
 		loadstat.numerrors++;
@@ -1040,7 +758,6 @@ static void Mod_LoadLump (const void *in, const mlumpinfo_t *info, mlumpstat_t *
 		if (FBitSet (info->flags, CHECK_OVERFLOW))
 			{
 			if (!FBitSet (flags, LUMP_SILENT))
-				/*Con_DPrintf (S_ERROR "map ^2%s^7 has too many %s\n", loadstat.name, msg1);*/
 				Con_DPrintf (S_ERROR "map ^2%s^7 has too many %s\n", loadstat.name, info->loadname);
 
 			loadstat.numerrors++;
@@ -1049,20 +766,15 @@ static void Mod_LoadLump (const void *in, const mlumpinfo_t *info, mlumpstat_t *
 		else if (!FBitSet (flags, LUMP_SILENT))
 			{
 			// just throw warning
-			/*Con_DPrintf (S_WARN "map ^2%s^7 has too many %s\n", loadstat.name, msg1);*/
 			Con_DPrintf (S_WARN "map ^2%s^7 has too many %s\n", loadstat.name, info->loadname);
 			loadstat.numwarnings++;
 			}
 		}
 
 	if (FBitSet (flags, LUMP_TESTONLY))
-		return; // don't fill the intermediate struct
+		return;	// don't fill the intermediate struct
 
 	// all checks are passed, store pointers
-	/*if (info->dataptr)
-		*info->dataptr = (void *)(in + l->fileofs);
-	if (info->count)
-		*info->count = numelems;*/
 	if (info->dataptr)
 		*info->dataptr = (void *)((byte *)in + l.fileofs);
 
@@ -1077,13 +789,6 @@ Mod_ArrayUsage [FWGS, 01.04.26]
 ***/
 static int Mod_ArrayUsage (const char *szItem, int items, int maxitems, int itemsize)
 	{
-	/*float percentage = maxitems ? (items * 100.0f / maxitems) : 0.0f;
-
-	Con_Printf ("%-12s  %7i/%-7i  %8i/%-8i  (%4.1f%%) %s\n",
-		szItem, items, maxitems, items * itemsize, maxitems * itemsize, percentage,
-		percentage > 99.99f ? "^1SIZE OVERFLOW!!!^7" :
-		percentage > 95.0f ? "^3SIZE DANGER!^7" :
-		percentage > 80.0f ? "^2VERY FULL!^7" :*/
 	float percentage = maxitems ? (items * 100.0f / maxitems) : 0.0f;
 	string s1;
 	string s2;
@@ -1107,31 +812,13 @@ Mod_GlobUsage [FWGS, 01.04.26]
 ***/
 static int Mod_GlobUsage (const char *szItem, int itemstorage, int maxstorage)
 	{
-	/*float	percentage = maxstorage ? (itemstorage * 100.0f / maxstorage) : 0.0f;*/
 	float percentage = maxstorage ? (itemstorage * 100.0f / maxstorage) : 0.0f;
 	string s1;
 
 	Q_snprintf (s1, sizeof (s1), "%s / %s", Q_memprint (itemstorage), Q_memprint (maxstorage));
 
-	/*Con_Printf ("%-15s  %-12s  %8i/%-8i  (%4.1f%%) ", szItem, "[variable]", itemstorage, maxstorage, percentage);
-
-	if (percentage > 99.99f)
-		Con_Printf ("^1SIZE OVERFLOW!!!^7\n");
-	else if (percentage > 95.0f)
-		Con_Printf ("^3SIZE DANGER!^7\n");
-	else if (percentage > 80.0f)
-		Con_Printf ("^2VERY FULL!^7\n");
-	else
-		Con_Printf ("\n");*/
-	/*Con_Printf ("%-15s  %-12s  %8i/%-8i  (%4.1f%%) %s\n",
-		szItem, "[variable]", itemstorage, maxstorage, percentage,
-		percentage > 99.99f ? "^1SIZE OVERFLOW!!!^7" :
-		percentage > 95.0f ? "^3SIZE DANGER!^7" :
-		percentage > 80.0f ? "^2VERY FULL!^7" :*/
-	Con_Printf ("%-8s\t%-17s\t%-15s\t(%4.1f%%)\t%s^7\n",
-		szItem, "[variable]", s1, percentage,
-		percentage > 99.99f ? S_RED "SIZE OVERFLOW!!!" :
-		percentage > 95.0f ? S_YELLOW "SIZE DANGER!" :
+	Con_Printf ("%-8s\t%-17s\t%-15s\t(%4.1f%%)\t%s^7\n", szItem, "[variable]", s1, percentage,
+		percentage > 99.99f ? S_RED "SIZE OVERFLOW!!!" : percentage > 95.0f ? S_YELLOW "SIZE DANGER!" :
 		percentage > 80.0f ? S_GREEN "VERY FULL!" : "");
 
 	return itemstorage;
@@ -1157,8 +844,6 @@ void Mod_PrintWorldStats_f (void)
 
 	// [FWGS, 01.04.26]
 	Con_Printf ("\n");
-	/*Con_Printf ("Object names  Objects/Maxobjs  Memory / Maxmem  Fullness\n");
-	Con_Printf ("------------  ---------------  ---------------  --------\n");*/
 	Con_Printf ("Lump name\tObjects / MaxObjs\tMemory / MaxMem\tFullness\n");
 	Con_Printf ("=========\t=================\t===============\t========\n");
 
@@ -1167,13 +852,11 @@ void Mod_PrintWorldStats_f (void)
 		mlumpstat_t *stat = &worldstats[i];
 
 		if (!stat->lumpname || !stat->maxcount || !stat->count)
-			continue; // unused or lump is empty
+			continue;	// unused or lump is empty
 
 		// [FWGS, 01.03.26]
 		if (stat->entrysize == sizeof (byte))
 			totalmemory += Mod_GlobUsage (stat->lumpname, stat->count, stat->maxcount);
-		/*else 
-			totalmemory += Mod_ArrayUsage (stat->lumpname, stat->count, stat->maxcount, stat->entrysize);*/
 		else
 			totalmemory += Mod_ArrayUsage (stat->lumpname, stat->count, stat->maxcount, stat->entrysize);
 		}
@@ -1185,9 +868,6 @@ void Mod_PrintWorldStats_f (void)
 	Con_Printf ("Lighting: %s\n", FBitSet (w->flags, MODEL_COLORED_LIGHTING) ? "colored" : "monochrome");
 	Con_Printf ("World total leafs: %d\n", worldmodel->numleafs + 1);
 	Con_Printf ("original name: ^1%s\n", worldmodel->name);
-	/*Con_Printf ("internal name: ^2%s\n", world.message[0] ? world.message : "none");
-	Con_Printf ("map compiler: ^3%s\n", world.compiler[0] ? world.compiler : "unknown");
-	Con_Printf ("map editor: ^2%s\n", world.generator[0] ? world.generator : "unknown");*/
 	Con_Printf ("internal name: ^2%s\n", world.message ? world.message : "none");
 	Con_Printf ("map compiler: ^3%s\n", world.compiler ? world.compiler : "unknown");
 	Con_Printf ("map editor: ^2%s\n", world.generator ? world.generator : "unknown");
@@ -1204,12 +884,11 @@ COMMON ROUTINES
 Mod_DecompressPVS [FWGS, 01.03.26]
 ===================
 ***/
-/*static void Mod_DecompressPVSTo (byte *const out, const byte *in, size_t visbytes)*/
 static void Mod_DecompressPVS (byte *const out, const byte *in, size_t visbytes)
 	{
 	byte *dst = out;
 
-	if (!in) // no visinfo, make all visible
+	if (!in)	// no visinfo, make all visible
 		{
 		memset (out, 0xFF, visbytes);
 		return;
@@ -1238,17 +917,6 @@ static void Mod_DecompressPVS (byte *const out, const byte *in, size_t visbytes)
 	}
 
 // [FWGS, 01.03.26] removed Mod_DecompressPVSTo
-/*
-/
-===================
-Mod_DecompressPVS [FWGS, 01.07.24]
-===================
-/
-static byte *Mod_DecompressPVS (const byte *in, int visbytes)
-	{
-	Mod_DecompressPVSTo (g_visdata, in, visbytes);
-	return g_visdata;
-	}*/
 
 // [FWGS, 01.07.24]
 static size_t Mod_CompressPVS (byte *const out, const byte *in, size_t inbytes)
@@ -1320,7 +988,6 @@ byte *Mod_GetPVSForPoint (const vec3_t p)
 		Mod_DecompressPVS (g_visdata, leaf->compressed_vis, world.visbytes);
 		return g_visdata;
 		}
-		/*return Mod_DecompressPVS (leaf->compressed_vis, world.visbytes);*/
 
 	return NULL;
 	}
@@ -1356,21 +1023,16 @@ static void Mod_FatPVS_RecursiveBSPNode (const vec3_t org, float radius, byte *v
 	// [FWGS, 01.03.26] if this leaf is in a cluster, accumulate the vis bits
 	if (((mleaf_t *)node)->cluster >= 0)
 		{
-		/*byte *vis;*/
-
 		if (phs)
 			{
 			int i = ((mleaf_t *)node)->cluster + 1;
-			/*vis = Mod_DecompressPVS (&world.compressed_phs[world.phsofs[i]], world.visbytes);*/
 			Mod_DecompressPVS (g_visdata, &world.compressed_phs[world.phsofs[i]], world.visbytes);
 			}
 		else
 			{
-			/*vis = Mod_DecompressPVS (((mleaf_t *)node)->compressed_vis, world.visbytes);*/
 			Mod_DecompressPVS (g_visdata, ((mleaf_t *)node)->compressed_vis, world.visbytes);
 			}
 
-		/*Q_memor (visbuffer, vis, visbytes);*/
 		Q_memor (visbuffer, g_visdata, visbytes);
 		}
 	}
@@ -1401,8 +1063,7 @@ int Mod_FatPVS (const vec3_t org, float radius, byte *visbuffer, int visbytes, q
 		return bytes;
 		}
 
-	// requested PHS but we don't have PHS for some reason
-	// enable full visibility
+	// requested PHS but we don't have PHS for some reason enable full visibility
 	if (phs && !(world.compressed_phs && world.phsofs))
 		{
 		memset (visbuffer, 0xFF, bytes);
@@ -1540,7 +1201,6 @@ static void Mod_FindModelOrigin (const char *entities, const char *modelname, ve
 	qboolean	origin_found;
 
 	// [FWGS, 01.03.26]
-	/*if (!entities || !COM_CheckString (modelname))*/
 	if (!entities || COM_StringEmptyOrNULL (modelname))
 		return;
 
@@ -1599,9 +1259,6 @@ support water transparency
 ***/
 static qboolean Mod_CheckWaterAlphaSupport (model_t *mod, dbspmodel_t *bmod)
 	{
-	/*mleaf_t		*leaf;
-	int			i, j;
-	const byte	*pvs;*/
 	mleaf_t	*leaf;
 	int		i, j;
 
@@ -1614,12 +1271,10 @@ static qboolean Mod_CheckWaterAlphaSupport (model_t *mod, dbspmodel_t *bmod)
 		{
 		if (((leaf->contents == CONTENTS_WATER) || (leaf->contents == CONTENTS_SLIME)) && (leaf->cluster >= 0))
 			{
-			/*pvs = Mod_DecompressPVS (leaf->compressed_vis, world.visbytes);*/
 			Mod_DecompressPVS (g_visdata, leaf->compressed_vis, world.visbytes);
 
 			for (j = 0; j < mod->numleafs; j++)
 				{
-				/*if (CHECKVISBIT (pvs, mod->leafs[j].cluster) && (mod->leafs[j].contents == CONTENTS_EMPTY))*/
 				if (CHECKVISBIT (g_visdata, mod->leafs[j].cluster) && (mod->leafs[j].contents == CONTENTS_EMPTY))
 					return true;
 				}
@@ -1673,7 +1328,7 @@ static int Mod_GetFaceContents (const char *name)
 		else if (!Q_strnicmp (name + 1, "slime", 5))
 			return CONTENTS_SLIME;
 
-		return CONTENTS_WATER; // otherwise it's water
+		return CONTENTS_WATER;	// otherwise it's water
 		}
 
 	if (!Q_strnicmp (name, "water", 5))
@@ -1992,13 +1647,12 @@ static void Mod_CreateFaceBevels (model_t *mod, msurface_t *surf, const dbspmode
 Mod_SetParent [FWGS, 01.02.25]
 =================
 ***/
-/*static void Mod_SetParent (mnode_t *node, mnode_t *parent)*/
 static void Mod_SetParent (model_t *mod, mnode_t *node, mnode_t *parent)
 	{
 	node->parent = parent;
 
 	if (node->contents < 0)
-		return; // it's leaf
+		return;	// it's leaf
 
 	Mod_SetParent (mod, node_child (node, 0, mod), node);
 	Mod_SetParent (mod, node_child (node, 1, mod), node);
@@ -2206,10 +1860,10 @@ static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, int headnode, int hu
 
 	// assume no hull
 	hull->firstclipnode = hull->lastclipnode = 0;
-	hull->planes = NULL; // hull is missed
+	hull->planes = NULL;	// hull is missed
 
 	if (headnode >= mod->numclipnodes)
-		return; // ZHLT weird empty hulls
+		return;	// ZHLT weird empty hulls
 
 	// bsp30ext allows for extended total amount of clipnodes, but the limit is still 16-bit per submodel
 	// therefore we need to remap them
@@ -2280,8 +1934,8 @@ static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, int headnode, int hu
 		hull->clipnodes16 = Mem_Malloc (world->mempool, sizeof (*hull->clipnodes16) * hull->lastclipnode);
 		}
 
-	hull->planes = mod->planes; // share planes
-	hull->lastclipnode = 0; // restart counting
+	hull->planes = mod->planes;	// share planes
+	hull->lastclipnode = 0;		// restart counting
 
 	// remap clipnodes to 16-bit indexes
 	RemapClipNodes_r (bmod, bmod->clipnodes_out, hull, headnode);
@@ -2379,7 +2033,7 @@ static void Mod_SetupSubmodels (model_t *mod, dbspmodel_t *bmod)
 
 		// hull 0 is just shared across all bmodels
 		mod->hulls[0].firstclipnode = bm->headnode[0];
-		mod->hulls[0].lastclipnode = bm->headnode[0]; // need to be real count
+		mod->hulls[0].lastclipnode = bm->headnode[0];	// need to be real count
 
 		// counting a real number of clipnodes per each submodel
 		if (bmod->version == QBSP2_VERSION)
@@ -2421,7 +2075,6 @@ static void Mod_SetupSubmodels (model_t *mod, dbspmodel_t *bmod)
 
 #ifdef HACKS_RELATED_HLMODS
 			// [FWGS, 15.04.26] c2a1 doesn't have origin brush it's just placed at center of the level
-			/*if (!Q_stricmp (name, "maps/c2a1.bsp") && (i == 11))*/
 			if ((i == 11) && !Q_stricmp (name, "maps/c2a1.bsp"))
 				SetBits (mod->flags, MODEL_HAS_ORIGIN);
 #endif
@@ -2476,10 +2129,8 @@ Mod_LoadSubmodels
 static void Mod_LoadSubmodels (model_t *mod, dbspmodel_t *bmod)
 	{
 	// [FWGS, 01.04.26]
-	/*dmodel_t	*in, *out;*/
 	dmodel_t	*in, *out;
 	int			oldmaxfaces;
-	/*int			i, j;*/
 
 	// allocate extradata for each dmodel_t
 	out = Mem_Malloc (mod->mempool, bmod->numsubmodels * sizeof (*out));
@@ -2493,10 +2144,8 @@ static void Mod_LoadSubmodels (model_t *mod, dbspmodel_t *bmod)
 	oldmaxfaces = refState.max_surfaces;
 
 	// [FWGS, 01.04.26]
-	/*for (i = 0; i < bmod->numsubmodels; i++, in++, out++)*/
 	for (int i = 0; i < bmod->numsubmodels; i++, in++, out++)
 		{
-		/*for (j = 0; j < 3; j++)*/
 		for (int j = 0; j < 3; j++)
 			{
 			// reset empty bounds to prevent error
@@ -2511,7 +2160,6 @@ static void Mod_LoadSubmodels (model_t *mod, dbspmodel_t *bmod)
 			out->origin[j] = in->origin[j];
 			}
 
-		/*for (j = 0; j < MAX_MAP_HULLS; j++)*/
 		for (int j = 0; j < MAX_MAP_HULLS; j++)
 			out->headnode[j] = in->headnode[j];
 
@@ -2520,7 +2168,7 @@ static void Mod_LoadSubmodels (model_t *mod, dbspmodel_t *bmod)
 		out->numfaces = in->numfaces;
 
 		if ((i == 0) && bmod->isworld)
-			continue; // skip the world to save mem
+			continue;	// skip the world to save mem
 		oldmaxfaces = Q_max (oldmaxfaces, out->numfaces);
 		}
 
@@ -2536,13 +2184,11 @@ static int Mod_LoadEntities_splitstr_handler (char *prev, char *next, void *user
 	{
 	// [FWGS, 01.04.26]
 	const char		*wad;
-	/*wadlist_t	*wadlist = userdata;*/
 	world_static_t	*w = userdata;
 
 	*next = '\0';
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckStringEmpty (prev))*/
 	if (COM_StringEmpty (prev))
 		return 0;
 
@@ -2555,14 +2201,8 @@ static int Mod_LoadEntities_splitstr_handler (char *prev, char *next, void *user
 	// [FWGS, 01.04.26] make sure that wad really exists
 	if (FS_FileExists (wad, false))
 		{
-		/*int num = wadlist->count++;
-		Q_strncpy (wadlist->wadnames[num], wad, sizeof (wadlist->wadnames[0]));
-		wadlist->wadusage[num] = 0;
-		}*/
 		int num = w->wadcount++;
 
-		/*if (wadlist->count >= HLARRAYSIZE (wadlist->wadnames))
-		return 1;*/
 		// FIXME: that's right, it goes into host.mempool!
 		w->wadlist = Mem_Realloc (host.mempool, w->wadlist, w->wadcount * sizeof (*w->wadlist));
 
@@ -2578,7 +2218,6 @@ static int Mod_LoadEntities_splitstr_handler (char *prev, char *next, void *user
 Mod_LoadEntities [FWGS, 01.04.26]
 =================
 ***/
-/*static void Mod_LoadEntities (model_t *mod, dbspmodel_t *bmod)*/
 static void Mod_LoadEntities (model_t *mod, const dbspmodel_t *bmod)
 	{
 	byte	*entpatch = NULL;
@@ -2611,8 +2250,6 @@ static void Mod_LoadEntities (model_t *mod, const dbspmodel_t *bmod)
 			else if ((entpatch = FS_LoadFile (entfilename, &entpatchsize, true)) != NULL)
 				{
 				Con_Printf ("^2Read entity patch:^7 %s\n", entfilename);
-				/*bmod->entdatasize = entpatchsize;
-				bmod->entdata = entpatch;*/
 				entdatasize = entpatchsize;
 				entdata = entpatch;
 				}
@@ -2620,19 +2257,10 @@ static void Mod_LoadEntities (model_t *mod, const dbspmodel_t *bmod)
 		}
 
 	// make sure that we really have null terminator
-	/*mod->entities = Mem_Malloc (mod->mempool, bmod->entdatasize + 1);
-	memcpy (mod->entities, bmod->entdata, bmod->entdatasize); // moving to private model pool
-
-	mod->entities[bmod->entdatasize] = 0;*/
 	mod->entities = Mem_Malloc (mod->mempool, entdatasize + 1);
-	memcpy (mod->entities, entdata, entdatasize); // moving to private model pool
+	memcpy (mod->entities, entdata, entdatasize);	// moving to private model pool
 	mod->entities[entdatasize] = 0;
 
-	/*if (entpatch)
-		{
-		Mem_Free (entpatch); // release entpatch if present
-		entpatch = NULL;
-		}*/
 	Mem_Free (entpatch);	// release entpatch if present
 	entpatch = NULL;
 
@@ -2640,10 +2268,6 @@ static void Mod_LoadEntities (model_t *mod, const dbspmodel_t *bmod)
 		return;
 
 	pfile = (char *)mod->entities;
-	/*world.generator[0] = '\0';
-	world.compiler[0] = '\0';
-	world.message[0] = '\0';
-	world.wadlist.count = 0;*/
 	Mem_Free (world.generator);
 	world.generator = NULL;
 
@@ -2670,7 +2294,7 @@ static void Mod_LoadEntities (model_t *mod, const dbspmodel_t *bmod)
 				Host_Error ("%s: EOF without closing brace\n", __func__);
 
 			if (token[0] == '}')
-				break; // end of desc
+				break;	// end of desc
 
 			Q_strncpy (keyname, token, sizeof (keyname));
 
@@ -2685,25 +2309,21 @@ static void Mod_LoadEntities (model_t *mod, const dbspmodel_t *bmod)
 				{
 				Q_splitstr (token, ';', &world, Mod_LoadEntities_splitstr_handler);
 				}
-				/*Q_splitstr (token, ';', &world.wadlist, Mod_LoadEntities_splitstr_handler);*/
 			else if (!Q_stricmp (keyname, "message"))
 				{
 				Mem_Free (world.message);
 				world.message = copystring (token);	// FIXME: owned by host.mempool
 				}
-				/*Q_strncpy (world.message, token, sizeof (world.message));*/
 			else if (!Q_stricmp (keyname, "compiler") || !Q_stricmp (keyname, "_compiler"))
 				{
 				Mem_Free (world.compiler);
 				world.compiler = copystring (token);	// FIXME: owned by host.mempool
 				}
-				/*Q_strncpy (world.compiler, token, sizeof (world.compiler));*/
 			else if (!Q_stricmp (keyname, "generator") || !Q_stricmp (keyname, "_generator"))
 				{
 				Mem_Free (world.generator);
 				world.generator = copystring (token);
 				}
-				/*Q_strncpy (world.generator, token, sizeof (world.generator));*/
 			}
 
 		// all done
@@ -2716,7 +2336,6 @@ static void Mod_LoadEntities (model_t *mod, const dbspmodel_t *bmod)
 Mod_LoadPlanes [FWGS, 01.04.26]
 =================
 ***/
-/*static void Mod_LoadPlanes (model_t *mod, dbspmodel_t *bmod)*/
 static void Mod_LoadPlanes (model_t *mod, const dbspmodel_t *bmod)
 	{
 	dplane_t	*in;
@@ -3024,8 +2643,7 @@ static void Mod_InitSkyClouds (model_t *mod, const mip_t *mt, texture_t *tx, qbo
 		return;
 		}
 
-	// make an average value for the back to avoid
-	// a fringe on the top level
+	// make an average value for the back to avoid a fringe on the top level
 	trans = Mem_Malloc (host.mempool, r_sky->height * r_sky->height * sizeof (*trans));
 	r = g = b = 0;
 
@@ -3058,7 +2676,6 @@ static void Mod_InitSkyClouds (model_t *mod, const mip_t *mt, texture_t *tx, qbo
 	r_temp.palette = NULL;
 
 	// [FWGS, 15.04.26] load it in
-	/*solidskyTexture = GL_LoadTextureInternal ("solid_sky", &r_temp, TF_NOMIPMAP);*/
 	solidskyTexture = GL_LoadTextureInternal ("solid_sky", &r_temp, TF_NOMIPMAP | TF_ALLOW_NEAREST);
 
 	for (i = 0; i < r_sky->width >> 1; i++)
@@ -3082,7 +2699,6 @@ static void Mod_InitSkyClouds (model_t *mod, const mip_t *mt, texture_t *tx, qbo
 	r_temp.flags = IMAGE_HAS_COLOR | IMAGE_HAS_ALPHA;
 
 	// [FWGS, 15.04.26] load it in
-	/*alphaskyTexture = GL_LoadTextureInternal ("alpha_sky", &r_temp, TF_NOMIPMAP);*/
 	alphaskyTexture = GL_LoadTextureInternal ("alpha_sky", &r_temp, TF_NOMIPMAP | TF_ALLOW_NEAREST);
 
 	// clean up
@@ -3113,7 +2729,7 @@ static void Mod_LoadTextureData (model_t *mod, dbspmodel_t *bmod, int textureInd
 	qboolean	load_external = false;
 
 	// don't load texture data on dedicated server, as there is no renderer.
-	// but count the wadusage for automatic precache.
+	// but count the wadusage for automatic precache
 	texture_t	*texture = mod->textures[textureIndex];
 	const mip_t	*mipTex = Mod_GetMipTexForTexture (bmod, textureIndex);
 	const qboolean	usesCustomPalette = Mod_CalcMipTexUsesCustomPalette (mod, bmod, textureIndex);
@@ -3126,14 +2742,14 @@ static void Mod_LoadTextureData (model_t *mod, dbspmodel_t *bmod, int textureInd
 	if (bmod->isworld && (Q_strncmp (mipTex->name, "sky", 3) == 0) &&
 		((mipTex->width / mipTex->height) == 2))
 		{
-		Mod_InitSkyClouds (mod, mipTex, texture, usesCustomPalette); // load quake sky
+		Mod_InitSkyClouds (mod, mipTex, texture, usesCustomPalette);	// load quake sky
 		return;
 		}
 
 	// FIXME: for ENGINE_IMPROVED_LINETRACE we need to load textures on server too
 	// but there is no facility for this yet
 	if (FBitSet (host.features, ENGINE_IMPROVED_LINETRACE) && (mipTex->name[0] == '{'))
-		SetBits (txFlags, TF_KEEP_SOURCE); // Paranoia2 texture alpha-tracing
+		SetBits (txFlags, TF_KEEP_SOURCE);	// Paranoia2 texture alpha-tracing
 
 	// check if this is water to keep the source texture and expand it to RGBA (so ripple effect works)
 	if (iswater)
@@ -3163,16 +2779,12 @@ static void Mod_LoadTextureData (model_t *mod, dbspmodel_t *bmod, int textureInd
 		}
 
 	// [FWGS, 01.04.26] Try WAD texture (force while r_wadtextures is 1)
-	/*if (!texture->gl_texturenum && ((r_wadtextures.value && (world.wadlist.count > 0)) || (mipTex->offsets[0] <= 0)))*/
 	if (!texture->gl_texturenum && ((r_wadtextures.value && (world.wadcount > 0)) || (mipTex->offsets[0] <= 0)))
 		{
 		rgbdata_t *pic = NULL;
-		/*int wadIndex = Mod_LoadTextureFromWadList (&world.wadlist, mipTex->name, Host_IsDedicated () ? NULL :
-			&pic, texpath, sizeof (texpath));*/
 		int wad_index = Mod_LoadTextureFromWadList (world.wadlist, world.wadcount, mipTex->name,
 			Host_IsDedicated () ? NULL : &pic, texpath, sizeof (texpath));
 
-		/*if (wadIndex >= 0)*/
 		if (wad_index >= 0)
 			{
 #if !XASH_DEDICATED
@@ -3186,7 +2798,6 @@ static void Mod_LoadTextureData (model_t *mod, dbspmodel_t *bmod, int textureInd
 				}
 #endif
 
-			/*world.wadlist.wadusage[wadIndex]++;*/
 			world.wadlist[wad_index].usage++;
 			}
 		}
@@ -3199,7 +2810,6 @@ static void Mod_LoadTextureData (model_t *mod, dbspmodel_t *bmod, int textureInd
 	if ((mipTex->offsets[0] > 0) && (texture->gl_texturenum == 0))
 		{
 		// [FWGS, 01.04.26]
-		/*char texName[64];*/
 		string texName;
 		const size_t size = Mod_CalculateMipTexSize (mipTex, usesCustomPalette);
 
@@ -3237,7 +2847,6 @@ static void Mod_LoadTextureData (model_t *mod, dbspmodel_t *bmod, int textureInd
 	if (FBitSet (REF_GET_PARM (PARM_TEX_FLAGS, texture->gl_texturenum), TF_HAS_LUMA) && !texture->fb_texturenum)
 		{
 		// [FWGS, 01.04.26]
-		/*char texName[64];*/
 		string texName;
 		Q_snprintf (texName, sizeof (texName), "#%s:%s_luma.mip", loadstat.name, mipTex->name);
 
@@ -3252,22 +2861,18 @@ static void Mod_LoadTextureData (model_t *mod, dbspmodel_t *bmod, int textureInd
 		else
 			{
 			// [FWGS, 01.04.26]
-			/*int			wadIndex;*/
 			rgbdata_t	*pic = NULL;
 
 			// NOTE: We can't load the _luma texture from the WAD as normal because it
 			// doesn't exist there. The original texture is already loaded, but cannot be modified.
 			// Instead, load the original texture again and convert it to luma
-			/*wadIndex = Mod_LoadTextureFromWadList (&world.wadlist, texture->name, &pic, NULL, 0);*/
 			int wad_index = Mod_LoadTextureFromWadList (world.wadlist, world.wadcount, texture->name, &pic, NULL, 0);
 
-			/*if ((wadIndex >= 0) && (pic != NULL))*/
 			if ((wad_index >= 0) && (pic != NULL))
 				{
 				// OK, loading it from wad or hi-res(??) version
 				texture->fb_texturenum = ref.dllFuncs.GL_LoadTextureFromBuffer (texName, pic, TF_MAKELUMA, false);
 				FS_FreeImage (pic);
-				/*world.wadlist.wadusage[wadIndex]++;*/
 				world.wadlist[wad_index].usage++;
 				}
 			}
@@ -3341,7 +2946,7 @@ static void Mod_SequenceAnimatedTexture (model_t *mod, int baseTextureIndex)
 
 	if ((baseTexture->name[1] >= '0') && (baseTexture->name[1] <= '9'))
 		{
-		// This texture is a standard animation frame.
+		// This texture is a standard animation frame
 		int frameIndex = (int)baseTexture->name[1] - (int)'0';
 
 		anims[frameIndex] = baseTexture;
@@ -3356,7 +2961,7 @@ static void Mod_SequenceAnimatedTexture (model_t *mod, int baseTextureIndex)
 		altmax = frameIndex + 1;
 		}
 
-	// Now search the rest of the textures to find all other frames.
+	// Now search the rest of the textures to find all other frames
 	for (candidateIndex = baseTextureIndex + 1; candidateIndex < mod->numtextures; candidateIndex++)
 		{
 		texture_t *altTexture = mod->textures[candidateIndex];
@@ -3535,12 +3140,6 @@ Mod_LoadSurfaces [FWGS, 01.03.26]
 ***/
 static void Mod_LoadSurfaces (model_t *mod, dbspmodel_t *bmod)
 	{
-	/*int		test_lightsize = -1;
-	int		next_lightofs = -1;
-	int		prev_lightofs = -1;
-	int		i, j, lightofs;
-	mextrasurf_t	*info;
-	msurface_t		*out;*/
 	int		test_lightsize = -1;
 	int		next_lightofs = -1;
 	int		prev_lightofs = -1;
@@ -3555,8 +3154,6 @@ static void Mod_LoadSurfaces (model_t *mod, dbspmodel_t *bmod)
 	// predict samplecount based on bspversion
 	if ((bmod->version == Q1BSP_VERSION) || (bmod->version == QBSP2_VERSION))
 		bmod->lightmap_samples = 1;
-	/*else
-		bmod->lightmap_samples = 3;*/
 	else
 		bmod->lightmap_samples = 3;
 
@@ -3646,10 +3243,6 @@ static void Mod_LoadSurfaces (model_t *mod, dbspmodel_t *bmod)
 		// grab the first sample to determine lightmap size
 		if ((lightofs != -1) && (test_lightsize == -1))
 			{
-			/*int	sample_size = Mod_SampleSizeForFace (out);
-			int	smax = (info->lightextents[0] / sample_size) + 1;
-			int	tmax = (info->lightextents[1] / sample_size) + 1;
-			int	lightstyles = 0;*/
 			int sample_size = Mod_SampleSizeForFace (out);
 			int smax = (info->lightextents[0] / sample_size) + 1;
 			int tmax = (info->lightextents[1] / sample_size) + 1;
@@ -3675,11 +3268,10 @@ static void Mod_LoadSurfaces (model_t *mod, dbspmodel_t *bmod)
 	// now we have enough data to trying determine samplecount per lightmap pixel
 	if ((test_lightsize > 0) && (prev_lightofs != -1) && (next_lightofs != -1) && (next_lightofs != 99999999))
 		{
-		/*float	samples = (float)(next_lightofs - prev_lightofs) / (float)test_lightsize;*/
 		float samples = (float)(next_lightofs - prev_lightofs) / (float)test_lightsize;
 		if (samples != (int)samples)
 			{
-			test_lightsize = (test_lightsize + 3) & ~3; // align datasize and try again
+			test_lightsize = (test_lightsize + 3) & ~3;	// align datasize and try again
 			samples = (float)(next_lightofs - prev_lightofs) / (float)test_lightsize;
 			}
 
@@ -3689,7 +3281,7 @@ static void Mod_LoadSurfaces (model_t *mod, dbspmodel_t *bmod)
 				Con_DPrintf (S_WARN "detected light sample count: %g\n", samples);
 
 			bmod->lightmap_samples = (int)samples;
-			bmod->lightmap_samples = Q_max (bmod->lightmap_samples, 1); // avoid division by zero
+			bmod->lightmap_samples = Q_max (bmod->lightmap_samples, 1);	// avoid division by zero
 			}
 		else
 			{
@@ -3884,7 +3476,7 @@ static void Mod_LoadLeafs (model_t *mod, dbspmodel_t *bmod)
 
 		if (bmod->isworld)
 			{
-			out->cluster = (i - 1); // solid leaf 0 has no visdata
+			out->cluster = (i - 1);	// solid leaf 0 has no visdata
 
 			if (out->cluster >= visclusters)
 				out->cluster = -1;
@@ -3900,7 +3492,7 @@ static void Mod_LoadLeafs (model_t *mod, dbspmodel_t *bmod)
 			}
 		else
 			{
-			out->cluster = -1; // no visclusters on bmodels
+			out->cluster = -1;	// no visclusters on bmodels
 			}
 
 		if (p == -1) 
@@ -3938,8 +3530,8 @@ To be called while loading world for multiplayer game server
 static void Mod_CalcPHS (model_t *mod)
 	{
 	const qboolean	vis_stats = host_developer.value >= DEV_EXTENDED;
-	const size_t	rowbytes = ALIGN (world.visbytes, 4); // force align rows by 32-bit boundary
-	const size_t	count = mod->numleafs + 1; // same as mod->submodels[0].visleafs + 1
+	const size_t	rowbytes = ALIGN (world.visbytes, 4);	// force align rows by 32-bit boundary
+	const size_t	count = mod->numleafs + 1;	// same as mod->submodels[0].visleafs + 1
 	double	t1;
 	double	t2;
 	size_t	total_compressed_size = 0;
@@ -3969,9 +3561,8 @@ static void Mod_CalcPHS (model_t *mod)
 #pragma omp parallel
 	{
 	// [FWGS, 01.03.26] uncompress pvs first
-#pragma omp for schedule( static, 256 ) // there might be thousands of leafs, split by 256
+#pragma omp for schedule( static, 256 )	// there might be thousands of leafs, split by 256
 	for (i = 0; i < count; i++)
-		/*Mod_DecompressPVSTo (&uncompressed_pvs[rowbytes * i], mod->leafs[i].compressed_vis, world.visbytes);*/
 		Mod_DecompressPVS (&uncompressed_pvs[rowbytes * i], mod->leafs[i].compressed_vis, world.visbytes);
 
 	// now create phs
@@ -3979,7 +3570,7 @@ static void Mod_CalcPHS (model_t *mod)
 	for (i = 0; i < count; i++)
 		{
 		const byte *scan = &uncompressed_pvs[rowbytes * i];
-		byte *dst = &uncompressed_phs[rowbytes * i]; // rowbytes, not rowwords!
+		byte *dst = &uncompressed_phs[rowbytes * i];	// rowbytes, not rowwords!
 		size_t j;
 
 		memcpy (dst, scan, rowbytes);
@@ -4030,7 +3621,7 @@ static void Mod_CalcPHS (model_t *mod)
 	for (i = 0; i < count; i++)
 		{
 		const byte *src = &uncompressed_phs[rowbytes * i];
-		byte temp_compressed_row[(MAX_MAP_LEAFS + 1) / 4]; // compression for this row might be ineffective
+		byte temp_compressed_row[(MAX_MAP_LEAFS + 1) / 4];	// compression for this row might be ineffective
 		size_t compressed_size;
 
 		compressed_size = Mod_CompressPVS (temp_compressed_row, src, rowbytes);
@@ -4198,7 +3789,6 @@ static void Mod_LoadLighting (model_t *mod, dbspmodel_t *bmod)
 	switch (bmod->lightmap_samples)
 		{
 		case 1:
-			/*if (!Mod_LoadLitfile (mod, "lit", bmod->lightdatasize * 3, &mod->lightdata, &bmod->lightdatasize))*/
 			if (bmod->rgblightdata && bmod->rgblightdatasize > 0 && bmod->rgblightdatasize == bmod->lightdatasize * 3)
 				{
 				bmod->lightdatasize = bmod->rgblightdatasize;
@@ -4218,10 +3808,6 @@ static void Mod_LoadLighting (model_t *mod, dbspmodel_t *bmod)
 				for (i = 0; i < bmod->lightdatasize; i++)
 					mod->lightdata[i].r = mod->lightdata[i].g = mod->lightdata[i].b = bmod->lightdata[i];
 				}
-			/*else
-				{
-				SetBits (mod->flags, MODEL_COLORED_LIGHTING);
-				}*/
 			break;
 
 		// load colored lighting
@@ -4340,8 +3926,7 @@ static fs_offset_t Mod_FindBSPX (const byte *mod_base, size_t bufferlen)
 	fs_offset_t			max_offset = Mod_FindEndOfBSPFile (mod_base, bufferlen);
 	const dbspx_hdr_t	*bspx_header;
 
-	max_offset = ALIGN (max_offset, 4);		// force 32-bit boundary
-	/*if (max_offset > bufferlen)*/
+	max_offset = ALIGN (max_offset, 4);	// force 32-bit boundary
 	if (max_offset + sizeof (dbspx_hdr_t) > bufferlen)
 		return -1;
 
@@ -4360,28 +3945,17 @@ Mod_LoadBmodelLumps [FWGS, 01.04.26]
 loading and processing bmodel
 =================
 ***/
-/*static qboolean Mod_LoadBmodelLumps (model_t *mod, const byte *mod_base, qboolean isworld)*/
 static qboolean Mod_LoadBmodelLumps (model_t *mod, byte *mod_base, size_t bufferlen, qboolean isworld)
 	{
-	/*const dheader_t		*header = (const dheader_t *)mod_base;
-	const dextrahdr_t	*extrahdr = (const dextrahdr_t *)(mod_base + sizeof (dheader_t));
-	dbspmodel_t			*bmod = &srcmodel;
-	char				wadvalue[2048];
-	size_t				len = 0;
-	int					i, ret, flags = 0;
-	qboolean			wadlist_warn = false;*/
 	dheader_t	*header = (dheader_t *)mod_base;
 	int			*extident = (int *)(mod_base + sizeof (dheader_t));
 	dbspmodel_t	*bmod = &srcmodel;
 	char		wadvalue[2048];
 	size_t		len = 0;
 	int			i, stat_index = 0, ret, flags = 0;
-	/*qboolean	wadlist_warn = false;*/
 	fs_offset_t	bspx_header_offset;
 
 	// always reset the intermediate struct
-	/*memset (bmod, 0, sizeof (dbspmodel_t));
-	memset (&loadstat, 0, sizeof (loadstat_t));*/
 	memset (bmod, 0, sizeof (*bmod));
 	memset (&loadstat, 0, sizeof (loadstat));
 
@@ -4395,7 +3969,6 @@ static qboolean Mod_LoadBmodelLumps (model_t *mod, byte *mod_base, size_t buffer
 	switch (header->version)
 		{
 		case HLBSP_VERSION:
-			/*if (extrahdr->id == IDEXTRAHEADER)*/
 			if (*extident == IDEXTRAHEADER)
 				{
 				SetBits (flags, LUMP_BSP30EXT);
@@ -4410,19 +3983,11 @@ static qboolean Mod_LoadBmodelLumps (model_t *mod, byte *mod_base, size_t buffer
 				// blue-shift swapped lumps
 				srclumps[0].lumpnumber = LUMP_PLANES;
 				srclumps[1].lumpnumber = LUMP_ENTITIES;
-				/*break;*/
 				}
-
-			/*// intended fallthrough*/
 			break;
 
 		case Q1BSP_VERSION:
 		case QBSP2_VERSION:
-			/*// everything else
-			srclumps[0].lumpnumber = LUMP_ENTITIES;
-			srclumps[1].lumpnumber = LUMP_PLANES;
-
-			// [FWGS, 01.02.25]*/
 			if (header->version == QBSP2_VERSION)
 				SetBits (mod->flags, MODEL_QBSP2);
 			break;
@@ -4447,46 +4012,32 @@ static qboolean Mod_LoadBmodelLumps (model_t *mod, byte *mod_base, size_t buffer
 	bspx_header_offset = Mod_FindBSPX (mod_base, bufferlen);
 
 	// loading base lumps
-	/*for (i = 0; i < HLARRAYSIZE (srclumps); i++)
-		Mod_LoadLump (mod_base, &srclumps[i], &worldstats[i], flags);*/
 	for (i = 0; i < HLARRAYSIZE (srclumps); i++, stat_index++)
 		Mod_LoadLump (mod_base, &srclumps[i], &worldstats[stat_index], flags, LOADLUMP_STANDARD, NULL);
 
 	// loading extralumps
-	/*for (i = 0; i < HLARRAYSIZE (extlumps); i++)
-		Mod_LoadLump (mod_base, &extlumps[i], &worldstats[ARRAYSIZE (srclumps) + i], flags);*/
 	for (i = 0; i < HLARRAYSIZE (extlumps); i++, stat_index++)
 		Mod_LoadLump (mod_base, &extlumps[i], &worldstats[stat_index], flags, LOADLUMP_BSP30EXT, NULL);
 
 	// [FWGS, 05.04.26] loading bspx lumps
-	/*for (i = 0; i < HLARRAYSIZE (bspxlumps); i++, stat_index++)
-		Mod_LoadLump (mod_base, &bspxlumps[i], &worldstats[stat_index], flags, LOADLUMP_BSPX, mod_base + bspx_header_offset);*/
 	if (bspx_header_offset >= 0)
 		{
 		for (i = 0; i < HLARRAYSIZE (bspxlumps); i++, stat_index++)
 			Mod_LoadLump (mod_base, &bspxlumps[i], &worldstats[stat_index], flags, LOADLUMP_BSPX, mod_base + bspx_header_offset);
 		}
 
-	/*if (!bmod->isworld && loadstat.numerrors)*/
 	// a1ba: why world excluded here?
 	if (!bmod->isworld)
 		{
-		/*Con_DPrintf ("Mod_Load%s: %i error(s), %i warning(s)\n", isworld ? "World" : "Brush", 
-			loadstat.numerrors, loadstat.numwarnings);
-		return false; // there were errors, we can't load this map*/
 		if (loadstat.numerrors)
 			{
 			Con_DPrintf ("%s: %i error(s), %i warning(s)\n", __func__, loadstat.numerrors, loadstat.numwarnings);
-			return false; // there were errors, we can't load this map
+			return false;	// there were errors, we can't load this map
 			}
 
 		if (loadstat.numwarnings)
 			Con_DPrintf ("%s: %i warning(s)\n", __func__, loadstat.numwarnings);
 		}
-	/*else if (!bmod->isworld && loadstat.numwarnings)
-		{
-		Con_DPrintf ("Mod_Load%s: %i warning(s)\n", isworld ? "World" : "Brush", loadstat.numwarnings);
-		}*/
 
 	// load into heap
 	Mod_LoadEntities (mod, bmod);
@@ -4522,17 +4073,14 @@ static qboolean Mod_LoadBmodelLumps (model_t *mod, byte *mod_base, size_t buffer
 			Mod_CalcPHS (mod);
 		}
 
-	/*for (i = 0; i < world.wadlist.count; i++)*/
 	qboolean wadlist_warn = false;
 	for (i = 0; i < world.wadcount; i++)
 		{
-		/*if (!world.wadlist.wadusage[i])*/
 		if (!world.wadlist[i].usage)
 			continue;
 
 		if (!wadlist_warn)
 			{
-			/*ret = Q_snprintf (&wadvalue[len], sizeof (wadvalue), "%s; ", world.wadlist.wadnames[i]);*/
 			ret = Q_snprintf (&wadvalue[len], sizeof (wadvalue) - len, "%s; ", world.wadlist[i].name);
 
 			if (ret == -1)
@@ -4545,10 +4093,9 @@ static qboolean Mod_LoadBmodelLumps (model_t *mod, byte *mod_base, size_t buffer
 			}
 		}
 
-	/*if (COM_CheckString (wadvalue))*/
 	if (!COM_StringEmptyOrNULL (wadvalue))
 		{
-		wadvalue[Q_strlen (wadvalue) - 2] = '\0'; // kill the last semicolon
+		wadvalue[Q_strlen (wadvalue) - 2] = '\0';	// kill the last semicolon
 		Con_Reportf ("Wad files required to run the map: \"%s\"\n", wadvalue);
 		}
 
@@ -4590,12 +4137,8 @@ check for possible errors
 return real entities lump (for bshift swapped lumps)
 =================
 ***/
-/*qboolean Mod_TestBmodelLumps (file_t *f, const char *name, const byte *mod_base, qboolean silent, dlump_t *entities)*/
 qboolean Mod_TestBmodelLumps (file_t *f, const char *name, byte *mod_base, size_t buffersize, qboolean silent, dlump_t *entities)
 	{
-	/*const dheader_t		*header = (const dheader_t *)mod_base;
-	const dextrahdr_t	*extrahdr = (const dextrahdr_t *)(mod_base + sizeof (dheader_t));
-	int		i, flags = LUMP_TESTONLY;*/
 	dheader_t	*header = (dheader_t *)mod_base;
 	int			*extident = (int *)(mod_base + sizeof (dheader_t));
 	int			i, flags = LUMP_TESTONLY, stat_index = 0;
@@ -4618,7 +4161,6 @@ qboolean Mod_TestBmodelLumps (file_t *f, const char *name, byte *mod_base, size_
 	switch (header->version)
 		{
 		case HLBSP_VERSION:
-			/*if (extrahdr->id == IDEXTRAHEADER)*/
 			if ((buffersize > sizeof (*header) + sizeof (dextrahdr_t)) && (*extident == IDEXTRAHEADER))
 				{
 				SetBits (flags, LUMP_BSP30EXT);
@@ -4627,40 +4169,27 @@ qboolean Mod_TestBmodelLumps (file_t *f, const char *name, byte *mod_base, size_
 				{
 				// only relevant for half-life maps
 				int ret = Mod_LumpLooksLikeEntitiesFile (f, &header->lumps[LUMP_ENTITIES], flags, "entities");
-				/*if (ret < 0)
-					return false;*/
 				if (ret < 0)
 					return false;
 
 				if (!ret)
 					{
 					ret = Mod_LumpLooksLikeEntitiesFile (f, &header->lumps[LUMP_PLANES], flags, "planes");
-					/*if (ret < 0)
-						return false;*/
 					if (ret < 0)
 						return false;
 
 					if (ret)
 						{
 						// blue-shift swapped lumps
-						/**entities = header->lumps[LUMP_PLANES];*/
-
 						srclumps[0].lumpnumber = LUMP_PLANES;
 						srclumps[1].lumpnumber = LUMP_ENTITIES;
-						/*break;*/
 						}
 					}
 				}
-
-			/*// intended fallthrough*/
 			break;
 
 		case Q1BSP_VERSION:
 		case QBSP2_VERSION:
-			/*// everything else
-			*entities = header->lumps[LUMP_ENTITIES];
-			srclumps[0].lumpnumber = LUMP_ENTITIES;
-			srclumps[1].lumpnumber = LUMP_PLANES;*/
 			break;
 
 		default:
@@ -4676,36 +4205,23 @@ qboolean Mod_TestBmodelLumps (file_t *f, const char *name, byte *mod_base, size_
 	*entities = header->lumps[srclumps[0].lumpnumber];
 
 	// loading base lumps
-	/*for (i = 0; i < HLARRAYSIZE (srclumps); i++)
-		Mod_LoadLump (mod_base, &srclumps[i], &worldstats[i], flags);*/
 	for (i = 0; i < HLARRAYSIZE (srclumps); i++, stat_index++)
 		Mod_LoadLump (mod_base, &srclumps[i], &worldstats[stat_index], flags, LOADLUMP_STANDARD, NULL);
 
 	// loading extralumps
-	/*for (i = 0; i < HLARRAYSIZE (extlumps); i++)
-		Mod_LoadLump (mod_base, &extlumps[i], &worldstats[ARRAYSIZE (srclumps) + i], flags);*/
 	for (i = 0; i < HLARRAYSIZE (extlumps); i++, stat_index++)
 		Mod_LoadLump (mod_base, &extlumps[i], &worldstats[stat_index], flags, LOADLUMP_BSP30EXT, NULL);
 
-	/*if (loadstat.numerrors)*/
 	// FIXME: BSPX testing
-
 	if (!FBitSet (flags, LUMP_SILENT))
 		{
-		/*if (!FBitSet (flags, LUMP_SILENT))*/
 		if (loadstat.numerrors)
 			Con_Printf ("%s: %i error(s), %i warning(s)\n", __func__, loadstat.numerrors, loadstat.numwarnings);
 
-		/*return false; // there were errors, we can't load this map
-		}
-	else if (loadstat.numwarnings)
-		{
-		if (!FBitSet (flags, LUMP_SILENT))*/
 		else if (loadstat.numwarnings)
 			Con_Printf ("%s: %i warning(s)\n", __func__, loadstat.numwarnings);
 		}
 
-	/*return true;*/
 	return loadstat.numerrors ? false : true;
 	}
 
@@ -4714,7 +4230,6 @@ qboolean Mod_TestBmodelLumps (file_t *f, const char *name, byte *mod_base, size_
 Mod_LoadBrushModel [FWGS, 01.03.26]
 =================
 ***/
-/*void Mod_LoadBrushModel (model_t *mod, const void *buffer, qboolean *loaded)*/
 void Mod_LoadBrushModel (model_t *mod, void *buffer, size_t buffersize, qboolean *loaded)
 	{
 	char poolname[MAX_VA_STRING];
@@ -4728,7 +4243,6 @@ void Mod_LoadBrushModel (model_t *mod, void *buffer, size_t buffersize, qboolean
 	mod->type = mod_brush;
 
 	// loading all the lumps into heap
-	/*if (!Mod_LoadBmodelLumps (mod, buffer, world.loading))*/
 	if (!Mod_LoadBmodelLumps (mod, buffer, buffersize, world.loading))
 		return;	// there were errors
 
@@ -4867,7 +4381,7 @@ int GAME_EXPORT Mod_ReadLump (const char *filename, const int lump, void **lumpd
 		return LUMP_LOAD_CORRUPTED;
 		}
 
-	data[length] = 0; // write term
+	data[length] = 0;	// write term
 	FS_Close (f);
 
 	if (lumpsize)

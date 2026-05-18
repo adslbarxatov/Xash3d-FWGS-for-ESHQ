@@ -168,7 +168,7 @@ void Image_Init (void)
 
 void Image_Shutdown (void)
 	{
-	Mem_Check (); // check for leaks
+	Mem_Check ();	// check for leaks
 	Mem_FreePool (&host.imagepool);
 	}
 
@@ -279,7 +279,7 @@ int Image_ComparePalette (const byte *pal)
 	{
 	if (pal == NULL)
 		return PAL_INVALID;
-	else if (!memcmp (palette_q1, pal, 765)) // last color was changed
+	else if (!memcmp (palette_q1, pal, 765))	// last color was changed
 		return PAL_QUAKE1;
 	else if (!memcmp (palette_hl, pal, 765))
 		return PAL_HALFLIFE;
@@ -287,41 +287,46 @@ int Image_ComparePalette (const byte *pal)
 	return PAL_CUSTOM;
 	}
 
-// [FWGS, 01.08.24]
+// [FWGS, 01.05.26]
 static void Image_SetPalette (const byte *pal, uint *d_table)
 	{
-	byte	rgba[4];
+	/*byte	rgba[4];
 	uint	uirgba;	// TODO: palette looks byte-swapped on big-endian
 	int		i;
 
-	// setup palette
+	// setup palette*/
 	switch (image.d_rendermode)
 		{
 		case LUMP_NORMAL:
-			for (i = 0; i < 256; i++)
+			/*for (i = 0; i < 256; i++)
 				{
 				memcpy (rgba, &pal[i * 3], 3);
 				rgba[3] = 0xFF;
 				memcpy (&uirgba, rgba, sizeof (uirgba));
 				d_table[i] = uirgba;
-				}
+				}*/
+			for (int i = 0; i < 256; i++)
+				d_table[i] = HostFourCC (pal[i * 3 + 0], pal[i * 3 + 1], pal[i * 3 + 2], 0xFF);
 			break;
 
 		case LUMP_TEXGAMMA:
-			for (i = 0; i < 256; i++)
+			/*for (i = 0; i < 256; i++)*/
+			for (int i = 0; i < 256; i++)
 				{
-				rgba[0] = TextureToGamma (pal[i * 3 + 0]);
+				/*rgba[0] = TextureToGamma (pal[i * 3 + 0]);
 				rgba[1] = TextureToGamma (pal[i * 3 + 1]);
 				rgba[2] = TextureToGamma (pal[i * 3 + 2]);
 
 				rgba[3] = 0xFF;
 				memcpy (&uirgba, rgba, sizeof (uirgba));
-				d_table[i] = uirgba;
+				d_table[i] = uirgba;*/
+				d_table[i] = HostFourCC (TextureToGamma (pal[i * 3 + 0]), TextureToGamma (pal[i * 3 + 1]),
+					TextureToGamma (pal[i * 3 + 2]), 0xFF);
 				}
 			break;
 
 		case LUMP_GRADIENT:
-			for (i = 0; i < 256; i++)
+			/*for (i = 0; i < 256; i++)
 				{
 				rgba[0] = pal[765];
 				rgba[1] = pal[766];
@@ -329,11 +334,13 @@ static void Image_SetPalette (const byte *pal, uint *d_table)
 				rgba[3] = i;
 				memcpy (&uirgba, rgba, sizeof (uirgba));
 				d_table[i] = uirgba;
-				}
+				}*/
+			for (int i = 0; i < 256; i++)
+				d_table[i] = HostFourCC (pal[765], pal[766], pal[767], i);
 			break;
 
 		case LUMP_MASKED:
-			for (i = 0; i < 255; i++)
+			/*for (i = 0; i < 255; i++)
 				{
 				rgba[0] = pal[i * 3 + 0];
 				rgba[1] = pal[i * 3 + 1];
@@ -341,12 +348,14 @@ static void Image_SetPalette (const byte *pal, uint *d_table)
 				rgba[3] = 0xFF;
 				memcpy (&uirgba, rgba, sizeof (uirgba));
 				d_table[i] = uirgba;
-				}
+				}*/
+			for (int i = 0; i < 255; i++)
+				d_table[i] = HostFourCC (pal[i * 3 + 0], pal[i * 3 + 1], pal[i * 3 + 2], 0xFF);
 			d_table[255] = 0;
 			break;
 
 		case LUMP_EXTENDED:
-			for (i = 0; i < 256; i++)
+			/*for (i = 0; i < 256; i++)
 				{
 				rgba[0] = pal[i * 4 + 0];
 				rgba[1] = pal[i * 4 + 1];
@@ -354,7 +363,9 @@ static void Image_SetPalette (const byte *pal, uint *d_table)
 				rgba[3] = pal[i * 4 + 3];
 				memcpy (&uirgba, rgba, sizeof (uirgba));
 				d_table[i] = uirgba;
-				}
+				}*/
+			for (int i = 0; i < 256; i++)
+				d_table[i] = HostFourCC (pal[i * 4 + 0], pal[i * 4 + 1], pal[i * 4 + 2], pal[i * 4 + 3]);
 			break;
 		}
 	}
@@ -366,7 +377,7 @@ static void Image_ConvertPalTo24bit (rgbdata_t *pic)
 	int	i;
 
 	if (pic->type == PF_INDEXED_24)
-		return; // does nothing
+		return;	// does nothing
 
 	pal24 = converted = Mem_Malloc (host.imagepool, 768);
 	pal32 = pic->palette;
@@ -385,7 +396,7 @@ static void Image_ConvertPalTo24bit (rgbdata_t *pic)
 
 void Image_CopyPalette32bit (void)
 	{
-	if (image.palette) return; // already created ?
+	if (image.palette) return;	// already created ?
 	image.palette = Mem_Malloc (host.imagepool, 1024);
 	memcpy (image.palette, image.d_currentpal, 1024);
 	}
@@ -402,7 +413,7 @@ void Image_CheckPaletteQ1 (void)
 			image.d_rendermode = LUMP_NORMAL;
 			Con_DPrintf ("custom quake palette detected\n");
 			Image_SetPalette (pic->palette, d_8toQ1table);
-			d_8toQ1table[255] = 0; // 255 is transparent
+			d_8toQ1table[255] = 0;	// 255 is transparent
 			image.custom_palette = true;
 			q1palette_init = true;
 			}
@@ -418,7 +429,7 @@ void Image_GetPaletteQ1 (void)
 		{
 		image.d_rendermode = LUMP_NORMAL;
 		Image_SetPalette (palette_q1, d_8toQ1table);
-		d_8toQ1table[255] = 0; // 255 is transparent
+		d_8toQ1table[255] = 0;	// 255 is transparent
 		q1palette_init = true;
 		}
 
@@ -627,7 +638,6 @@ qboolean Image_Copy8bitRGBA (const byte *in, byte *out, int pixels)
 	if (image.flags & IMAGE_HAS_LUMA)
 		{
 		for (i = 0; i < image.width * image.height; i++)
-			/*fin[i] = fin[i] < 224 ? fin[i] : 0;*/
 			fin[i] = (fin[i] < 224) ? fin[i] : image.black_pixel;
 		}
 
@@ -676,7 +686,7 @@ qboolean Image_Copy8bitRGBA (const byte *in, byte *out, int pixels)
 		iout += 2;
 		}
 
-	if (pixels & 1) // last byte
+	if (pixels & 1)	// last byte
 		iout[0] = image.d_currentpal[in[0]];
 	image.type = PF_RGBA_32;	// update image type
 
@@ -706,7 +716,7 @@ static void Image_Resample32LerpLine (const byte *in, byte *out, int inwidth, in
 			*out++ = (byte)((((in[6] - in[2]) * lerp) >> 16) + in[2]);
 			*out++ = (byte)((((in[7] - in[3]) * lerp) >> 16) + in[3]);
 			}
-		else // last pixel of the line has no pixel to lerp to
+		else	// last pixel of the line has no pixel to lerp to
 			{
 			*out++ = in[0];
 			*out++ = in[1];
@@ -740,7 +750,7 @@ static void Image_Resample24LerpLine (const byte *in, byte *out, int inwidth, in
 			*out++ = (byte)((((in[4] - in[1]) * lerp) >> 16) + in[1]);
 			*out++ = (byte)((((in[5] - in[2]) * lerp) >> 16) + in[2]);
 			}
-		else // last pixel of the line has no pixel to lerp to
+		else	// last pixel of the line has no pixel to lerp to
 			{
 			*out++ = in[0];
 			*out++ = in[1];
@@ -870,7 +880,7 @@ static void Image_Resample32Nolerp (const void *indata, int inwidth, int inheigh
 	{
 	int		i, j;
 	uint	frac, fracstep;
-	int		*inrow, *out = (int *)outdata; // relies on int being 4 bytes
+	int		*inrow, *out = (int *)outdata;	// relies on int being 4 bytes
 
 	fracstep = inwidth * 0x10000 / outwidth;
 
@@ -1239,7 +1249,6 @@ static byte *Image_MakeLuma (byte *fin, int width, int height, int type, int fla
 		case PF_INDEXED_32:
 			out = image.tempbuffer = Mem_Realloc (host.imagepool, image.tempbuffer, width * height);
 			for (i = 0; i < width * height; i++)
-				/**out++ = fin[i] >= 224 ? fin[i] : 0;*/
 				*out++ = fin[i] >= 224 ? fin[i] : image.black_pixel;
 			break;
 
@@ -1274,7 +1283,7 @@ qboolean Image_AddIndexedImageToPack (const byte *in, int width, int height)
 	if (!expand_to_rgba)
 		memcpy (image.rgba, in, image.size);
 	else if (!Image_Copy8bitRGBA (in, image.rgba, mipsize))
-		return false; // probably pallette not installed
+		return false;	// probably pallette not installed
 
 	return true;
 	}
@@ -1432,7 +1441,7 @@ static qboolean Image_RemapInternal (rgbdata_t *pic, int topColor, int bottomCol
 		}
 	else
 		{
-		// g-cont. preview images has a swapped top and bottom colors. I don't know why.
+		// g-cont. preview images has a swapped top and bottom colors. I don't know why
 		Image_PaletteHueReplace (pic->palette, topColor, SUIT_HUE_START, SUIT_HUE_END, 3);
 		Image_PaletteHueReplace (pic->palette, bottomColor, PLATE_HUE_START, PLATE_HUE_END, 3);
 		}
@@ -1458,7 +1467,7 @@ qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, floa
 		{
 		// clear any force flags
 		image.force_flags = 0;
-		return false; // no operation specfied
+		return false;	// no operation specfied
 		}
 
 	if (FBitSet (flags, IMAGE_MAKE_LUMA))
@@ -1495,14 +1504,14 @@ qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, floa
 
 		out = Image_ResampleInternal ((uint *)pic->buffer, pic->width, pic->height, w, h, pic->type, &resampled);
 
-		if (resampled) // resampled or filled
+		if (resampled)	// resampled or filled
 			{
 			Con_Reportf ("Image_Resample: from[%d x %d] to [%d x %d]\n", pic->width, pic->height, w, h);
 			pic->width = w, pic->height = h;
 			pic->size = w * h * PFDesc[pic->type].bpp;
 			Mem_Free (pic->buffer);		// free original image buffer
 
-			pic->buffer = Image_Copy (pic->size); // unzone buffer
+			pic->buffer = Image_Copy (pic->size);	// unzone buffer
 			}
 		else
 			{
@@ -1523,12 +1532,6 @@ qboolean Image_Process (rgbdata_t **pix, int width, int height, uint flags, floa
 	return result;
 	}
 
-/*// This codebase has too many copies of this function:
-// - ref_gl has one
-// - ref_vk has one
-// - ref_soft has one
-// - many more places probably have one too
-// TODO figure out how to make it available for ref_**/
 /***
 ============
 Image_ComputeSize [FWGS, 01.03.26]
@@ -1564,19 +1567,6 @@ size_t Image_ComputeSize (int type, int width, int height, int depth)
 		case PF_BC6H_SIGNED:
 		case PF_BC6H_UNSIGNED:
 		case PF_BC7_UNORM:
-		/*case PF_BC7_SRGB:
-			return (((width + 3) / 4) * ((height + 3) / 4) * depth * 16);
-
-		case PF_LUMINANCE:
-			return (width * height * depth);
-
-		case PF_BGR_24:
-		case PF_RGB_24:
-			return (width * height * depth * 3);
-
-		case PF_BGRA_32:
-		case PF_RGBA_32:
-			return (width * height * depth * 4);*/
 		case PF_BC7_SRGB:
 			return (((width + 3) / 4) * ((height + 3) / 4) * depth * 16);
 		}

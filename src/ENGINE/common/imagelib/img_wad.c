@@ -20,6 +20,46 @@ GNU General Public License for more details
 #include "sprite.h"
 #include "qfont.h"
 
+// [FWGS, 01.05.26]
+#include "swaplib.h"
+
+// [FWGS, 01.05.26]
+le_struct_begin (charinfo_swap)
+le_struct_field (charinfo, startoffset)
+le_struct_field (charinfo, charwidth)
+le_struct_end ();
+
+le_struct_begin (qfont_swap)
+le_struct_field (qfont_t, width)
+le_struct_field (qfont_t, height)
+le_struct_field (qfont_t, rowcount)
+le_struct_field (qfont_t, rowheight)
+le_struct_array_child (qfont_t, fontinfo, charinfo_swap, NUM_GLYPHS)
+le_struct_end ();
+
+le_struct_begin (lmp_swap)
+le_struct_field (lmp_t, width)
+le_struct_field (lmp_t, height)
+le_struct_end ();
+
+le_struct_begin (mip_swap)
+le_struct_field (mip_t, width)
+le_struct_field (mip_t, height)
+le_struct_array (mip_t, offsets, 4)
+le_struct_end ();
+
+le_struct_begin (dwadinfo_swap)
+le_struct_field (dwadinfo_t, ident)
+le_struct_field (dwadinfo_t, numlumps)
+le_struct_field (dwadinfo_t, infotableofs)
+le_struct_end ();
+
+le_struct_begin (dlumpinfo_swap)
+le_struct_field (dlumpinfo_t, filepos)
+le_struct_field (dlumpinfo_t, disksize)
+le_struct_field (dlumpinfo_t, size)
+le_struct_end ();
+
 /***
 ============
 Image_LoadPAL
@@ -69,12 +109,12 @@ qboolean Image_LoadPAL (const char *name, const byte *buffer, fs_offset_t filesi
 		else if (Q_stristr (name, "valve"))
 			{
 			rendermode = LUMP_HALFLIFE;
-			buffer = NULL; // force to get HL palette
+			buffer = NULL;	// force to get HL palette
 			}
 		else if (Q_stristr (name, "id"))
 			{
 			rendermode = LUMP_QUAKE1;
-			buffer = NULL; // force to get Q1 palette
+			buffer = NULL;	// force to get Q1 palette
 			}
 		}
 
@@ -104,12 +144,15 @@ qboolean Image_LoadFNT (const char *name, const byte *buffer, fs_offset_t filesi
 	int			numcolors;
 
 	if (image.hint == IL_HINT_Q1)
-		return false; // Quake1 doesn't have qfonts
+		return false;	// Quake1 doesn't have qfonts
 
 	if (filesize < sizeof (font))
 		return false;
 
 	memcpy (&font, buffer, sizeof (font));
+
+	// [FWGS, 01.05.26]
+	le_struct_swap (qfont_swap, &font);
 
 	// last sixty four bytes - what the hell?
 	size = sizeof (qfont_t) - 4 + (font.height * font.width * QCHAR_WIDTH) + sizeof (short) + 768 + 64;
@@ -117,7 +160,7 @@ qboolean Image_LoadFNT (const char *name, const byte *buffer, fs_offset_t filesi
 	if (size != filesize)
 		{
 		// oldstyle font: "conchars" or "creditsfont"
-		image.width = 256;		// hardcoded
+		image.width = 256;	// hardcoded
 		image.height = font.height;
 		}
 	else
@@ -132,13 +175,17 @@ qboolean Image_LoadFNT (const char *name, const byte *buffer, fs_offset_t filesi
 
 	fin = buffer + sizeof (font) - 4;
 	pal = fin + (image.width * image.height);
-	numcolors = *(short *)pal, pal += sizeof (short);
+	
+	// [FWGS, 01.05.26]
+	/*numcolors = *(short *)pal, pal += sizeof (short);*/
+	numcolors = pal[0] | (pal[1] << 8);
+	pal += sizeof (short);
 
 	if ((numcolors == 768) || (numcolors == 256))
 		{
 		// g-cont. make sure that is didn't hit anything
 		Image_GetPaletteLMP (pal, LUMP_MASKED);
-		image.flags |= IMAGE_HAS_ALPHA; // fonts always have transparency
+		image.flags |= IMAGE_HAS_ALPHA;	// fonts always have transparency
 		}
 	else
 		{
@@ -210,7 +257,7 @@ qboolean Image_LoadMDL (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 	else
 		{
-		return false; // unknown or unsupported mode rejected
+		return false;	// unknown or unsupported mode rejected
 		}
 
 	image.type = PF_INDEXED_32;	// 32-bit palete
@@ -286,7 +333,7 @@ qboolean Image_LoadSPR (const char *name, const byte *buffer, fs_offset_t filesi
 		image.size = image.width * image.height * 4;
 		image.rgba = Mem_Malloc (host.imagepool, image.size);
 		memcpy (image.rgba, fin, image.size);
-		SetBits (image.flags, IMAGE_HAS_COLOR); // Color. True Color!
+		SetBits (image.flags, IMAGE_HAS_COLOR);	// Color. True Color!
 		return true;
 		}
 
@@ -329,6 +376,10 @@ qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesi
 		{
 		fin = (byte *)buffer;
 		memcpy (&lmp, fin, sizeof (lmp));
+
+		// [FWGS, 01.05.26]
+		le_struct_swap (lmp_swap, &lmp);
+
 		image.width = lmp.width;
 		image.height = lmp.height;
 		rendermode = LUMP_NORMAL;
@@ -361,11 +412,13 @@ qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesi
 				}
 			}
 
+		// [FWGS, 01.05.26]
 		pal = fin + pixels;
-		numcolors = *(short *)pal;
+		/*numcolors = *(short *)pal;*/
+		numcolors = pal[0] | (pal[1] << 8);
 		
 		if (numcolors != 256) 
-			pal = NULL; // corrupted lump?
+			pal = NULL;	// corrupted lump?
 		else 
 			pal += sizeof (short);
 		}
@@ -382,7 +435,7 @@ qboolean Image_LoadLMP (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 
 	Image_GetPaletteLMP (pal, rendermode);
-	image.type = PF_INDEXED_32; // 32-bit palete
+	image.type = PF_INDEXED_32;	// 32-bit palete
 	image.depth = 1;
 
 	return Image_AddIndexedImageToPack (fin, image.width, image.height);
@@ -425,6 +478,11 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 		return false;
 
 	memcpy (&mip, buffer, sizeof (mip));
+
+	// [FWGS, 01.05.26]
+	if (!Image_CheckFlag (IL_HOST_ENDIAN))
+		le_struct_swap (mip_swap, &mip);
+
 	image.width = mip.width;
 	image.height = mip.height;
 
@@ -439,12 +497,15 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 		// half-life 1.0.0.1 mip version with palette
 		fin = (byte *)buffer + mip.offsets[0];
 		pal = (byte *)buffer + mip.offsets[0] + (((image.width * image.height) * 85) >> 6);
-		numcolors = *(short *)pal;
+		
+		// [FWGS, 01.05.26]
+		/*numcolors = *(short *)pal;*/
+		numcolors = pal[0] | (pal[1] << 8);
 		
 		if (numcolors != 256)
-			pal = NULL; // corrupted mip ?
+			pal = NULL;	// corrupted mip ?
 		else
-			pal += sizeof (short); // skip colorsize
+			pal += sizeof (short);	// skip colorsize
 
 		hl_texture = true;
 
@@ -470,27 +531,18 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 		// [FWGS, 01.03.26]
 		else
 			{
-			/*int	pal_type;*/
-
 			// NOTE: we can have luma-pixels if quake1 texture
 			// converted into the hl texture but palette leave unchanged
 			// this is a good reason for using fullbright pixels
-			/*pal_type = Image_ComparePalette (pal);*/
 			const int pal_type = Image_ComparePalette (pal);
 
-			/*// check for luma pixels (but ignore liquid textures because they have no lightmap)
-			if ((mip.name[0] != '*') && (mip.name[0] != '!') && (pal_type == PAL_QUAKE1))*/
 			if (pal_type == PAL_QUAKE1)
 				{
-				/*for (i = 0; i < image.width * image.height; i++)*/
 				// check for luma pixels (but ignore liquid textures because they have no lightmap)
 				if ((mip.name[0] != '*') && (mip.name[0] != '!'))
 					{
-					/*if (fin[i] > 224)*/
 					for (i = 0; i < image.width * image.height; i++)
 						{
-						/*image.flags |= IMAGE_HAS_LUMA;
-						break;*/
 						if (fin[i] > 224)
 							{
 							SetBits (image.flags, IMAGE_HAS_LUMA);
@@ -500,10 +552,6 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 						}
 					}
 
-				/*}
-
-			if (pal_type == PAL_QUAKE1)
-				{*/
 				SetBits (image.flags, IMAGE_QUAKEPAL);
 
 				// if texture was converted from quake to half-life with no palette changes
@@ -515,10 +563,12 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 				// half-life mips need texgamma applied
 				rendermode = LUMP_TEXGAMMA;
 
-				// three checks here: check if we can load luma, check the texture name and, finally,
+				// [FWGS, 01.05.26] three checks here: check if we can load luma, check the texture name and, finally,
 				// validate that palette isn't NULL
-				if (Image_CheckFlag (IL_ALLOW_WAD3_LUMA) && ((mip.name[0] == '~') || ((mip.name[0] == '+') &&
-					isdigit (mip.name[1]) && (mip.name[2] == '~'))) && (pal != NULL))
+				if (Image_CheckFlag (IL_ALLOW_WAD3_LUMA)
+					/*&& ((mip.name[0] == '~') || ((mip.name[0] == '+') && isdigit (mip.name[1]) && (mip.name[2] == '~')))*/
+					&& ((mip.name[0] == '~') || ((mip.name[0] == '+') && isdigit ((byte)mip.name[1]) && (mip.name[2] == '~')))
+					&& (pal != NULL))
 					{
 					SetBits (image.flags, IMAGE_HAS_LUMA);
 					}
@@ -549,7 +599,6 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 		hl_texture = false;
 
 		// [FWGS, 01.03.26] check for luma and alpha pixels
-		/*if (!image.custom_palette)*/
 		// don't apply luma to water surfaces because they have no lightmap
 		if (!image.custom_palette && (mip.name[0] != '*') && (mip.name[0] != '!'))
 			{
@@ -557,9 +606,6 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 				{
 				if ((fin[i] > 224) && (fin[i] != 255))
 					{
-					/*// don't apply luma to water surfaces because they have no lightmap
-					if ((mip.name[0] != '*') && (mip.name[0] != '!'))
-						image.flags |= IMAGE_HAS_LUMA;*/
 					SetBits (image.flags, IMAGE_HAS_LUMA);
 					image.black_pixel = 0;
 					break;
@@ -586,7 +632,7 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 	else
 		{
-		return false; // unknown or unsupported mode rejected
+		return false;	// unknown or unsupported mode rejected
 		}
 
 	// check for quake-sky texture
@@ -641,29 +687,35 @@ qboolean Image_LoadMIP (const char *name, const byte *buffer, fs_offset_t filesi
 
 /***
 ============
-Image_LoadWAD [FWGS, 01.09.25]
+Image_LoadWAD [FWGS, 01.05.26]
 ============
 ***/
 qboolean Image_LoadWAD (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
-	const dwadinfo_t	*header;
-	const dlumpinfo_t	*lumps;
+	/*const dwadinfo_t	*header;
+	const dlumpinfo_t	*lumps;*/
+	dwadinfo_t	whdr;
 	const unsigned char	*mipdata;
 	int		i, j;
 
 	if (!buffer || (filesize < sizeof (dwadinfo_t)))
 		return false;
 
-	header = (const dwadinfo_t *)buffer;
-	if ((header->numlumps <= 0) || (header->infotableofs <= 0) || (header->infotableofs >= (int)filesize))
+	/*header = (const dwadinfo_t *)buffer;
+	if ((header->numlumps <= 0) || (header->infotableofs <= 0) || (header->infotableofs >= (int)filesize))*/
+	memcpy (&whdr, buffer, sizeof (whdr));
+	le_struct_swap (dwadinfo_swap, &whdr);
+	if ((whdr.numlumps <= 0) || (whdr.infotableofs <= 0) || (whdr.infotableofs >= (int)filesize))
 		return false;
 
-	lumps = (const dlumpinfo_t *)((const unsigned char *)buffer + header->infotableofs);
+	/*lumps = (const dlumpinfo_t *)((const unsigned char *)buffer + header->infotableofs);
 
-	for (i = 0; i < header->numlumps; ++i)
+	for (i = 0; i < header->numlumps; ++i)*/
+	for (i = 0; i < whdr.numlumps; ++i)
 		{
 		const unsigned char	*pixels, *palette, *use_palette;
 		unsigned char		grad_palette[256 * 3];
+		dlumpinfo_t	lump;
 		int			mip_size;
 		mip_t		mip;
 		uint32_t	width, height, offset0;
@@ -673,16 +725,25 @@ qboolean Image_LoadWAD (const char *name, const byte *buffer, fs_offset_t filesi
 		float		t;
 		byte		idx;
 
-		if ((lumps[i].type != TYP_MIPTEX) && (lumps[i].type != TYP_PALETTE))
+		/*if ((lumps[i].type != TYP_MIPTEX) && (lumps[i].type != TYP_PALETTE))*/
+		memcpy (&lump, buffer + whdr.infotableofs + i * sizeof (dlumpinfo_t), sizeof (lump));
+		le_struct_swap (dlumpinfo_swap, &lump);
+
+		if ((lump.type != TYP_MIPTEX) && (lump.type != TYP_PALETTE))
 			continue;
 
 		// get lump data and validate
-		mipdata = (const unsigned char *)buffer + lumps[i].filepos;
+		/*mipdata = (const unsigned char *)buffer + lumps[i].filepos;
 		mip_size = lumps[i].disksize;
-		if ((lumps[i].filepos < 0) || (lumps[i].filepos + mip_size > (int)filesize))
+		if ((lumps[i].filepos < 0) || (lumps[i].filepos + mip_size > (int)filesize))*/
+		mipdata = (const unsigned char *)buffer + lump.filepos;
+		mip_size = lump.disksize;
+		if ((lump.filepos < 0) || (lump.filepos + mip_size > (int)filesize))
 			continue;
 
 		memcpy (&mip, mipdata, sizeof (mip));
+		le_struct_swap (mip_swap, &mip);
+
 		width = mip.width;
 		height = mip.height;
 
@@ -702,13 +763,15 @@ qboolean Image_LoadWAD (const char *name, const byte *buffer, fs_offset_t filesi
 		use_palette = palette;
 
 		// handle gradient palette
-		if (lumps[i].type == TYP_PALETTE)
+		/*if (lumps[i].type == TYP_PALETTE)*/
+		if (lump.type == TYP_PALETTE)
 			{
 			// gradient palette
 			const unsigned char *frontColorPtr = palette + 255 * 3;
 			frontR = frontColorPtr[0];
 			frontG = frontColorPtr[1];
 			frontB = frontColorPtr[2];
+
 			for (j = 0; j < 256; ++j)
 				{
 				t = j / 255.0f;
@@ -718,7 +781,7 @@ qboolean Image_LoadWAD (const char *name, const byte *buffer, fs_offset_t filesi
 				}
 
 			use_palette = grad_palette;
-			alpha_mode = true; // gradient
+			alpha_mode = true;	// gradient
 			}
 
 		// prepare image structure
@@ -740,9 +803,9 @@ qboolean Image_LoadWAD (const char *name, const byte *buffer, fs_offset_t filesi
 			image.rgba[j * 4 + 2] = use_palette[idx * 3 + 2];
 
 			if (alpha_mode)
-				image.rgba[j * 4 + 3] = idx; // soft transparency
+				image.rgba[j * 4 + 3] = idx;	// soft transparency
 			else
-				image.rgba[j * 4 + 3] = (idx == 255) ? 0 : 255; // classic
+				image.rgba[j * 4 + 3] = (idx == 255) ? 0 : 255;	// classic
 			}
 
 		return true;
@@ -809,12 +872,20 @@ qboolean Image_SaveWAD (const char *name, rgbdata_t *pix)
 	header.ident = IDWAD3HEADER;
 	header.numlumps = 1;
 
+	// [FWGS, 01.05.26]
+	le_struct_swap (dwadinfo_swap, &header);
 	FS_Write (f, &header, sizeof (header));
+
+	le_struct_swap (mip_swap, &miptex);
 	FS_Write (f, &miptex, sizeof (mip_t));
+
+	le_struct_swap (mip_swap, &miptex);
 	FS_Write (f, pix->buffer, m0size);
 	FS_Write (f, mip1_data, m1size);
 	FS_Write (f, mip2_data, m2size);
 	FS_Write (f, mip3_data, m3size);
+
+	palette_size = LittleShort (palette_size);
 	FS_Write (f, &palette_size, sizeof (short));
 
 	if (lump_type == TYP_PALETTE)
@@ -848,10 +919,14 @@ qboolean Image_SaveWAD (const char *name, rgbdata_t *pix)
 	lump.type = (char)lump_type;
 	lump.attribs = 0;
 	Q_strncpy (lump.name, "tempdecal", sizeof (lump.name));
+
+	// [FWGS, 01.05.26]
+	le_struct_swap (dlumpinfo_swap, &lump);
 	FS_Write (f, &lump, sizeof (lump));
 
 	FS_Seek (f, offsetof (dwadinfo_t, infotableofs), SEEK_SET);
-	infotableofs32 = (int)infotableofs;
+	/*infotableofs32 = (int)infotableofs;*/
+	infotableofs32 = LittleLong ((int)infotableofs);
 	FS_Write (f, &infotableofs32, sizeof (int));
 
 	FS_Close (f);

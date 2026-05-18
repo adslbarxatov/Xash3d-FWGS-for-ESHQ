@@ -123,21 +123,11 @@ dll_user_t *FS_FindLibrary (const char *dllname, qboolean directpath)
 
 /***
 =============================================================================
-LIBRARY NAMING (see Documentation/library-naming.md for more info) [FWGS, 01.06.25]
+LIBRARY NAMING (see Documentation/library-naming.md for more info)
 =============================================================================
 ***/
 
 // [FWGS, 01.03.26] removed COM_GenerateCommonLibraryName
-/*static void COM_GenerateCommonLibraryName (const char *name, const char *ext, char *out, size_t size)
-	{
-	if ( XASH_WIN32 || ( XASH_LINUX && !XASH_ANDROID ) || XASH_APPLE ) && XASH_X86
-	Q_snprintf (out, size, "%s.%s", name, ext);
-	elif XASH_WIN32 || ( XASH_LINUX && !XASH_ANDROID ) || XASH_APPLE
-	Q_snprintf (out, size, "%s_%s.%s", name, Q_buildarch (), ext);
-	else
-	Q_snprintf (out, size, "%s_%s_%s.%s", name, Q_buildos (), Q_buildarch (), ext);
-	endif
-	}*/
 
 /***
 ==============
@@ -148,41 +138,18 @@ Generates platform-unique and compatible name for client libraries
 ***/
 static void COM_GenerateClientLibraryPath (const char *name, char *out, size_t size)
 	{
-#ifdef XASH_INTERNAL_GAMELIBS // assuming library loader knows where to get libraries
+#ifdef XASH_INTERNAL_GAMELIBS	// assuming library loader knows where to get libraries
 	Q_strncpy (out, name, size);
 #else
-	/*string dllpath;*/
 	string libname;
 
-	/*if XASH_ANDROID
-	Q_snprintf (dllpath, sizeof (dllpath), "%s/lib%s", GI->dll_path, name);
-	else
-	Q_snprintf (dllpath, sizeof (dllpath), "%s/%s", GI->dll_path, name);
-	endif*/
 	COM_GenerateCommonLibraryName (name, libname, sizeof (libname));
 
-	/*COM_GenerateCommonLibraryName (dllpath, OS_LIB_EXT, out, size);*/
 	Q_snprintf (out, size, "%s/%s", GI->dll_path, libname);
 #endif
 	}
 
 // [FWGS, 01.03.26] removed COM_StripIntelSuffix
-/*
-/
-==============
-COM_StripIntelSuffix [FWGS, 01.02.24]
-
-Some modders use _i?86 suffix in game library name
-So strip it to follow library naming for non-Intel CPUs
-==============
-/
-static inline void COM_StripIntelSuffix (char *out)
-	{
-	char *suffix = Q_strrchr (out, '_');
-
-	if (suffix && Q_stricmpext ("_i?86", suffix))
-		*suffix = 0;
-	}*/
 
 /***
 ==============
@@ -193,7 +160,7 @@ Generates platform-unique and compatible name for server library
 ***/
 static void COM_GenerateServerLibraryPath (const char *alt_dllname, char *out, size_t size)
 	{
-#ifdef XASH_INTERNAL_GAMELIBS // assuming library loader knows where to get libraries
+#ifdef XASH_INTERNAL_GAMELIBS	// assuming library loader knows where to get libraries
 	Q_strncpy (out, "server", size);
 #elif XASH_X86 && XASH_WIN32
 	Q_strncpy (out, GI->game_dll, size);
@@ -210,8 +177,6 @@ static void COM_GenerateServerLibraryPath (const char *alt_dllname, char *out, s
 	COM_DefaultExtension (out, "." OS_LIB_EXT, size);
 
 #else
-	/*string temp, dir, dllpath, ext;
-	const char *dllname;*/
 	string temp, dir, libname;
 	const char *base_dllname;
 
@@ -228,30 +193,18 @@ static void COM_GenerateServerLibraryPath (const char *alt_dllname, char *out, s
 
 	if (alt_dllname)
 		{
-		/*dllname = alt_dllname;
-		Q_strncpy (ext, OS_LIB_EXT, sizeof (ext));*/
 		base_dllname = alt_dllname;
 		}
 	else
 		{
 		// cleaned up dll name
-		/*Q_strncpy (ext, COM_FileExtension (temp), sizeof (ext));*/
 		COM_StripExtension (temp);
 		COM_StripIntelSuffix (temp);
-		/*dllname = COM_FileWithoutPath (temp);*/
 		base_dllname = COM_FileWithoutPath (temp);
 		}
 
-	/*// add `lib` prefix if required by platform
-	if XASH_ANDROID
-	Q_snprintf (dllpath, sizeof (dllpath), "%s/lib%s", dir, dllname);
-	else
-	Q_snprintf (dllpath, sizeof (dllpath), "%s/%s", dir, dllname);
-	endif*/
 	COM_GenerateCommonLibraryName (base_dllname, libname, sizeof (libname));
 
-	/*// and finally add platform suffix
-	COM_GenerateCommonLibraryName (dllpath, ext, out, size);*/
 	Q_snprintf (out, size, "%s/%s", dir, libname);
 #endif
 	}
@@ -269,7 +222,6 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 		{
 		// [FWGS, 01.03.26]
 		case LIBRARY_GAMEUI:
-			/*if (COM_CheckStringEmpty (host.menulib))*/
 			if (!COM_StringEmpty (host.menulib))
 				{
 				if (host.menulib[0] == '@')
@@ -286,7 +238,6 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 
 		// [FWGS, 01.03.26]
 		case LIBRARY_CLIENT:
-			/*if (COM_CheckStringEmpty (host.clientlib))*/
 			if (!COM_StringEmpty (host.clientlib))
 				{
 				if (host.clientlib[0] == '@')
@@ -303,7 +254,6 @@ void COM_GetCommonLibraryPath (ECommonLibraryType eLibType, char *out, size_t si
 
 		// [FWGS, 01.03.26]
 		case LIBRARY_SERVER:
-			/*if (COM_CheckStringEmpty (host.gamedll))*/
 			if (!COM_StringEmpty (host.gamedll))
 				{
 				if (host.gamedll[0] == '@')
@@ -360,7 +310,7 @@ char *COM_GetMSVCName (const char *in_name)
 	static string   out_name;
 	char *pos;
 
-	if (in_name[0] == '?')  // is this a MSVC C++ mangled name?
+	if (in_name[0] == '?')	// is this a MSVC C++ mangled name?
 		{
 		if ((pos = Q_strstr (in_name, "@@")) != NULL)
 			{
@@ -368,7 +318,7 @@ char *COM_GetMSVCName (const char *in_name)
 
 			// strip off the leading '?'
 			Q_strncpy (out_name, in_name + 1, sizeof (out_name));
-			out_name[len - 1] = 0; // terminate string at the "@@"
+			out_name[len - 1] = 0;	// terminate string at the "@@"
 			return out_name;
 			}
 		}
@@ -399,9 +349,10 @@ static char *COM_GetItaniumName (const char *const in_name)
 
 	for (i = 0; i < MAX_NESTED_NAMESPACES; i++)
 		{
-		// parse symbol length marker
+		// [FWGS, 01.05.26] parse symbol length marker
 		len = 0;
-		for (; isdigit (*f) && remaining > 0; f++, remaining--)
+		/*for (; isdigit (*f) && remaining > 0; f++, remaining--)*/
+		for (; isdigit ((byte)*f) && remaining > 0; f++, remaining--)
 			len = len * 10 + (*f - '0');
 
 		// sane value
@@ -418,7 +369,9 @@ static char *COM_GetItaniumName (const char *const in_name)
 		if (*f == 'E')
 			break;
 
-		if (!isdigit (*f) || (remaining <= 0))
+		// [FWGS, 01.05.26]
+		/*if (!isdigit (*f) || (remaining <= 0))*/
+		if (!isdigit ((byte)*f) || (remaining <= 0))
 			goto invalid_format;
 		}
 
@@ -571,7 +524,7 @@ static void Test_GetMSVCName (void)
 		"?foo@bar@@QAEXXZ", "foo@bar",
 		"foo", "foo",
 		"?foo", "?foo",
-		"?foo@@", "foo", // not an error?
+		"?foo@@", "foo",	// not an error?
 		"?foo@bar@baz@@gotstrippedanyway","foo@bar@baz"
 		};
 	int i;
@@ -598,7 +551,7 @@ static void Test_GetItaniumName (void)
 		"_ZN4bar3fooEv", NULL,
 		"_ZN3bar3fooEv", "foo@bar",
 		"_Z3foov", NULL,
-		"_ZN3fooEv", "foo", // not possible?
+		"_ZN3fooEv", "foo",	// not possible?
 		"_ZN3baz3bar3fooEdontcare", "foo@bar@baz",
 		};
 	int i;
