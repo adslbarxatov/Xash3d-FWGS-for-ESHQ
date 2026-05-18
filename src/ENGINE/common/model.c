@@ -28,13 +28,11 @@ GNU General Public License for more details
 static model_info_t	mod_crcinfo[MAX_MODELS];
 static model_t	mod_known[MAX_MODELS];
 static int	mod_numknown = 0;
-poolhandle_t      com_studiocache;		// cache for submodels
+poolhandle_t      com_studiocache;	// cache for submodels
 
 // [FWGS, 01.03.26]
 CVAR_DEFINE (mod_studiocache, "r_studiocache", "1", FCVAR_ARCHIVE,
 	"enables studio cache for speedup tracing hitboxes");
-/*CVAR_DEFINE_AUTO (r_wadtextures, "0", 0,
-	"completely ignore textures in the bsp-file if enabled");*/
 CVAR_DEFINE_AUTO (r_wadtextures, "0", FCVAR_LATCH,
 	"completely ignore textures in the bsp-file if enabled");
 CVAR_DEFINE_AUTO (r_showhull, "0", 0,
@@ -64,13 +62,11 @@ static void Mod_Modellist_f (void)
 	// [FWGS, 01.03.26]
 	for (i = nummodels = 0, mod = mod_known; i < mod_numknown; i++, mod++)
 		{
-		/*if (!COM_CheckStringEmpty (mod->name))*/
 		const char *color_str;
 
 		if (mod->needload == NL_UNREFERENCED)
-			continue; // free slot
+			continue;	// free slot
 
-		/*Con_Printf ("%s\n", mod->name);*/
 		switch (mod->type)
 			{
 			case mod_alias:
@@ -99,9 +95,26 @@ static void Mod_Modellist_f (void)
 		}
 
 	Con_Printf ("-----------------------------------\n");
-	/*Con_Printf ("%i total models\n", nummodels);*/
 	Con_Printf ("%i total models, %i total allocated slots\n", nummodels, mod_numknown);
 	Con_Printf ("\n");
+	}
+
+// [FWGS, 01.05.26]
+static void Mod_UnloadRenderData (model_t *mod)
+	{
+#if !XASH_DEDICATED
+	switch (mod->type)
+		{
+		case mod_sprite:
+			Mod_SpriteUnloadTextures (mod->cache.data);
+			break;
+
+		default:
+			break;
+		}
+
+	ref.dllFuncs.Mod_ProcessRenderData (mod, false, NULL, 0);
+#endif
 	}
 
 /***
@@ -112,7 +125,6 @@ Mod_FreeUserData
 static void Mod_FreeUserData (model_t *mod)
 	{
 	// [FWGS, 01.03.26] ignore submodels and freed models
-	/*if (!COM_CheckStringEmpty (mod->name) || (mod->name[0] == '*'))*/
 	if ((mod->needload == NL_UNREFERENCED) || (mod->name[0] == '*'))
 		return;
 
@@ -125,13 +137,14 @@ static void Mod_FreeUserData (model_t *mod)
 			}
 		}
 
-	// [FWGS, 01.11.25]
-#if !XASH_DEDICATED
+	// [FWGS, 01.05.26]
+	/*if !XASH_DEDICATED*/
 	else
 		{
-		ref.dllFuncs.Mod_ProcessRenderData (mod, false, NULL, 0);
+		/*ref.dllFuncs.Mod_ProcessRenderData (mod, false, NULL, 0);*/
+		Mod_UnloadRenderData (mod);
 		}
-#endif
+	/*endif*/
 	}
 
 /***
@@ -142,7 +155,6 @@ Mod_FreeModel
 void Mod_FreeModel (model_t *mod)
 	{
 	// [FWGS, 01.03.26] already freed?
-	/*if (!mod || !COM_CheckStringEmpty (mod->name))*/
 	if (!mod || (mod->needload == NL_UNREFERENCED))
 		return;
 
@@ -266,8 +278,6 @@ model_t *Mod_FindName (const char *filename, qboolean trackCRC)
 			{
 			if (mod->mempool || (mod->name[0] == '*'))
 				mod->needload = NL_PRESENT;
-			/*else
-				mod->needload = NL_NEEDS_LOADED;*/
 			else
 				mod->needload = NL_NEEDS_LOADED;
 
@@ -279,9 +289,8 @@ model_t *Mod_FindName (const char *filename, qboolean trackCRC)
 	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
 		{
 		if (mod->needload == NL_UNREFERENCED)
-			break; // this is a valid spot
+			break;	// this is a valid spot
 		}
-	/*if (!COM_CheckStringEmpty (mod->name)) break; // this is a valid spot*/
 
 	if (i == mod_numknown)
 		{
@@ -319,7 +328,6 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	model_info_t	*p;
 
 	// [FWGS, 01.03.26]
-	/*ASSERT (mod != NULL);*/
 	if (!mod)
 		{
 		Host_Error ("%s: mod == NULL\n", __func__);
@@ -334,7 +342,6 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 		}
 
 	// [FWGS, 01.03.26]
-	/*ASSERT (mod->needload == NL_NEEDS_LOADED);*/
 	if (mod->needload != NL_NEEDS_LOADED)
 		{
 		Host_Error ("%s: trying to load model not marked for loading (%d)\n", __func__, mod->needload);
@@ -365,8 +372,10 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	// call the apropriate loader
 	switch (*(uint *)buf)
 		{
+		// [FWGS, 01.05.26]
 		case LittleLong (IDSTUDIOHEADER):
-			Mod_LoadStudioModel (mod, buf, &loaded);
+			/*Mod_LoadStudioModel (mod, buf, &loaded);*/
+			Mod_LoadStudioModel (mod, buf, length, &loaded);
 			break;
 
 		case LittleLong (IDSPRITEHEADER):
@@ -381,7 +390,6 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 		case LittleLong (Q1BSP_VERSION):
 		case LittleLong (HLBSP_VERSION):
 		case LittleLong (QBSP2_VERSION):
-			/*Mod_LoadBrushModel (mod, buf, &loaded);*/
 			Mod_LoadBrushModel (mod, buf, length, &loaded);
 			break;
 
@@ -397,7 +405,7 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	if (loaded)
 		{
 		if (world.loading)
-			SetBits (mod->flags, MODEL_WORLD); // mark worldmodel
+			SetBits (mod->flags, MODEL_WORLD);	// mark worldmodel
 
 		if (Host_IsDedicated ())
 			{
@@ -447,7 +455,6 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	// [FWGS, 01.03.26]
 	if (FBitSet (p->flags, FCRC_SHOULD_CHECKSUM))
 		{
-		/*CRC32_t	currentCRC;*/
 		uint32_t currentCRC;
 
 		CRC32_Init (&currentCRC);
@@ -482,7 +489,6 @@ model_t *Mod_ForName (const char *name, qboolean crash, qboolean trackCRC)
 	model_t	*mod;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (name))*/
 	if (COM_StringEmptyOrNULL (name))
 		return NULL;
 
@@ -523,8 +529,6 @@ static void Mod_PurgeStudioCache (void)
 
 		if (mod_known[i].name[0] == '*')
 			Mod_FreeModel (&mod_known[i]);
-
-		/*mod_known[i].needload = NL_UNREFERENCED;*/
 		else
 			mod_known[i].needload = NL_FREE_UNUSED;
 		}
@@ -579,7 +583,6 @@ void Mod_FreeUnused (void)
 	// [FWGS, 01.03.26] never tries to release worldmodel
 	for (i = 1, mod = &mod_known[1]; i < mod_numknown; i++, mod++)
 		{
-		/*if (mod->needload == NL_UNREFERENCED && COM_CheckString (mod->name))*/
 		if (mod->needload == NL_FREE_UNUSED)
 			Mod_FreeModel (mod);
 		}
@@ -596,18 +599,14 @@ MODEL ROUTINES
 Mod_Calloc [FWGS, 01.03.26]
 ===============
 ***/
-/*void *Mod_Calloc (int number, size_t size)*/
 void *GAME_EXPORT Mod_Calloc (int number, size_t size)
 	{
 	cache_user_t *cu;
 
-	/*if ((number <= 0) || (size <= 0))
-		return NULL;*/
 	if ((number <= 0) || (size <= 0))
 		return NULL;
 
 	cu = (cache_user_t *)Mem_Calloc (com_studiocache, sizeof (cache_user_t) + number * size);
-	/*cu->data = (void *)cu; // make sure what cu->data is not NULL*/
 	cu->data = (void *)cu;	// make sure that cu->data is not NULL
 
 	return cu;
@@ -618,10 +617,8 @@ void *GAME_EXPORT Mod_Calloc (int number, size_t size)
 Mod_CacheCheck [FWGS, 01.03.26]
 ===============
 ***/
-/*void *Mod_CacheCheck (cache_user_t *c)*/
 void *GAME_EXPORT Mod_CacheCheck (cache_user_t *c)
 	{
-	/*return Cache_Check (com_studiocache, c);*/
 	if (!c->data)
 		return NULL;
 
@@ -633,10 +630,9 @@ void *GAME_EXPORT Mod_CacheCheck (cache_user_t *c)
 
 /***
 ===============
-Mod_LoadCacheFile [FWGS, 01.03.26]
+Mod_LoadCacheFile
 ===============
 ***/
-/*void Mod_LoadCacheFile (const char *filename, cache_user_t *cu)*/
 void GAME_EXPORT Mod_LoadCacheFile (const char *filename, cache_user_t *cu)
 	{
 	char		modname[MAX_QPATH];
@@ -645,7 +641,6 @@ void GAME_EXPORT Mod_LoadCacheFile (const char *filename, cache_user_t *cu)
 
 	Assert (cu != NULL);
 
-	/*if (!COM_CheckString (filename))*/
 	if (COM_StringEmptyOrNULL (filename))
 		return;
 
@@ -659,42 +654,40 @@ void GAME_EXPORT Mod_LoadCacheFile (const char *filename, cache_user_t *cu)
 	cu->data = Mem_Malloc (com_studiocache, size);
 	memcpy (cu->data, buf, size);
 	Mem_Free (buf);
+
+	// [FWGS, 01.05.26] this handles when studio model renderer tries to load sequence files on it's own
+	// which is what they always do in HLSDK
+#if XASH_BIG_ENDIAN
+	if ((size >= sizeof (int)) && (LittleLong (IDSEQGRPHEADER) == *(uint *)cu->data))
+		{
+		studiohdr_t *phdr = (studiohdr_t *)REF_GET_PARM (PARM_GET_STUDIO_HDR, 0);
+		if (!phdr)
+			return;
+
+		mstudioseqdesc_t *pseq = (mstudioseqdesc_t *)((byte *)phdr + phdr->seqindex);
+
+		for (int i = 0; i < phdr->numseq; i++)
+			{
+			if (pseq[i].seqgroup == 0)
+				continue;
+
+			mstudioseqgroup_t *pgrp = (mstudioseqgroup_t *)((byte *)phdr + phdr->seqgroupindex) + pseq[i].seqgroup;
+
+			// assuming filename passes seqgroup's name
+			if (!Q_stricmp (pgrp->name, filename))
+				Mod_SwapStudioSeqGroupAnims (phdr, &pseq[i], (byte *)cu->data);
+			}
+		}
+#endif
 	}
 
 // [FWGS, 01.03.26] removed Mod_AliasExtradata, Mod_StudioExtradata
-/*
-/
-===============
-Mod_AliasExtradata
-===============
-/
-void *Mod_AliasExtradata (model_t *mod)
-	{
-	if (mod && (mod->type == mod_alias))
-		return mod->cache.data;
-
-	return NULL;
-	}
-
-/
-===============
-Mod_StudioExtradata
-===============
-/
-void *Mod_StudioExtradata (model_t *mod)
-	{
-	if (mod && (mod->type == mod_studio))
-		return mod->cache.data;
-
-	return NULL;
-	}*/
 
 /***
 ==================
 Mod_ValidateCRC [FWGS, 01.03.26]
 ==================
 ***/
-/*qboolean Mod_ValidateCRC (const char *name, CRC32_t crc)*/
 qboolean Mod_ValidateCRC (const char *name, uint32_t crc)
 	{
 	model_info_t	*p;
