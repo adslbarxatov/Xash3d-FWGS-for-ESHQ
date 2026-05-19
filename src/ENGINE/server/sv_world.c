@@ -40,7 +40,7 @@ HULL BOXES
 
 // [FWGS, 01.02.25]
 static hull_t	box_hull;
-static mplane_t	box_planes[6];
+static struct mplane_t	box_planes[6];
 
 /***
 ===================

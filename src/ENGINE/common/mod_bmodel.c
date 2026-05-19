@@ -1859,11 +1859,11 @@ static void Mod_CreateFaceBevels (model_t *mod, msurface_t *surf, const dbspmode
 	else
 		contents = CONTENTS_SOLID;
 
-	size = sizeof (mfacebevel_t) + surf->numedges * sizeof (mplane_t);
+	size = sizeof (mfacebevel_t) + surf->numedges * sizeof (struct mplane_t);
 	facebevel = (byte *)Mem_Calloc (mod->mempool, size);
 	fb = (mfacebevel_t *)facebevel;
 	facebevel += sizeof (mfacebevel_t);
-	fb->edges = (mplane_t *)facebevel;
+	fb->edges = (struct mplane_t *)facebevel;
 	fb->numedges = surf->numedges;
 	fb->contents = contents;
 	surf->info->bevel = fb;
@@ -1876,7 +1876,7 @@ static void Mod_CreateFaceBevels (model_t *mod, msurface_t *surf, const dbspmode
 	// compute face origin and plane edges
 	for (i = 0; i < surf->numedges; i++)
 		{
-		mplane_t *dest = &fb->edges[i];
+		struct mplane_t	*dest = &fb->edges[i];
 
 		v0 = Mod_GetVertexByNumber (mod, surf->firstedge + i, bmod);
 		v1 = Mod_GetVertexByNumber (mod, surf->firstedge + (i + 1) % surf->numedges, bmod);
@@ -2617,7 +2617,7 @@ Mod_LoadPlanes [FWGS, 01.04.26]
 static void Mod_LoadPlanes (model_t *mod, const dbspmodel_t *bmod)
 	{
 	dplane_t	*in;
-	mplane_t	*out;
+	struct mplane_t	*out;
 	int			i, j;
 
 	in = bmod->planes;

@@ -25,9 +25,11 @@ GNU General Public License for more details
 #define FRUSTUM_NEAR	5
 #define FRUSTUM_PLANES	6
 
+#include "xash3d_mathlib.h"
+
 typedef struct gl_frustum_s
 	{
-	mplane_t		planes[FRUSTUM_PLANES];
+	struct mplane_t		planes[FRUSTUM_PLANES];
 	unsigned int 	clipFlags;
 	} gl_frustum_t;
 

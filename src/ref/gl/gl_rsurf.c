@@ -3865,7 +3865,7 @@ loc0:
 		{
 		for (int i = 0; i < 6; i++)
 			{
-			const mplane_t *p = &RI.frustum.planes[i];
+			const struct mplane_t *p = &RI.frustum.planes[i];
 
 			if (!FBitSet (clipflags, BIT (i)))
 				continue;
@@ -4018,7 +4018,7 @@ static void R_DrawWorldTopView (mnode_t *node, uint clipflags)
 			{
 			for (i = 0; i < 6; i++)
 				{
-				const mplane_t *p = &RI.frustum.planes[i];
+				const struct mplane_t *p = &RI.frustum.planes[i];
 
 				if (!FBitSet (clipflags, BIT (i)))
 					continue;

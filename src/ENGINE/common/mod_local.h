@@ -73,7 +73,7 @@ typedef struct hullnode_s
 // [FWGS, 01.09.24]
 typedef struct winding_s
 	{
-	const mplane_t		*plane;
+	const struct mplane_t		*plane;
 	struct winding_s	*pair;
 	hullnode_t			chain;
 	int					numpoints;

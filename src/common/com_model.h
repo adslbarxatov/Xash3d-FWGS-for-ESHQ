@@ -120,7 +120,7 @@ typedef struct
 
 typedef struct
 	{
-	mplane_t	*edges;
+	struct mplane_t	*edges;
 	int			numedges;
 	vec3_t		origin;
 	vec_t		radius;		// for culling tests
@@ -171,7 +171,7 @@ typedef struct mnode_s
 	struct mnode_s	*parent;
 
 	// [FWGS, 01.02.25] node specific
-	mplane_t	*plane;
+	struct mplane_t	*plane;
 #if !XASH_64BIT
 
 	union
@@ -296,7 +296,7 @@ struct msurface_s
 	{
 	int			visframe;		// should be drawn when node is crossed
 	
-	mplane_t	*plane;			// pointer to shared plane
+	struct mplane_t	*plane;			// pointer to shared plane
 	int			flags;			// see SURF_ #defines
 
 	int			firstedge;		// look up in model->surfedges[], negative numbers
@@ -341,7 +341,7 @@ typedef struct hull_s
 		mclipnode32_t	*clipnodes32;
 		};
 
-	mplane_t	*planes;
+	struct mplane_t	*planes;
 	int			firstclipnode;
 	int			lastclipnode;
 	vec3_t		clip_mins;
@@ -381,7 +381,7 @@ typedef struct model_s
 	dmodel_t	*submodels;	// or studio animations
 
 	int			numplanes;
-	mplane_t	*planes;
+	struct mplane_t	*planes;
 
 	int			numleafs;		// number of visible leafs, not counting 0
 	mleaf_t		*leafs;

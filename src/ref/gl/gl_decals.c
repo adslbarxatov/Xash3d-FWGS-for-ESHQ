@@ -696,7 +696,7 @@ static void R_DecalNode (model_t *model, mnode_t *node, decalinfo_t *decalinfo)
 	mnode_t		*children[2];
 
 	Assert (node != NULL);*/
-	mplane_t	*splitplane;
+	struct mplane_t	*splitplane;
 	float		dist;
 
 	// hit a leaf

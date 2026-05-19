@@ -57,8 +57,8 @@ static uint				cache_hull_hitgroup[MAXSTUDIOBONES];
 static mstudiocache_t	cache_studio[STUDIO_CACHESIZE];
 
 // [FWGS, 01.02.25]
-static mplane_t			studio_planes[MAXSTUDIOBONES * 6];
-static mplane_t			cache_planes[MAXSTUDIOBONES * 6];
+static struct mplane_t	studio_planes[MAXSTUDIOBONES * 6];
+static struct mplane_t	cache_planes[MAXSTUDIOBONES * 6];
 
 // current cache state
 static int		cache_current;
@@ -299,7 +299,7 @@ static void Mod_AddToStudioCache (float frame, int sequence, vec3_t angles, vec3
 	pCache->current_plane = cache_current_plane;
 
 	memcpy (&cache_hull[cache_current_hull], hull, numhitboxes * sizeof (hull_t));
-	memcpy (&cache_planes[cache_current_plane], studio_planes, numhitboxes * sizeof (mplane_t) * 6);
+	memcpy (&cache_planes[cache_current_plane], studio_planes, numhitboxes * sizeof (struct mplane_t) * 6);
 	memcpy (&cache_hull_hitgroup[cache_current_hull], studio_hull_hitgroup, numhitboxes * sizeof (uint));
 
 	cache_current_hull += numhitboxes;
@@ -365,7 +365,7 @@ SetStudioHullPlane
 ***/
 static void Mod_SetStudioHullPlane (int planenum, int bone, int axis, float offset, const vec3_t size)
 	{
-	mplane_t *pl = &studio_planes[planenum];
+	struct mplane_t	*pl = &studio_planes[planenum];
 
 	pl->type = 5;
 
@@ -408,7 +408,7 @@ hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t ang
 		if (bonecache != NULL)
 			{
 			memcpy (studio_planes, &cache_planes[bonecache->current_plane], bonecache->numhitboxes *
-				sizeof (mplane_t) * 6);
+				sizeof (struct mplane_t) * 6);
 			memcpy (studio_hull_hitgroup, &cache_hull_hitgroup[bonecache->current_hull], bonecache->numhitboxes *
 				sizeof (uint));
 			memcpy (studio_hull, &cache_hull[bonecache->current_hull], bonecache->numhitboxes * sizeof (hull_t));

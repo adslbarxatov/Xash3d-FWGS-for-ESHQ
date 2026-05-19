@@ -17,18 +17,11 @@ GNU General Public License for more details
 #define GL_LOCAL_H
 
 // [FWGS, 01.05.26]
-#include "ref_common.h"
 #include "port.h"
 #include "xash3d_types.h"
 #include "cvardef.h"
-/*include "const.h"
-include "com_model.h"
-include "cl_entity.h"
-include "render_api.h"*/
 #include "protocol.h"
 #include "gl_frustum.h"
-/*include "ref_api.h"
-include "xash3d_mathlib.h"*/
 #include "ref_params.h"
 #include "enginefeatures.h"
 #include "com_strings.h"
@@ -94,8 +87,6 @@ define RP_CLIPPLANE	BIT( 2 )
 define RP_NONVIEWERREF	(RP_ENVVIEW)*/
 #define R_ModelOpaque( rm )	( rm == kRenderNormal )
 #define R_StaticEntity( ent )	( VectorIsNull( ent->origin ) && VectorIsNull( ent->angles ))
-/*
-// [FWGS, 01.01.24]*/
 #define RP_LOCALCLIENT( e ) ((e) != NULL && (e)->index == ( gp_cl->playernum + 1 ) && e->player)
 /*define RP_NORMALPASS()	( FBitSet( RI.params, RP_NONVIEWERREF ) == 0 )
 
@@ -150,28 +141,16 @@ typedef struct gltexture_s
 // [FWGS, 01.05.26]
 typedef struct
 	{
-	/*int			params;		// rendering parameters
-
-	qboolean	drawWorld;	// ignore world for drawing PlayerModel
-	qboolean	isSkyVisible;	// sky is visible
-	qboolean	onlyClientDraw;	// disabled by client request
-	qboolean	drawOrtho;	// draw world as orthogonal projection
-
-	float		fov_x, fov_y;	// current view fov*/
 	ref_viewpass_t	rvp;
 
 	cl_entity_t	*currententity;
 	model_t		*currentmodel;
 	cl_entity_t	*currentbeam;	// same as above but for beams
 
-	/*int			viewport[4];*/
 	gl_frustum_t	frustum;
 
 	mleaf_t		*viewleaf;
 	mleaf_t		*oldviewleaf;
-	/*vec3_t		pvsorigin;
-	vec3_t		vieworg;		// locked vieworigin
-	vec3_t		viewangles;*/
 	vec3_t		vforward;
 	vec3_t		vright;
 	vec3_t		vup;
@@ -197,15 +176,15 @@ typedef struct
 	float		skyMaxs[2][SKYBOX_MAX_SIDES];
 
 	matrix4x4	objectMatrix;		// currententity matrix
-	matrix4x4	worldviewMatrix;		// modelview for world
-	matrix4x4	modelviewMatrix;		// worldviewMatrix * objectMatrix
+	matrix4x4	worldviewMatrix;	// modelview for world
+	matrix4x4	modelviewMatrix;	// worldviewMatrix * objectMatrix
 
 	matrix4x4	projectionMatrix;
 	matrix4x4	worldviewProjectionMatrix;	// worldviewMatrix * projectionMatrix
-	byte		visbytes[(MAX_MAP_LEAFS + 7) / 8];// actual PVS for current frame
+	byte		visbytes[(MAX_MAP_LEAFS + 7) / 8];	// actual PVS for current frame
 
 	float		viewplanedist;
-	mplane_t	clipPlane;
+	struct mplane_t		clipPlane;	// ESHQ: удаление typedef из mplane_t
 	} ref_instance_t;
 
 typedef struct
@@ -308,7 +287,7 @@ typedef struct
 
 extern ref_speeds_t		r_stats;
 extern ref_instance_t	RI;
-extern gl_globals_t	tr;
+extern gl_globals_t		tr;
 
 extern float		gldepthmin, gldepthmax;
 #define r_numEntities	(tr.draw_list->num_solid_entities + tr.draw_list->num_trans_entities)
@@ -655,9 +634,9 @@ typedef struct
 	const char *extensions_string;
 	byte		extension[GL_EXTCOUNT];
 
-	int		max_texture_units;
-	int		max_texture_coords;
-	int		max_teximage_units;
+	int			max_texture_units;
+	int			max_texture_coords;
+	int			max_teximage_units;
 	GLint		max_2d_texture_size;
 	GLint		max_2d_rectangle_size;
 	GLint		max_2d_texture_layers;

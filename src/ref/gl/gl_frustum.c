@@ -120,7 +120,7 @@ qboolean GL_FrustumCullBox (const gl_frustum_t *out, const vec3_t mins, const ve
 
 	for (i = FRUSTUM_PLANES, bit = 1; i > 0; i--, bit <<= 1)
 		{
-		const mplane_t *p = &out->planes[FRUSTUM_PLANES - i];
+		const struct mplane_t *p = &out->planes[FRUSTUM_PLANES - i];
 
 		if (!FBitSet (iClipFlags, bit))
 			continue;
@@ -187,7 +187,7 @@ qboolean GL_FrustumCullSphere (const gl_frustum_t *out, const vec3_t center, flo
 
 	for (i = FRUSTUM_PLANES, bit = 1; i > 0; i--, bit <<= 1)
 		{
-		const mplane_t *p = &out->planes[FRUSTUM_PLANES - i];
+		const struct mplane_t *p = &out->planes[FRUSTUM_PLANES - i];
 
 		if (!FBitSet (iClipFlags, bit))
 			continue;

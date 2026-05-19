@@ -18,7 +18,6 @@ GNU General Public License for more details
 #include "xash3d_mathlib.h"
 #include "mod_local.h"
 #include "pm_local.h"
-/*include "pm_movevars.h"*/
 #include "enginefeatures.h"
 #include "studio.h"
 #include "world.h"
@@ -26,7 +25,7 @@ GNU General Public License for more details
 #define PM_AllowHitBoxTrace( model, hull ) ( model && model->type == mod_studio && ( FBitSet( model->flags, STUDIO_TRACE_HITBOX ) || hull == 2 ))
 
 // [FWGS, 01.02.25]
-static mplane_t	pm_boxplanes[6];
+static struct mplane_t	pm_boxplanes[6];
 static hull_t	pm_boxhull;
 
 // default hullmins
@@ -117,7 +116,7 @@ PM_HullPointContents
 ***/
 int GAME_EXPORT PM_HullPointContents (hull_t *hull, int num, const vec3_t p)
 	{
-	mplane_t *plane;
+	struct mplane_t	*plane;
 
 	if (!hull || !hull->planes)	// fantom bmodels?
 		return CONTENTS_NONE;
@@ -211,7 +210,7 @@ PM_RecursiveHullCheck [FWGS, 01.02.25]
 qboolean PM_RecursiveHullCheck (hull_t *hull, int num, float p1f, float p2f, vec3_t p1, vec3_t p2, pmtrace_t *trace)
 	{
 	int			children[2];
-	mplane_t	*plane;
+	struct mplane_t	*plane;
 	float		t1, t2;
 	float		frac, midf;
 	int			side;

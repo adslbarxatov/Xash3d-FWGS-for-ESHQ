@@ -159,17 +159,17 @@ MATH FUNCTIONS
 ===========================
 ***/
 
-/*typedef struct mplane_s mplane_t;*/
-// [FWGS, 05.04.26] plane_t structure
+// plane_t structure
+// ESHQ: удалён typedef из mplane_t. Иначе не собирается
 // !!! if this is changed, it must be changed in asm_i386.h too !!!
-typedef struct mplane_s
+struct mplane_t
 	{
 	vec3_t	normal;
 	float	dist;
 	byte	type;		// for texture axis selection and fast side tests
 	byte	signbits;	// signx + signy<<1 + signz<<1
 	byte	pad[2];
-	} mplane_t;
+	};
 
 typedef struct mstudiobone_s mstudiobone_t;
 typedef struct mstudioanim_s mstudioanim_t;
@@ -188,7 +188,7 @@ void QuaternionSlerp (const vec4_t p, const vec4_t q, float t, vec4_t qt);
 
 // [FWGS, 01.03.25]
 void R_StudioCalcBones (int frame, float s, const mstudiobone_t *pbone, const mstudioanim_t *panim, const float *adj, vec3_t pos, vec4_t q);
-int BoxOnPlaneSide (const vec3_t emins, const vec3_t emaxs, const mplane_t *p);
+int BoxOnPlaneSide (const vec3_t emins, const vec3_t emaxs, const struct mplane_t *p);
 
 // [FWGS, 05.04.26]
 /*define BOX_ON_PLANE_SIDE( emins, emaxs, p ) \
@@ -200,7 +200,7 @@ int BoxOnPlaneSide (const vec3_t emins, const vec3_t emaxs, const mplane_t *p);
 	) \
 	) : BoxOnPlaneSide(( emins ), ( emaxs ), ( p )))*/
 
-static inline int BOX_ON_PLANE_SIDE (const vec3_t emins, const vec3_t emaxs, const mplane_t *p)
+static inline int BOX_ON_PLANE_SIDE (const vec3_t emins, const vec3_t emaxs, const struct mplane_t *p)
 	{
 	if (p->type < 3)
 		{
@@ -224,7 +224,7 @@ find point where ray
 was intersect with plane
 =================
 ***/
-static inline void PlaneIntersect (const mplane_t *plane, const vec3_t p0, const vec3_t p1, vec3_t out)
+static inline void PlaneIntersect (const struct mplane_t *plane, const vec3_t p0, const vec3_t p1, vec3_t out)
 	{
 	float distToPlane = PlaneDiff (p0, plane);
 	float planeDotRay = DotProduct (plane->normal, p1);

@@ -440,7 +440,7 @@ BoxOnPlaneSide [FWGS, 05.04.26]
 Returns 1, 2, or 1 + 2
 ==================
 ***/
-int BoxOnPlaneSide (const vec3_t emins, const vec3_t emaxs, const mplane_t *p)
+int BoxOnPlaneSide (const vec3_t emins, const vec3_t emaxs, const struct mplane_t *p)
 	{
 	/*float	dist1, dist2;
 	int	sides = 0;*/

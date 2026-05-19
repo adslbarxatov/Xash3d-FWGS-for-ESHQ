@@ -134,7 +134,7 @@ static winding_t *winding_shrink (winding_t *w)
 winding_for_plane
 ====================
 ***/
-static winding_t *winding_for_plane (const mplane_t *p)
+static winding_t *winding_for_plane (const struct mplane_t *p)
 	{
 	vec3_t	org, vright, vup;
 	int		i, axis;
@@ -202,7 +202,7 @@ Helper for for the clipping functions
 (winding_clip, winding_split)
 ===========================
 ***/
-static void CalcSides (const winding_t *in, const mplane_t *split, int *sides, vec_t *dists, int counts[3], vec_t epsilon)
+static void CalcSides (const winding_t *in, const struct mplane_t *split, int *sides, vec_t *dists, int counts[3], vec_t epsilon)
 	{
 	const vec_t *p;
 	int		i;
@@ -249,7 +249,7 @@ static void CalcSides (const winding_t *in, const mplane_t *split, int *sides, v
 	dists[i] = dists[0];
 	}
 
-static void PushToPlaneAxis (vec_t *v, const mplane_t *p)
+static void PushToPlaneAxis (vec_t *v, const struct mplane_t *p)
 	{
 	const int	t = p->type % 3;
 
@@ -266,7 +266,7 @@ If keepon is true, an exactly on-plane winding will be saved, otherwise
 it will be clipped away
 ==================
 ***/
-static winding_t *winding_clip (winding_t *in, const mplane_t *split, qboolean keepon, int side, vec_t epsilon)
+static winding_t *winding_clip (winding_t *in, const struct mplane_t *split, qboolean keepon, int side, vec_t epsilon)
 	{
 	vec_t *dists;
 	int *sides;
@@ -370,7 +370,7 @@ returned winding will be the input winding.  If on both sides, two
 new windings will be created
 ==================
 ***/
-static void winding_split (winding_t *in, const mplane_t *split, winding_t **pfront, winding_t **pback)
+static void winding_split (winding_t *in, const struct mplane_t *split, winding_t **pfront, winding_t **pback)
 	{
 	vec_t *dists;
 	int *sides;
@@ -573,7 +573,7 @@ static void do_hull_recursion (hull_t *hull, int nodenum, int side, hullnode_t *
 // [FWGS, 01.02.25]
 static void hull_windings_r (hull_t *hull, int nodenum, hullnode_t *polys, hull_model_t *model)
 	{
-	mplane_t	*plane;
+	struct mplane_t	*plane;
 	hullnode_t	frontlist = LIST_HEAD_INIT (frontlist);
 	hullnode_t	backlist = LIST_HEAD_INIT (backlist);
 	winding_t	*w, *next, *front, *back;
@@ -631,7 +631,7 @@ static void hull_windings_r (hull_t *hull, int nodenum, hullnode_t *polys, hull_
 
 	for (i = 0; w && (i < node_stack_depth); i++)
 		{
-		mplane_t *p;
+		struct mplane_t	*p;
 
 		if (world.version == QBSP2_VERSION)
 			p = hull->planes + hull->clipnodes32[node_stack[i]].planenum;
