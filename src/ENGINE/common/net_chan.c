@@ -170,102 +170,6 @@ void bz_internal_error (int errcode)
 #endif
 
 // [FWGS, 01.03.26] removed NetSplit_GetLong
-/*
-/
-=================================
-NETWORK PACKET SPLIT
-=================================
-/
-
-/
-======================
-NetSplit_GetLong
-
-Collect fragmrnts with signature 0xFFFFFFFE to single packet
-return true when got full packet
-======================
-/
-qboolean NetSplit_GetLong (netsplit_t *ns, netadr_t *from, byte *data, size_t *length)
-	{
-	netsplit_packet_t		*packet = (netsplit_packet_t *)data;
-	netsplit_chain_packet_t	*p;
-
-	if (*length <= NETSPLIT_HEADER_SIZE)
-		return false;
-
-	LittleLongSW (packet->id);
-	LittleLongSW (packet->length);
-	LittleLongSW (packet->part);
-
-	p = &ns->packets[packet->id & NETSPLIT_BACKUP_MASK];
-
-	// no packets with this id received
-	if (packet->id != p->id)
-		{
-		// [FWGS, 01.07.24] warn if previous packet not received
-		if (p->received < p->count)
-			{
-			UI_ShowConnectionWarning ();
-			Con_Reportf (S_WARN "%s: lost packet %d\n", __func__, p->id);
-			}
-
-		p->id = packet->id;
-		p->count = packet->count;
-		p->received = 0;
-		memset (p->recieved_v, 0, 32);
-		}
-
-	// [FWGS, 01.07.24] use bool vector to detect dup packets
-	if (p->recieved_v[packet->index >> 5] & (1 << (packet->index & 31)))
-		{
-		Con_Reportf (S_WARN "%s: dup packet from %s\n", __func__, NET_AdrToString (*from));
-		return false;
-		}
-
-	p->received++;
-
-	// mark as received
-	p->recieved_v[packet->index >> 5] |= 1 << (packet->index & 31);
-
-	// [FWGS, 01.07.24] prevent overflow
-	if (packet->part * packet->index > NET_MAX_PAYLOAD)
-		{
-		Con_Reportf (S_WARN "%s: packet out fo bounds from %s (part %d index %d)\n", __func__,
-			NET_AdrToString (*from), packet->part, packet->index);
-		return false;
-		}
-
-	// [FWGS, 01.07.24]
-	if (packet->length > NET_MAX_PAYLOAD)
-		{
-		Con_Reportf (S_WARN "%s: packet out fo bounds from %s (length %d)\n", __func__,
-			NET_AdrToString (*from), packet->length);
-		return false;
-		}
-
-	memcpy (p->data + packet->part * packet->index, packet->data, *length - 18);
-
-	// rewrite results of NET_GetPacket
-	if (p->received == packet->count)
-		{
-		size_t len = packet->length;
-
-		ns->total_received += len;
-
-		ns->total_received_uncompressed += len;
-		*length = len;
-
-		memcpy (data, p->data, len);
-		return true;
-		}
-	else
-		{
-		*length = NETSPLIT_HEADER_SIZE + packet->part;
-		}
-
-	return false;
-	}*/
-
 // [FWGS, 01.02.24] removed NetSplit_SendLong
 
 /***
@@ -361,7 +265,6 @@ void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, voi
 	chan->qport = qport;
 	chan->client = client;
 	chan->pfnBlockSize = pfnBlockSize;
-	/*chan->split = FBitSet (flags, NETCHAN_USE_LEGACY_SPLIT) ? true : false;*/
 	chan->use_munge = FBitSet (flags, NETCHAN_USE_MUNGE) ? true : false;
 	chan->use_bz2 = FBitSet (flags, NETCHAN_USE_BZIP2) ? true : false;
 	chan->use_lzss = FBitSet (flags, NETCHAN_USE_LZSS) ? true : false;
@@ -728,17 +631,24 @@ void Netchan_AddBufferToList (fragbuf_t **pplist, fragbuf_t *pbuf)
 	pprev = *pplist;
 	while (pprev->next)
 		{
-		n = pprev->next; // next item in list
+		n = pprev->next;	// next item in list
 		id1 = FRAG_GETID (n->bufferid);
 		id2 = FRAG_GETID (pbuf->bufferid);
 
 		if (id1 > id2)
 			{
 			// insert here
-			pbuf->next = n->next;
+			/*pbuf->next = n->next;*/
+			// pbuf->next = n->next;
+
+			// [FWGS, 01.05.26] a1ba: this seems to be incorrect insertion, as `n` gets removed
+			// from list and effectively leaked
+			pbuf->next = n;
+
 			pprev->next = pbuf;
 			return;
 			}
+
 		pprev = pprev->next;
 		}
 
@@ -1353,7 +1263,6 @@ qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg)
 		}
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (filename))*/
 	if (COM_StringEmptyOrNULL (filename))
 		{
 		Con_Printf (S_ERROR "file fragment received with no filename\nFlushing input queue\n");
@@ -1367,27 +1276,43 @@ qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg)
 		return false;
 		}
 
+	// [FWGS, 01.05.26]
+	Q_strncpy (chan->incomingfilename, filename, sizeof (chan->incomingfilename));
 	if (filename[0] != '!')
 		{
-		string temp_filename;
+		/*string temp_filename;
 		Q_snprintf (temp_filename, sizeof (temp_filename), DEFAULT_DOWNLOADED_DIRECTORY "%s", filename);
 		Q_strncpy (filename, temp_filename, sizeof (filename));
-		}
+		}*/
+		string write_path;
+		Q_snprintf (write_path, sizeof (write_path), "../%s" DEFAULT_DOWNLOADED_DIRECTORY_SUFFIX "/%s",
+			GI->gamefolder, filename);
+		Q_strncpy (filename, write_path, sizeof (filename));
 
-	Q_strncpy (chan->incomingfilename, filename, sizeof (chan->incomingfilename));
+		/*Q_strncpy (chan->incomingfilename, filename, sizeof (chan->incomingfilename));*/
+		FS_AllowDirectPaths (true);
+		qboolean exists = FS_FileExists (filename, false);
+		FS_AllowDirectPaths (false);
 
-	if ((filename[0] != '!') && FS_FileExists (filename, false))
+		/*if ((filename[0] != '!') && FS_FileExists (filename, false))
 		{
 		Con_Printf (S_ERROR "can't download %s, already exists\n", filename);
 		Netchan_FlushIncoming (chan, FRAG_FILE_STREAM);
-		return true;
+		return true;*/
+		if (exists)
+			{
+			Con_Printf (S_ERROR "can't download %s, already exists\n", filename);
+			Netchan_FlushIncoming (chan, FRAG_FILE_STREAM);
+			return true;
+			}
 		}
 
 	// create file from buffers
 	nsize = 0;
 	while (p)
 		{
-		nsize += MSG_GetNumBytesWritten (&p->frag_message); // Size will include a bit of slop, oh well
+		// size will include a bit of slop, oh well
+		nsize += MSG_GetNumBytesWritten (&p->frag_message);
 		if (p == chan->incomingbufs[FRAG_FILE_STREAM])
 			nsize -= MSG_GetNumBytesRead (msg);
 		p = p->next;
@@ -1447,15 +1372,18 @@ qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg)
 #endif
 		}
 
-	// [FWGS, 01.09.25]
-	else if (chan->use_lzss && LZSS_IsCompressed (buffer, nsize + 1))
+	// [FWGS, 01.05.26]
+	/*else if (chan->use_lzss && LZSS_IsCompressed (buffer, nsize + 1))*/
+	else if (chan->use_lzss && LZSS_IsCompressed (buffer, nsize))
 		{
 		byte *uncompressedBuffer;
 
-		uncompressedSize = LZSS_GetActualSize (buffer, nsize + 1) + 1;
+		/*uncompressedSize = LZSS_GetActualSize (buffer, nsize + 1) + 1;*/
+		uncompressedSize = LZSS_GetActualSize (buffer, nsize);
 		uncompressedBuffer = Mem_Calloc (net_mempool, uncompressedSize);
 
-		nsize = LZSS_Decompress (buffer, uncompressedBuffer, nsize + 1, uncompressedSize);
+		/*nsize = LZSS_Decompress (buffer, uncompressedBuffer, nsize + 1, uncompressedSize);*/
+		nsize = LZSS_Decompress (buffer, uncompressedBuffer, nsize, uncompressedSize);
 
 		Mem_Free (buffer);
 		buffer = uncompressedBuffer;
@@ -1471,8 +1399,11 @@ qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg)
 		}
 	else
 		{
-		// g-cont. it's will be stored downloaded files directly into game folder
+		// [FWGS, 01.05.26]
+		FS_AllowDirectPaths (true);
 		FS_WriteFile (filename, buffer, nsize);
+		FS_AllowDirectPaths (false);
+
 		Mem_Free (buffer);
 		}
 
@@ -1536,7 +1467,7 @@ void Netchan_UpdateProgress (netchan_t *chan)
 		host.downloadfile[0] = '\0';
 		}
 
-	// do show slider for file downloads.
+	// do show slider for file downloads
 	if (!chan->incomingbufs[FRAG_FILE_STREAM])
 		return;
 
@@ -1583,7 +1514,6 @@ void Netchan_UpdateProgress (netchan_t *chan)
 				*out = '\0';
 
 				// [FWGS, 01.03.26]
-				/*if (COM_CheckStringEmpty (sz) && (sz[0] != '!'))*/
 				if (!COM_StringEmpty (sz) && (sz[0] != '!'))
 					Q_strncpy (host.downloadfile, sz, sizeof (host.downloadfile));
 				}
@@ -1737,7 +1667,7 @@ void Netchan_TransmitBits (netchan_t *chan, int length, const byte *data)
 				{
 				fragment_size = MSG_GetNumBytesWritten (&pbuf->frag_message);
 
-				// files set size a bit differently.
+				// files set size a bit differently
 				if (pbuf->isfile && !pbuf->isbuffer)
 					{
 					fragment_size = pbuf->size;
@@ -1751,7 +1681,7 @@ void Netchan_TransmitBits (netchan_t *chan, int length, const byte *data)
 				{
 				sizebuf_t	temp;
 
-				// which buffer are we sending ?
+				// which buffer are we sending?
 				chan->reliable_fragid[i] = MAKE_FRAGID (pbuf->bufferid, chan->fragbufcount[i]);
 
 				// if it's not in-memory, then we'll need to copy it in frame the file handle
@@ -1801,7 +1731,6 @@ void Netchan_TransmitBits (netchan_t *chan, int length, const byte *data)
 	MSG_Init (&send, "NetSend", send_buf, sizeof (send_buf));
 
 	// [FWGS, 05.04.26] prepare the packet header
-	/*w1 = chan->outgoing_sequence | (send_reliable << 31);*/
 	w1 = chan->outgoing_sequence | (((uint)send_reliable) << 31);
 	w2 = chan->incoming_sequence | (chan->incoming_reliable_sequence << 31);
 
@@ -1876,7 +1805,7 @@ void Netchan_TransmitBits (netchan_t *chan, int length, const byte *data)
 	if ((MSG_GetNumBytesWritten (&send) < 16) && !NET_IsLocalAddress (chan->remote_address))
 		// packet too small for some networks
 		{
-		// go ahead and pad a full 16 extra bytes -- this only happens during authentication / signon
+		// go ahead and pad a full 16 extra bytes - this only happens during authentication / signon
 		for (i = MSG_GetNumBytesWritten (&send); i < 16; i++)
 			{
 			if (chan->sock == NS_CLIENT)
@@ -1904,7 +1833,8 @@ void Netchan_TransmitBits (netchan_t *chan, int length, const byte *data)
 		int splitsize = chan->pfnBlockSize (chan->client, FRAGSIZE_SPLIT);
 
 		if (chan->use_munge)
-			COM_Munge2 (send.pData + 8, MSG_GetNumBytesWritten (&send) - 8, (byte)(chan->outgoing_sequence - 1));
+			COM_Munge2 (send.pData + 8, MSG_GetNumBytesWritten (&send) - 8,
+				(byte)(chan->outgoing_sequence - 1));
 
 		NET_SendPacketEx (chan->sock, MSG_GetNumBytesWritten (&send), MSG_GetData (&send),
 			chan->remote_address, splitsize);
@@ -2049,7 +1979,7 @@ qboolean Netchan_Process (netchan_t *chan, sizebuf_t *msg)
 
 	chan->last_received = host.realtime;
 
-	// Update data flow stats
+	// update data flow stats
 	statId = chan->flow[FLOW_INCOMING].current & MASK_LATENT;
 	chan->flow[FLOW_INCOMING].stats[statId].size = MSG_GetMaxBytes (msg) + UDP_HEADER_SIZE;
 	chan->flow[FLOW_INCOMING].stats[statId].time = host.realtime;

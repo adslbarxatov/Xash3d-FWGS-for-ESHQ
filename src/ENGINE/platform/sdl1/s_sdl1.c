@@ -50,30 +50,24 @@ static char sdl_backend_name[32];
 // [FWGS, 15.04.26]
 static void SDL_SoundCallback (void *userdata, Uint8 *stream, int len)
 	{
-	/*const int size = dma.samples << 1;*/
 	const int size = snd.samples << 1;
 	int pos;
 	int wrapped;
 
-	/*if (!dma.buffer)*/
 	if (!snd.buffer)
 		{
 		memset (stream, 0, len);
 		return;
 		}
 
-	/*pos = dma.samplepos << 1;*/
 	pos = snd.samplepos << 1;
 	if (pos >= size)
-		/*pos = dma.samplepos = 0;*/
 		pos = snd.samplepos = 0;
 
 	wrapped = pos + len - size;
 
 	if (wrapped < 0)
 		{
-		/*memcpy (stream, dma.buffer + pos, len);
-		dma.samplepos += len >> 1;*/
 		memcpy (stream, snd.buffer + pos, len);
 		snd.samplepos += len >> 1;
 		}
@@ -81,16 +75,11 @@ static void SDL_SoundCallback (void *userdata, Uint8 *stream, int len)
 		{
 		int remaining = size - pos;
 
-		/*memcpy (stream, dma.buffer + pos, remaining);
-		memcpy (stream + remaining, dma.buffer, wrapped);
-		dma.samplepos = wrapped >> 1;*/
 		memcpy (stream, snd.buffer + pos, remaining);
 		memcpy (stream + remaining, snd.buffer, wrapped);
 		snd.samplepos = wrapped >> 1;
 		}
 
-	/*if (dma.samplepos >= size)
-		dma.samplepos = 0;*/
 	if (snd.samplepos >= size)
 		snd.samplepos = 0;
 	}
@@ -119,9 +108,11 @@ qboolean SNDDMA_Init (void)
 		return false;
 		}
 
+	// [FWGS, 01.05.26]
 	memset (&desired, 0, sizeof (desired));
 	desired.freq = SOUND_DMA_SPEED;
-	desired.format = AUDIO_S16LSB;
+	/*desired.format = AUDIO_S16LSB;*/
+	desired.format = AUDIO_S16SYS;
 	desired.samples = 1024;
 	desired.channels = 2;
 	desired.callback = SDL_SoundCallback;
@@ -134,7 +125,9 @@ qboolean SNDDMA_Init (void)
 		return false;
 		}
 
-	if (obtained.format != AUDIO_S16LSB)
+	// [FWGS, 01.05.26]
+	/*if (obtained.format != AUDIO_S16LSB)*/
+	if (obtained.format != AUDIO_S16SYS)
 		{
 		Con_Printf ("SDL audio format %d unsupported.\n", obtained.format);
 		goto fail;
@@ -147,9 +140,6 @@ qboolean SNDDMA_Init (void)
 		}
 
 	// [FWGS, 15.04.26]
-	/*dma.format.speed = obtained.freq;
-	dma.format.channels = obtained.channels;
-	dma.format.width = 2;*/
 	snd.format.speed = obtained.freq;
 	snd.format.channels = obtained.channels;
 	snd.format.width = 2;
@@ -157,17 +147,13 @@ qboolean SNDDMA_Init (void)
 	samplecount = s_samplecount.value;
 	if (!samplecount)
 		samplecount = 0x8000;
-	/*dma.samples = samplecount * obtained.channels;
-	dma.buffer = Mem_Calloc (sndpool, dma.samples * 2);
-	dma.samplepos = 0;*/
+
 	snd.samples = samplecount * obtained.channels;
 	snd.buffer = Mem_Calloc (sndpool, snd.samples * 2);
 	snd.samplepos = 0;
 
 	Con_Printf ("Using SDL audio driver: %s @ %d Hz\n", SDL_GetCurrentAudioDriver (), obtained.freq);
 	Q_snprintf (sdl_backend_name, sizeof (sdl_backend_name), "SDL");
-	/*dma.initialized = true;
-	dma.backendName = sdl_backend_name;*/
 	snd.initialized = true;
 	snd.backend_name = sdl_backend_name;
 
@@ -215,7 +201,6 @@ void SNDDMA_Shutdown (void)
 	{
 	// [FWGS, 15.04.26]
 	Con_Printf ("Shutting down audio.\n");
-	/*dma.initialized = false;*/
 	snd.initialized = false;
 
 	if (sdl_dev)
@@ -228,11 +213,8 @@ void SNDDMA_Shutdown (void)
 		SDL_QuitSubSystem (SDL_INIT_AUDIO);
 
 	// [FWGS, 15.04.26]
-	/*if (dma.buffer)*/
 	if (snd.buffer)
 		{
-		/*Mem_Free (dma.buffer);
-		dma.buffer = NULL;*/
 		Mem_Free (snd.buffer);
 		snd.buffer = NULL;
 		}
@@ -250,7 +232,6 @@ between a deactivate and an activate
 void SNDDMA_Activate (qboolean active)
 	{
 	// [FWGS, 15.04.26]
-	/*if (!dma.initialized)*/
 	if (!snd.initialized)
 		return;
 

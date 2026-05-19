@@ -49,39 +49,26 @@ static CVAR_DEFINE_AUTO (sv_contact, "", FCVAR_ARCHIVE | FCVAR_SERVER,
 	"server technical support contact address or web-page");
 
 // [FWGS, 01.03.26]
-/*CVAR_DEFINE_AUTO (sv_minupdaterate, "25.0", FCVAR_ARCHIVE,
-	"minimal value for 'cl_updaterate' window");
-CVAR_DEFINE_AUTO (sv_maxupdaterate, "60.0", FCVAR_ARCHIVE,
-	"maximal value for 'cl_updaterate' window");*/
 CVAR_DEFINE_AUTO (sv_minupdaterate, "10.0", FCVAR_ARCHIVE,
 	"minimal value for 'cl_updaterate' window, 0 == unlimited");
 CVAR_DEFINE_AUTO (sv_maxupdaterate, "60.0", FCVAR_ARCHIVE,
 	"maximal value for 'cl_updaterate' window, 0 == unlimited");
-
 CVAR_DEFINE_AUTO (sv_minrate, "5000", FCVAR_SERVER,
 	"min bandwidth rate allowed on server, 0 == unlimited");
-
-// [FWGS, 01.03.26]
-/*CVAR_DEFINE_AUTO (sv_maxrate, "50000", FCVAR_SERVER,
-	"max bandwidth rate allowed on server, 0 == unlimited");*/
 CVAR_DEFINE_AUTO (sv_maxrate, "0", FCVAR_SERVER,
 	"max bandwidth rate allowed on server, 0 == unlimited");
-
 CVAR_DEFINE_AUTO (sv_newunit, "0", 0,
 	"clear level-saves from previous SP game chapter to help keep .sav file size as minimum");
 CVAR_DEFINE_AUTO (sv_clienttrace, "1", FCVAR_SERVER,
 	"0 = big box(Quake), 0.5 = halfsize, 1 = normal (100%), otherwise it's a scaling factor");
 static CVAR_DEFINE_AUTO (sv_timeout, "65", 0,
 	"after this many seconds without a message from a client, the client is dropped");
-
-// [FWGS, 01.11.25]
 static CVAR_DEFINE_AUTO (sv_connect_timeout, "60", 0,
 	"after this many seconds without a message from a client, the client is dropped");
 static CVAR_DEFINE_AUTO (sv_connect_timeout_ban, "1", 0,
 	"whether automatically ban suspicious players stuck in connect loop");
 static CVAR_DEFINE_AUTO (sv_connect_timeout_ban_time, "2", 0,
 	"if suspicious player time out, for how long ban them");
-
 CVAR_DEFINE_AUTO (sv_failuretime, "0.5", 0,
 	"after this long without a packet from client, don't send any more until client starts sending again");
 CVAR_DEFINE_AUTO (sv_password, "", FCVAR_SERVER | FCVAR_PROTECTED,
@@ -98,6 +85,11 @@ static CVAR_DEFINE_AUTO (sv_allow_dlfile, "1", 0,
 	"compatibility cvar, does nothing");
 CVAR_DEFINE_AUTO (sv_uploadmax, "0.5", FCVAR_SERVER,
 	"max size to upload custom resources (500 kB as default)");
+
+// [FWGS, 01.05.26]
+CVAR_DEFINE_AUTO (sv_upload_penalty_time, "60", FCVAR_ARCHIVE,
+	"allow custom resource updates only once in this timewindow (set 0 to disable)");
+
 CVAR_DEFINE_AUTO (sv_downloadurl, "", FCVAR_PROTECTED,
 	"location from which clients can download missing files");
 CVAR_DEFINE (sv_consistency, "mp_consistency", "1", FCVAR_SERVER,
@@ -119,7 +111,7 @@ CVAR_DEFINE_AUTO (sv_autosave, "1", FCVAR_ARCHIVE | FCVAR_SERVER | FCVAR_PRIVILE
 CVAR_DEFINE_AUTO (sv_speedhack_kick, "10", FCVAR_ARCHIVE,
 	"number of speedhack warns before automatic kick (0 to disable)");
 
-// [FWGS, 01.07.24] game-related cvars
+// game-related cvars
 static CVAR_DEFINE_AUTO (mapcyclefile, "mapcycle.txt", 0,
 	"name of multiplayer map cycle configuration file");
 static CVAR_DEFINE_AUTO (motdfile, "motd.txt", 0,
@@ -206,8 +198,6 @@ CVAR_DEFINE_AUTO (sv_wateralpha, "1", FCVAR_MOVEVARS | FCVAR_UNLOGGED,
 	"world surfaces water transparency factor. 1.0 - solid, 0.0 - fully transparent");
 CVAR_DEFINE_AUTO (sv_background_freeze, "1", FCVAR_ARCHIVE,
 	"freeze player movement on background maps (e.g. to prevent falling)");
-
-// [FWGS, 01.03.25]
 static CVAR_DEFINE_AUTO (showtriggers, "0", FCVAR_LATCH | FCVAR_TEMPORARY,
 	"debug cvar shows triggers");
 static CVAR_DEFINE_AUTO (sv_airmove, "1", FCVAR_SERVER,
@@ -216,12 +206,10 @@ static CVAR_DEFINE_AUTO (sv_version, "", FCVAR_READ_ONLY,
 	"engine version string");
 CVAR_DEFINE_AUTO (hostname, "", FCVAR_PRINTABLEONLY,
 	"name of current host");
-
-// [FWGS, 01.11.25]
 static CVAR_DEFINE_AUTO (sv_fps, "0.0", 0,
 	"set this cvar to decouple server framerate from client framerate");
 
-// [FWGS, 01.07.24] gore-related cvars
+// gore-related cvars
 static CVAR_DEFINE_AUTO (violence_hblood, "1", 0,
 	"draw human blood");
 static CVAR_DEFINE_AUTO (violence_ablood, "1", 0,
@@ -231,7 +219,7 @@ static CVAR_DEFINE_AUTO (violence_hgibs, "1", 0,
 static CVAR_DEFINE_AUTO (violence_agibs, "1", 0,
 	"show alien gib entities");
 
-// [FWGS, 01.07.24] voice chat
+// voice chat
 CVAR_DEFINE_AUTO (sv_voiceenable, "1", FCVAR_ARCHIVE | FCVAR_SERVER,
 	"enable voice support");
 CVAR_DEFINE_AUTO (sv_voicequality, "3", FCVAR_ARCHIVE,
@@ -334,7 +322,7 @@ void SV_UpdateMovevars (qboolean initialize)
 	// overflows delta. In this case, just clamp it to something bigger
 	if (sv_zmax.value < 256.0f)
 		Cvar_DirectSet (&sv_zmax, "256");
-	else if (sv_zmax.value > 16777216.0f) // 2^24
+	else if (sv_zmax.value > 16777216.0f)	// 2^24
 		Cvar_DirectSet (&sv_zmax, "16777216");
 
 	svgame.movevars.gravity = sv_gravity.value;
@@ -358,12 +346,6 @@ void SV_UpdateMovevars (qboolean initialize)
 	svgame.movevars.rollspeed = sv_rollspeed.value;
 
 	// [FWGS, 01.03.26]
-	/*svgame.movevars.skycolor_r = sv_skycolor_r.value;
-	svgame.movevars.skycolor_g = sv_skycolor_g.value;
-	svgame.movevars.skycolor_b = sv_skycolor_b.value;
-	svgame.movevars.skyvec_x = sv_skyvec_x.value;
-	svgame.movevars.skyvec_y = sv_skyvec_y.value;
-	svgame.movevars.skyvec_z = sv_skyvec_z.value;*/
 	svgame.movevars.skycolor[0] = sv_skycolor_r.value;
 	svgame.movevars.skycolor[1] = sv_skycolor_g.value;
 	svgame.movevars.skycolor[2] = sv_skycolor_b.value;
@@ -376,11 +358,11 @@ void SV_UpdateMovevars (qboolean initialize)
 	svgame.movevars.entgravity = 1.0f;
 
 	if (initialize)
-		return; // too early
+		return;	// too early
 
 	// [FWGS, 01.09.24]
 	if (MSG_WriteDeltaMovevars (&sv.reliable_datagram, &svgame.oldmovevars, &svgame.movevars))
-		svgame.oldmovevars = svgame.movevars; // oldstate changed
+		svgame.oldmovevars = svgame.movevars;	// oldstate changed
 
 	host.movevars_changed = false;
 	}
@@ -407,7 +389,9 @@ static void SV_CheckCmdTimes (void)
 			Cvar_SetValue ("sv_fps", MAX_FPS_HARD);
 		}
 
-	if (Host_IsLocalGame ())
+	// [FWGS, 01.05.26]
+	/*if (Host_IsLocalGame ())*/
+	if (Host_IsSinglePlayerGame ())
 		return;
 
 	if ((host.realtime - lastreset) < 1.0)
@@ -565,7 +549,7 @@ static void SV_ReadPackets (void)
 			if (Netchan_Process (&cl->netchan, &net_message))
 				{
 				if ((svs.maxclients == 1) && !host_limitlocal.value || (cl->state != cs_spawned))
-					SetBits (cl->flags, FCL_SEND_NET_MESSAGE); // reply at end of frame
+					SetBits (cl->flags, FCL_SEND_NET_MESSAGE);	// reply at end of frame
 
 				// this is a valid, sequenced packet, so process it
 				if ((cl->frames != NULL) && (cl->state != cs_zombie))
@@ -584,7 +568,7 @@ static void SV_ReadPackets (void)
 					MSG_Init (&net_message, "ClientPacket", net_message_buffer, curSize);
 
 					if ((svs.maxclients == 1) && !host_limitlocal.value || (cl->state != cs_spawned))
-						SetBits (cl->flags, FCL_SEND_NET_MESSAGE); // reply at end of frame
+						SetBits (cl->flags, FCL_SEND_NET_MESSAGE);	// reply at end of frame
 
 					// this is a valid, sequenced packet, so process it
 					if ((cl->frames != NULL) && (cl->state != cs_zombie))
@@ -615,7 +599,7 @@ static void SV_DropTimedOutClient (sv_client_t *cl, qboolean ban)
 	{
 	SV_BroadcastPrintf (NULL, "%s timed out\n", cl->name);
 	SV_DropClient (cl, false);
-	cl->state = cs_free; // don't bother with zombie state
+	cl->state = cs_free;	// don't bother with zombie state
 
 	// [ESHQ: brackets]
 	// [FWGS, 01.11.25]
@@ -661,7 +645,7 @@ static void SV_CheckTimeouts (void)
 			{
 			case cs_zombie:
 				// FIXME: get rid of the zombie state
-				cl->state = cs_free; // can now be reused
+				cl->state = cs_free;	// can now be reused
 				break;
 
 			// [FWGS, 01.11.25]
@@ -710,7 +694,6 @@ static void SV_PrepWorldFrame (void)
 	for (i = 1; i < svgame.numEntities; i++)
 		{
 		// [FWGS, 05.04.26]
-		/*ent = EDICT_NUM (i);*/
 		ent = SV_EdictNum (i);
 		if (ent->free)
 			continue;
@@ -730,7 +713,7 @@ SV_IsSimulating [FWGS, 01.08.24]
 static qboolean SV_IsSimulating (void)
 	{
 	if (Host_IsDedicated ())
-		return true; // always active for dedicated servers
+		return true;	// always active for dedicated servers
 
 	if (sv.background && SV_Active () && CL_Active ())
 		{
@@ -768,7 +751,7 @@ static qboolean SV_RunGameFrame (void)
 
 	if (sv_fps.value != 0.0f)
 		{
-		double	fps = (1.0 / (double)(sv_fps.value - 0.01f)); // FP issues
+		double	fps = (1.0 / (double)(sv_fps.value - 0.01f));	// FP issues
 		int		numFrames = 0;
 
 		while (sv.time_residual >= fps)
@@ -886,14 +869,15 @@ void Host_ServerFrame (void)
 void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 	{
 	uint	challenge, challenge2, heartbeat_challenge;
-	char	s[MAX_INFO_STRING] = S2M_INFO; // skip 2 bytes of header
+	char	s[MAX_INFO_STRING] = S2M_INFO;	// skip 2 bytes of header
 	int		clients, bots;
 	double	last_heartbeat;
 	const int	len = sizeof (s);
 
 	if (!NET_GetMaster (from, &heartbeat_challenge, &last_heartbeat))
 		{
-		Con_Reportf (S_WARN "unexpected master server info query packet from %s\n", NET_AdrToString (from));
+		Con_Reportf (S_WARN "unexpected master server info query packet from %s\n",
+			NET_AdrToString (from));
 		return;
 		}
 
@@ -914,34 +898,34 @@ void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 		}
 
 	SV_GetPlayerCount (&clients, &bots);
-	Info_SetValueForKeyf (s, "protocol", len, "%d", PROTOCOL_VERSION); // protocol version
-	Info_SetValueForKeyf (s, "challenge", len, "%u", challenge); // challenge number
-	Info_SetValueForKeyf (s, "players", len, "%d", clients); // current player number, without bots
-	Info_SetValueForKeyf (s, "max", len, "%d", svs.maxclients); // max_players
-	Info_SetValueForKeyf (s, "bots", len, "%d", bots); // bot count
+	Info_SetValueForKeyf (s, "protocol", len, "%d", PROTOCOL_VERSION);	// protocol version
+	Info_SetValueForKeyf (s, "challenge", len, "%u", challenge);	// challenge number
+	Info_SetValueForKeyf (s, "players", len, "%d", clients);	// current player number, without bots
+	Info_SetValueForKeyf (s, "max", len, "%d", svs.maxclients);	// max_players
+	Info_SetValueForKeyf (s, "bots", len, "%d", bots);	// bot count
 
-	Info_SetValueForKey (s, "gamedir", GI->gamefolder, len); // gamedir
-	Info_SetValueForKey (s, "map", sv.name, len); // current map
-	Info_SetValueForKey (s, "type", (Host_IsDedicated ()) ? "d" : "l", len); // dedicated or local
+	Info_SetValueForKey (s, "gamedir", GI->gamefolder, len);	// gamedir
+	Info_SetValueForKey (s, "map", sv.name, len);	// current map
+	Info_SetValueForKey (s, "type", (Host_IsDedicated ()) ? "d" : "l", len);	// dedicated or local
 
 	// [FWGS, 01.11.25]
-	Info_SetValueForKey (s, "password", SV_HavePassword () ? "0" : "1", len); // is password set
+	Info_SetValueForKey (s, "password", SV_HavePassword () ? "0" : "1", len);	// is password set
 
-	Info_SetValueForKey (s, "os", "w", len); // Windows
-	Info_SetValueForKey (s, "secure", "0", len); // server anti-cheat
-	Info_SetValueForKey (s, "lan", "0", len); // LAN servers doesn't send info to master
+	Info_SetValueForKey (s, "os", "w", len);	// Windows
+	Info_SetValueForKey (s, "secure", "0", len);	// server anti-cheat
+	Info_SetValueForKey (s, "lan", "0", len);	// LAN servers doesn't send info to master
 
-	Info_SetValueForKey (s, "version", XASH_VERSION, len); // server region. 255 -- all regions
-	Info_SetValueForKey (s, "region", "255", len); // server region. 255 -- all regions
-	Info_SetValueForKey (s, "product", GI->gamefolder, len); // product? Where is the difference with gamedir?
-	Info_SetValueForKey (s, "nat", sv_nat.string, len); // Server running under NAT, use reverse connection
+	Info_SetValueForKey (s, "version", XASH_VERSION, len);	// server region. 255 -- all regions
+	Info_SetValueForKey (s, "region", "255", len);	// server region. 255 -- all regions
+	Info_SetValueForKey (s, "product", GI->gamefolder, len);	// product? Where is the difference with gamedir?
+	Info_SetValueForKey (s, "nat", sv_nat.string, len);	// Server running under NAT, use reverse connection
 
 	NET_SendPacket (NS_SERVER, Q_strlen (s), s, from);
 	}
 
 /***
 ====================
-SV_ProcessUserAgent [FWGS, 01.03.25]
+SV_ProcessUserAgent
 
 send error message and return false on wrong input devices
 ====================
@@ -964,7 +948,9 @@ qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent)
 		{
 		char c = id[i];
 
-		if (!isdigit (id[i]) && !((c >= 'a') && (c <= 'f')))
+		// [FWGS, 01.05.26]
+		/*if (!isdigit (id[i]) && !((c >= 'a') && (c <= 'f')))*/
+		if (!isdigit ((byte)id[i]) && !((c >= 'a') && (c <= 'f')))
 			{
 			SV_RejectConnection (from, "invalid authentication certificate\n");
 			return false;
@@ -1037,14 +1023,12 @@ void SV_Init (void)
 		"HEV suit volume");
 
 	// [FWGS, 01.03.26]
-	/*Cvar_Get ("sv_background", "0", FCVAR_READ_ONLY,
-		"indicate what background map is running");*/
 	Cvar_Get ("gamedir", GI->gamefolder, FCVAR_READ_ONLY,
 		"game folder");
 	Cvar_Get ("sv_alltalk", "1", 0,
 		"allow to talking for all players (legacy, unused)");
 	Cvar_Get ("sv_allow_PhysX", "1", FCVAR_ARCHIVE,
-		"allow XashXT to use PhysX engine");			// XashXT cvar
+		"allow XashXT to use PhysX engine");		// XashXT cvar
 	Cvar_Get ("sv_precache_meshes", "1", FCVAR_ARCHIVE,
 		"cache SOLID_CUSTOM meshes before level loading");	// Paranoia 2 cvar
 	Cvar_Get ("servercfgfile", "server.cfg", 0,
@@ -1090,12 +1074,9 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&sv_newunit);
 	Cvar_RegisterVariable (&hostname);
 	Cvar_RegisterVariable (&sv_timeout);
-
-	// [FWGS, 01.11.25]
 	Cvar_RegisterVariable (&sv_connect_timeout);
 	Cvar_RegisterVariable (&sv_connect_timeout_ban);
 	Cvar_RegisterVariable (&sv_connect_timeout_ban_time);
-
 	Cvar_RegisterVariable (&sv_pausable);
 	Cvar_RegisterVariable (&sv_validate_changelevel);
 	Cvar_RegisterVariable (&sv_clienttrace);
@@ -1127,10 +1108,12 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&sv_send_logos);
 	Cvar_RegisterVariable (&sv_send_resources);
 	Cvar_RegisterVariable (&sv_uploadmax);
+
+	// [FWGS, 01.05.26]
+	Cvar_RegisterVariable (&sv_upload_penalty_time);
+
 	Cvar_RegisterVariable (&sv_version);
 	Cvar_RegisterVariable (&sv_instancedbaseline);
-
-	// [FWGS, 01.07.24]
 	Cvar_RegisterVariable (&sv_contact);
 	Cvar_RegisterVariable (&sv_consistency);
 	Cvar_RegisterVariable (&sv_downloadurl);
@@ -1180,8 +1163,6 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&sv_userinfo_penalty_attempts);
 	Cvar_RegisterVariable (&sv_fullupdate_penalty_time);
 	Cvar_RegisterVariable (&sv_log_outofband);
-
-	// [FWGS, 01.07.24]
 	Cvar_RegisterVariable (&sv_allow_testpacket);
 	Cvar_RegisterVariable (&sv_expose_player_list);
 
@@ -1200,7 +1181,6 @@ void SV_Init (void)
 	// [FWGS, 05.04.26]
 	SV_InitFilter ();
 	SV_ClearGameState ();	// delete all temporary *.hl files
-	/*SV_InitGame ();*/
 	SV_InitGame (GI->gamemode != GAME_SINGLEPLAYER_ONLY);
 	}
 
@@ -1224,7 +1204,6 @@ void SV_FinalMessage (const char *message, qboolean reconnect)
 	MSG_Init (&msg, "FinalMessage", msg_buf, sizeof (msg_buf));
 
 	// [FWGS, 01.03.26]
-	/*if (COM_CheckString (message))*/
 	if (!COM_StringEmptyOrNULL (message))
 		{
 		MSG_BeginServerCmd (&msg, svc_print);
@@ -1307,10 +1286,8 @@ void SV_Shutdown (const char *finalmsg)
 		}
 
 	// [FWGS, 01.03.26] don't forget to reset sv_background state
-	/*Cvar_FullSet ("sv_background", "0", FCVAR_READ_ONLY);*/
 	Cvar_DirectFullSet (&sv_background, "0", FCVAR_READ_ONLY);
 
-	/*if (COM_CheckString (finalmsg))*/
 	if (!COM_StringEmptyOrNULL (finalmsg))
 		Con_Printf ("%s", finalmsg);
 

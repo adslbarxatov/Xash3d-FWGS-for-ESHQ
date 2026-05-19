@@ -34,7 +34,6 @@ static int num_vidmodes = 0;
 static void GL_SetupAttributes (void);
 
 // [FWGS, 01.03.26]
-/*struct*/
 static struct
 	{
 	int prev_width, prev_height;
@@ -43,11 +42,11 @@ static struct
 // [FWGS, 01.06.25]
 struct
 	{
-	SDL_Renderer *renderer;
-	SDL_Texture *tex;
-	int width, height;
-	SDL_Surface *surf;
-	SDL_Surface *win;
+	SDL_Renderer	*renderer;
+	SDL_Texture		*tex;
+	int		width, height;
+	SDL_Surface		*surf;
+	SDL_Surface		*win;
 	} sw;
 
 // [FWGS, 01.06.25]
@@ -248,17 +247,10 @@ vidmode_t *R_GetVideoMode (int num)
 static void R_InitVideoModes (void)
 	{
 	char	buf[MAX_VA_STRING];
-	/*if SDL_VERSION_ATLEAST( 2, 24, 0 )
-	SDL_Point	point = { window_xpos.value, window_ypos.value };
-	int			displayIndex = SDL_GetPointDisplayIndex (&point);
-	else
-	int			displayIndex = 0;
-	endif*/
 	int		display_index = 0;
 	int		i, modes;
 
 	num_vidmodes = 0;
-	/*modes = SDL_GetNumDisplayModes (displayIndex);*/
 	modes = SDL_GetNumDisplayModes (display_index);
 	if (!modes)
 		return;
@@ -270,7 +262,6 @@ static void R_InitVideoModes (void)
 		int j;
 		SDL_DisplayMode mode;
 
-		/*if (SDL_GetDisplayMode (displayIndex, i, &mode) < 0)*/
 		if (SDL_GetDisplayMode (display_index, i, &mode) < 0)
 			{
 			Msg ("SDL_GetDisplayMode: %s\n", SDL_GetError ());
@@ -282,12 +273,8 @@ static void R_InitVideoModes (void)
 
 		for (j = 0; j < num_vidmodes; j++)
 			{
-			/*if (mode.w == vidmodes[j].width &&
-				mode.h == vidmodes[j].height)
-				{*/
 			if ((mode.w == vidmodes[j].width) && (mode.h == vidmodes[j].height))
 				break;
-			/*}*/
 			}
 
 		if (j != num_vidmodes)
@@ -318,88 +305,8 @@ static void R_FreeVideoModes (void)
 	}
 
 #if XASH_WIN32
+
 // [FWGS, 01.03.26] removed XASH_DPI_AWARENESS, WIN_SetDPIAwareness
-
-/*typedef enum _XASH_DPI_AWARENESS
-	{
-	XASH_DPI_UNAWARE = 0,
-	XASH_SYSTEM_DPI_AWARE = 1,
-	XASH_PER_MONITOR_DPI_AWARE = 2
-	} XASH_DPI_AWARENESS;*/
-
-/*// [FWGS, 01.04.25]
-static void WIN_SetDPIAwareness (void)
-	{
-	HMODULE	hModule;
-	HRESULT	(__stdcall * pSetProcessDpiAwareness)(XASH_DPI_AWARENESS);
-	BOOL	(__stdcall * pSetProcessDPIAware)(void);
-	BOOL	bSuccess = FALSE;
-
-	if ((hModule = LoadLibraryW (L"shcore.dll")))
-		{
-		if ((pSetProcessDpiAwareness = (void *)GetProcAddress (hModule, "SetProcessDpiAwareness")))
-			{
-			// I hope SDL don't handle WM_DPICHANGED message
-			HRESULT hResult = pSetProcessDpiAwareness (XASH_SYSTEM_DPI_AWARE);
-
-			if (hResult == S_OK)
-				{
-				Con_Reportf ("%s: Success\n", __func__);
-				bSuccess = TRUE;
-				}
-			else if (hResult == E_INVALIDARG)
-				{
-				Con_Reportf ("%s: Invalid argument\n", __func__);
-				}
-			else if (hResult == E_ACCESSDENIED)
-				{
-				Con_Reportf ("%s: Access Denied\n", __func__);
-				}
-			}
-		else
-			{
-			Con_Reportf ("%s: Can't get SetProcessDpiAwareness\n", __func__);
-			}
-		FreeLibrary (hModule);
-		}
-	else
-		{
-		Con_Reportf ("%s: Can't load shcore.dll\n", __func__);
-		}
-
-	if (!bSuccess)
-		{
-		Con_Reportf ("%s: Trying SetProcessDPIAware...\n", __func__);
-
-		if ((hModule = LoadLibraryW (L"user32.dll")))
-			{
-			if ((pSetProcessDPIAware = (void *)GetProcAddress (hModule, "SetProcessDPIAware")))
-				{
-				// I hope SDL don't handle WM_DPICHANGED message
-				BOOL hResult = pSetProcessDPIAware ();
-
-				if (hResult)
-					{
-					Con_Reportf ("%s: Success\n", __func__);
-					bSuccess = TRUE;
-					}
-				else
-					{
-					Con_Reportf ("%s: fail\n", __func__);
-					}
-				}
-			else
-				{
-				Con_Reportf ("%s: Can't get SetProcessDPIAware\n", __func__);
-				}
-			FreeLibrary (hModule);
-			}
-		else
-			{
-			Con_Reportf ("%s: Can't load user32.dll\n", __func__);
-			}
-		}
-	}*/
 
 static qboolean WIN_SetWindowIcon (HICON ico)
 	{
@@ -414,7 +321,6 @@ static qboolean WIN_SetWindowIcon (HICON ico)
 		}
 	
 	// [FWGS, 01.03.26]
-	/*Con_Reportf (S_ERROR "%s: %s", __func__, SDL_GetError ());*/
 	Con_Reportf (S_ERROR "%s: %s\n", __func__, SDL_GetError ());
 	return false;
 	}
@@ -463,12 +369,10 @@ void GL_UpdateSwapInterval (void)
 GL_DeleteContext [FWGS, 01.03.26]
 =================
 ***/
-/*qboolean GL_DeleteContext (void)*/
 static qboolean GL_DeleteContext (void)
 	{
 	if (glw_state.context)
 		{
-		/*SDL_GL_DeleteContext (glw_state.context);*/
 		SDL_GL_DeleteContext (glw_state.context);
 		glw_state.context = NULL;
 		}
@@ -477,39 +381,9 @@ static qboolean GL_DeleteContext (void)
 	}
 
 // [FWGS, 01.03.26] removed GL_CreateContext, GL_UpdateContext
-/*
-/
-=================
-GL_CreateContext [FWGS, 01.06.25]
-=================
-/
-static qboolean GL_CreateContext (void)
-	{
-	if ((glw_state.context = SDL_GL_CreateContext (host.hWnd)) == NULL)
-		{
-		Con_Reportf (S_ERROR "%s: %s\n", __func__, SDL_GetError ());
-		return GL_DeleteContext ();
-		}
-
-	return true;
-	}
-
-/
-=================
-GL_UpdateContext [FWGS, 01.06.25]
-=================
-/
-static qboolean GL_UpdateContext (void)*/
 
 static void VID_GetWindowSizeInPixels (SDL_Window *window, SDL_Renderer *renderer, int *w, int *h)
 	{
-	/*if (SDL_GL_MakeCurrent (host.hWnd, glw_state.context) < 0)
-		{
-		Con_Reportf (S_ERROR "%s: %s\n", __func__, SDL_GetError ());
-		return GL_DeleteContext ();
-		}
-
-	return true;*/
 #if SDL_VERSION_ATLEAST( 2, 26, 0 )
 	SDL_GetWindowSizeInPixels (window, w, h);
 #else
@@ -521,16 +395,11 @@ static void VID_GetWindowSizeInPixels (SDL_Window *window, SDL_Renderer *rendere
 	}
 
 // [FWGS, 01.03.26]
-/*void VID_SaveWindowSize (int width, int height, qboolean maximized)*/
 void VID_SaveWindowSize (int width, int height)
 	{
 	qboolean maximized = FBitSet (SDL_GetWindowFlags (host.hWnd), SDL_WINDOW_MAXIMIZED);
 	int render_w = width, render_h = height;
 
-	/*if (!glw_state.software)
-		SDL_GL_GetDrawableSize (host.hWnd, &render_w, &render_h);
-	else
-		SDL_RenderSetLogicalSize (sw.renderer, width, height);*/
 	VID_GetWindowSizeInPixels (host.hWnd, sw.renderer, &render_w, &render_h);
 
 	VID_SetDisplayTransform (&render_w, &render_h);
@@ -540,61 +409,19 @@ void VID_SaveWindowSize (int width, int height)
 // [FWGS, 01.03.26] removed VID_SetScreenResolution
 
 // [FWGS, 01.03.26]
-/*static qboolean VID_SetScreenResolution (int width, int height, window_mode_t window_mode)*/
 static qboolean VID_GuessFullscreenMode (int display_index, const SDL_DisplayMode *want, SDL_DisplayMode *got)
 	{
-	/*SDL_DisplayMode got;
-	Uint32 wndFlags = 0;
-
-	if (vid_highdpi.value)
-		SetBits (wndFlags, SDL_WINDOW_ALLOW_HIGHDPI);
-
-	SDL_SetWindowBordered (host.hWnd, SDL_FALSE);
-	if (window_mode == WINDOW_MODE_BORDERLESS)
-		{
-		if (SDL_GetDesktopDisplayMode (0, &got) < 0)
-			{
-			Con_Printf (S_ERROR "%s: SDL_GetDesktopDisplayMode: %s", __func__, SDL_GetError ());
-			return false;
-			}
-
-		if (SDL_SetWindowFullscreen (host.hWnd, SDL_WINDOW_FULLSCREEN_DESKTOP) < 0)
-			{
-			Con_Printf (S_ERROR "%s: SDL_SetWindowFullscreen (borderless): %s", __func__, SDL_GetError ());
-			return false;
-			}
-		}
-	else if (window_mode == WINDOW_MODE_FULLSCREEN)*/
 	if (SDL_GetClosestDisplayMode (display_index, want, got) == NULL)
 		{
-		/*SDL_DisplayMode want = { 0 };
-		want.w = width;
-		want.h = height;*/
 		Con_Printf (S_ERROR "%s: SDL_GetClosestDisplayMode: %s\n", __func__, SDL_GetError ());
 
-		/*if (SDL_GetClosestDisplayMode (0, &want, &got) == NULL)*/
 		// fall back to native mode
 		if (SDL_GetDesktopDisplayMode (display_index, got) < 0)
 			{
-			/*Con_Printf (S_ERROR "%s: SDL_GetClosestDisplayMode: %s", __func__, SDL_GetError ());
-			return false;
-			}
-
-		if ((got.w != want.w) || (got.h != want.h))
-			Con_Reportf (S_NOTE "Got closest display mode: %ix%i@%i\n", got.w, got.h, got.refresh_rate);*/
 			Con_Printf (S_ERROR "%s: SDL_GetDesktopDisplayMode: %s\n", __func__, SDL_GetError ());
-
-			/*if (SDL_SetWindowDisplayMode (host.hWnd, &got) < 0)
-			{
-			Con_Printf (S_ERROR "%s: SDL_SetWindowDisplayMode: %s", __func__, SDL_GetError ());*/
 			return false;
 			}
 
-		/*if (SDL_SetWindowFullscreen (host.hWnd, SDL_WINDOW_FULLSCREEN) < 0)
-			{
-			Con_Printf (S_ERROR "%s: SDL_SetWindowFullscreen (fullscreen): %s", __func__, SDL_GetError ());
-			return false;
-			}*/
 		if ((got->w != want->w) || (got->h != want->h))
 			Con_Reportf (S_NOTE "Got desktop display mode: %ix%i@%i\n", got->w, got->h, got->refresh_rate);
 		}
@@ -604,24 +431,14 @@ static qboolean VID_GuessFullscreenMode (int display_index, const SDL_DisplayMod
 			Con_Reportf (S_NOTE "Got closest display mode: %ix%i@%i\n", got->w, got->h, got->refresh_rate);
 		}
 
-	/*SDL_SetWindowSize (host.hWnd, got.w, got.h);
-	VID_SaveWindowSize (got.w, got.h, true);*/
-
 	return true;
 	}
 
 // [FWGS, 01.03.26] removed VID_RestoreScreenResolution
 
 // [FWGS, 01.03.26]
-/*void VID_RestoreScreenResolution (void)*/
 static int VID_GetDisplayIndex (const char *caller, SDL_Window *window)
 	{
-	/*// on mobile platform fullscreen is designed to be always on
-	// and code below minimizes our window if we're in full screen
-	// don't do that on mobile devices
-
-	if !XASH_MOBILE_PLATFORM
-	switch ((window_mode_t)vid_fullscreen.value)*/
 	int display_index;
 
 	if (!window)
@@ -630,39 +447,18 @@ static int VID_GetDisplayIndex (const char *caller, SDL_Window *window)
 	display_index = SDL_GetWindowDisplayIndex (window);
 	if (display_index < 0)
 		{
-		/*case WINDOW_MODE_WINDOWED:
-			// TODO: this line is from very old SDL video backend
-			// figure out why we need it, because in windowed mode we
-			// always have borders
-			SDL_SetWindowBordered (host.hWnd, SDL_TRUE);
-			break;
-
-		case WINDOW_MODE_BORDERLESS:
-			// in borderless fullscreen we don't change screen resolution, so no-op
-			break;
-
-		case WINDOW_MODE_FULLSCREEN:
-			// TODO: we might want to not minimize window if current desktop mode
-			// and window mode are the same
-			SDL_MinimizeWindow (host.hWnd);
-			SDL_SetWindowFullscreen (host.hWnd, 0);
-			break;*/
 		Con_Printf (S_ERROR "%s: SDL_GetWindowDisplayIndex: %s\n", caller, SDL_GetError ());
 		display_index = 0;
 		}
 
-	/*endif*/
 	return display_index;
 	}
 
 // [FWGS, 01.03.26]
 static void VID_SetWindowIcon (SDL_Window *hWnd)
 	{
-	/*rgbdata_t *icon = NULL;*/
 	char iconpath[MAX_STRING];
 
-	/*// ICO support only for Win32
-	if XASH_WIN32*/
 	Q_strncpy (iconpath, GI->iconpath, sizeof (iconpath));
 	COM_ReplaceExtension (iconpath, ".tga", sizeof (iconpath));
 
@@ -730,15 +526,11 @@ static qboolean VID_GetDisplayBounds (int display_index, SDL_Window *hWnd, SDL_R
 #endif
 		}
 
-	/*Q_strncpy (iconpath, GI->iconpath, sizeof (iconpath));
-	COM_ReplaceExtension (iconpath, ".tga", sizeof (iconpath));
-	icon = FS_LoadImage (iconpath, NULL, 0);*/
 	rect->x += wrc.left + wrc.right;
 	rect->y += wrc.top + wrc.bottom;
 	rect->w -= (wrc.left + wrc.right) * 2;
 	rect->h -= (wrc.top + wrc.bottom) * 2;
 
-	/*if (icon)*/
 	return true;
 	}
 
@@ -752,28 +544,24 @@ static rserr_t VID_SetScreenResolution (int width, int height, window_mode_t win
 
 	switch (window_mode)
 		{
-		/*SDL_Surface *surface = SDL_CreateRGBSurfaceFrom (icon->buffer,
-			icon->width, icon->height, 32, 4 * icon->width,
-			0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);*/
 		case WINDOW_MODE_BORDERLESS:
 			{
 			if (SDL_SetWindowFullscreen (host.hWnd, SDL_WINDOW_FULLSCREEN_DESKTOP) < 0)
 				{
 				Con_Printf (S_ERROR "%s: SDL_SetWindowFullscreen (borderless): %s\n", __func__, SDL_GetError ());
 
-				/*FS_FreeImage (icon);*/
 				// there is no "invalid mode" for borderless fullscreen as there is
 				// no video mode change to begin with
 				return rserr_invalid_fullscreen;
 				}
 			break;
 			}
+
 		case WINDOW_MODE_FULLSCREEN:
 			{
 			const SDL_DisplayMode want = { .w = width, .h = height };
 			SDL_DisplayMode got;
 
-			/*if (surface)*/
 			// return "invalid mode" if we are switching between video modes in fullscreen mode
 			// or "invalid fullscreen" if we are switching from windowed to fullscreen
 			const rserr_t appropriate_err = (prev_window_mode == WINDOW_MODE_WINDOWED) ?
@@ -784,9 +572,6 @@ static rserr_t VID_SetScreenResolution (int width, int height, window_mode_t win
 
 			if (SDL_SetWindowDisplayMode (host.hWnd, &got) < 0)
 				{
-				/*SDL_SetWindowIcon (host.hWnd, surface);
-				SDL_FreeSurface (surface);
-				return;*/
 				Con_Printf (S_ERROR "%s: SDL_SetWindowDisplayMode: %s\n", __func__, SDL_GetError ());
 				return appropriate_err;
 				}
@@ -808,38 +593,21 @@ static rserr_t VID_SetScreenResolution (int width, int height, window_mode_t win
 				{
 				Con_Printf (S_ERROR "%s: SDL_SetWindowFullscreen (windowed): %s\n", __func__, SDL_GetError ());
 
-				/*// ICO support only for Win32
-				if XASH_WIN32
-				WIN_SetWindowIcon (LoadIcon (GetModuleHandle (NULL), MAKEINTRESOURCE (101)));
-				endif
-				}*/
 				// TODO: appropriate error type when going back from fullscreen to windowed?
 				return rserr_unknown;
 				}
 
-			/*// [FWGS, 01.06.25]
-			static qboolean VID_CreateWindowWithSafeGL (const char *wndname, int xpos, int ypos, int w, int h, uint32_t flags)
-			{
-			while ((glw_state.safe >= SAFE_NO) && (glw_state.safe < SAFE_LAST))
-			{
-			host.hWnd = SDL_CreateWindow (wndname, xpos, ypos, w, h, flags);*/
 			SDL_SetWindowResizable (host.hWnd, SDL_TRUE);
 			SDL_SetWindowBordered (host.hWnd, SDL_TRUE);
 
-			/*// we have window, exit loop
-			if (host.hWnd)
-			break;*/
 			if (!FBitSet (SDL_GetWindowFlags (host.hWnd), SDL_WINDOW_MAXIMIZED))
 				{
 				SDL_DisplayMode dm;
 				qboolean center_window = false;
 
-				/*Con_Reportf (S_ERROR "%s: couldn't create '%s' with safegl level %d: %s\n", __func__,
-				wndname, glw_state.safe, SDL_GetError ());*/
 				if (SDL_GetDesktopDisplayMode (display_index, &dm) >= 0 && width >= dm.w && height >= dm.h)
 					{
 					SDL_SetWindowSize (host.hWnd, dm.w, dm.h);
-					// Con_Printf( "%s: activating fake fullscreen mode\n", __func__ );
 					center_window = true;
 					}
 				else
@@ -847,11 +615,8 @@ static rserr_t VID_SetScreenResolution (int width, int height, window_mode_t win
 					SDL_Rect r;
 					int x, y;
 
-					/*glw_state.safe++;*/
 					SDL_SetWindowSize (host.hWnd, width, height);
 
-					/*if (!gl_msaa_samples.value && glw_state.safe == SAFE_NOMSAA)
-					glw_state.safe++; // no need to skip msaa, if we already disabled it*/
 					if (VID_GetDisplayBounds (display_index, host.hWnd, &r) >= 0)
 						{
 						SDL_GetWindowPosition (host.hWnd, &x, &y);
@@ -861,22 +626,16 @@ static rserr_t VID_SetScreenResolution (int width, int height, window_mode_t win
 						}
 					}
 
-				/*GL_SetupAttributes (); // re-choose attributes*/
 				if (center_window)
 					SDL_SetWindowPosition (host.hWnd, SDL_WINDOWPOS_CENTERED_DISPLAY (display_index),
 						SDL_WINDOWPOS_CENTERED_DISPLAY (display_index));
 				}
 
-			/*// try again create window*/
 			break;
 		}
 
-	/*// window creation has failed...
-	if (glw_state.safe >= SAFE_LAST)
-	return false;*/
 	SDL_GetWindowSize (host.hWnd, &out_width, &out_height);
 
-	/*return true;*/
 	Con_Reportf ("%s: Setting video mode to %dx%d %s\n", __func__, out_width, out_height,
 		window_mode == WINDOW_MODE_BORDERLESS ? "borderless" :
 		window_mode == WINDOW_MODE_FULLSCREEN ? "fullscreen" : "windowed");
@@ -892,26 +651,14 @@ static rserr_t VID_SetScreenResolution (int width, int height, window_mode_t win
 // [FWGS, 01.03.26] removed RectFitsInDisplay, RectFitsInAnyDisplay
 
 // [FWGS, 01.03.26]
-/*static qboolean RectFitsInDisplay (const SDL_Rect *rect, const SDL_Rect *display)*/
 void VID_RestoreScreenResolution (window_mode_t window_mode)
 	{
-	/*return (rect->x >= display->x) && (rect->y >= display->y) &&
-		(rect->x + rect->w <= display->x + display->w) &&
-		(rect->y + rect->h <= display->y + display->h);
-	}
-
-// [FWGS, 01.03.25] Function to check if the rectangle fits in any display
-static qboolean RectFitsInAnyDisplay (const SDL_Rect *rect, const SDL_Rect *display_rects, int num_displays)
-	{
-	for (int i = 0; i < num_displays; i++)*/
 	// on mobile platform fullscreen is designed to be always on
 	// and code below minimizes our window if we're in full screen
 	// don't do that on mobile devices
 #if !XASH_MOBILE_PLATFORM
 	switch (window_mode)
 		{
-		/*if (RectFitsInDisplay (rect, &display_rects[i]))
-			return true; // Rectangle fits in this display*/
 		case WINDOW_MODE_FULLSCREEN:
 			// TODO: we might want to not minimize window if current desktop mode
 			// and window mode are the same
@@ -920,7 +667,6 @@ static qboolean RectFitsInAnyDisplay (const SDL_Rect *rect, const SDL_Rect *disp
 			break;
 		}
 
-	/*return false; // Rectangle does not fit in any display*/
 #endif
 	}
 
@@ -929,124 +675,40 @@ static qboolean RectFitsInAnyDisplay (const SDL_Rect *rect, const SDL_Rect *disp
 VID_CreateWindow [FWGS, 01.03.26]
 =================
 ***/
-/*qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)*/
 static rserr_t VID_CreateWindow (const int input_width, const int input_height, window_mode_t window_mode)
 	{
-	/*string wndname;
-
-	qboolean	maximized = (vid_maximized.value != 0.0f);
-	Uint32		wndFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_MOUSE_FOCUS;
-	int			xpos, ypos;
-	int			num_displays = SDL_GetNumVideoDisplays ();
-	SDL_Rect	rect = { window_xpos.value, window_ypos.value, width, height };*/
 	rserr_t		err;
 	Uint32		flags = SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE;
 	SDL_Rect	rect = { SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, input_width, input_height };
 
-	/*Q_strncpy (wndname, GI->title, sizeof (wndname));*/
 	// TODO: disabled for Windows for now
 #if !XASH_WIN32
 	SetBits (flags, SDL_WINDOW_ALLOW_HIGHDPI);
 #endif
 
-	/*if (vid_highdpi.value)
-		SetBits (wndFlags, SDL_WINDOW_ALLOW_HIGHDPI);*/
-
 	if (!glw_state.software)
-		/*SetBits (wndFlags, SDL_WINDOW_OPENGL);*/
 		SetBits (flags, SDL_WINDOW_OPENGL);
 
-	/*if (window_mode == WINDOW_MODE_WINDOWED)
-		{
-		SDL_Rect *display_rects = (SDL_Rect *)malloc (num_displays * sizeof (SDL_Rect));*/
 	if (vid_maximized.value)
 		SetBits (flags, SDL_WINDOW_MAXIMIZED);
 
-	/*SetBits (wndFlags, SDL_WINDOW_RESIZABLE);
-	if (maximized)
-	SetBits (wndFlags, SDL_WINDOW_MAXIMIZED);*/
 	// by default we create window in windowed mode because we don't know
 	// if window creation failed because of invalid video mode or any other reason
 	host.hWnd = SDL_CreateWindow (GI->title, rect.x, rect.y, rect.w, rect.h, flags);
-
-	/*if (!display_rects)
-			{
-			Con_Printf (S_ERROR "Failed to allocate memory for display rects!\n");
-			xpos = SDL_WINDOWPOS_UNDEFINED;
-			ypos = SDL_WINDOWPOS_UNDEFINED;
-			}
-		else
-			{
-			for (int i = 0; i < num_displays; i++)
-				{
-				if (SDL_GetDisplayBounds (i, &display_rects[i]) != 0)
-					{
-					Con_Printf (S_ERROR "Failed to get bounds for display %d! SDL_Error: %s\n", i, SDL_GetError ());
-					display_rects[i] = (SDL_Rect) { 0, 0, 0, 0 };
-					}
-				}
-
-			// Check if the rectangle fits in any display
-			if (!RectFitsInAnyDisplay (&rect, display_rects, num_displays))
-				{
-				// Rectangle doesn't fit in any display, center it
-				xpos = SDL_WINDOWPOS_CENTERED;
-				ypos = SDL_WINDOWPOS_CENTERED;
-				Con_Printf (S_ERROR "Rectangle does not fit in any display. Centering window.\n");
-				}
-			else
-				{
-				xpos = rect.x;
-				ypos = rect.y;
-				}
-			}
-
-		free (display_rects);
-		}
-	else*/
 	if (!host.hWnd)
 		{
-		/*if (window_mode == WINDOW_MODE_FULLSCREEN)
-			// need input grab only in true fullscreen mode
-			SetBits (wndFlags, SDL_WINDOW_FULLSCREEN | SDL_WINDOW_INPUT_GRABBED);
-		else
-			SetBits (wndFlags, SDL_WINDOW_FULLSCREEN_DESKTOP);
-		SetBits (wndFlags, SDL_WINDOW_BORDERLESS);
-
-		if ((window_xpos.value < 0) || (window_ypos.value < 0))
-			{
-			xpos = SDL_WINDOWPOS_UNDEFINED;
-			ypos = SDL_WINDOWPOS_UNDEFINED;
-			}
-		else
-			{
-			xpos = window_xpos.value;
-			ypos = window_ypos.value;
-			}*/
 		err = glw_state.software ? rserr_unknown : rserr_invalid_context;
 		goto cleanup;
 		}
 
-	/*if (!VID_CreateWindowWithSafeGL (wndname, xpos, ypos, width, height, wndFlags))
-		return false;
-
-	// update window size if it was maximized, just in case
-	if (FBitSet (SDL_GetWindowFlags (host.hWnd), SDL_WINDOW_MAXIMIZED | SDL_WINDOW_FULLSCREEN_DESKTOP) != 0)
-		SDL_GetWindowSize (host.hWnd, &width, &height);*/
 	SDL_SetWindowMinimumSize (host.hWnd, VID_MIN_WIDTH, VID_MIN_HEIGHT);
 
 	if (window_mode != WINDOW_MODE_WINDOWED)
 		{
-		/*if (!VID_SetScreenResolution (width, height, window_mode))
-			return false;*/
 		err = VID_SetScreenResolution (input_width, input_height, window_mode, WINDOW_MODE_WINDOWED);
 		if (err != rserr_ok)
 			goto cleanup;
 		}
-	/*else
-		{
-		VID_RestoreScreenResolution ();
-		}*/
 
 	VID_SetWindowIcon (host.hWnd);
 	SDL_ShowWindow (host.hWnd);
@@ -1054,26 +716,15 @@ static rserr_t VID_CreateWindow (const int input_width, const int input_height, 
 
 	if (glw_state.software)
 		{
-		/*int sdl_renderer = -2;*/
 		char cmd[64];
 
 		if (Sys_GetParmFromCmdLine ("-sdl_renderer", cmd))
-			/*sdl_renderer = Q_atoi (cmd);
-
-		if (sdl_renderer >= -1)*/
 			{
 			int sdl_renderer = Q_max (-1, Q_atoi (cmd));
 
 			sw.renderer = SDL_CreateRenderer (host.hWnd, sdl_renderer, 0);
 			if (!sw.renderer)
-				/*{
-				Con_Printf (S_ERROR "failed to create SDL renderer: %s\n", SDL_GetError ());
-				}
-			else*/
 				{
-				/*SDL_RendererInfo info;
-				SDL_GetRendererInfo (sw.renderer, &info);
-				Con_Printf ("SDL_Renderer %s initialized\n", info.name);*/
 				Con_Printf (S_ERROR "%s: SDL_CreateRenderer: %s\n", __func__, SDL_GetError ());
 				err = rserr_unknown;
 				goto cleanup;
@@ -1086,22 +737,15 @@ static rserr_t VID_CreateWindow (const int input_width, const int input_height, 
 		}
 	else
 		{
-		/*while (!GL_CreateContext ())*/
 		glw_state.context = SDL_GL_CreateContext (host.hWnd);
 
 		if (!glw_state.context)
 			{
-			/*glw_state.safe++;
-			if (glw_state.safe > SAFE_DONTCARE)
-				return false;
-			GL_SetupAttributes (); // re-choose attributes*/
 			Con_Printf (S_ERROR "%s: SDL_GL_CreateContext: %s\n", __func__, SDL_GetError ());
 			err = rserr_invalid_context;
 			goto cleanup;
 			}
 
-		/*if (!GL_UpdateContext ())
-			return false;*/
 		if (SDL_GL_MakeCurrent (host.hWnd, glw_state.context) < 0)
 			{
 			Con_Printf (S_ERROR "%s: SDL_GL_MakeCurrent: %s\n", __func__, SDL_GetError ());
@@ -1110,12 +754,10 @@ static rserr_t VID_CreateWindow (const int input_width, const int input_height, 
 			}
 		}
 
-	/*VID_SaveWindowSize (width, height, maximized);*/
 	// update window size if it was resized
 	SDL_GetWindowSize (host.hWnd, &rect.w, &rect.h);
 	VID_SaveWindowSize (rect.w, rect.h);
 
-	/*return true;*/
 	VID_Info_f ();
 
 	return rserr_ok;
@@ -1147,23 +789,15 @@ cleanup:
 VID_DestroyWindow [FWGS, 01.03.26]
 =================
 ***/
-/*void VID_DestroyWindow (void)*/
 static void VID_DestroyWindow (void)
 	{
 	GL_DeleteContext ();
 
-	/*VID_RestoreScreenResolution ();*/
 	VID_RestoreScreenResolution ((window_mode_t)vid_fullscreen.value);
 
 	if (host.hWnd)
 		SDL_DestroyWindow (host.hWnd);
-	/*{
-	SDL_DestroyWindow (host.hWnd);
-	host.hWnd = NULL;
-	}*/
 
-	/*if (refState.fullScreen)
-		refState.fullScreen = false;*/
 	host.hWnd = NULL;
 	refState.window_mode = WINDOW_MODE_WINDOWED;
 	}
@@ -1286,57 +920,26 @@ int GL_GetAttribute (int attr, int *val)
 R_Init_Video [FWGS, 01.03.26]
 ==================
 ***/
-/*qboolean R_Init_Video (const int type)*/
 qboolean R_Init_Video (ref_graphic_apis_t type)
 	{
 	string		safe;
-	/*qboolean	retval;
-
-	SDL_DisplayMode displayMode;
-
-	if SDL_VERSION_ATLEAST( 2, 24, 0 )
-	SDL_Point point = { window_xpos.value, window_ypos.value };
-	int displayIndex = SDL_GetPointDisplayIndex (&point);
-	else
-	int displayIndex = 0;
-	endif
-	SDL_GetCurrentDisplayMode (displayIndex, &displayMode);*/
 	SDL_DisplayMode	display_mode;
 
-	/*refState.desktopBitsPixel = SDL_BITSPERPIXEL (displayMode.format);*/
 	SDL_GetCurrentDisplayMode (VID_GetDisplayIndex (__func__, NULL), &display_mode);
 
-	/*ifdef SDL_HINT_QTWAYLAND_WINDOW_FLAGS
-	SDL_SetHint (SDL_HINT_QTWAYLAND_WINDOW_FLAGS, "OverridesSystemGestures");
-	endif
-
-	ifdef SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION
-	SDL_SetHint (SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION, "landscape");
-	endif*/
 	refState.desktopBitsPixel = SDL_BITSPERPIXEL (display_mode.format);
 
-	/*if (Sys_CheckParm ("-egl"))*/
 	if (Sys_CheckParm ("-egl"))
 		{
 		// EGL doesn't mean we want GLES context
 		// so force it only on Windows, where GL is usually created via WGL
 #if XASH_WIN32
-		/*SDL_SetHint ("SDL_OPENGL_ES_DRIVER", "1");
-		else
-		SDL_SetHint ("SDL_VIDEO_X11_FORCE_EGL", "1");*/
 		SDL_SetHint (SDL_HINT_OPENGL_ES_DRIVER, "1");
 #endif
 
-		/*SDL_SetHint ("SDL_VIDEO_X11_XRANDR", "1");
-		SDL_SetHint ("SDL_VIDEO_X11_XVIDMODE", "1");
-		endif*/
 		SDL_SetHint (SDL_HINT_VIDEO_X11_FORCE_EGL, "1");
 		}
 
-	/*// must be initialized before creating window
-	if XASH_WIN32
-	WIN_SetDPIAwareness ();
-	endif*/
 	SDL_SetHint (SDL_HINT_QTWAYLAND_WINDOW_FLAGS, "OverridesSystemGestures");
 	SDL_SetHint (SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION, "landscape");
 	SDL_SetHint (SDL_HINT_VIDEO_X11_XRANDR, "1");
@@ -1367,10 +970,6 @@ qboolean R_Init_Video (ref_graphic_apis_t type)
 			break;
 		}
 
-	/*if (!(retval = VID_SetMode ()))
-		{
-		return retval;
-		}*/
 	if (!VID_SetMode ())
 		return false;
 
@@ -1395,58 +994,14 @@ qboolean R_Init_Video (ref_graphic_apis_t type)
 // [FWGS, 01.03.26]
 rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mode)
 	{
-	/*SDL_DisplayMode displayMode;
-
-	if (SDL_GetCurrentDisplayMode (0, &displayMode) < 0)
-		{
-		Con_Printf (S_ERROR "SDL_GetCurrentDisplayMode: %s\n", SDL_GetError ());
-		return rserr_invalid_mode;
-		}
-
-	// check our desktop attributes
-	refState.desktopBitsPixel = SDL_BITSPERPIXEL (displayMode.format);
-	if (window_mode == WINDOW_MODE_BORDERLESS)
-		{
-		width = displayMode.w;
-		height = displayMode.h;
-		}
-
-	refState.fullScreen = (window_mode != WINDOW_MODE_WINDOWED);
-	Con_Reportf ("%s: Setting video mode to %dx%d %s\n", __func__, width, height,
-		refState.fullScreen ? "fullscreen" : "windowed");*/
 	rserr_t	err;
 	SDL_DisplayMode	display_mode;
 
 	if (!host.hWnd)
-		/*{
-		if (!VID_CreateWindow (width, height, window_mode))
-			return rserr_invalid_mode;
-		}
-	else if (refState.fullScreen)
-		{
-		if (!VID_SetScreenResolution (width, height, window_mode))
-			return rserr_invalid_fullscreen;
-		}*/
 		err = VID_CreateWindow (width, height, window_mode);
 	else
-		/*{
-		VID_RestoreScreenResolution ();
-
-		if (SDL_SetWindowFullscreen (host.hWnd, 0) < 0)
-			{
-			Con_Printf (S_ERROR "SDL_SetWindowFullscreen: %s", SDL_GetError ());
-			return rserr_invalid_fullscreen;
-			}
-
-		if SDL_VERSION_ATLEAST( 2, 0, 5 )
-		SDL_SetWindowResizable (host.hWnd, SDL_TRUE);
-		endif
-		SDL_SetWindowBordered (host.hWnd, SDL_TRUE);
-		SDL_SetWindowSize (host.hWnd, width, height);*/
 		err = VID_SetScreenResolution (width, height, window_mode, refState.window_mode);
 
-	/*VID_SaveWindowSize (width, height, true);
-	}*/
 	if (err != rserr_ok)
 		return err;
 
@@ -1466,18 +1021,13 @@ Set the described video mode
 ***/
 qboolean VID_SetMode (void)
 	{
-	/*int		iScreenWidth, iScreenHeight;*/
 	int		width, height;
 	rserr_t	err;
 	window_mode_t	window_mode;
 
-	/*iScreenWidth = Cvar_VariableInteger ("width");
-	iScreenHeight = Cvar_VariableInteger ("height");*/
 	width = window_width.value;
 	height = window_height.value;
 
-	/*if ((iScreenWidth < VID_MIN_WIDTH) ||
-		(iScreenHeight < VID_MIN_HEIGHT))	// trying to get resolution automatically by default*/
 	// get default resolution if values aren't set
 	if ((width < VID_MIN_WIDTH) || (height < VID_MIN_HEIGHT))
 		{
@@ -1486,13 +1036,9 @@ qboolean VID_SetMode (void)
 
 		SDL_GetDesktopDisplayMode (0, &mode);
 
-		/*iScreenWidth = mode.w;
-		iScreenHeight = mode.h;*/
 		width = mode.w;
 		height = mode.h;
 #else
-		/*iScreenWidth = DEFAULT_MODE_WIDTH;
-		iScreenHeight = DEFAULT_MODE_HEIGHT;*/
 		width = DEFAULT_MODE_WIDTH;
 		height = DEFAULT_MODE_HEIGHT;
 #endif
@@ -1509,7 +1055,6 @@ qboolean VID_SetMode (void)
 	window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);
 	SetBits (gl_vsync.flags, FCVAR_CHANGED);
 	
-	/*if ((err = R_ChangeDisplaySettings (iScreenWidth, iScreenHeight, window_mode)) == rserr_ok)*/
 	err = R_ChangeDisplaySettings (width, height, window_mode);
 	if (err == rserr_invalid_mode)
 		{
@@ -1526,8 +1071,6 @@ qboolean VID_SetMode (void)
 
 	if (err == rserr_invalid_fullscreen)
 		{
-		/*sdlState.prev_width = iScreenWidth;
-		sdlState.prev_height = iScreenHeight;*/
 		Cvar_DirectSetValue (&vid_fullscreen, WINDOW_MODE_WINDOWED);
 		Con_Reportf (S_ERROR "%s: fullscreen unavailable in this mode\n", __func__);
 		Sys_Warn ("fullscreen unavailable in this mode!");
@@ -1536,23 +1079,8 @@ qboolean VID_SetMode (void)
 		err = R_ChangeDisplaySettings (width, height, window_mode);
 		}
 
-	/*else*/
 	while (err == rserr_invalid_context)
 		{
-		/*if (err == rserr_invalid_fullscreen)
-			{
-			Cvar_DirectSet (&vid_fullscreen, "0");
-			Con_Reportf (S_ERROR "%s: fullscreen unavailable in this mode\n", __func__);
-			Sys_Warn ("fullscreen unavailable in this mode!");
-
-			if ((err = R_ChangeDisplaySettings (iScreenWidth, iScreenHeight, WINDOW_MODE_WINDOWED)) == rserr_ok)
-				return true;
-			}
-		else if (err == rserr_invalid_mode)
-			{
-			Con_Reportf (S_ERROR "%s: invalid mode\n", __func__);
-			Sys_Warn ("invalid mode, engine will run in %dx%d", sdlState.prev_width, sdlState.prev_height);
-			}*/
 		Con_Printf (S_ERROR "%s: couldn't create GL context with safegl level %d: %s\n", __func__,
 			glw_state.safe, SDL_GetError ());
 
@@ -1560,12 +1088,8 @@ qboolean VID_SetMode (void)
 		if (!gl_msaa_samples.value && (glw_state.safe == SAFE_NOMSAA))
 			glw_state.safe++;	// no need to skip msaa, if we already disabled it
 
-		/*// try setting it back to something safe
-		if ((err = R_ChangeDisplaySettings (sdlState.prev_width, sdlState.prev_height, false)) != rserr_ok)*/
 		if (glw_state.safe >= SAFE_LAST)
 			{
-			/*Con_Reportf (S_ERROR "%s: could not revert to safe mode\n", __func__);
-			Sys_Warn ("could not revert to safe mode!");*/
 			// window creation has failed...
 			return false;
 			}
@@ -1576,7 +1100,6 @@ qboolean VID_SetMode (void)
 		err = R_ChangeDisplaySettings (width, height, window_mode);
 		}
 
-	/*return true;*/
 	if (err == rserr_ok)
 		{
 		sdlState.prev_width = width;
@@ -1593,13 +1116,11 @@ ref_window_type_t R_GetWindowHandle (void **handle, ref_window_type_t type)
 	{
 	SDL_SysWMinfo wmInfo;
 
-	/*if (type == REF_WINDOW_TYPE_SDL)*/
 	if (type == REF_WINDOW_TYPE_SDL2)
 		{
 		if (handle)
 			*handle = (void *)host.hWnd;
 
-		/*return REF_WINDOW_TYPE_SDL;*/
 		return REF_WINDOW_TYPE_SDL2;
 		}
 
@@ -1626,6 +1147,7 @@ ref_window_type_t R_GetWindowHandle (void **handle, ref_window_type_t type)
 #endif
 				}
 			break;
+
 		case SDL_SYSWM_X11:
 			if (!type || (type == REF_WINDOW_TYPE_X11))
 				{
@@ -1636,6 +1158,7 @@ ref_window_type_t R_GetWindowHandle (void **handle, ref_window_type_t type)
 #endif
 				}
 			break;
+
 		case SDL_SYSWM_COCOA:
 			if (!type || type == REF_WINDOW_TYPE_MACOS)
 				{
@@ -1646,6 +1169,7 @@ ref_window_type_t R_GetWindowHandle (void **handle, ref_window_type_t type)
 #endif
 				}
 			break;
+
 		case SDL_SYSWM_WAYLAND:
 			if (!type || (type == REF_WINDOW_TYPE_WAYLAND))
 				{
@@ -1691,15 +1215,19 @@ void VID_Info_f (void)
 
 	Con_Printf ("Video: " S_GREEN "SDL" S_DEFAULT "\n");
 	Con_Printf ("Video driver: " S_GREEN "%s" S_DEFAULT "\n", SDL_GetCurrentVideoDriver ());
-	Con_Printf ("Window size: " S_GREEN "%dx%d" S_DEFAULT " (" S_YELLOW"real %dx%d" S_DEFAULT")\n", width, height, render_width, render_height);
+	Con_Printf ("Window size: " S_GREEN "%dx%d" S_DEFAULT " (" S_YELLOW"real %dx%d" S_DEFAULT")\n",
+		width, height, render_width, render_height);
 	Con_Printf ("Window position: " S_GREEN "%dx%d" S_DEFAULT "\n", x, y);
 	Con_Printf ("Window mode: %s" S_DEFAULT "\n",
 		FBitSet (flags, SDL_WINDOW_FULLSCREEN_DESKTOP) ? S_GREEN "fullscreen desktop" :
 		FBitSet (flags, SDL_WINDOW_FULLSCREEN) ? S_YELLOW "fullscreen" :
 		S_CYAN "windowed");
-	Con_Printf ("Window bordered: %s" S_DEFAULT "\n", FBitSet (flags, SDL_WINDOW_BORDERLESS) ? S_RED "false" : S_GREEN "true");
-	Con_Printf ("Window resizable: %s" S_DEFAULT "\n", FBitSet (flags, SDL_WINDOW_RESIZABLE) ? S_GREEN "true" : S_RED "false");
-	Con_Printf ("Window maximized: %s" S_DEFAULT "\n", FBitSet (flags, SDL_WINDOW_MAXIMIZED) ? S_GREEN "true" : S_RED "false");
+	Con_Printf ("Window bordered: %s" S_DEFAULT "\n", FBitSet (flags, SDL_WINDOW_BORDERLESS) ?
+		S_RED "false" : S_GREEN "true");
+	Con_Printf ("Window resizable: %s" S_DEFAULT "\n", FBitSet (flags, SDL_WINDOW_RESIZABLE) ?
+		S_GREEN "true" : S_RED "false");
+	Con_Printf ("Window maximized: %s" S_DEFAULT "\n", FBitSet (flags, SDL_WINDOW_MAXIMIZED) ?
+		S_GREEN "true" : S_RED "false");
 
 	display_index = SDL_GetWindowDisplayIndex (host.hWnd);
 	if (display_index >= 0)
@@ -1711,4 +1239,35 @@ void VID_Info_f (void)
 		Con_Printf ("Window display mode: " S_GREEN "%dx%d@%d" S_DEFAULT "\n", dm.w, dm.h, dm.refresh_rate);
 	else
 		Con_Printf ("Window display mode: " S_RED "fail: " S_DEFAULT "%s\n", SDL_GetError ());
+	}
+
+// [FWGS, 01.05.26]
+platform_orientation_t Platform_GetDisplayOrientation (void)
+	{
+	if (host.hWnd)
+		{
+		int display_index = SDL_GetWindowDisplayIndex (host.hWnd);
+		if (display_index >= 0)
+			{
+			switch (SDL_GetDisplayOrientation (display_index))
+				{
+				case SDL_ORIENTATION_LANDSCAPE:
+					return ORIENTATION_LANDSCAPE;
+
+				case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
+					return ORIENTATION_LANDSCAPE_FLIPPED;
+
+				case SDL_ORIENTATION_PORTRAIT:
+					return ORIENTATION_PORTRAIT;
+
+				case SDL_ORIENTATION_PORTRAIT_FLIPPED:
+					return ORIENTATION_PORTRAIT_FLIPPED;
+
+				default:
+					return ORIENTATION_UNKNOWN;
+				}
+			}
+		}
+
+	return ORIENTATION_UNKNOWN;
 	}

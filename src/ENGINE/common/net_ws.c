@@ -14,7 +14,7 @@ GNU General Public License for more details
 ***/
 
 #include "common.h"
-#include "client.h" // ConnectionProgress
+#include "client.h"	// ConnectionProgress
 #include "netchan.h"
 #include "xash3d_mathlib.h"
 #include "ipv6text.h"
@@ -33,10 +33,10 @@ GNU General Public License for more details
 
 // [FWGS, 01.12.24]
 #define MAX_ROUTEABLE_PACKET	1400
-#define SPLITPACKET_MIN_SIZE	508 // RFC 791: 576(min ip packet) - 60 (ip header) - 8 (udp header)
+#define SPLITPACKET_MIN_SIZE	508		// RFC 791: 576(min ip packet) - 60 (ip header) - 8 (udp header)
 #define SPLITPACKET_MAX_SIZE	64000
 #define NET_MAX_FRAGMENTS		( NET_MAX_FRAGMENT / (SPLITPACKET_MIN_SIZE - sizeof( SPLITPACKET )))
-#define NET_MAX_GOLDSRC_FRAGMENTS	5 // magic number
+#define NET_MAX_GOLDSRC_FRAGMENTS	5	// magic number
 
 // ff02:1
 static const uint8_t k_ipv6Bytes_LinkLocalAllNodes[16] =
@@ -56,7 +56,7 @@ typedef struct
 
 typedef struct packetlag_s
 	{
-	byte	*data;	// Raw stream data is stored.
+	byte	*data;	// raw stream data is stored
 	int		size;
 	netadr_t	from;
 	float	receivedtime;
@@ -64,7 +64,7 @@ typedef struct packetlag_s
 	struct packetlag_s	*prev;
 	} packetlag_t;
 
-// split long packets. Anything over 1460 is failing on some routers.
+// split long packets. Anything over 1460 is failing on some routers
 typedef struct
 	{
 	int		current_sequence;
@@ -100,15 +100,20 @@ typedef struct
 	int			losscount[NS_COUNT];
 	float		fakelag;			// cached fakelag value
 	LONGPACKET	split;
-	int		split_flags[NET_MAX_FRAGMENTS];
-	int		sequence_number;
-	int		ip_sockets[NS_COUNT];
-	int		ip6_sockets[NS_COUNT];
+	int			split_flags[NET_MAX_FRAGMENTS];
+	int			sequence_number;
+	int			ip_sockets[NS_COUNT];
+	int			ip6_sockets[NS_COUNT];
+
+	// [FWGS, 01.05.26]
+	qboolean	rr_state[NS_COUNT];
+
 	qboolean	initialized;
 	qboolean	threads_initialized;
 	qboolean	configured;
 	qboolean	allow_ip;
 	qboolean	allow_ip6;
+
 #if XASH_WIN32
 	WSADATA		winsockdata;
 #endif
@@ -132,8 +137,6 @@ static CVAR_DEFINE (net_fakelag, "fakelag", "0", FCVAR_PRIVILEGED,
 	"lag all incoming network data (including loopback) by xxx ms.");
 static CVAR_DEFINE (net_fakeloss, "fakeloss", "0", FCVAR_PRIVILEGED,
 	"act like we dropped the packet this % of the time.");
-
-// [FWGS, 01.12.24]
 static CVAR_DEFINE_AUTO (net_resolve_debug, "0", FCVAR_PRIVILEGED,
 	"print resolve thread debug messages");
 CVAR_DEFINE (net_clockwindow, "clockwindow", "0.5", FCVAR_PRIVILEGED,
@@ -158,8 +161,9 @@ static void NET_ClearLagData (qboolean bClient, qboolean bServer);
 
 // [FWGS, 01.12.24] removed NET_ErrorString, NET_SockAddrLen
 
-// [FWGS, 01.12.24]
-static inline qboolean NET_IsSocketError (int retval)
+// [FWGS, 01.05.26]
+/*static inline qboolean NET_IsSocketError (int retval)*/
+qboolean NET_IsSocketError (int retval)
 	{
 #if XASH_WIN32 || XASH_DOS4GW
 	return retval == SOCKET_ERROR ? true : false;
@@ -168,14 +172,35 @@ static inline qboolean NET_IsSocketError (int retval)
 #endif
 	}
 
-// [FWGS, 01.12.24]
-static inline qboolean NET_IsSocketValid (int socket)
+// [FWGS, 01.05.26]
+/*static inline qboolean NET_IsSocketValid (int socket)*/
+qboolean NET_IsSocketValid (int socket)
 	{
 #if XASH_WIN32 || XASH_DOS4GW
 	return socket != INVALID_SOCKET;
 #else
 	return socket >= 0;
 #endif
+	}
+
+// [FWGS, 01.05.26]
+qboolean NET_MakeSocketNonBlocking (int socket_fd)
+	{
+#if XASH_LINUX
+	int res = fcntl (socket_fd, F_GETFL, 0);
+	if (NET_IsSocketError (res))
+		return false;
+
+	// SOCK_NONBLOCK is not portable, so use fcntl
+	if (NET_IsSocketError (fcntl (socket_fd, F_SETFL, res | O_NONBLOCK)))
+		return false;
+#else
+	uint mode = 1;
+	if (NET_IsSocketError (ioctlsocket (socket_fd, FIONBIO, (void *)&mode)))
+		return false;
+#endif
+
+	return true;
 	}
 
 // [FWGS, 01.03.25]
@@ -205,10 +230,11 @@ static int NET_NetadrIP6Compare (const netadr_t *a, const netadr_t *b)
 
 /***
 ====================
-NET_NetadrToSockadr [FWGS, 01.03.25]
+NET_NetadrToSockadr [FWGS, 01.05.26]
 ====================
 ***/
-static void NET_NetadrToSockadr (netadr_t *a, struct sockaddr_storage *s)
+/*static void NET_NetadrToSockadr (netadr_t *a, struct sockaddr_storage *s)*/
+void NET_NetadrToSockadr (netadr_t *a, struct sockaddr_storage *s)
 	{
 	netadrtype_t type = NET_NetadrType (a);
 	memset (s, 0, sizeof (*s));
@@ -241,10 +267,11 @@ static void NET_NetadrToSockadr (netadr_t *a, struct sockaddr_storage *s)
 
 /***
 ====================
-NET_SockadrToNetAdr [FWGS, 01.03.25]
+NET_SockadrToNetAdr [FWGS, 01.05.26]
 ====================
 ***/
-static void NET_SockadrToNetadr (const struct sockaddr_storage *s, netadr_t *a)
+/*static void NET_SockadrToNetadr (const struct sockaddr_storage *s, netadr_t *a)*/
+void NET_SockadrToNetadr (const struct sockaddr_storage *s, netadr_t *a)
 	{
 	if (s->ss_family == AF_INET)
 		{
@@ -564,7 +591,6 @@ qboolean NET_StringToFilterAdr (const char *s, netadr_t *adr, uint *prefixlen)
 	uint		len;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckStringEmpty (s))*/
 	if (COM_StringEmpty (s))
 		return false;
 
@@ -829,11 +855,11 @@ qboolean NET_IsReservedAdr (netadr_t a)
 	// Following checks was imported from GameNetworkingSockets library
 	if (type_a == NA_IP)
 		{
-		if ((a.ip[0] == 10) || // 10.x.x.x is reserved
-			(a.ip[0] == 127) || // 127.x.x.x
-			(a.ip[0] == 169 && a.ip[1] == 254) || // 169.254.x.x is link-local ipv4
-			(a.ip[0] == 172 && a.ip[1] >= 16 && a.ip[1] <= 31) || // 172.16.x.x  - 172.31.x.x
-			(a.ip[0] == 192 && a.ip[1] >= 168)) // 192.168.x.x
+		if ((a.ip[0] == 10) ||	// 10.x.x.x is reserved
+			(a.ip[0] == 127) ||	// 127.x.x.x
+			(a.ip[0] == 169 && a.ip[1] == 254) ||	// 169.254.x.x is link-local ipv4
+			(a.ip[0] == 172 && a.ip[1] >= 16 && a.ip[1] <= 31) ||	// 172.16.x.x  - 172.31.x.x
+			(a.ip[0] == 192 && a.ip[1] >= 168))		// 192.168.x.x
 			{
 			return true;
 			}
@@ -1382,7 +1408,7 @@ static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsi
 	// have we received all of the pieces to the packet?
 	if (net.split.split_count <= 0)
 		{
-		net.split.current_sequence = -1; // Clear packet
+		net.split.current_sequence = -1;	// Clear packet
 
 		if (net.split.total_size > sizeof (net.split.buffer))
 			{
@@ -1401,22 +1427,24 @@ static qboolean NET_GetLong (byte *pData, int size, size_t *outSize, int splitsi
 
 /***
 ==================
-NET_QueuePacket
+NET_QueuePacket [FWGS, 01.05.26]
 
 queue normal and lagged packets
 ==================
 ***/
-static qboolean NET_QueuePacket (netsrc_t sock, netadr_t *from, byte *data, size_t *length)
+/*static qboolean NET_QueuePacket (netsrc_t sock, netadr_t *from, byte *data, size_t *length)*/
+static qboolean NET_QueuePacket (int net_socket, netsrc_t sock, netadr_t *from, byte *data, size_t *length)
 	{
 	byte	buf[NET_MAX_FRAGMENT];
-	int		ret, protocol;
-	int		net_socket;
+	/*int		ret, protocol;
+	int		net_socket;*/
+	int		ret;
 	WSAsize_t	addr_len;
 	struct sockaddr_storage	addr = { 0 };
 
 	*length = 0;
 
-	for (protocol = 0; protocol < 2; protocol++)
+	/*for (protocol = 0; protocol < 2; protocol++)
 		{
 		switch (protocol)
 			{
@@ -1427,56 +1455,68 @@ static qboolean NET_QueuePacket (netsrc_t sock, netadr_t *from, byte *data, size
 			case 1:
 				net_socket = net.ip6_sockets[sock];
 				break;
-			}
+			}*/
+	if (!NET_IsSocketValid (net_socket))
+		return NET_LagPacket (false, sock, from, length, data);
 
-		if (!NET_IsSocketValid (net_socket))
-			continue;
+	/*if (!NET_IsSocketValid (net_socket))
+			continue;*/
+	addr_len = sizeof (addr);
+	ret = recvfrom (net_socket, buf, sizeof (buf), 0, (struct sockaddr *)&addr, &addr_len);
 
-		addr_len = sizeof (addr);
-		ret = recvfrom (net_socket, buf, sizeof (buf), 0, (struct sockaddr *)&addr, &addr_len);
+	/*addr_len = sizeof (addr);
+		ret = recvfrom (net_socket, buf, sizeof (buf), 0, (struct sockaddr *)&addr, &addr_len);*/
+	NET_SockadrToNetadr (&addr, from);
 
-		NET_SockadrToNetadr (&addr, from);
+	/*NET_SockadrToNetadr (&addr, from);
 
-		if (!NET_IsSocketError (ret))
+		if (!NET_IsSocketError (ret))*/
+	if (!NET_IsSocketError (ret))
+		{
+		if (ret < NET_MAX_FRAGMENT)
 			{
-			if (ret < NET_MAX_FRAGMENT)
+			/*if (ret < NET_MAX_FRAGMENT)
 				{
 				// Transfer data
 				memcpy (data, buf, ret);
 				*length = ret;
 
-				// [FWGS, 01.03.26]
-				/*if !XASH_DEDICATED
-				{
-				connprotocol_t proto = CL_Protocol ();
+				// [FWGS, 01.03.26]*/
+			// Transfer data
+			memcpy (data, buf, ret);
+			*length = ret;
 
-				if (proto == PROTO_LEGACY)
-					return NET_LagPacket (true, sock, from, length, data);*/
-
-				/*// check for split message
-				if (sock == NS_CLIENT && *(int *)data == NET_HEADER_SPLITPACKET)
-					return NET_GetLong (data, ret, length, CL_GetSplitSize (), proto);
-				}*/
 #if !XASH_DEDICATED
-				// check for split message
-				if ((sock == NS_CLIENT) && (*(int *)data == NET_HEADER_SPLITPACKET))
-					return NET_GetLong (data, ret, length, CL_GetSplitSize (), CL_Protocol ());
+			/*// check for split message
+			if ((sock == NS_CLIENT) && (*(int *)data == NET_HEADER_SPLITPACKET))
+			return NET_GetLong (data, ret, length, CL_GetSplitSize (), CL_Protocol ());*/
+			// check for split message
+			if ((sock == NS_CLIENT) && (*(int *)data == NET_HEADER_SPLITPACKET))
+				return NET_GetLong (data, ret, length, CL_GetSplitSize (), CL_Protocol ());
 #endif
 
-				// lag the packet, if needed
+			/*	// lag the packet, if needed
 				return NET_LagPacket (true, sock, from, length, data);
 				}
 			else
 				{
 				// [FWGS, 01.07.24]
 				Con_Reportf ("%s: oversize packet from %s\n", __func__, NET_AdrToString (*from));
-				}
+				}*/
+			// lag the packet, if needed
+			return NET_LagPacket (true, sock, from, length, data);
 			}
 		else
 			{
-			int	err = WSAGetLastError ();
+			/*int	err = WSAGetLastError ();*/
+			Con_Reportf ("%s: oversize packet from %s\n", __func__, NET_AdrToString (*from));
+			}
+		}
+	else
+		{
+		int err = WSAGetLastError ();
 
-			switch (err)
+		/*switch (err)
 				{
 				case WSAEWOULDBLOCK:
 				case WSAECONNRESET:
@@ -1489,7 +1529,20 @@ static qboolean NET_QueuePacket (netsrc_t sock, netadr_t *from, byte *data, size
 					// [FWGS, 01.07.24] let's continue even after errors
 					Con_DPrintf (S_ERROR "%s: %s from %s\n", __func__, NET_ErrorString (), NET_AdrToString (*from));
 					break;
-				}
+				}*/
+		switch (err)
+			{
+			case WSAEWOULDBLOCK:
+			case WSAECONNRESET:
+			case WSAECONNREFUSED:
+			case WSAEMSGSIZE:
+			case WSAETIMEDOUT:
+				break;
+
+			// let's continue even after errors
+			default:
+				Con_DPrintf (S_ERROR "%s: %s from %s\n", __func__, NET_ErrorString (), NET_AdrToString (*from));
+				break;
 			}
 		}
 
@@ -1511,9 +1564,28 @@ qboolean NET_GetPacket (netsrc_t sock, netadr_t *from, byte *data, size_t *lengt
 	NET_AdjustLag ();
 
 	if (NET_GetLoopPacket (sock, from, data, length))
+		{
 		return NET_LagPacket (true, sock, from, length, data);
+		}
 	else
-		return NET_QueuePacket (sock, from, data, length);
+		{
+		// [FWGS, 01.05.26]
+		/*return NET_QueuePacket (sock, from, data, length);*/
+		// round-robin the socket to prevent constant activity on one starving the other
+		int i = net.rr_state[sock];
+		int net_socket = i ? net.ip_sockets[sock] : net.ip6_sockets[sock];
+
+		if (NET_QueuePacket (net_socket, sock, from, data, length))
+			{
+			net.rr_state[sock] = !i;
+			return true;
+			}
+
+		// try the other one before giving up
+		net_socket = i ? net.ip6_sockets[sock] : net.ip_sockets[sock];
+		net.rr_state[sock] = !i;
+		return NET_QueuePacket (net_socket, sock, from, data, length);
+		}
 	}
 
 /***
@@ -1568,7 +1640,7 @@ static int NET_SendLong (netsrc_t sock, int net_socket, const char *buf, size_t 
 			ret = sendto (net_socket, packet, size + sizeof (SPLITPACKET), flags,
 				(const struct sockaddr *)to, tolen);
 			if (ret < 0)
-				return ret; // error
+				return ret;	// error
 			if (ret >= size)
 				total_sent += size;
 
@@ -1681,11 +1753,12 @@ static int NET_IPSocket (const char *net_iface, int port, int family)
 		return INVALID_SOCKET;
 		}
 
-	if (NET_IsSocketError (ioctlsocket (net_socket, FIONBIO, (void *)&_true)))
+	// [FWGS, 01.05.26]
+	/*if (NET_IsSocketError (ioctlsocket (net_socket, FIONBIO, (void *)&_true)))*/
+	if (!NET_MakeSocketNonBlocking (net_socket))
 		{
 		struct timeval timeout;
 
-		// [FWGS, 01.07.24]
 		Con_DPrintf (S_WARN "%s: port: %d ioctl FIONBIO: %s\n", __func__, port, NET_ErrorString ());
 
 		// try timeout instead of NBIO
@@ -1729,7 +1802,6 @@ static int NET_IPSocket (const char *net_iface, int port, int family)
 			}
 
 		// [FWGS, 01.03.26]
-		/*if (COM_CheckStringEmpty (net_iface) && Q_stricmp (net_iface, "localhost"))*/
 		if (!COM_StringEmpty (net_iface) && Q_stricmp (net_iface, "localhost"))
 			NET_StringToSockaddr (net_iface, &addr, false, AF_INET6);
 		else
@@ -1752,7 +1824,7 @@ static int NET_IPSocket (const char *net_iface, int port, int family)
 		{
 		if (Sys_CheckParm ("-tos"))
 			{
-			optval = 0x10; // IPTOS_LOWDELAY
+			optval = 0x10;	// IPTOS_LOWDELAY
 			Con_Printf ("Enabling LOWDELAY TOS option\n");
 
 			if (NET_IsSocketError (setsockopt (net_socket, IPPROTO_IP, IP_TOS, (const char *)&optval,
@@ -1778,7 +1850,6 @@ static int NET_IPSocket (const char *net_iface, int port, int family)
 			}
 
 		// [FWGS, 01.03.26]
-		/*if (COM_CheckStringEmpty (net_iface) && Q_stricmp (net_iface, "localhost"))*/
 		if (!COM_StringEmpty (net_iface) && Q_stricmp (net_iface, "localhost"))
 			NET_StringToSockaddr (net_iface, &addr, false, AF_INET);
 		else
@@ -1832,7 +1903,7 @@ static void NET_OpenIP (qboolean change_port, int *sockets, const char *net_ifac
 			port = sv_nat ? PORT_ANY : net_hostport.value;
 
 			if (!port)
-				port = PORT_SERVER; // forcing to default
+				port = PORT_SERVER;	// forcing to default
 			}
 		sockets[NS_SERVER] = NET_IPSocket (net_iface, port, family);
 
@@ -1861,7 +1932,7 @@ static void NET_OpenIP (qboolean change_port, int *sockets, const char *net_ifac
 			port = cl_nat ? PORT_ANY : net_clientport.value;
 
 			if (!port)
-				port = PORT_ANY; // forcing to default
+				port = PORT_ANY;	// forcing to default
 			}
 		sockets[NS_CLIENT] = NET_IPSocket (net_iface, port, family);
 
@@ -1901,7 +1972,7 @@ static void NET_DetermineLocalAddress (void)
 
 	if (net.allow_ip)
 		{
-		// If we have changed the ip var from the command line, use that instead
+		// if we have changed the ip var from the command line, use that instead
 		if (Q_stricmp (net_ipname.string, "localhost"))
 			Q_strncpy (buff, net_ipname.string, sizeof (buff));
 		else
@@ -1931,7 +2002,7 @@ static void NET_DetermineLocalAddress (void)
 
 	if (net.allow_ip6)
 		{
-		// If we have changed the ip var from the command line, use that instead.
+		// if we have changed the ip var from the command line, use that instead
 		if (Q_stricmp (net_ip6name.string, "localhost"))
 			Q_strncpy (buff, net_ip6name.string, sizeof (buff));
 		else
@@ -2041,19 +2112,6 @@ void NET_Config (qboolean multiplayer, qboolean changeport)
 
 // [FWGS, 05.04.26] removed NET_IsConfigured
 
-/*
-/
-====================
-NET_IsConfigured
-
-Is winsock ip initialized?
-====================
-/
-qboolean NET_IsConfigured (void)
-	{
-	return net.configured;
-	}*/
-
 /***
 ====================
 NET_IsActive
@@ -2065,38 +2123,6 @@ qboolean NET_IsActive (void)
 	}
 
 // [FWGS, 05.04.26] removed NET_Sleep
-
-/*
-/
-====================
-NET_Sleep
-
-sleeps msec or until net socket is ready
-====================
-/
-void NET_Sleep (int msec)
-	{
-ifndef XASH_NO_NETWORK
-	struct timeval	timeout;
-	fd_set		fdset;
-	int		i = 0;
-
-	if (!net.initialized || (host.type == HOST_NORMAL))
-		return; // we're not a dedicated server, just run full speed
-
-	FD_ZERO (&fdset);
-
-	if (net.ip_sockets[NS_SERVER] != INVALID_SOCKET)
-		{
-		FD_SET (net.ip_sockets[NS_SERVER], &fdset); // network socket
-		i = net.ip_sockets[NS_SERVER];
-		}
-
-	timeout.tv_sec = msec / 1000;
-	timeout.tv_usec = (msec % 1000) * 1000;
-	select (i + 1, &fdset, NULL, NULL, &timeout);
-endif
-	}*/
 
 /***
 ====================
@@ -2179,6 +2205,9 @@ void NET_Init (void)
 		net.lagdata[i].next = &net.lagdata[i];
 		net.ip_sockets[i] = INVALID_SOCKET;
 		net.ip6_sockets[i] = INVALID_SOCKET;
+
+		// [FWGS, 01.05.26]
+		net.rr_state[i] = false;
 		}
 
 #if XASH_WIN32
@@ -2250,21 +2279,3 @@ void NET_Shutdown (void)
 #endif
 	net.initialized = false;
 	}
-
-// [FWGS, 01.12.24] HTTP_ClearCustomServers moved to net_http
-// [FWGS, 01.12.24] HTTP_FreeFile moved to net_http
-// [FWGS, 01.12.24] HTTP_AutoClean moved to net_http
-// [FWGS, 01.12.24] HTTP_ProcessStream moved to net_http
-// [FWGS, 01.12.24] HTTP_Run moved to net_http
-// [FWGS, 01.12.24] HTTP_AddDownload moved to net_http
-// [FWGS, 01.12.24] HTTP_Download_f moved to net_http
-// [FWGS, 01.12.24] HTTP_ParseURL moved to net_http
-// [FWGS, 01.12.24] HTTP_AddCustomServer moved to net_http
-// [FWGS, 01.12.24] HTTP_AddCustomServer_f moved to net_http
-// [FWGS, 01.12.24] HTTP_Clear_f moved to net_http
-// [FWGS, 01.12.24] HTTP_Cancel_f moved to net_http
-// [FWGS, 01.12.24] HTTP_Skip_f moved to net_http
-// [FWGS, 01.12.24] HTTP_List_f moved to net_http
-// [FWGS, 01.12.24] HTTP_ResetProcessState moved to net_http
-// [FWGS, 01.12.24] HTTP_Init moved to net_http
-// [FWGS, 01.12.24] HTTP_Shutdown moved to net_http

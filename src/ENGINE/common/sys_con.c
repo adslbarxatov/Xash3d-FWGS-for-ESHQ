@@ -51,7 +51,6 @@ static struct logdata_s
 	int logfileno;
 	} s_ld;
 
-
 // [FWGS, 22.01.25] removed Sys_Input
 
 void Sys_DestroyConsole (void)
@@ -69,8 +68,13 @@ void Sys_DestroyConsole (void)
 SYSTEM LOG
 ===============================================================================
 ***/
+
+// [FWGS, 01.05.26]
 int Sys_LogFileNo (void)
 	{
+	if (!s_ld.logfile)
+		return -1;
+
 	return s_ld.logfileno;
 	}
 
@@ -88,14 +92,15 @@ static void Sys_FlushLogfile (void)
 		fflush (s_ld.logfile);
 	}
 
-// [FWGS, 01.03.25]
 void Sys_InitLog (void)
 	{
 	const char *mode;
 
 	if (Sys_CheckParm ("-log"))
 		{
-		if (!Sys_GetParmFromCmdLine ("-log", s_ld.log_path) || !isalnum (s_ld.log_path[0]))
+		// [FWGS, 01.05.26]
+		/*if (!Sys_GetParmFromCmdLine ("-log", s_ld.log_path) || !isalnum (s_ld.log_path[0]))*/
+		if (!Sys_GetParmFromCmdLine ("-log", s_ld.log_path) || !isalnum ((byte)s_ld.log_path[0]))
 			Q_strncpy (s_ld.log_path, "engine.log", sizeof (s_ld.log_path));
 
 		COM_DefaultExtension (s_ld.log_path, ".log", sizeof (s_ld.log_path));
@@ -115,10 +120,21 @@ void Sys_InitLog (void)
 	else
 		Q_strncpy (s_ld.title, XASH_ENGINE_NAME " " XASH_VERSION, sizeof (s_ld.title));
 
-	// create log if needed
+	// [FWGS, 01.05.26] create log if needed
 	if (s_ld.log_active)
 		{
-		s_ld.logfile = fopen (s_ld.log_path, mode);
+		/*s_ld.logfile = fopen (s_ld.log_path, mode);*/
+		const char *basedir = getenv ("XASH3D_BASEDIR");
+
+		if (!COM_StringEmptyOrNULL (basedir) && (s_ld.log_path[0] != '/'))
+			{
+			char fullpath[MAX_SYSPATH];
+			Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", basedir, s_ld.log_path);
+			s_ld.logfile = fopen (fullpath, mode);
+			}
+
+		if (!s_ld.logfile)
+			s_ld.logfile = fopen (s_ld.log_path, mode);
 
 		if (!s_ld.logfile)
 			{
@@ -292,7 +308,7 @@ static void Sys_PrintStdout (const char *logtime, size_t logtime_len, const char
 		fprintf (stderr, "%s %s", logtime, buf);
 #endif
 
-#elif !XASH_WIN32 // Wcon does the job
+#elif !XASH_WIN32	// Wcon does the job
 	Sys_PrintLogfile (STDOUT_FILENO, logtime, logtime_len, msg, XASH_COLORIZE_CONSOLE);
 	Sys_FlushStdout ();
 #endif
@@ -319,8 +335,8 @@ void Sys_PrintLog (const char *pMsg)
 
 	if (print_time)
 		{
-		logtime_len = strftime (logtime, sizeof (logtime), "[%H:%M:%S] ", crt_tm); // short time
-		logtime_len = Q_min (logtime_len, sizeof (logtime) - 1); // just in case
+		logtime_len = strftime (logtime, sizeof (logtime), "[%H:%M:%S] ", crt_tm);	// short time
+		logtime_len = Q_min (logtime_len, sizeof (logtime) - 1);	// just in case
 		}
 
 	// spew to stdout
@@ -335,8 +351,8 @@ void Sys_PrintLog (const char *pMsg)
 		{
 		if (s_ld.log_time && print_time)
 			{
-			logtime_len = strftime (logtime, sizeof (logtime), "[%Y:%m:%d|%H:%M:%S] ", crt_tm); //full time
-			logtime_len = Q_min (logtime_len, sizeof (logtime) - 1); // just in case
+			logtime_len = strftime (logtime, sizeof (logtime), "[%Y:%m:%d|%H:%M:%S] ", crt_tm);	// full time
+			logtime_len = Q_min (logtime_len, sizeof (logtime) - 1);	// just in case
 			}
 		else
 			{

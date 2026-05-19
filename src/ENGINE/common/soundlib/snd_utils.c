@@ -39,7 +39,7 @@ static const loadwavfmt_t load_game[] =
 	{ "opus", Sound_LoadOggOpus },
 #endif
 
-#else // we only need extensions
+#else	// we only need extensions
 	{ "wav" },
 	{ "mp3" },
 #ifdef OGG_VORBIS
@@ -73,7 +73,7 @@ static const streamfmt_t stream_game[] =
 	{ "opus", Stream_OpenOggOpus, Stream_ReadOggOpus, Stream_SetPosOggOpus, Stream_GetPosOggOpus, Stream_FreeOggOpus },
 #endif
 
-#else // we only need extensions
+#else	// we only need extensions
 
 	{ "mp3" },
 	{ "wav" },
@@ -103,46 +103,61 @@ void Sound_Init (void)
 
 void Sound_Shutdown (void)
 	{
-	Mem_Check (); // check for leaks
+	Mem_Check ();	// check for leaks
 	Mem_FreePool (&host.soundpool);
 	}
 
 // [FWGS, 01.02.25] removed Sound_Copy
 
+// [FWGS, 01.05.26]
 uint GAME_EXPORT Sound_GetApproxWavePlayLen (const char *filepath)
 	{
-	string		name;
+	/*string		name;
 	file_t		*f;
 	wavehdr_t	wav;
 	size_t		filesize;
-	uint		msecs;
+	uint		msecs;*/
+	string	name;
 
 	Q_strncpy (name, filepath, sizeof (name));
 	COM_FixSlashes (name);
 	
-	f = FS_Open (name, "rb", false);
+	/*f = FS_Open (name, "rb", false);*/
+	file_t	*f = FS_Open (name, "rb", false);
 	if (!f)
 		return 0;
 
+	wavehdr_t	wav;
 	if (FS_Read (f, &wav, sizeof (wav)) != sizeof (wav))
 		{
 		FS_Close (f);
 		return 0;
 		}
 
-	filesize = FS_FileLength (f);
-	filesize -= 128; // magic number from GoldSrc, seems to be header size
+	/*filesize = FS_FileLength (f);
+	filesize -= 128;	// magic number from GoldSrc, seems to be header size*/
+	// magic number from GoldSrc, seems to be header size
+	size_t filesize = FS_FileLength (f) - 128;
 
 	FS_Close (f);
 
-	// is real wav file ?
-	if ((wav.riff_id != RIFFHEADER) || (wav.wave_id != WAVEHEADER) || (wav.fmt_id != FORMHEADER))
+	// is real wav file?
+	/*if ((wav.riff_id != RIFFHEADER) || (wav.wave_id != WAVEHEADER) || (wav.fmt_id != FORMHEADER))*/
+	if ((wav.riff_id != LittleLong (RIFFHEADER)) || (wav.wave_id != LittleLong (WAVEHEADER)) ||
+		(wav.fmt_id != LittleLong (FORMHEADER)))
 		return 0;
 
-	if (wav.nAvgBytesPerSec >= 1000)
+	/*if (wav.nAvgBytesPerSec >= 1000)
 		msecs = (uint)((float)filesize / ((float)wav.nAvgBytesPerSec / 1000.0f));
 	else
-		msecs = (uint)(((float)filesize / (float)wav.nAvgBytesPerSec) * 1000.0f);
+		msecs = (uint)(((float)filesize / (float)wav.nAvgBytesPerSec) * 1000.0f);*/
+	int		avgBytes = LittleLong (wav.nAvgBytesPerSec);
+	uint	msecs;
+
+	if (avgBytes >= 1000)
+		msecs = (uint)((float)filesize / ((float)avgBytes / 1000.0f));
+	else
+		msecs = (uint)(((float)filesize / (float)avgBytes) * 1000.0f);
 
 	return msecs;
 	}
@@ -399,7 +414,7 @@ static qboolean Sound_ConvertUpsample (wavdata_t *sc, int inwidth, int inchannel
 	{
 	size_t i;
 
-	incount--; // to not go past last sample while interpolating
+	incount--;	// to not go past last sample while interpolating
 
 	SOUND_FORMATCONVERT_BOILERPLATE (SOUND_CONVERTUPSAMPLE_BOILERPLATE)
 
@@ -434,7 +449,6 @@ static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth
 		return false;
 
 	// [FWGS, 01.03.26]
-	/*t1 = Sys_DoubleTime ();*/
 	t1 = Platform_DoubleTime ();
 
 	// this is usually 0.5, 1, or 2
@@ -446,7 +460,6 @@ static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth
 	// [FWGS, 01.03.26]
 	sc->samples = outcount;
 	if (FBitSet (sc->flags, SOUND_LOOPED))
-		/*sc->loopStart = sc->loopStart / stepscale;*/
 		sc->loop_start = sc->loop_start / stepscale;
 
 	sound.tempbuffer = (byte *)Mem_Realloc (host.soundpool, sound.tempbuffer, sc->size);
@@ -478,7 +491,6 @@ static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth
 		}
 
 	// [FWGS, 01.03.26]
-	/*t2 = Sys_DoubleTime ();*/
 	t2 = Platform_DoubleTime ();
 	sc->rate = outrate;
 	sc->width = outwidth;
@@ -526,7 +538,6 @@ qboolean Sound_SupportedFileFormat (const char *fileext)
 	const loadwavfmt_t *format;
 
 	// [FWGS, 01.03.26]
-	/*if (COM_CheckStringEmpty (fileext))*/
 	if (!COM_StringEmpty (fileext))
 		{
 		for (format = sound.loadformats; format && format->ext; format++)

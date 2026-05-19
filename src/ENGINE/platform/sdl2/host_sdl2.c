@@ -82,7 +82,6 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 	// [FWGS, 01.04.26]
 	else if (keynum >= (SDL_SCANCODE_INTERNATIONAL1) && keynum <= (SDL_SCANCODE_INTERNATIONAL9))
 		{
-		/*DECLARE_KEY_RANGE (SDL_SCANCODE_INTERNATIONAL1, SDL_SCANCODE_INTERNATIONAL9, K_INTERNATIONAL)*/
 		keynum = keynum - SDL_SCANCODE_INTERNATIONAL1 + K_INTERNATIONAL;
 		}
 	else
@@ -306,7 +305,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 
 			case SDL_SCANCODE_APPLICATION:
 				keynum = K_WIN;
-				break; // (compose key)
+				break;	// (compose key)
 
 			// [FWGS, 01.07.25]
 			case SDL_SCANCODE_VOLUMEUP:
@@ -384,6 +383,7 @@ static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
 
 		default:
 			Con_Printf ("Unknown mouse button ID: %d\n", button.button);
+			break;	// ESHQ: защита от компилятора
 		}
 	}
 
@@ -428,15 +428,6 @@ static void SDLash_ActiveEvent (int gain)
 		{
 
 		// [FWGS, 15.04.26]
-		/*if TARGET_OS_IPHONE
-				{
-				// Keep running if ftp server enabled
-				void IOS_StartBackgroundTask (void);
-				IOS_StartBackgroundTask ();
-				}
-		endif*/
-
-		// [FWGS, 01.02.25]
 		host.status = HOST_NOFOCUS;
 		if (cls.key_dest == key_game)
 			{
@@ -446,7 +437,6 @@ static void SDLash_ActiveEvent (int gain)
 
 		// [FWGS, 01.03.26]
 		host.force_draw_version_time = host.realtime + 2.0;
-		/*VID_RestoreScreenResolution ();*/
 		VID_RestoreScreenResolution ((window_mode_t)vid_fullscreen.value);
 		}
 	}
@@ -563,6 +553,13 @@ static void SDLash_EventHandler (SDL_Event *event)
 			SDLash_HandleGameControllerEvent (event);
 			break;
 
+		// [FWGS, 01.05.26]
+#if SDL_VERSION_ATLEAST( 2, 0, 14 )
+		case SDL_SENSORUPDATE:
+			SDLash_SensorUpdate (event->sensor);
+			break;
+#endif
+
 		case SDL_WINDOWEVENT:
 			if (event->window.windowID != SDL_GetWindowID (host.hWnd))
 				return;
@@ -574,27 +571,15 @@ static void SDLash_EventHandler (SDL_Event *event)
 				{
 				// [FWGS, 01.03.26]
 				case SDL_WINDOWEVENT_MOVED:
-					/*{
-					char val[32];
-
-					Q_snprintf (val, sizeof (val), "%d", event->window.data1);
-					Cvar_DirectSet (&window_xpos, val);
-
-					Q_snprintf (val, sizeof (val), "%d", event->window.data2);
-					Cvar_DirectSet (&window_ypos, val);
-
-					if (vid_fullscreen.value == WINDOW_MODE_WINDOWED)*/
 					if (vid_fullscreen.value == WINDOW_MODE_WINDOWED)
 						Cvar_DirectSet (&vid_maximized, "0");
 
 					break;
-					/*}*/
 
 				// [FWGS, 01.03.26]
 				case SDL_WINDOWEVENT_MINIMIZED:
 					host.status = HOST_SLEEP;
 					Cvar_DirectSet (&vid_maximized, "0");
-					/*VID_RestoreScreenResolution ();*/
 					VID_RestoreScreenResolution ((window_mode_t)vid_fullscreen.value);
 					break;
 
@@ -617,14 +602,6 @@ static void SDLash_EventHandler (SDL_Event *event)
 
 					// [FWGS, 01.03.26]
 				case SDL_WINDOWEVENT_RESIZED:
-					/*if !XASH_MOBILE_PLATFORM
-					if (vid_fullscreen.value == WINDOW_MODE_WINDOWED)
-					endif
-						{
-						SDL_Window *wnd = SDL_GetWindowFromID (event->window.windowID);
-						VID_SaveWindowSize (event->window.data1, event->window.data2,
-							FBitSet (SDL_GetWindowFlags (wnd), SDL_WINDOW_MAXIMIZED) != 0);
-						}*/
 					VID_SaveWindowSize (event->window.data1, event->window.data2);
 					break;
 
@@ -635,6 +612,7 @@ static void SDLash_EventHandler (SDL_Event *event)
 				default:
 					break;
 				}
+			break;	// ESHQ: защита от компилятора
 		}
 	}
 

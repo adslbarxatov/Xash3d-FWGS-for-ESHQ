@@ -111,17 +111,14 @@ static void SDLCALL SDLash_LogOutputFunction (void *userdata, int category, SDL_
 	}
 
 // [FWGS, 05.04.26]
-/*void SDLash_Init (const char *basedir)*/
 void SDLash_Init (void)
 	{
-/*if XASH_APPLE*/
 #if XASH_IOS
 	char *path = SDL_GetBasePath ();
 	if (path != NULL)
 		{
 		char buf[MAX_VA_STRING];
 
-		/*Q_snprintf (buf, sizeof (buf), "%s%s/extras.pk3", path, basedir);*/
 		Q_snprintf (buf, sizeof (buf), "%s%s/extras.pk3", path, host.default_gamedir);
 		setenv ("XASH3D_EXTRAS_PAK1", buf, true);
 		}
@@ -136,9 +133,6 @@ void SDLash_Init (void)
 	else
 		SDL_LogSetAllPriority (SDL_LOG_PRIORITY_ERROR);
 
-	/*ifndef SDL_INIT_EVENTS
-	define SDL_INIT_EVENTS 0
-	endif*/
 #if XASH_WIN32
 	SDL_SetHint (SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitor");
 	// TODO: disabled for now
@@ -155,7 +149,6 @@ void SDLash_Init (void)
 		host.type = HOST_DEDICATED;
 		}
 
-	/*if SDL_MAJOR_VERSION >= 2*/
 	SDL_SetHint (SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
 	SDL_SetHint (SDL_HINT_JOYSTICK_HIDAPI_STEAM, "1");
 	SDL_SetHint (SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1");
@@ -175,15 +168,16 @@ void SDLash_Init (void)
 
 	// SDL_SetHint( SDL_HINT_VIDEO_WAYLAND_EMULATE_MOUSE_WARP, "1" );
 
+	// [FWGS, 01.05.26]
 	SDL_StopTextInput ();
-	/*endif*/
-
 	SDLash_InitCursors ();
+	SDLash_InitSensors ();
 	}
 
-// [FWGS, 25.12.24]
+// [FWGS, 01.05.26]
 void SDLash_Shutdown (void)
 	{
+	SDLash_ShutdownSensors ();
 	SDLash_FreeCursors ();
 	SDL_Quit ();
 	}
