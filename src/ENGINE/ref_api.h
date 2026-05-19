@@ -428,7 +428,7 @@ typedef struct ref_api_s
 	particle_t	*(*CL_AllocParticleFast)(void); // unconditionally give new particle pointer from cl_free_particles
 	dlight_t	*(*CL_AllocElight)(int key);
 	struct model_s	*(*GetDefaultSprite)(enum ref_defaultsprite_e spr);
-	void		(*R_StoreEfrags)(struct efrag_s **ppefrag, int framecount);// store efrags for static entities
+	void		(*R_StoreEfrags)(struct efrag_s **ppefrag, int framecount);	// store efrags for static entities
 
 	// model management
 	model_t		*(*Mod_ForName)(const char *name, qboolean crash, qboolean trackCRC);
@@ -445,8 +445,8 @@ typedef struct ref_api_s
 	float		(*COM_RandomFloat)(float rmin, float rmax);
 	int			(*COM_RandomLong)(int rmin, int rmax);
 	struct screenfade_s	*(*GetScreenFade)(void);
-	void		(*CL_GetScreenInfo)(int *width, int *height); // clgame.scrInfo, ptrs may be NULL
-	void		(*SetLocalLightLevel)(int level); // cl.local.light_level
+	void		(*CL_GetScreenInfo)(int *width, int *height);	// clgame.scrInfo, ptrs may be NULL
+	void		(*SetLocalLightLevel)(int level);	// cl.local.light_level
 	int			(*Sys_CheckParm)(const char *flag);
 
 	// [FWGS, 01.05.26] studio interface
@@ -478,7 +478,7 @@ typedef struct ref_api_s
 	// try to create window
 	// 
 	// [FWGS, 01.03.26] will call GL_SetupAttributes in case of REF_GL
-	qboolean	(*R_Init_Video)(ref_graphic_apis_t type); // will also load and execute renderer config(see R_GetConfigName)
+	qboolean	(*R_Init_Video)(ref_graphic_apis_t type);	// will also load and execute renderer config(see R_GetConfigName)
 	void		(*R_Free_Video)(void);
 
 	// GL
@@ -495,7 +495,7 @@ typedef struct ref_api_s
 	// renderapi
 	int			(*R_FatPVS)(const float *org, float radius, byte *visbuffer, qboolean merge, qboolean fullvis);
 	const struct ref_overview_s	*(*GetOverviewParms)(void);
-	double		(*pfnTime)(void);				// Sys_DoubleTime
+	double		(*pfnTime)(void);	// Sys_DoubleTime
 
 	// event api
 	struct physent_s	*(*EV_GetPhysent)(int idx);
@@ -505,7 +505,7 @@ typedef struct ref_api_s
 	struct pmtrace_s	(*CL_TraceLine)(vec3_t start, vec3_t end, int flags);
 
 	// [FWGS, 01.03.26] imagelib
-	void		(*Image_AddCmdFlags)(uint flags); // used to check if hardware dxt is supported
+	void		(*Image_AddCmdFlags)(uint flags);	// used to check if hardware dxt is supported
 	void		(*Image_SetForceFlags)(uint flags);
 	void		(*Image_ClearForceFlags)(void);
 	qboolean	(*Image_CustomPalette)(void);
@@ -539,9 +539,9 @@ struct mip_s;
 typedef struct ref_interface_s
 	{
 	// construct, destruct
-	qboolean	(*R_Init)(void); // context is true if you need context management
+	qboolean	(*R_Init)(void);	// context is true if you need context management
 	void		(*R_Shutdown)(void);
-	const char	*(*R_GetConfigName)(void); // returns config name without extension
+	const char	*(*R_GetConfigName)(void);	// returns config name without extension
 	qboolean	(*R_SetDisplayTransform)(ref_screen_rotation_t rotate, int x, int y, float scale_x, float scale_y);
 
 	// only called for GL contexts
@@ -559,7 +559,7 @@ typedef struct ref_interface_s
 	void		(*R_PopScene)(void);
 	void		(*GL_BackendStartFrame)(void);
 	void		(*GL_BackendEndFrame)(void);
-	void		(*R_ClearScreen)(void); // clears color buffer on GL
+	void		(*R_ClearScreen)(void);	// clears color buffer on GL
 	void		(*R_AllowFog)(qboolean allow);
 	void		(*GL_SetRenderMode)(int renderMode);
 
@@ -573,7 +573,7 @@ typedef struct ref_interface_s
 	void		(*R_ShowTextures)(void);
 
 	// texture management
-	const byte	*(*R_GetTextureOriginalBuffer)(unsigned int idx); // not always available
+	const byte	*(*R_GetTextureOriginalBuffer)(unsigned int idx);	// not always available
 	int			(*GL_LoadTextureFromBuffer)(const char *name, rgbdata_t *pic, texFlags_t flags, qboolean update);
 	void		(*GL_ProcessTexture)(int texnum, float gamma, int topColor, int bottomColor);
 	void		(*R_SetupSky)(int *skyboxTextures);
@@ -595,7 +595,7 @@ typedef struct ref_interface_s
 	colorVec	(*R_LightPoint)(const float *p);
 
 	// decals
-	// Shoots a decal onto the surface of the BSP.  position is the center of the decal in world coords
+	// Shoots a decal onto the surface of the BSP. position is the center of the decal in world coords
 	void		(*R_DecalShoot)(int textureIndex, int entityIndex, int modelIndex, vec3_t pos, int flags, float scale);
 	void		(*R_DecalRemoveAll)(int texture);
 	int			(*R_CreateDecalList)(struct decallist_s *pList);
