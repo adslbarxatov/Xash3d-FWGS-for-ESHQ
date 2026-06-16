@@ -108,7 +108,7 @@ Then you can use another oneliner to query all variables:
 #define XASH_DOS4GW 1
 #elif defined __psp__
 #define XASH_PSP 1
-#else // POSIX compatible
+#else	// POSIX compatible
 #define XASH_POSIX 1
 #if defined __linux__
 #if defined __ANDROID__
@@ -135,7 +135,7 @@ Then you can use another oneliner to query all variables:
 #define XASH_APPLE 1
 #if TARGET_OS_IOS
 #define XASH_IOS 1
-#endif // TARGET_OS_IOS
+#endif	// TARGET_OS_IOS
 #elif defined __SWITCH__
 #define XASH_NSWITCH 1
 #elif defined __vita__

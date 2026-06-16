@@ -790,6 +790,7 @@ static void FS_InitGameInfo (gameinfo_t *GameInfo, const char *gamedir, qboolean
 	memset (GameInfo, 0, sizeof (*GameInfo));
 	
 	// ESHQ: отменена принудительная инициализация тренировочной карты
+	// [FWGS, 01.07.26] ESHQ: перенесено в gameinfo.c
 
 	// filesystem info
 	GameInfo->mtime = mtime;
@@ -870,6 +871,7 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 			}
 
 		// ESHQ: добавлено для поддержки титров
+		// [FWGS, 01.07.26] ESHQ: перенесено в gameinfo.c
 		else if (!Q_stricmp (token, "creditsmap"))
 			{
 			pfile = COM_ParseFile (pfile, GameInfo->creditsmap, sizeof (GameInfo->creditsmap));
@@ -930,6 +932,7 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 				if (!Q_stricmp (token, "singleplayer_only"))
 					{
 					// ESHQ: удалено ограничение на рабочую директорию
+					// [FWGS, 01.07.26] ESHQ: перенесено в gameinfo.c
 					GameInfo->gamemode = GAME_SINGLEPLAYER_ONLY;
 					Q_strncpy (GameInfo->type, "Single", sizeof (GameInfo->type));
 					}
@@ -968,6 +971,7 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 			}
 
 		// ESHQ: отладочная опция
+		// [FWGS, 01.07.26] ESHQ: перенесено в gameinfo.c
 		else if (!Q_stricmp (token, "spentity"))
 			{
 			pfile = COM_ParseFile (pfile, GameInfo->sp_entity, sizeof (GameInfo->sp_entity));
@@ -999,6 +1003,7 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 			}
 
 		// ESHQ: разрешено для всех типов игр
+		// [FWGS, 01.07.26] ESHQ: перенесено в gameinfo.c
 		else if (!Q_stricmp (token, "noskills"))
 			{
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
@@ -1067,6 +1072,7 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
 
 				// ESHQ: удалено ограничение на рабочую директорию
+				// [FWGS, 01.07.26] ESHQ: перенесено в gameinfo.c
 				if (!Q_stricmp (token, "singleplayer_only"))
 					GameInfo->gamemode = GAME_SINGLEPLAYER_ONLY;
 				else if (!Q_stricmp (token, "multiplayer_only"))
@@ -3645,7 +3651,9 @@ void FS_InitMemory (void)
 	fs_searchpaths = NULL;
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.07.26] большая часть функций разнесена по файлам dll.c, io.c, sys.c,
+// searchpath.c и gameinfo.c
+/*// [FWGS, 01.12.24]
 fs_interface_t g_engfuncs =
 	{
 	Con_PrintfStub,
@@ -3791,4 +3799,4 @@ int HLEXPORT GetFSAPI (int version, fs_api_t *api, fs_globals_t **globals, fs_in
 	*globals = &FI;
 
 	return FS_API_VERSION;
-	}
+	}*/

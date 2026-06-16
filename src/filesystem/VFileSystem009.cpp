@@ -14,13 +14,10 @@ GNU General Public License for more details
 ***/
 
 // [FWGS, 01.05.26]
-/*include <string.h>
-include <stdio.h>*/
 #include <time.h>
 #include <stdarg.h>
 #include <malloc.h>
 #include "crtlib.h"
-/*include "filesystem.h"*/
 #include "filesystem_internal.h"
 #include "VFileSystem009.h"
 #include "common/com_strings.h"
@@ -61,7 +58,6 @@ static inline const char *IdToDir (char *dir, size_t size, const char *id)
 	// [FWGS, 01.05.26]
 	if (!Q_strcmp (id, "GAMEDOWNLOAD"))
 		{
-		/*Q_snprintf (dir, size, "%s/" DEFAULT_DOWNLOADED_DIRECTORY, GI->gamefolder);*/
 		Q_snprintf (dir, size, "%s" DEFAULT_DOWNLOADED_DIRECTORY_SUFFIX, GI->gamefolder);
 		return dir;
 		}
@@ -184,14 +180,16 @@ class CXashFS : public IFileSystem
 			return FS_SysFolderExists (p);
 			}
 
+		// [FWGS, 01.07.26]
 		FileHandle_t Open (const char *path, const char *mode, const char *id) override
 			{
-			file_t *fd;
+			/*file_t *fd;*/
 
 			FixupPath (p, path);
-			fd = FS_Open (p, mode, IsIdGamedir (id));
+			/*fd = FS_Open (p, mode, IsIdGamedir (id));
 
-			return fd;
+			return fd;*/
+			return FS_Open (p, mode, IsIdGamedir (id));
 			}
 
 		void Close (FileHandle_t handle) override
@@ -314,22 +312,24 @@ class CXashFS : public IFileSystem
 			return;
 			}
 
-		// [FWGS, 01.05.24]
+		// [FWGS, 01.07.26]
 		const char *FindFirst (const char *pattern, FileFindHandle_t *handle, const char *id) override
 			{
-			CSearchState *state;
-			search_t * search;
+			/*CSearchState *state;
+			search_t * search;*/
 
 			if (!handle || !pattern)
 				return nullptr;
 
 			FixupPath (p, pattern);
-			search = FS_Search (p, true, IsIdGamedir (id));
+			/*search = FS_Search (p, true, IsIdGamedir (id));*/
+			search_t *search = FS_Search (p, true, IsIdGamedir (id));
 
 			if (!search)
 				return nullptr;
 
-			state = new CSearchState (&searchHead, search);
+			/*state = new CSearchState (&searchHead, search);*/
+			CSearchState *state = new CSearchState (&searchHead, search);
 			if (!state)
 				{
 				Mem_Free (search);
@@ -389,9 +389,10 @@ class CXashFS : public IFileSystem
 			delete i;
 			}
 
+		// [FWGS, 01.07.26]
 		const char *GetLocalPath (const char *name, char *buf, int size) override
 			{
-			const char *fullpath;
+			/*const char *fullpath;*/
 			
 			if (!name)
 				return nullptr;
@@ -409,7 +410,8 @@ class CXashFS : public IFileSystem
 				return buf;
 				}
 
-			fullpath = FS_GetDiskPath (p, false);
+			/*fullpath = FS_GetDiskPath (p, false);*/
+			const char *fullpath = FS_GetDiskPath (p, false);
 			if (!fullpath)
 				return nullptr;
 
@@ -417,14 +419,15 @@ class CXashFS : public IFileSystem
 			return buf;
 			}
 
+		// [FWGS, 01.07.26]
 		char *ParseFile (char *buf, char *token, bool *quoted) override
 			{
 			qboolean qquoted;
-			char *p;
+			/*char *p;*/
 
-			// [FWGS, 01.03.26]
 			// filesystem_stdio expects 512 byte buffers
-			p = COM_ParseFileSafe (buf, token, 512, 0, nullptr, &qquoted);
+			/*p = COM_ParseFileSafe (buf, token, 512, 0, nullptr, &qquoted);*/
+			char *p = COM_ParseFileSafe (buf, token, 512, 0, nullptr, &qquoted);
 			if (quoted)
 				*quoted = qquoted;
 
@@ -444,10 +447,11 @@ class CXashFS : public IFileSystem
 			return FS_FullPathToRelativePath (out, p, 512);
 			}
 
-		// [FWGS, 25.12.24]
+		// [FWGS, 01.07.26]
 		bool GetCurrentDirectory (char *p, int size) override
 			{
-			return FS_GetRootDirectory (p, size);
+			/*return FS_GetRootDirectory (p, size);*/
+			return g_api.GetRootDirectory (p, size);
 			}
 
 		void PrintOpenedFiles () override

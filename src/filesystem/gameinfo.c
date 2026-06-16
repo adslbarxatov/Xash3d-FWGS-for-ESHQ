@@ -26,7 +26,7 @@ GNU General Public License for more details
 #include "xash3d_mathlib.h"
 #include "common/com_strings.h"
 #include "common/protocol.h"
-#include "library_suffix.h"
+#include "..\library_suffix\library_suffix.h"
 
 #define SAVE_AGED_COUNT	2	// the default count of quick and auto saves
 
@@ -245,17 +245,20 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 			{
 			pfile = COM_ParseFile (pfile, GameInfo->title, sizeof (GameInfo->title));
 			}
+
 		// valid for both
 		else if (!Q_stricmp (token, "fallback_dir"))
 			{
 			pfile = COM_ParseFile (pfile, GameInfo->falldir, sizeof (GameInfo->falldir));
 			}
+
 		// valid for both
 		else if (!Q_stricmp (token, "startmap"))
 			{
 			pfile = COM_ParseFile (pfile, GameInfo->startmap, sizeof (GameInfo->startmap));
 			COM_StripExtension (GameInfo->startmap);	// HQ2:Amen has extension .bsp
 			}
+
 		// only trainmap is valid for gameinfo
 		else if (!Q_stricmp (token, "trainmap") ||
 			(!isGameInfo && !Q_stricmp (token, "trainingmap")))
@@ -263,34 +266,47 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 			pfile = COM_ParseFile (pfile, GameInfo->trainmap, sizeof (GameInfo->trainmap));
 			COM_StripExtension (GameInfo->trainmap);	// HQ2:Amen has extension .bsp
 			}
+
+		// ESHQ: добавлено для поддержки титров
+		else if (!Q_stricmp (token, "creditsmap"))
+			{
+			pfile = COM_ParseFile (pfile, GameInfo->creditsmap, sizeof (GameInfo->creditsmap));
+			COM_StripExtension (GameInfo->creditsmap);
+			}
+
 		// valid for both
 		else if (!Q_stricmp (token, "url_info"))
 			{
 			pfile = COM_ParseFile (pfile, GameInfo->game_url, sizeof (GameInfo->game_url));
 			}
+
 		// different names
 		else if (!Q_stricmp (token, isGameInfo ? "url_update" : "url_dl"))
 			{
 			pfile = COM_ParseFile (pfile, GameInfo->update_url, sizeof (GameInfo->update_url));
 			}
+
 		// valid for both
 		else if (!Q_stricmp (token, "gamedll"))
 			{
 			pfile = COM_ParseFile (pfile, GameInfo->game_dll, sizeof (GameInfo->game_dll));
 			COM_FixSlashes (GameInfo->game_dll);
 			}
+
 		// valid for both
 		else if (!Q_stricmp (token, "gamedll_linux"))
 			{
 			pfile = COM_ParseFile (pfile, GameInfo->game_dll_linux, sizeof (GameInfo->game_dll_linux));
 			found_linux = true;
 			}
+
 		// valid for both
 		else if (!Q_stricmp (token, "gamedll_osx"))
 			{
 			pfile = COM_ParseFile (pfile, GameInfo->game_dll_osx, sizeof (GameInfo->game_dll_osx));
 			found_osx = true;
 			}
+
 		// valid for both
 		else if (!Q_stricmp (token, "icon"))
 			{
@@ -298,6 +314,7 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 			COM_FixSlashes (GameInfo->iconpath);
 			COM_DefaultExtension (GameInfo->iconpath, ".ico", sizeof (GameInfo->iconpath));
 			}
+
 		else if (!Q_stricmp (token, "type"))
 			{
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
@@ -310,14 +327,8 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 				{
 				if (!Q_stricmp (token, "singleplayer_only"))
 					{
-					// TODO: Remove this ugly hack too.
-					// This was made because Half-Life has multiplayer,
-					// but for some reason it's marked as singleplayer_only.
-					// Old WON version is fine
-					if (!Q_stricmp (GameInfo->gamefolder, "valve"))
-						GameInfo->gamemode = GAME_NORMAL;
-					else
-						GameInfo->gamemode = GAME_SINGLEPLAYER_ONLY;
+					// ESHQ: удалено ограничение на рабочую директорию
+					GameInfo->gamemode = GAME_SINGLEPLAYER_ONLY;
 					Q_strncpy (GameInfo->type, "Single", sizeof (GameInfo->type));
 					}
 				else if (!Q_stricmp (token, "multiplayer_only"))
@@ -334,54 +345,77 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 					}
 				}
 			}
+
 		// valid for both
 		else if (!Q_stricmp (token, "version"))
 			{
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
 			GameInfo->version = Q_atof (token);
 			}
+
 		// valid for both
 		else if (!Q_stricmp (token, "size"))
 			{
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
 			GameInfo->size = Q_atoi (token);
 			}
+
 		else if (!Q_stricmp (token, isGameInfo ? "mp_entity" : "mpentity"))
 			{
 			pfile = COM_ParseFile (pfile, GameInfo->mp_entity, sizeof (GameInfo->mp_entity));
 			}
+
+		// ESHQ: отладочная опция
+		else if (!Q_stricmp (token, "spentity"))
+			{
+			pfile = COM_ParseFile (pfile, GameInfo->sp_entity, sizeof (GameInfo->sp_entity));
+			}
+
 		else if (!Q_stricmp (token, isGameInfo ? "mp_filter" : "mpfilter"))
 			{
 			pfile = COM_ParseFile (pfile, GameInfo->mp_filter, sizeof (GameInfo->mp_filter));
 			}
+
 		// valid for both
 		else if (!Q_stricmp (token, "secure"))
 			{
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
 			GameInfo->secure = Q_atoi (token) ? true : false;
 			}
+
 		// valid for both
 		else if (!Q_stricmp (token, "nomodels"))
 			{
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
 			GameInfo->nomodels = Q_atoi (token) ? true : false;
 			}
+
 		else if (!Q_stricmp (token, isGameInfo ? "max_edicts" : "edicts"))
 			{
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
 			GameInfo->max_edicts = bound (MIN_EDICTS, Q_atoi (token), MAX_EDICTS);
 			}
+
+		// ESHQ: разрешено для всех типов игр
+		else if (!Q_stricmp (token, "noskills"))
+			{
+			pfile = COM_ParseFile (pfile, token, sizeof (token));
+			GameInfo->noskills = Q_atoi (token) ? true : false;
+			}
+
 		// valid for both
 		else if (!Q_stricmp (token, "hd_background"))
 			{
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
 			GameInfo->hd_background = Q_atoi (token) ? true : false;
 			}
+
 		else if (!Q_stricmp (token, "animated_title"))
 			{
 			pfile = COM_ParseFile (pfile, token, sizeof (token));
 			GameInfo->animated_title = Q_atoi (token) ? true : false;
 			}
+
 		// only for gameinfo
 		else if (isGameInfo)
 			{
@@ -392,45 +426,51 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 				if (Q_stricmp (fs_path, GameInfo->basedir) || Q_stricmp (fs_path, GameInfo->gamefolder))
 					Q_strncpy (GameInfo->basedir, fs_path, sizeof (GameInfo->basedir));
 				}
+
 			else if (!Q_stricmp (token, "sp_entity"))
 				{
 				pfile = COM_ParseFile (pfile, GameInfo->sp_entity, sizeof (GameInfo->sp_entity));
 				}
+
 			else if (isGameInfo && !Q_stricmp (token, "dllpath"))
 				{
 				pfile = COM_ParseFile (pfile, GameInfo->dll_path, sizeof (GameInfo->dll_path));
 				}
+
 			else if (isGameInfo && !Q_stricmp (token, "date"))
 				{
 				pfile = COM_ParseFile (pfile, GameInfo->date, sizeof (GameInfo->date));
 				}
+
 			else if (!Q_stricmp (token, "max_tempents"))
 				{
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
 				GameInfo->max_tents = bound (300, Q_atoi (token), 2048);
 				}
+
 			else if (!Q_stricmp (token, "max_beams"))
 				{
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
 				GameInfo->max_beams = bound (64, Q_atoi (token), 512);
 				}
+
 			else if (!Q_stricmp (token, "max_particles"))
 				{
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
 				GameInfo->max_particles = bound (1024, Q_atoi (token), 131072);
 				}
+
 			else if (!Q_stricmp (token, "gamemode"))
 				{
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
-				// TODO: Remove this ugly hack too.
-				// This was made because Half-Life has multiplayer,
-				// but for some reason it's marked as singleplayer_only.
-				// Old WON version is fine
-				if (!Q_stricmp (token, "singleplayer_only") && Q_stricmp (GameInfo->gamefolder, "valve"))
+
+				// ESHQ: удалено ограничение на рабочую директорию
+				if (!Q_stricmp (token, "singleplayer_only"))
 					GameInfo->gamemode = GAME_SINGLEPLAYER_ONLY;
 				else if (!Q_stricmp (token, "multiplayer_only"))
 					GameInfo->gamemode = GAME_MULTIPLAYER_ONLY;
 				}
+
 			else if (!Q_strnicmp (token, "ambient", 7))
 				{
 				int ambientNum = Q_atoi (token + 7);
@@ -440,31 +480,37 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 				pfile = COM_ParseFile (pfile, GameInfo->ambientsound[ambientNum],
 					sizeof (GameInfo->ambientsound[ambientNum]));
 				}
+
 			else if (!Q_stricmp (token, "noskills"))
 				{
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
 				GameInfo->noskills = Q_atoi (token) ? true : false;
 				}
+
 			else if (!Q_stricmp (token, "render_picbutton_text"))
 				{
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
 				GameInfo->render_picbutton_text = Q_atoi (token) ? true : false;
 				}
+
 			else if (!Q_stricmp (token, "internal_vgui_support"))
 				{
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
 				GameInfo->internal_vgui_support = Q_atoi (token) ? true : false;
 				}
+
 			else if (!Q_stricmp (token, "quicksave_aged_count"))
 				{
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
 				GameInfo->quicksave_aged_count = bound (2, Q_atoi (token), 99);
 				}
+
 			else if (!Q_stricmp (token, "autosave_aged_count"))
 				{
 				pfile = COM_ParseFile (pfile, token, sizeof (token));
 				GameInfo->autosave_aged_count = bound (2, Q_atoi (token), 99);
 				}
+
 			else if (!Q_stricmp (token, "demomap"))
 				{
 				pfile = COM_ParseFile (pfile, GameInfo->demomap, sizeof (GameInfo->demomap));
