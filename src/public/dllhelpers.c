@@ -15,19 +15,23 @@ GNU General Public License for more details
 
 #include "crtlib.h"
 
+// [FWGS, 01.07.26]
 void ClearExports (const dllfunc_t *funcs, size_t num_funcs)
 	{
-	size_t i;
+	/*size_t i;
 
-	for (i = 0; i < num_funcs; i++)
+	for (i = 0; i < num_funcs; i++)*/
+	for (size_t i = 0; i < num_funcs; i++)
 		*(funcs[i].func) = NULL;
 	}
 
+// [FWGS, 01.07.26]
 qboolean ValidateExports (const dllfunc_t *funcs, size_t num_funcs)
 	{
-	size_t i;
+	/*size_t i;
 
-	for (i = 0; i < num_funcs; i++)
+	for (i = 0; i < num_funcs; i++)*/
+	for (size_t i = 0; i < num_funcs; i++)
 		{
 		if (*(funcs[i].func) == NULL)
 			return false;

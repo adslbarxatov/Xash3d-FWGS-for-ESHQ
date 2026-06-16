@@ -13,19 +13,25 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
+
 #include "atlas.h"
 
+// [FWGS, 01.07.26]
 qboolean Atlas_AllocBlock (atlas_t *atlas, int w, int h, int *x, int *y)
 	{
-	int	i, j;
-	int	best, best2;
+	/*int	i, j;
+	int	best, best2;*/
 	int	size = atlas->size;
+	int	best = size;
+	int	j;
 
-	best = size;
+	/*best = size;
 
-	for (i = 0; i <= size - w; )
+	for (i = 0; i <= size - w; )*/
+	for (int i = 0; i <= size - w; )
 		{
-		best2 = 0;
+		/*best2 = 0;*/
+		int best2 = 0;
 
 		for (j = 0; j < w; j++)
 			{
@@ -53,7 +59,8 @@ qboolean Atlas_AllocBlock (atlas_t *atlas, int w, int h, int *x, int *y)
 	if (best + h > size)
 		return false;
 
-	for (i = 0; i < w; i++)
+	/*for (i = 0; i < w; i++)*/
+	for (int i = 0; i < w; i++)
 		atlas->allocated[*x + i] = best + h;
 
 	if (best + h > atlas->max_height)

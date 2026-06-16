@@ -98,13 +98,18 @@ void GAME_EXPORT CRC32_ProcessByte (uint32_t *pulCRC, byte ch)
 	*pulCRC = crc32table[((byte)ulCrc ^ ch)] ^ (ulCrc >> 8);
 	}
 
+// [FWGS, 01.07.26]
 void GAME_EXPORT CRC32_ProcessBuffer (uint32_t *pulCRC, const void *pBuffer, int nBuffer)
 	{
-	uint32_t	ulCrc = *pulCRC, tmp;
-	byte *pb = (byte *)pBuffer;
+	/*uint32_t	ulCrc = *pulCRC, tmp;
+	byte *pb = (byte *)pBuffer;*/
+	uint32_t	ulCrc = *pulCRC;
+	byte	*pb = (byte *)pBuffer;
 
 	while (nBuffer >= sizeof (uint64_t))
 		{
+		uint32_t tmp;
+
 		memcpy (&tmp, pb, sizeof (tmp));
 		ulCrc ^= LittleLong (tmp);
 		ulCrc = crc32table[(byte)ulCrc] ^ (ulCrc >> 8);
@@ -125,6 +130,8 @@ void GAME_EXPORT CRC32_ProcessBuffer (uint32_t *pulCRC, const void *pBuffer, int
 
 	if (nBuffer & sizeof (uint32_t))
 		{
+		uint32_t tmp;
+
 		memcpy (&tmp, pb, sizeof (tmp));
 		ulCrc ^= LittleLong (tmp);
 		ulCrc = crc32table[(byte)ulCrc] ^ (ulCrc >> 8);
@@ -144,38 +151,37 @@ void GAME_EXPORT CRC32_ProcessBuffer (uint32_t *pulCRC, const void *pBuffer, int
 
 /***
 ====================
-CRC32_BlockSequence [FWGS, 01.05.26]
+CRC32_BlockSequence [FWGS, 01.07.26]
 
 For proxy protecting
 ====================
 ***/
 byte CRC32_BlockSequence (byte *base, int length, int sequence)
 	{
-	uint32_t	CRC;
-	/*char		*ptr;*/
+	/*uint32_t	CRC;
 	char		buffer[64];
 	int			off;
-	uint32_t	le[2];
+	uint32_t	le[2];*/
+	char buffer[64];
 
 	if (sequence < 0)
 		sequence = abs (sequence);
-	/*ptr = (char *)crc32table + (sequence % 0x3FC);*/
 
 	if (length > 60)
 		length = 60;
 	memcpy (buffer, base, length);
 
-	/*buffer[length + 0] = ptr[0];
-	buffer[length + 1] = ptr[1];
-	buffer[length + 2] = ptr[2];
-	buffer[length + 3] = ptr[3];*/
-	off = sequence % 0x3FC;
+	/*off = sequence % 0x3FC;*/
+	int	off = sequence % 0x3FC;
+	uint32_t	le[2];
+
 	le[0] = LittleLong (crc32table[off / 4]);
 	le[1] = LittleLong (crc32table[off / 4 + 1]);
 	memcpy (buffer + length, (char *)le + (off & 3), 4);
 
 	length += 4;
 
+	uint32_t CRC;
 	CRC32_Init (&CRC);
 	CRC32_ProcessBuffer (&CRC, buffer, length);
 	CRC = CRC32_Final (CRC);
@@ -196,17 +202,18 @@ static void MD5SwapBlock (uint *block, int count)
 
 /***
 ===================
-MD5Update
+MD5Update [FWGS, 01.07.26]
 
 Update context to reflect the concatenation of another buffer full of bytes
 ===================
 ***/
 void MD5Update (MD5Context_t *ctx, const byte *buf, uint len)
 	{
-	uint	t;
+	/*uint	t;*/
 
 	// update bitcount
-	t = ctx->bits[0];
+	/*t = ctx->bits[0];*/
+	uint t = ctx->bits[0];
 
 	if ((ctx->bits[0] = t + ((uint)len << 3)) < t)
 		ctx->bits[1]++;	// carry from low to high
@@ -228,7 +235,6 @@ void MD5Update (MD5Context_t *ctx, const byte *buf, uint len)
 
 		memcpy (p, buf, t);
 
-		// [FWGS, 01.05.26]
 		MD5SwapBlock (ctx->in, 16);
 		MD5Transform (ctx->buf, ctx->in);
 		buf += t;
@@ -240,7 +246,6 @@ void MD5Update (MD5Context_t *ctx, const byte *buf, uint len)
 		{
 		memcpy (ctx->in, buf, 64);
 
-		// [FWGS, 01.05.26]
 		MD5SwapBlock (ctx->in, 16);
 		MD5Transform (ctx->buf, ctx->in);
 		buf += 64;
@@ -253,7 +258,7 @@ void MD5Update (MD5Context_t *ctx, const byte *buf, uint len)
 
 /***
 ===============
-MD5Final
+MD5Final [FWGS, 01.07.26]
 
 Final wrapup - pad to 64-byte boundary with the bit pattern
 1 0* (64-bit count of bits processed, MSB-first)
@@ -261,15 +266,17 @@ Final wrapup - pad to 64-byte boundary with the bit pattern
 ***/
 void MD5Final (byte digest[16], MD5Context_t *ctx)
 	{
-	uint	count;
-	byte	*p;
+	/*uint	count;
+	byte	*p;*/
 
 	// compute number of bytes mod 64
-	count = (ctx->bits[0] >> 3) & 0x3F;
+	/*count = (ctx->bits[0] >> 3) & 0x3F;*/
+	uint count = (ctx->bits[0] >> 3) & 0x3F;
 
 	// set the first char of padding to 0x80.
 	// this is safe since there is always at least one byte free
-	p = (byte *)ctx->in + count;
+	/*p = (byte *)ctx->in + count;*/
+	byte *p = (byte *)ctx->in + count;
 	*p++ = 0x80;
 
 	// bytes of padding needed to make 64 bytes
@@ -321,7 +328,7 @@ void MD5Final (byte digest[16], MD5Context_t *ctx)
 
 /***
 =================
-MD5Transform
+MD5Transform [FWGS, 01.07.26]
 
 The core of the MD5 algorithm, this alters an existing MD5 hash to
 reflect the addition of 16 longwords of new data.  MD5Update blocks
@@ -330,12 +337,16 @@ the data and converts bytes into longwords for this routine
 ***/
 void MD5Transform (uint buf[4], const uint in[16])
 	{
-	register uint	a, b, c, d;
+	/*register uint	a, b, c, d;
 
 	a = buf[0];
 	b = buf[1];
 	c = buf[2];
-	d = buf[3];
+	d = buf[3];*/
+	register uint a = buf[0];
+	register uint b = buf[1];
+	register uint c = buf[2];
+	register uint d = buf[3];
 
 	MD5STEP (F1, a, b, c, d, in[0] + 0xd76aa478, 7);
 	MD5STEP (F1, d, a, b, c, in[1] + 0xe8c7b756, 12);
@@ -440,19 +451,21 @@ static void COM_Hex2String (uint8_t hex, char *str)
 
 /***
 =================
-MD5_Print
+MD5_Print [FWGS, 01.07.26]
 
 transform hash to hexadecimal printable symbols
 =================
 ***/
 char *MD5_Print (byte hash[16])
 	{
-	static char	szReturn[64];
-	int		i;
+	/*static char	szReturn[64];
+	int		i;*/
+	static char szReturn[64];
 
 	memset (szReturn, 0, 64);
 
-	for (i = 0; i < 16; i++)
+	/*for (i = 0; i < 16; i++)*/
+	for (int i = 0; i < 16; i++)
 		COM_Hex2String (hash[i], &szReturn[i * 2]);
 
 	return szReturn;

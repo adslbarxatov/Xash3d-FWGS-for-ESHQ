@@ -177,25 +177,32 @@ size_t Q_UTF8Length (const char *s)
 	return len;
 	}
 
+// [FWGS, 01.07.26]
 size_t Q_UTF16ToUTF8 (char *dst, size_t dstsize, const uint16_t *src, size_t srcsize)
 	{
-	utfstate_t state = { 0 };
-	size_t dsti = 0, srci;
+	/*utfstate_t state = { 0 };
+	size_t dsti = 0, srci;*/
 
 	if (!dst || !src || !dstsize || !srcsize)
 		return 0;
 
-	for (srci = 0; (srci < srcsize) && src[srci]; srci++)
+	/*for (srci = 0; (srci < srcsize) && src[srci]; srci++)
 		{
 		uint32_t ch;
-		size_t len;
+		size_t len;*/
+	utfstate_t state = { 0 };
+	size_t dsti = 0;
 
-		ch = Q_DecodeUTF16 (&state, src[srci]);
+	/*ch = Q_DecodeUTF16 (&state, src[srci]);*/
+	for (size_t srci = 0; srci < srcsize && src[srci]; srci++)
+		{
+		uint32_t ch = Q_DecodeUTF16 (&state, src[srci]);
 
 		if (ch == 0)
 			continue;
 
-		len = Q_CodepointLength (ch);
+		/*len = Q_CodepointLength (ch);*/
+		size_t len = Q_CodepointLength (ch);
 
 		if (dsti + len + 1 > dstsize)
 			break;
@@ -209,7 +216,6 @@ size_t Q_UTF16ToUTF8 (char *dst, size_t dstsize, const uint16_t *src, size_t src
 	}
 
 // [FWGS, 01.04.26]
-/*static uint16_t table_cp1251[64] = {*/
 static const uint16_t table_cp1251[64] = {
 	0x0402, 0x0403, 0x201A, 0x0453, 0x201E, 0x2026, 0x2020, 0x2021,
 	0x20AC, 0x2030, 0x0409, 0x2039, 0x040A, 0x040C, 0x040B, 0x040F,
@@ -221,20 +227,22 @@ static const uint16_t table_cp1251[64] = {
 	0x0451, 0x2116, 0x0454, 0x00BB, 0x0458, 0x0405, 0x0455, 0x0457
 	};
 
+// [FWGS, 01.07.26]
 uint32_t Q_UnicodeToCP1251 (uint32_t uc)
 	{
-	size_t i;
+	/*size_t i;*/
 
 	if (uc < 0x80)
 		return uc;
 
-	if (uc >= 0x0410 && uc <= 0x042F)
+	if ((uc >= 0x0410) && (uc <= 0x042F))
 		return uc - 0x410 + 0xC0;
 
-	if (uc >= 0x0430 && uc <= 0x044F)
+	if ((uc >= 0x0430) && (uc <= 0x044F))
 		return uc - 0x430 + 0xE0;
 
-	for (i = 0; i < sizeof (table_cp1251) / sizeof (table_cp1251[0]); i++)
+	/*for (i = 0; i < sizeof (table_cp1251) / sizeof (table_cp1251[0]); i++)*/
+	for (size_t i = 0; i < sizeof (table_cp1251) / sizeof (table_cp1251[0]); i++)
 		{
 		if (uc == (uint32_t)table_cp1251[i])
 			return i + 0x80;

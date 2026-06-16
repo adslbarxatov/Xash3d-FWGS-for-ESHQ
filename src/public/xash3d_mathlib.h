@@ -19,7 +19,6 @@ GNU General Public License for more details
 #include <math.h>
 
 // [FWGS, 05.04.26]
-/*if HAVE_TGMATH_H*/
 #if HAVE_TGMATH_H && !__cplusplus
 #include <tgmath.h>
 #endif
@@ -47,19 +46,26 @@ CONSTANTS AND HELPER MACROS
 #define M_PI_F	((float)(M_PI))
 #define M_PI2_F	((float)(M_PI2))
 
+// [FWGS, 01.07.26]
+#ifndef RAD2DEG
 #define RAD2DEG( x )	((double)(x) * (double)(180.0 / M_PI))
+#endif
+
+// [FWGS, 01.07.26]
+#ifndef DEG2RAD
 #define DEG2RAD( x )	((double)(x) * (double)(M_PI / 180.0))
+#endif
 
 #define NUMVERTEXNORMALS	162
-#define BOGUS_RANGE			((vec_t)114032.64) // world.size * 1.74
+#define BOGUS_RANGE			((vec_t)114032.64)	// world.size * 1.74
 
 #define SIDE_FRONT		0
 #define SIDE_BACK		1
 #define SIDE_ON			2
 #define SIDE_CROSS		-2
 
-#define PLANE_X			0 // 0 - 2 are axial planes
-#define PLANE_Y			1 // 3 needs alternate calc
+#define PLANE_X			0	// 0 - 2 are axial planes
+#define PLANE_Y			1	// 3 needs alternate calc
 #define PLANE_Z			2
 #define PLANE_NONAXIAL	3
 
@@ -74,8 +80,15 @@ CONSTANTS AND HELPER MACROS
 #define INV255F			( 1.0f / 255.0f )
 #define MAKE_SIGNED( x )	((( x ) * INV127F ) - 1.0f )
 
+// [FWGS, 01.07.26]
+#ifndef Q_min
 #define Q_min( a, b )	(((a) < (b)) ? (a) : (b))
+#endif
+
+#ifndef Q_max
 #define Q_max( a, b )	(((a) > (b)) ? (a) : (b))
+#endif
+
 #define Q_equal_e( a, b, e )	(((a) >= ((b) - (e))) && ((a) <= ((b) + (e))))
 #define Q_equal( a, b )	Q_equal_e( a, b, EQUAL_EPSILON )
 
@@ -99,6 +112,12 @@ CONSTANTS AND HELPER MACROS
 #define Vector2Copy(a,b) ((b)[0]=(a)[0],(b)[1]=(a)[1])
 #define VectorCopy(a,b) ((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2])
 #define Vector4Copy(a,b) ((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2],(b)[3]=(a)[3])
+
+// [FWGS, 01.07.26]
+#define Vec2(v) { (v)[0], (v)[1] }
+#define Vec3(v) { (v)[0], (v)[1], (v)[2] }
+#define Vec4(v) { (v)[0], (v)[1], (v)[2], (v)[3] }
+
 #define VectorScale(in, scale, out) ((out)[0] = (in)[0] * (scale),(out)[1] = (in)[1] * (scale),(out)[2] = (in)[2] * (scale))
 #define VectorCompare(v1,v2)	((v1)[0]==(v2)[0] && (v1)[1]==(v2)[1] && (v1)[2]==(v2)[2])
 #define VectorDivide( in, d, out ) VectorScale( in, (1.0f / (d)), out )
@@ -120,11 +139,17 @@ CONSTANTS AND HELPER MACROS
 #define VectorClear(x) ((x)[0]=(x)[1]=(x)[2]=0)
 #define Vector2Lerp( v1, lerp, v2, c ) ((c)[0] = (v1)[0] + (lerp) * ((v2)[0] - (v1)[0]), (c)[1] = (v1)[1] + (lerp) * ((v2)[1] - (v1)[1]))
 #define VectorLerp( v1, lerp, v2, c ) ((c)[0] = (v1)[0] + (lerp) * ((v2)[0] - (v1)[0]), (c)[1] = (v1)[1] + (lerp) * ((v2)[1] - (v1)[1]), (c)[2] = (v1)[2] + (lerp) * ((v2)[2] - (v1)[2]))
-#define VectorNormalize( v ) { float ilength = (float)sqrt(DotProduct(v, v));if (ilength) ilength = 1.0f / ilength;v[0] *= ilength;v[1] *= ilength;v[2] *= ilength; }
-#define VectorNormalize2( v, dest ) {float ilength = (float)sqrt(DotProduct(v,v));if (ilength) ilength = 1.0f / ilength;dest[0] = v[0] * ilength;dest[1] = v[1] * ilength;dest[2] = v[2] * ilength; }
+
+// [FWGS, 01.07.26]
+/*define VectorNormalize( v ) { float ilength = (float)sqrt(DotProduct(v, v));if (ilength) ilength = 1.0f / ilength;v[0] *= ilength;v[1] *= ilength;v[2] *= ilength; }
+define VectorNormalize2( v, dest ) {float ilength = (float)sqrt(DotProduct(v,v));if (ilength) ilength = 1.0f / ilength;dest[0] = v[0] * ilength;dest[1] = v[1] * ilength;dest[2] = v[2] * ilength; }
 
 // [FWGS, 01.09.25]
-#define VectorNormalizeFast( v ) {float ilength = (float)Q_rsqrt(DotProduct(v,v)); v[0] *= ilength; v[1] *= ilength; v[2] *= ilength; }
+define VectorNormalizeFast( v ) {float ilength = (float)Q_rsqrt(DotProduct(v,v)); v[0] *= ilength; v[1] *= ilength; v[2] *= ilength; }*/
+#define VectorNormalize( v )	{ float ilength = (float)sqrt(DotProduct((v), (v)));if (ilength) ilength = 1.0f / ilength;(v)[0] *= ilength;(v)[1] *= ilength;(v)[2] *= ilength; }
+#define VectorNormalize2( v, dest )		{float ilength = (float)sqrt(DotProduct((v),(v)));if (ilength) ilength = 1.0f / ilength;(dest)[0] = (v)[0] * ilength; (dest)[1] = (v)[1] * ilength;(dest)[2] = (v)[2] * ilength; }
+#define VectorNormalizeFast( v )	{float ilength = (float)Q_rsqrt(DotProduct((v),(v))); (v)[0] *= ilength; (v)[1] *= ilength; (v)[2] *= ilength; }
+
 #define VectorNormalizeLength( v ) VectorNormalizeLength2((v), (v))
 #define VectorNegate(x, y) ((y)[0] = -(x)[0], (y)[1] = -(x)[1], (y)[2] = -(x)[2])
 #define VectorM(scale1, b1, c) ((c)[0] = (scale1) * (b1)[0],(c)[1] = (scale1) * (b1)[1],(c)[2] = (scale1) * (b1)[2])
@@ -182,7 +207,6 @@ void RoundUpHullSize (vec3_t size);
 void VectorVectors (const vec3_t forward, vec3_t right, vec3_t up);
 void VectorAngles (const float *forward, float *angles);
 void VectorsAngles (const vec3_t forward, const vec3_t right, const vec3_t up, vec3_t angles);
-/*void PlaneIntersect (const mplane_t *plane, const vec3_t p0, const vec3_t p1, vec3_t out);*/
 qboolean SphereIntersect (const vec3_t vSphereCenter, float fSphereRadiusSquared, const vec3_t vLinePt, const vec3_t vLineDir);
 void QuaternionSlerp (const vec4_t p, const vec4_t q, float t, vec4_t qt);
 
@@ -191,15 +215,6 @@ void R_StudioCalcBones (int frame, float s, const mstudiobone_t *pbone, const ms
 int BoxOnPlaneSide (const vec3_t emins, const vec3_t emaxs, const struct mplane_t *p);
 
 // [FWGS, 05.04.26]
-/*define BOX_ON_PLANE_SIDE( emins, emaxs, p ) \
-	((( p )->type < 3 ) ? \
-	( \
-	((p)->dist <= (emins)[(p)->type]) ? 1 : \
-	( \
-	((p)->dist >= (emaxs)[(p)->type] ) ? 2 : 3 \
-	) \
-	) : BoxOnPlaneSide(( emins ), ( emaxs ), ( p )))*/
-
 static inline int BOX_ON_PLANE_SIDE (const vec3_t emins, const vec3_t emaxs, const struct mplane_t *p)
 	{
 	if (p->type < 3)
@@ -220,8 +235,7 @@ static inline int BOX_ON_PLANE_SIDE (const vec3_t emins, const vec3_t emaxs, con
 =================
 PlaneIntersect [FWGS, 05.04.26]
 
-find point where ray
-was intersect with plane
+find point where ray was intersect with plane
 =================
 ***/
 static inline void PlaneIntersect (const struct mplane_t *plane, const vec3_t p0, const vec3_t p1, vec3_t out)
@@ -323,8 +337,7 @@ static inline float SwapFloat (float bf)
 #if defined( XASH_IRIX ) || !defined( isnan )
 static inline int IS_NAN (float x)
 	{
-	int32_t i = FloatAsInt (x); // only C
-	/*return i & (255 << 23) == (255 << 23);*/
+	int32_t i = FloatAsInt (x);	// only C
 	return (i & (255 << 23)) == (255 << 23);
 	}
 #else
@@ -389,10 +402,6 @@ static inline float VectorNormalizeLength2 (const vec3_t v, vec3_t out)
 	}
 
 // ESHQ: правка для Client.dll
-/*ifdef AngleVectors
-undef AngleVectors
-endif*/
-
 #ifndef CLIENT_DLL
 
 static inline void GAME_EXPORT AngleVectors (const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
@@ -536,10 +545,10 @@ static inline void AngleQuaternion (const vec3_t angles, vec4_t q, qboolean stud
 		SinCos (DEG2RAD (angles[ROLL]) * 0.5f, &sr, &cr);
 		}
 
-	q[0] = sr * cp * cy - cr * sp * sy; // X
-	q[1] = cr * sp * cy + sr * cp * sy; // Y
-	q[2] = cr * cp * sy - sr * sp * cy; // Z
-	q[3] = cr * cp * cy + sr * sp * sy; // W
+	q[0] = sr * cp * cy - cr * sp * sy;	// X
+	q[1] = cr * sp * cy + sr * cp * sy;	// Y
+	q[2] = cr * cp * sy - sr * sp * cy;	// Z
+	q[3] = cr * cp * cy + sr * sp * sy;	// W
 	}
 
 static inline void Matrix3x4_SetOrigin (matrix3x4 out, float x, float y, float z)

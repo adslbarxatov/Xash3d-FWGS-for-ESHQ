@@ -90,8 +90,9 @@ static inline int Q_buildnum_compat (void)
 	}
 
 //
-// crtlib.c
+// crtlib.c [FWGS, 01.07.26]
 //
+int Q_strcmp_constant_time (const char *s1, const char *s2);
 void Q_strnlwr (const char *in, char *out, size_t size_out);
 #define Q_strlen( str ) (( str ) ? strlen(( str )) : 0 )
 int Q_atoi_hex (int sign, const char *str);
@@ -126,8 +127,9 @@ void COM_StripExtension (char *path);
 void COM_RemoveLineFeed (char *str, size_t bufsize);
 void COM_PathSlashFix (char *path);
 
-// [FWGS, 01.03.26]
+// [FWGS, 01.07.26]
 void COM_TrimSpace (char *dst, const char *src, size_t size);
+int COM_CheckNastyPath (const char *path);
 
 // [FWGS, 01.03.26] returns true on empty or NULL string, false otherwise
 #define COM_StringEmpty( string ) (( string )[0] ? false : true )
@@ -186,11 +188,6 @@ static inline qboolean Q_istype (const char *str, int (*istype)(int c))
 	{
 	if (likely (str && *str))
 		{
-		/*while (istype (*str))
-			str++;
-
-		if (!*str)
-			return true;*/
 		// a1ba: explicitly cast char to unsigned char to not trigger UB
 		// in ctype functions
 		while (istype ((byte)*str))
