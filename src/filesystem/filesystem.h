@@ -29,11 +29,11 @@ extern "C"
 	{
 #endif
 
-// [FWGS, 01.05.26]
-/*define FS_API_VERSION					4					// not stable yet!
-define FS_API_CREATEINTERFACE_TAG		"XashFileSystem004"	// follow FS_API_VERSION!!!*/
-#define FS_API_VERSION					5					// not stable yet!
-#define FS_API_CREATEINTERFACE_TAG		"XashFileSystem005"	// follow FS_API_VERSION!!!
+// [FWGS, 01.07.26]
+/*define FS_API_VERSION					5					// not stable yet!
+define FS_API_CREATEINTERFACE_TAG		"XashFileSystem005"	// follow FS_API_VERSION!!!*/
+#define FS_API_VERSION					6					// not stable yet!
+#define FS_API_CREATEINTERFACE_TAG		"XashFileSystem006"	// follow FS_API_VERSION!!!
 #define FILESYSTEM_INTERFACE_VERSION	"VFileSystem009"	// never change this!
 
 // [FWGS, 01.05.26] search path flags
@@ -46,15 +46,9 @@ enum
 	FS_GAMERODIR_PATH =		BIT (4),	// gamedir but read-only
 	FS_EXEC_PATH =			BIT (5),	// this directory is allowed to have executable code
 
-	/*FS_SKIP_ARCHIVED_WADS =	BIT (5),	// don't mount wads inside archives automatically
-	FS_LOAD_PACKED_WAD =	BIT (6),	// [FWGS, 01.07.24] this wad is packed inside other archive*/
 	FS_SKIP_ARCHIVED_WADS =	BIT (16),	// don't mount wads inside archives automatically
 	FS_LOAD_PACKED_WAD =	BIT (17),	// this wad is packed inside other archive
 
-	/*FS_MOUNT_HD =			BIT (7),	// [FWGS, 01.03.25] mount high definition content folder
-	FS_MOUNT_LV =			BIT (8),	// [FWGS, 01.03.25] mount low violence content folder
-	FS_MOUNT_ADDON =		BIT (9),	// [FWGS, 01.03.25] mount addon folder
-	FS_MOUNT_L10N =			BIT (10),	// [FWGS, 01.03.25] mount localization folder*/
 	FS_MOUNT_HD =			BIT (24),	// mount high definition content folder
 	FS_MOUNT_LV =			BIT (25),	// mount low violence content folder
 	FS_MOUNT_ADDON =		BIT (26),	// mount addon folder
@@ -105,17 +99,17 @@ typedef struct gameinfo_s
 
 	// about mod info
 	string		game_url;		// link to a developer's site
-	string		update_url;	// link to updates page
+	string		update_url;		// link to updates page
 	char		type[MAX_QPATH];	// single, toolkit, multiplayer etc
 	char		date[MAX_QPATH];
 	size_t		size;
 
 	int			gamemode;
 	qboolean	secure;		// prevent to console acess
-	qboolean	nomodels;		// don't let player to choose model (use player.mdl always)
-	qboolean	noskills;		// disable skill menu selection
-	qboolean	render_picbutton_text; // use font renderer to render WON buttons
-	qboolean	internal_vgui_support; // skip loading VGUI, pass ingame UI support API to client
+	qboolean	nomodels;	// don't let player to choose model (use player.mdl always)
+	qboolean	noskills;	// disable skill menu selection
+	qboolean	render_picbutton_text;	// use font renderer to render WON buttons
+	qboolean	internal_vgui_support;	// skip loading VGUI, pass ingame UI support API to client
 
 	char		sp_entity[32];	// e.g. info_player_start
 	char		mp_entity[32];	// e.g. info_player_deathmatch
@@ -132,8 +126,8 @@ typedef struct gameinfo_s
 	char		game_dll_osx[64];	// custom path for game.dll
 
 	qboolean	added;
-	int			quicksave_aged_count; // min is 1, max is 99
-	int			autosave_aged_count; // min is 1, max is 99
+	int			quicksave_aged_count;	// min is 1, max is 99
+	int			autosave_aged_count;	// min is 1, max is 99
 
 	// [FWGS, 01.09.24] HL25 compatibility keys
 	qboolean	hd_background;
@@ -141,7 +135,7 @@ typedef struct gameinfo_s
 	char		demomap[MAX_QPATH];
 
 	// [FWGS, 01.02.25]
-	qboolean	rodir; // if true, parsed from rodir
+	qboolean	rodir;	// if true, parsed from rodir
 	int64_t		mtime;
 	} gameinfo_t;
 
@@ -228,8 +222,8 @@ typedef struct fs_api_t
 	const char *(*GetDiskPath)(const char *name, qboolean gamedironly);
 	
 	// [FWGS, 01.07.24]
-	const char *(*ArchivePath)(file_t *f); // returns path to archive from which file was opened or "plain"
-	void *(*MountArchive_Fullpath)(const char *path, int flags); // mounts the archive by path, if supported
+	const char *(*ArchivePath)(file_t *f);	// returns path to archive from which file was opened or "plain"
+	void *(*MountArchive_Fullpath)(const char *path, int flags);	// mounts the archive by path, if supported
 	qboolean (*GetFullDiskPath)(char *buffer, size_t size, const char *name, qboolean gamedironly);
 	
 	// [FWGS, 01.03.24] like LoadFile but returns pointer that can be free'd using standard library function
@@ -262,6 +256,9 @@ typedef struct fs_api_t
 
 	// [FWGS, 01.02.25]
 	void (*MakeGameInfo)(void);
+
+	// [FWGS, 01.07.26]
+	void (*FindFile_f)(const char *filename);
 	} fs_api_t;
 
 typedef struct fs_interface_t
@@ -272,8 +269,9 @@ typedef struct fs_interface_t
 	void (*_Con_Reportf)(const char *fmt, ...) FORMAT_CHECK (1);	// -dev 2
 	void (*_Sys_Error)(const char *fmt, ...) FORMAT_CHECK (1);
 
-	// [FWGS, 01.12.24] memory
-	poolhandle_t (*_Mem_AllocPool)(const char *name, const char *filename, int fileline);
+	// [FWGS, 01.07.26] memory
+	/*poolhandle_t (*_Mem_AllocPool)(const char *name, const char *filename, int fileline);*/
+	poolhandle_t (*_Mem_AllocPool)(const char *name, unsigned int flags, const char *filename, int fileline);
 	void  (*_Mem_FreePool)(poolhandle_t *poolptr, const char *filename, int fileline);
 	
 	void *(*_Mem_Alloc)(poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline)

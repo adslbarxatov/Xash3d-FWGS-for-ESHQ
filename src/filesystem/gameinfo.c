@@ -68,6 +68,10 @@ static qboolean FS_WriteGameInfo (const char *filepath, const gameinfo_t *GameIn
 	if (!COM_StringEmpty (GameInfo->trainmap))
 		FS_Printf (f, "trainmap\t\t\"%s\"\n", GameInfo->trainmap);
 
+	// ESHQ: добавлено для поддержки титров
+	if (!COM_StringEmpty (GameInfo->creditsmap))
+		FS_Printf (f, "creditsmap\t\t\"%s\"\n", GameInfo->creditsmap);
+
 	if (GameInfo->version != 0.0f)
 		FS_Printf (f, "version\t\t%g\n", GameInfo->version);
 
@@ -183,8 +187,12 @@ static void FS_InitGameInfo (gameinfo_t *GameInfo, const char *gamedir, qboolean
 	{
 	memset (GameInfo, 0, sizeof (*GameInfo));
 
+	// ESHQ: отменена принудительная инициализация тренировочной карты
+
 	// filesystem info
 	GameInfo->mtime = mtime;
+
+	// .dll pathes
 	Q_strncpy (GameInfo->gamefolder, gamedir, sizeof (GameInfo->gamefolder));
 	Q_strncpy (GameInfo->sp_entity, "info_player_start", sizeof (GameInfo->sp_entity));
 	Q_strncpy (GameInfo->mp_entity, "info_player_deathmatch", sizeof (GameInfo->mp_entity));
@@ -192,6 +200,7 @@ static void FS_InitGameInfo (gameinfo_t *GameInfo, const char *gamedir, qboolean
 
 	if (quake)
 		{
+		// [FWGS, 05.04.26]
 		Q_strncpy (GameInfo->basedir, "id1", sizeof (GameInfo->basedir));
 		Q_strncpy (GameInfo->falldir, "qwrap", sizeof (GameInfo->falldir));
 		Q_strncpy (GameInfo->title, gamedir, sizeof (GameInfo->title));
@@ -203,6 +212,7 @@ static void FS_InitGameInfo (gameinfo_t *GameInfo, const char *gamedir, qboolean
 		}
 	else
 		{
+		// [FWGS, 01.03.26]
 		Q_strncpy (GameInfo->basedir, fs_basedir, sizeof (GameInfo->basedir));
 		Q_strncpy (GameInfo->title, gamedir, sizeof (GameInfo->title));
 		Q_strncpy (GameInfo->startmap, "c0a0", sizeof (GameInfo->startmap));
