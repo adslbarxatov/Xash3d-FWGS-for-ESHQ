@@ -1,4 +1,4 @@
-/***
+/*
 library_suffix.h - main library-suffix API header
 
 This is free and unencumbered software released into the public domain.
@@ -25,8 +25,7 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 For more information, please refer to <http://unlicense.org/>
-***/
-
+*/
 #pragma once
 #ifndef LIBRARY_SUFFIX_H
 #define LIBRARY_SUFFIX_H
@@ -35,28 +34,34 @@ For more information, please refer to <http://unlicense.org/>
 #include "buildenums.h"
 
 #if XASH_APPLE
-#define OS_LIB_EXT "dylib"
+	#define OS_LIB_EXT "dylib"
 #elif XASH_WIN32
-#define OS_LIB_EXT "dll"
+	#define OS_LIB_EXT "dll"
 #elif XASH_PSP
-#define OS_LIB_EXT "prx"
+	#define OS_LIB_EXT "prx"
 #elif XASH_POSIX
-#define OS_LIB_EXT "so"
+	#define OS_LIB_EXT "so"
 #else
-#error
+	#error
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#if defined(__GNUC__)
+	#define RETURNS_NONNULL __attribute__(( returns_nonnull ))
+#else
+	#define RETURNS_NONNULL
+#endif
+
 // returns cpu or os name by it's predefined id
-const char *Q_PlatformStringByID (int platform);
-const char *Q_ArchitectureStringByID (int arch, unsigned int abi, int endianness, int is64);
+const char *Q_PlatformStringByID( int platform ) RETURNS_NONNULL;
+const char *Q_ArchitectureStringByID( int arch, unsigned int abi, int endianness, int is64 ) RETURNS_NONNULL;
 
 // returns current build cpu and os
-const char *Q_buildos (void);
-const char *Q_buildarch (void);
+const char *Q_buildos( void ) RETURNS_NONNULL;
+const char *Q_buildarch( void ) RETURNS_NONNULL;
 
 // generate library filename based on system properties
 // returns a string in format of
@@ -68,21 +73,21 @@ const char *Q_buildarch (void);
 // - arch:   Q_buildarch return value, omitted for 32-bit x86 on win32, linux and osx
 // - ext:    widely accepted DLL extension
 // return value: number of bytes written, excluding null terminator, or -1 on overflow
-int COM_GenerateCommonLibraryName (const char *name, char *out, size_t size);
+int COM_GenerateCommonLibraryName( const char *name, char *out, size_t size );
 
 // version of COM_GenerateCommonLibraryName that accepts custom architectures and systems
-int COM_GenerateLibraryName (char *out, size_t size,
+int COM_GenerateLibraryName( char *out, size_t size,
 	const char *prefix, const char *name,
 	int platform,
 	int arch, unsigned int abi, int endianness, int is64,
-	const char *ext);
+	const char *ext );
 
 // checks if string matches following regex '_i[3-6]86$' and strips the suffix
 // hl_i386 -> hl
-void COM_StripIntelSuffix (char *out);
+void COM_StripIntelSuffix( char *out );
 
 #ifdef __cplusplus
-	}
+}
 #endif
 
-#endif
+#endif // LIBRARY_SUFFIX_H
