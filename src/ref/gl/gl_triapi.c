@@ -221,22 +221,18 @@ void TriVertex3f (float x, float y, float z)
 
 /***
 =============
-TriWorldToScreen
+TriWorldToScreen [FWGS, 01.07.26]
 
 convert world coordinates (x,y,z) into screen (x, y)
 =============
 ***/
 int TriWorldToScreen (const float *world, float *screen)
 	{
-	int	retval;
+	/*int	retval;
 
-	retval = R_WorldToScreen (world, screen);
+	retval = R_WorldToScreen (world, screen);*/
+	int retval = R_WorldToScreen (world, screen);
 
-	// [FWGS, 01.05.26]
-	/*screen[0] = 0.5f * screen[0] * (float)RI.viewport[2];
-	screen[1] = -0.5f * screen[1] * (float)RI.viewport[3];
-	screen[0] += 0.5f * (float)RI.viewport[2];
-	screen[1] += 0.5f * (float)RI.viewport[3];*/
 	screen[0] = 0.5f * screen[0] * (float)RI.rvp.viewport[2];
 	screen[1] = -0.5f * screen[1] * (float)RI.rvp.viewport[3];
 	screen[0] += 0.5f * (float)RI.rvp.viewport[2];
@@ -247,24 +243,24 @@ int TriWorldToScreen (const float *world, float *screen)
 
 /***
 =============
-TriSpriteTexture
+TriSpriteTexture [FWGS, 01.07.26]
 
 bind current texture
 =============
 ***/
 int TriSpriteTexture (model_t *pSpriteModel, int frame)
 	{
-	int	gl_texturenum;
+	/*int	gl_texturenum;
 
-	// [FWGS, 01.05.26]
-	/*if ((gl_texturenum = R_GetSpriteTexture (pSpriteModel, frame)) == 0)*/
+	// [FWGS, 01.05.26]*/
 	if (!pSpriteModel || (pSpriteModel->type != mod_sprite) || !pSpriteModel->cache.data)
 		return 0;
 
-	if ((gl_texturenum = gEngfuncs.R_GetSpriteFrame (pSpriteModel, frame, 0.0f)->gl_texturenum) == 0)
+	/*if ((gl_texturenum = gEngfuncs.R_GetSpriteFrame (pSpriteModel, frame, 0.0f)->gl_texturenum) == 0)*/
+	int gl_texturenum = gEngfuncs.R_GetSpriteFrame (pSpriteModel, frame, 0.0f)->gl_texturenum;
+	if (gl_texturenum == 0)
 		return 0;
 
-	// [FWGS, 01.12.24]
 	if ((gl_texturenum <= 0) || (gl_texturenum >= MAX_TEXTURES))
 		gl_texturenum = tr.defaultTexture;
 
@@ -374,16 +370,19 @@ void TriCullFace (TRICULLSTYLE mode)
 
 /***
 =============
-TriBrightness
+TriBrightness [FWGS, 01.07.26]
 =============
 ***/
 void TriBrightness (float brightness)
 	{
-	float	r, g, b;
+	/*float	r, g, b;
 
 	r = ds.triRGBA[0] * ds.triRGBA[3] * brightness;
 	g = ds.triRGBA[1] * ds.triRGBA[3] * brightness;
-	b = ds.triRGBA[2] * ds.triRGBA[3] * brightness;
+	b = ds.triRGBA[2] * ds.triRGBA[3] * brightness;*/
+	float r = ds.triRGBA[0] * ds.triRGBA[3] * brightness;
+	float g = ds.triRGBA[1] * ds.triRGBA[3] * brightness;
+	float b = ds.triRGBA[2] * ds.triRGBA[3] * brightness;
 
 	_TriColor4f (r, g, b, 1.0f);
 	}

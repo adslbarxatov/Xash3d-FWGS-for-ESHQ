@@ -52,7 +52,7 @@ static const vec3_t hullcolor[8] =
 typedef struct sortedmesh_s
 	{
 	mstudiomesh_t *mesh;
-	int		flags;			// face flags
+	int		flags;		// face flags
 	} sortedmesh_t;
 
 // [FWGS, 01.01.24]
@@ -86,15 +86,15 @@ typedef struct
 	// lighting state
 	float		ambientlight;
 	float		shadelight;
-	vec3_t		lightvec;			// averaging light direction
+	vec3_t		lightvec;		// averaging light direction
 	vec3_t		lightspot;		// shadow spot
 	vec3_t		lightcolor;		// averaging lightcolor
-	vec3_t		blightvec[MAXSTUDIOBONES];	// bone light vecs
+	vec3_t		blightvec[MAXSTUDIOBONES];		// bone light vecs
 	vec3_t		lightvalues[MAXSTUDIOVERTS];	// precomputed lightvalues per each shared vertex of submodel
 
 	// chrome stuff
 	vec3_t		chrome_origin;
-	vec2_t		chrome[MAXSTUDIOVERTS];	// texture coords for surface normals
+	vec2_t		chrome[MAXSTUDIOVERTS];		// texture coords for surface normals
 	vec3_t		chromeright[MAXSTUDIOBONES];	// chrome vector "right" in bone reference frames
 	vec3_t		chromeup[MAXSTUDIOBONES];	// chrome vector "up" in bone reference frames
 	int			chromeage[MAXSTUDIOBONES];	// last time chrome vectors were updated
@@ -140,7 +140,7 @@ static mstudiobodyparts_t	*m_pBodyPart;
 static player_info_t		*m_pPlayerInfo;
 static studiohdr_t			*m_pStudioHeader;
 static float	m_flGaitMovement;
-static int		g_nTopColor, g_nBottomColor; // remap colors
+static int		g_nTopColor, g_nBottomColor;	// remap colors
 static int		g_nFaceFlags, g_nForceFaceFlags;
 
 /***
@@ -171,7 +171,6 @@ init current time for a given model
 ***/
 static void R_StudioSetupTimings (void)
 	{
-	/*if (RI.drawWorld)*/
 	if (FBitSet (RI.rvp.flags, RF_DRAW_WORLD))
 		{
 		// synchronize with server time
@@ -206,23 +205,25 @@ static qboolean R_AllowFlipViewModel (cl_entity_t *e)
 
 /***
 ================
-R_StudioComputeBBox
+R_StudioComputeBBox [FWGS, 01.07.26]
 
 Compute a full bounding box for current sequence
 ================
 ***/
 static qboolean R_StudioComputeBBox (vec3_t bbox[8])
 	{
-	vec3_t		studio_mins, studio_maxs;
-	vec3_t		mins, maxs, p1, p2;
+	/*vec3_t		studio_mins, studio_maxs;
+	vec3_t		mins, maxs, p1, p2;*/
 	cl_entity_t	*e = RI.currententity;
-	mstudioseqdesc_t	*pseqdesc;
-	int			i;
+	/*mstudioseqdesc_t	*pseqdesc;
+	int			i;*/
 
 	if (!m_pStudioHeader)
 		return false;
 
-	// [FWGS, 01.03.26] check if we have valid mins\maxs
+	vec3_t mins, maxs;
+
+	// check if we have valid mins/maxs
 	if (!VectorIsNull (RI.currentmodel->mins) && !VectorIsNull (RI.currentmodel->maxs))
 		{
 		// clipping bounding box
@@ -238,16 +239,22 @@ static qboolean R_StudioComputeBBox (vec3_t bbox[8])
 	if ((e->curstate.sequence < 0) || (e->curstate.sequence >= m_pStudioHeader->numseq))
 		e->curstate.sequence = 0;
 
-	pseqdesc = (mstudioseqdesc_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqindex) + e->curstate.sequence;
+	/*pseqdesc = (mstudioseqdesc_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqindex) + e->curstate.sequence;*/
+	mstudioseqdesc_t *pseqdesc = (mstudioseqdesc_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqindex) +
+		e->curstate.sequence;
 
 	// add sequence box to the model box
 	AddPointToBounds (pseqdesc->bbmin, mins, maxs);
 	AddPointToBounds (pseqdesc->bbmax, mins, maxs);
+
+	vec3_t studio_mins, studio_maxs;
 	ClearBounds (studio_mins, studio_maxs);
 
 	// compute a full bounding box
-	for (i = 0; i < 8; i++)
+	/*for (i = 0; i < 8; i++)*/
+	for (int i = 0; i < 8; i++)
 		{
+		vec3_t p1, p2;
 		p1[0] = (i & 1) ? mins[0] : maxs[0];
 		p1[1] = (i & 2) ? mins[1] : maxs[1];
 		p1[2] = (i & 4) ? mins[2] : maxs[2];
@@ -264,13 +271,16 @@ static qboolean R_StudioComputeBBox (vec3_t bbox[8])
 	return true;	// visible
 	}
 
+// [FWGS, 01.07.26]
 static void R_StudioComputeSkinMatrix (mstudioboneweight_t *boneweights, matrix3x4 result)
 	{
-	float	flWeight0, flWeight1, flWeight2, flWeight3;
+	/*float	flWeight0, flWeight1, flWeight2, flWeight3;
 	int		i, numbones = 0;
-	float	flTotal;
+	float	flTotal;*/
+	int numbones = 0;
 
-	for (i = 0; i < MAXSTUDIOBONEWEIGHTS; i++)
+	/*for (i = 0; i < MAXSTUDIOBONEWEIGHTS; i++)*/
+	for (int i = 0; i < MAXSTUDIOBONEWEIGHTS; i++)
 		{
 		if (boneweights->bone[i] != -1)
 			numbones++;
@@ -282,13 +292,19 @@ static void R_StudioComputeSkinMatrix (mstudioboneweight_t *boneweights, matrix3
 		vec4_t *boneMat1 = (vec4_t *)g_studio.worldtransform[boneweights->bone[1]];
 		vec4_t *boneMat2 = (vec4_t *)g_studio.worldtransform[boneweights->bone[2]];
 		vec4_t *boneMat3 = (vec4_t *)g_studio.worldtransform[boneweights->bone[3]];
-		flWeight0 = boneweights->weight[0] / 255.0f;
+		/*flWeight0 = boneweights->weight[0] / 255.0f;
 		flWeight1 = boneweights->weight[1] / 255.0f;
 		flWeight2 = boneweights->weight[2] / 255.0f;
 		flWeight3 = boneweights->weight[3] / 255.0f;
-		flTotal = flWeight0 + flWeight1 + flWeight2 + flWeight3;
+		flTotal = flWeight0 + flWeight1 + flWeight2 + flWeight3;*/
+		float flWeight0 = boneweights->weight[0] / 255.0f;
+		float flWeight1 = boneweights->weight[1] / 255.0f;
+		float flWeight2 = boneweights->weight[2] / 255.0f;
+		float flWeight3 = boneweights->weight[3] / 255.0f;
+		float flTotal = flWeight0 + flWeight1 + flWeight2 + flWeight3;
 
-		if (flTotal < 1.0f) flWeight0 += 1.0f - flTotal;	// compensate rounding error
+		if (flTotal < 1.0f)
+			flWeight0 += 1.0f - flTotal;	// compensate rounding error
 
 		result[0][0] = boneMat0[0][0] * flWeight0 + boneMat1[0][0] * flWeight1 + boneMat2[0][0] * flWeight2 + boneMat3[0][0] * flWeight3;
 		result[0][1] = boneMat0[0][1] * flWeight0 + boneMat1[0][1] * flWeight1 + boneMat2[0][1] * flWeight2 + boneMat3[0][1] * flWeight3;
@@ -308,12 +324,17 @@ static void R_StudioComputeSkinMatrix (mstudioboneweight_t *boneweights, matrix3
 		vec4_t *boneMat0 = (vec4_t *)g_studio.worldtransform[boneweights->bone[0]];
 		vec4_t *boneMat1 = (vec4_t *)g_studio.worldtransform[boneweights->bone[1]];
 		vec4_t *boneMat2 = (vec4_t *)g_studio.worldtransform[boneweights->bone[2]];
-		flWeight0 = boneweights->weight[0] / 255.0f;
+		/*flWeight0 = boneweights->weight[0] / 255.0f;
 		flWeight1 = boneweights->weight[1] / 255.0f;
 		flWeight2 = boneweights->weight[2] / 255.0f;
-		flTotal = flWeight0 + flWeight1 + flWeight2;
+		flTotal = flWeight0 + flWeight1 + flWeight2;*/
+		float flWeight0 = boneweights->weight[0] / 255.0f;
+		float flWeight1 = boneweights->weight[1] / 255.0f;
+		float flWeight2 = boneweights->weight[2] / 255.0f;
+		float flTotal = flWeight0 + flWeight1 + flWeight2;
 
-		if (flTotal < 1.0f) flWeight0 += 1.0f - flTotal;	// compensate rounding error
+		if (flTotal < 1.0f)
+			flWeight0 += 1.0f - flTotal;	// compensate rounding error
 
 		result[0][0] = boneMat0[0][0] * flWeight0 + boneMat1[0][0] * flWeight1 + boneMat2[0][0] * flWeight2;
 		result[0][1] = boneMat0[0][1] * flWeight0 + boneMat1[0][1] * flWeight1 + boneMat2[0][1] * flWeight2;
@@ -332,11 +353,15 @@ static void R_StudioComputeSkinMatrix (mstudioboneweight_t *boneweights, matrix3
 		{
 		vec4_t *boneMat0 = (vec4_t *)g_studio.worldtransform[boneweights->bone[0]];
 		vec4_t *boneMat1 = (vec4_t *)g_studio.worldtransform[boneweights->bone[1]];
-		flWeight0 = boneweights->weight[0] / 255.0f;
+		/*flWeight0 = boneweights->weight[0] / 255.0f;
 		flWeight1 = boneweights->weight[1] / 255.0f;
-		flTotal = flWeight0 + flWeight1;
+		flTotal = flWeight0 + flWeight1;*/
+		float flWeight0 = boneweights->weight[0] / 255.0f;
+		float flWeight1 = boneweights->weight[1] / 255.0f;
+		float flTotal = flWeight0 + flWeight1;
 
-		if (flTotal < 1.0f) flWeight0 += 1.0f - flTotal;	// compensate rounding error
+		if (flTotal < 1.0f)
+			flWeight0 += 1.0f - flTotal;	// compensate rounding error
 
 		result[0][0] = boneMat0[0][0] * flWeight0 + boneMat1[0][0] * flWeight1;
 		result[0][1] = boneMat0[0][1] * flWeight0 + boneMat1[0][1] * flWeight1;
@@ -374,7 +399,6 @@ pfnPlayerInfo [FWGS, 01.05.26]
 ***/
 player_info_t *pfnPlayerInfo (int index)
 	{
-	/*if (!RI.drawWorld)*/
 	if (!FBitSet (RI.rvp.flags, RF_DRAW_WORLD))
 		index = -1;
 
@@ -382,15 +406,6 @@ player_info_t *pfnPlayerInfo (int index)
 	}
 
 // [FWGS, 01.05.26] removed pfnMod_ForName
-/*
-===============
-pfnMod_ForName
-===============
-/
-static model_t *pfnMod_ForName (const char *model, int crash)
-	{
-	return gEngfuncs.Mod_ForName (model, crash, false);
-	}*/
 
 /***
 ===============
@@ -399,7 +414,6 @@ pfnGetPlayerState [FWGS, 01.05.26]
 ***/
 static entity_state_t *R_StudioGetPlayerState (int index)
 	{
-	/*if (!RI.drawWorld)*/
 	if (!FBitSet (RI.rvp.flags, RF_DRAW_WORLD))
 		return &RI.currententity->curstate;
 
@@ -407,15 +421,6 @@ static entity_state_t *R_StudioGetPlayerState (int index)
 	}
 
 // [FWGS, 01.05.26] removed pfnGetViewEntity
-/*
-===============
-pfnGetViewEntity [FWGS, 01.01.24]
-===============
-/
-static cl_entity_t *pfnGetViewEntity (void)
-	{
-	return tr.viewent;
-	}*/
 
 /***
 ===============
@@ -439,8 +444,6 @@ pfnGetViewInfo [FWGS, 01.05.26]
 ***/
 static void pfnGetViewInfo (float *origin, float *upv, float *rightv, float *forwardv)
 	{
-	/*if (origin)
-		VectorCopy (RI.vieworg, origin);*/
 	if (origin)
 		VectorCopy (RI.rvp.vieworigin, origin);
 	if (forwardv)
@@ -452,15 +455,6 @@ static void pfnGetViewInfo (float *origin, float *upv, float *rightv, float *for
 	}
 
 // [FWGS, 01.05.26] removed R_GetChromeSprite
-/*
-===============
-R_GetChromeSprite
-===============
-/
-static model_t *R_GetChromeSprite (void)
-	{
-	return gEngfuncs.GetDefaultSprite (REF_CHROME_SPRITE);
-	}*/
 
 /***
 ===============
@@ -474,16 +468,6 @@ static void pfnGetModelCounters (int **s, int **a)
 	}
 
 // [FWGS, 01.05.26] removed pfnGetAliasScale
-/*
-===============
-pfnGetAliasScale
-===============
-/
-static void pfnGetAliasScale (float *x, float *y)
-	{
-	if (x) *x = 1.0f;
-	if (y) *y = 1.0f;
-	}*/
 
 /***
 ===============
@@ -506,15 +490,6 @@ static float ****pfnStudioGetLightTransform (void)
 	}
 
 // [FWGS, 01.05.26] removed pfnStudioGetAliasTransform
-/*
-===============
-pfnStudioGetAliasTransform
-===============
-/
-static float ***pfnStudioGetAliasTransform (void)
-	{
-	return NULL;
-	}*/
 
 /***
 ===============
@@ -590,15 +565,17 @@ void R_StudioLerpMovement (cl_entity_t *e, double time, vec3_t origin, vec3_t an
 
 /***
 ====================
-StudioSetUpTransform [FWGS, 01.02.24]
+StudioSetUpTransform [FWGS, 01.07.26]
 ====================
 ***/
 static void R_StudioSetUpTransform (cl_entity_t *e)
 	{
-	vec3_t	origin, angles;
+	/*vec3_t	origin, angles;
 
 	VectorCopy (e->origin, origin);
-	VectorCopy (e->angles, angles);
+	VectorCopy (e->angles, angles);*/
+	vec3_t origin = Vec3 (e->origin);
+	vec3_t angles = Vec3 (e->angles);
 
 	// interpolate monsters position (moved into UpdateEntityFields by user request)
 	if ((e->curstate.movetype == MOVETYPE_STEP) && !FBitSet (gp_host->features, ENGINE_COMPUTE_STUDIO_LERP))
@@ -703,25 +680,31 @@ static void R_StudioFxTransform (cl_entity_t *ent, matrix3x4 transform)
 				{
 				int	axis = gEngfuncs.COM_RandomLong (0, 1);
 
-				if (axis == 1) axis = 2;	// choose between x & z
+				if (axis == 1)
+					axis = 2;	// choose between x & z
 				VectorScale (transform[axis], gEngfuncs.COM_RandomFloat (1.0f, 1.484f), transform[axis]);
 				}
 			else if (!gEngfuncs.COM_RandomLong (0, 49))
 				{
-				float	offset;
+				// [FWGS, 01.07.26]
+				/*float	offset;*/
 				int	axis = gEngfuncs.COM_RandomLong (0, 1);
+				if (axis == 1)
+					axis = 2;	// choose between x & z
 
-				if (axis == 1) axis = 2;	// choose between x & z
-				offset = gEngfuncs.COM_RandomFloat (-10.0f, 10.0f);
+				/*offset = gEngfuncs.COM_RandomFloat (-10.0f, 10.0f);*/
+				float offset = gEngfuncs.COM_RandomFloat (-10.0f, 10.0f);
 				transform[gEngfuncs.COM_RandomLong (0, 2)][3] += offset;
 				}
 			break;
 
 		case kRenderFxExplode:
 			{
-			float	scale;
+			// [FWGS, 01.07.26]
+			/*float	scale;
 
-			scale = 1.0f + (g_studio.time - ent->curstate.animtime) * 10.0f;
+			scale = 1.0f + (g_studio.time - ent->curstate.animtime) * 10.0f;*/
+			float scale = 1.0f + (g_studio.time - ent->curstate.animtime) * 10.0f;
 			if (scale > 2.0f)
 				scale = 2.0f;	// don't blow up more than 200%
 
@@ -735,20 +718,25 @@ static void R_StudioFxTransform (cl_entity_t *ent, matrix3x4 transform)
 
 /***
 ====================
-StudioCalcBoneAdj
+StudioCalcBoneAdj [FWGS, 01.07.26]
 ====================
 ***/
 static void R_StudioCalcBoneAdj (float dadt, float *adj, const byte *pcontroller1, const byte *pcontroller2, byte mouthopen)
 	{
-	mstudiobonecontroller_t	*pbonecontroller;
+	/*mstudiobonecontroller_t	*pbonecontroller;
 	float	value = 0.0f;
-	int		i, j;
+	int		i, j;*/
+	mstudiobonecontroller_t *pbonecontroller = (mstudiobonecontroller_t *)((byte *)m_pStudioHeader +
+		m_pStudioHeader->bonecontrollerindex);
 
-	pbonecontroller = (mstudiobonecontroller_t *)((byte *)m_pStudioHeader + m_pStudioHeader->bonecontrollerindex);
+	/*pbonecontroller = (mstudiobonecontroller_t *)((byte *)m_pStudioHeader + m_pStudioHeader->bonecontrollerindex);
 
-	for (j = 0; j < m_pStudioHeader->numbonecontrollers; j++)
+	for (j = 0; j < m_pStudioHeader->numbonecontrollers; j++)*/
+	for (int j = 0; j < m_pStudioHeader->numbonecontrollers; j++)
 		{
-		i = pbonecontroller[j].index;
+		/*i = pbonecontroller[j].index;*/
+		float	value = 0.0f;
+		int		i = pbonecontroller[j].index;
 
 		if (i == STUDIO_MOUTH)
 			{
@@ -801,16 +789,17 @@ static void R_StudioCalcBoneAdj (float dadt, float *adj, const byte *pcontroller
 
 /***
 ====================
-StudioCalcRotations
+StudioCalcRotations [FWGS, 01.07.26]
 ====================
 ***/
 static void R_StudioCalcRotations (cl_entity_t *e, float pos[][3], vec4_t *q, mstudioseqdesc_t *pseqdesc,
 	mstudioanim_t *panim, float f)
 	{
-	int			i, frame;
+	/*int			i, frame;
 	float		adj[MAXSTUDIOCONTROLLERS];
 	float		s, dadt;
-	mstudiobone_t	*pbone;
+	mstudiobone_t	*pbone;*/
+	float adj[MAXSTUDIOCONTROLLERS];
 
 	// bah, fix this bug with changing sequences too fast
 	if (f > pseqdesc->numframes - 1)
@@ -825,17 +814,19 @@ static void R_StudioCalcRotations (cl_entity_t *e, float pos[][3], vec4_t *q, ms
 		f = -0.01f;
 		}
 
-	frame = (int)f;
+	/*frame = (int)f;
 
 	dadt = R_StudioEstimateInterpolant (e);
-	s = (f - frame);
+	s = (f - frame);*/
+	int frame = (int)f;
+	float dadt = R_StudioEstimateInterpolant (e);
+	float s = (f - frame);
 
 	// add in programtic controllers
-	pbone = (mstudiobone_t *)((byte *)m_pStudioHeader + m_pStudioHeader->boneindex);
+	/*pbone = (mstudiobone_t *)((byte *)m_pStudioHeader + m_pStudioHeader->boneindex);*/
+	mstudiobone_t *pbone = (mstudiobone_t *)((byte *)m_pStudioHeader + m_pStudioHeader->boneindex);
 
 	R_StudioCalcBoneAdj (dadt, adj, e->curstate.controller, e->latched.prevcontroller, e->mouth.mouthopen);
-
-	// [FWGS, 01.03.25]
 	R_StudioCalcBones (frame, s, pbone, panim, adj, pos[i], q[i]);
 
 	if (pseqdesc->motiontype & STUDIO_X)
@@ -1334,201 +1325,6 @@ static int R_StudioCheckBBox (void)
 	}
 
 // [FWGS, 01.05.26] removed R_StudioDynamicLight
-/*
-===============
-R_StudioDynamicLight
-===============
-/
-static void R_StudioDynamicLight (cl_entity_t *ent, alight_t *plight)
-	{
-	movevars_t	*mv = tr.movevars;
-	vec3_t		lightDir, vecSrc, vecEnd;
-	vec3_t		origin, dist, finalLight;
-	float		add, radius, total;
-	colorVec	light;
-	uint		lnum;
-	dlight_t	*dl;
-
-	if (!plight || !ent || !ent->model)
-		return;
-
-	if (!RI.drawWorld || r_fullbright->value || FBitSet (ent->curstate.effects, EF_FULLBRIGHT))
-		{
-		plight->shadelight = 0;
-		plight->ambientlight = 192;
-
-		VectorSet (plight->plightvec, 0.0f, 0.0f, -1.0f);
-		VectorSet (plight->color, 1.0f, 1.0f, 1.0f);
-		return;
-		}
-
-	// determine plane to get lightvalues from: ceil or floor
-	if (FBitSet (ent->curstate.effects, EF_INVLIGHT))
-		VectorSet (lightDir, 0.0f, 0.0f, 1.0f);
-	else
-		VectorSet (lightDir, 0.0f, 0.0f, -1.0f);
-
-	VectorCopy (ent->origin, origin);
-
-	VectorSet (vecSrc, origin[0], origin[1], origin[2] - lightDir[2] * 8.0f);
-	light.r = light.g = light.b = light.a = 0;
-
-	// [FWGS, 01.03.26]
-	if ((mv->skycolor[0] + mv->skycolor[1] + mv->skycolor[2]) != 0)
-		{
-		msurface_t	*psurf = NULL;
-		pmtrace_t	trace;
-		vec3_t		skyvec;
-
-		if (FBitSet (gp_host->features, ENGINE_WRITE_LARGE_COORD))
-			VectorScale (mv->skyvec, 65536.0f, skyvec);
-		else
-			VectorScale (mv->skyvec, 8192.0f, skyvec);
-
-		VectorSubtract (origin, skyvec, vecEnd);
-
-		trace = gEngfuncs.CL_TraceLine (vecSrc, vecEnd, PM_WORLD_ONLY);
-		if (trace.ent > 0)
-			psurf = gEngfuncs.EV_TraceSurface (trace.ent, vecSrc, vecEnd);
-		else
-			psurf = gEngfuncs.EV_TraceSurface (0, vecSrc, vecEnd);
-
-		if (FBitSet (ent->model->flags, STUDIO_FORCE_SKYLIGHT) || (psurf && FBitSet (psurf->flags, SURF_DRAWSKY)))
-			{
-			VectorCopy (mv->skyvec, lightDir);
-
-			light.r = mv->skycolor[0];
-			light.g = mv->skycolor[1];
-			light.b = mv->skycolor[2];
-			}
-		}
-
-	if ((light.r + light.g + light.b) == 0)
-		{
-		colorVec	gcolor;
-		float		grad[4];
-
-		VectorScale (lightDir, 2048.0f, vecEnd);
-		VectorAdd (vecEnd, vecSrc, vecEnd);
-
-		light = R_LightVec (vecSrc, vecEnd, g_studio.lightspot, g_studio.lightvec);
-
-		if (VectorIsNull (g_studio.lightvec))
-			{
-			vecSrc[0] -= 16.0f;
-			vecSrc[1] -= 16.0f;
-			vecEnd[0] -= 16.0f;
-			vecEnd[1] -= 16.0f;
-
-			gcolor = R_LightVec (vecSrc, vecEnd, NULL, NULL);
-			grad[0] = (gcolor.r + gcolor.g + gcolor.b) / 768.0f;
-
-			vecSrc[0] += 32.0f;
-			vecEnd[0] += 32.0f;
-
-			gcolor = R_LightVec (vecSrc, vecEnd, NULL, NULL);
-			grad[1] = (gcolor.r + gcolor.g + gcolor.b) / 768.0f;
-
-			vecSrc[1] += 32.0f;
-			vecEnd[1] += 32.0f;
-
-			gcolor = R_LightVec (vecSrc, vecEnd, NULL, NULL);
-			grad[2] = (gcolor.r + gcolor.g + gcolor.b) / 768.0f;
-
-			vecSrc[0] -= 32.0f;
-			vecEnd[0] -= 32.0f;
-
-			gcolor = R_LightVec (vecSrc, vecEnd, NULL, NULL);
-			grad[3] = (gcolor.r + gcolor.g + gcolor.b) / 768.0f;
-
-			lightDir[0] = grad[0] - grad[1] - grad[2] + grad[3];
-			lightDir[1] = grad[1] + grad[0] - grad[2] - grad[3];
-			VectorNormalize (lightDir);
-			}
-		else
-			{
-			VectorCopy (g_studio.lightvec, lightDir);
-			}
-		}
-
-	if ((ent->curstate.renderfx == kRenderFxLightMultiplier) && (ent->curstate.iuser4 != 10))
-		{
-		light.r *= ent->curstate.iuser4 / 10.0f;
-		light.g *= ent->curstate.iuser4 / 10.0f;
-		light.b *= ent->curstate.iuser4 / 10.0f;
-		}
-
-	VectorSet (finalLight, light.r, light.g, light.b);
-	ent->cvFloorColor = light;
-
-	total = Q_max (Q_max (light.r, light.g), light.b);
-	if (total == 0.0f)
-		total = 1.0f;
-
-	// scale lightdir by light intentsity
-	VectorScale (lightDir, total, lightDir);
-
-	// [FWGS, 01.12.24]
-	for (lnum = 0; lnum < MAX_DLIGHTS; lnum++)
-		{
-		dl = &tr.dlights[lnum];
-
-		if ((dl->die < g_studio.time) || !r_dynamic->value)
-			continue;
-
-		VectorSubtract (ent->origin, dl->origin, dist);
-
-		radius = VectorLength (dist);
-		add = (dl->radius - radius);
-
-		if (add > 0.0f)
-			{
-			total += add;
-
-			if (radius > 1.0f)
-				VectorScale (dist, (add / radius), dist);
-			else
-				VectorScale (dist, add, dist);
-
-			VectorAdd (lightDir, dist, lightDir);
-
-			finalLight[0] += dl->color.r * (add / 256.0f);
-			finalLight[1] += dl->color.g * (add / 256.0f);
-			finalLight[2] += dl->color.b * (add / 256.0f);
-			}
-		}
-
-	if (FBitSet (ent->model->flags, STUDIO_AMBIENT_LIGHT))
-		add = 0.6f;
-	else
-		add = bound (0.75f, v_direct->value, 1.0f);
-
-	VectorScale (lightDir, add, lightDir);
-
-	plight->shadelight = VectorLength (lightDir);
-	plight->ambientlight = total - plight->shadelight;
-
-	total = Q_max (Q_max (finalLight[0], finalLight[1]), finalLight[2]);
-
-	if (total > 0.0f)
-		{
-		plight->color[0] = finalLight[0] * (1.0f / total);
-		plight->color[1] = finalLight[1] * (1.0f / total);
-		plight->color[2] = finalLight[2] * (1.0f / total);
-		}
-	else
-		{
-		VectorSet (plight->color, 1.0f, 1.0f, 1.0f);
-		}
-
-	if (plight->ambientlight > 128)
-		plight->ambientlight = 128;
-
-	if (plight->ambientlight + plight->shadelight > 255)
-		plight->shadelight = 255 - plight->ambientlight;
-
-	VectorNormalize2 (lightDir, plight->plightvec);
-	}*/
 
 /***
 ===============
@@ -2717,7 +2513,6 @@ static model_t *R_StudioSetupPlayerModel (int index)
 	state = &g_studio.player_models[index];
 
 	// [FWGS, 01.05.26] g-cont: force for "dev-mode", non-local games and menu preview
-	/*if ((gpGlobals->developer || !ENGINE_GET_PARM (PARM_LOCAL_GAME) || !RI.drawWorld) && info->model[0])*/
 	if ((gpGlobals->developer || !ENGINE_GET_PARM (PARM_SINGLEPLAYER_GAME) || !FBitSet (RI.rvp.flags, RF_DRAW_WORLD)) &&
 		info->model[0])
 		{
@@ -2816,7 +2611,7 @@ static void R_StudioClientEvents (void)
 	float	end, start;
 
 	if (g_studio.frametime == 0.0)
-		return; // gamepaused
+		return;	// gamepaused
 
 	// fill attachments with interpolated origin
 	if (m_pStudioHeader->numattachments <= 0)
@@ -2973,6 +2768,7 @@ static void R_StudioRestoreRenderer (void)
 	}
 
 // [FWGS, 01.05.26] removed pfnIsHardware
+
 /***
 ===============
 R_StudioSetChromeOrigin
@@ -2980,19 +2776,6 @@ R_StudioSetChromeOrigin
 ***/
 static void R_StudioSetChromeOrigin (void)
 	{
-	/*VectorCopy (RI.vieworg, g_studio.chrome_origin);
-	}
-
-/
-===============
-pfnIsHardware
-
-Xash3D is always works in hardware mode
-===============
-/
-static int pfnIsHardware (void)
-	{
-	return 1;	// 0 is Software, 1 is OpenGL, 2 is Direct3D*/
 	VectorCopy (RI.rvp.vieworigin, g_studio.chrome_origin);
 	}
 
@@ -3234,7 +3017,6 @@ static void R_StudioRenderModel (void)
 
 		// [FWGS, 01.05.26]
 		R_StudioSetForceFaceFlags (STUDIO_NF_CHROME);
-		/*TriSpriteTexture (R_GetChromeSprite (), 0);*/
 		TriSpriteTexture (gEngfuncs.GetDefaultSprite (REF_CHROME_SPRITE), 0);
 		RI.currententity->curstate.renderfx = kRenderFxGlowShell;
 
@@ -3477,7 +3259,6 @@ static int R_StudioDrawPlayer (int flags, entity_state_t *pplayer)
 		{
 		// [FWGS, 01.05.26] change body if it's a menu entity
 		// show highest resolution multiplayer model
-		/*if (cl_himodels->value && (RI.currentmodel != RI.currententity->model || !RI.drawWorld))*/
 		if (cl_himodels->value && (RI.currentmodel != RI.currententity->model || !FBitSet (RI.rvp.flags, RF_DRAW_WORLD)))
 			RI.currententity->curstate.body = 255;
 
@@ -3486,8 +3267,8 @@ static int R_StudioDrawPlayer (int flags, entity_state_t *pplayer)
 			RI.currententity->curstate.body = 1;
 
 		lighting.plightvec = dir;
-		/*R_StudioDynamicLight (RI.currententity, &lighting);*/
-		R_EntityDynamicLight (RI.currententity, &lighting, FBitSet (RI.rvp.flags, RF_DRAW_WORLD), g_studio.time, g_studio.lightspot, g_studio.lightvec);
+		R_EntityDynamicLight (RI.currententity, &lighting, FBitSet (RI.rvp.flags, RF_DRAW_WORLD), g_studio.time,
+			g_studio.lightspot, g_studio.lightvec);
 
 		R_StudioEntityLight (&lighting);
 
@@ -3611,8 +3392,8 @@ static int R_StudioDrawModel (int flags)
 		{
 		// [FWGS, 01.05.26]
 		lighting.plightvec = dir;
-		/*R_StudioDynamicLight (RI.currententity, &lighting);*/
-		R_EntityDynamicLight (RI.currententity, &lighting, FBitSet (RI.rvp.flags, RF_DRAW_WORLD), g_studio.time, g_studio.lightspot, g_studio.lightvec);
+		R_EntityDynamicLight (RI.currententity, &lighting, FBitSet (RI.rvp.flags, RF_DRAW_WORLD), g_studio.time,
+			g_studio.lightspot, g_studio.lightvec);
 
 		R_StudioEntityLight (&lighting);
 
@@ -3638,7 +3419,6 @@ R_StudioDrawModelInternal [FWGS, 01.05.26]
 ***/
 static void R_StudioDrawModelInternal (cl_entity_t *e, int flags)
 	{
-	/*if (!RI.drawWorld)*/
 	if (!FBitSet (RI.rvp.flags, RF_DRAW_WORLD))
 		{
 		if (e->player)
@@ -3678,7 +3458,6 @@ R_DrawStudioModel
 void R_DrawStudioModel (cl_entity_t *e)
 	{
 	// [FWGS, 01.05.26]
-	/*if (FBitSet (RI.params, RP_ENVVIEW))*/
 	if (FBitSet (RI.rvp.flags, RF_DRAW_CUBEMAP))
 		return;
 
@@ -3734,7 +3513,6 @@ void R_RunViewmodelEvents (void)
 		return;
 
 	// [FWGS, 01.05.26] ignore in thirdperson, camera view or client is died
-	/*if (!RP_NORMALPASS () || (ENGINE_GET_PARM (PARM_LOCAL_HEALTH) <= 0) || !CL_IsViewEntityLocalPlayer ())*/
 	if (FBitSet (RI.rvp.flags, RF_DRAW_CUBEMAP) || (ENGINE_GET_PARM (PARM_LOCAL_HEALTH) <= 0) || !CL_IsViewEntityLocalPlayer ())
 		return;
 
@@ -3754,19 +3532,6 @@ void R_RunViewmodelEvents (void)
 	}
 
 // [FWGS, 01.05.26] removed R_GatherPlayerLight
-/*
-=================
-R_GatherPlayerLight [FWGS, 01.01.24]
-=================
-/
-void R_GatherPlayerLight (void)
-	{
-	cl_entity_t	*view = tr.viewent;
-	colorVec	c;
-
-	c = R_LightPoint (view->origin);
-	gEngfuncs.SetLocalLightLevel ((c.r + c.g + c.b) / 3);
-	}*/
 
 /***
 =================
@@ -3778,7 +3543,6 @@ void R_DrawViewModel (void)
 	cl_entity_t *view = tr.viewent;
 
 	// [FWGS, 01.01.24]
-	/*R_GatherPlayerLight ();*/
 	R_GatherPlayerLight (view);
 
 	if (r_drawviewmodel->value == 0)
@@ -3788,7 +3552,6 @@ void R_DrawViewModel (void)
 		return;
 
 	// [FWGS, 01.05.26] ignore in thirdperson, camera view or client is died
-	/*if (!RP_NORMALPASS () || (ENGINE_GET_PARM (PARM_LOCAL_HEALTH) <= 0) || !CL_IsViewEntityLocalPlayer ())*/
 	if (FBitSet (RI.rvp.flags, RF_DRAW_CUBEMAP) || (ENGINE_GET_PARM (PARM_LOCAL_HEALTH) <= 0) || !CL_IsViewEntityLocalPlayer ())
 		return;
 
@@ -3856,11 +3619,11 @@ static void R_StudioLoadTexture (model_t *mod, studiohdr_t *phdr, mstudiotexture
 		if (!Q_strnicmp (ptexture->name, "DM_Base", 7))
 			{
 			Q_strncpy (tx->name, "DM_Base", sizeof (tx->name));
-			tx->anim_min = PLATE_HUE_START; // topcolor start
-			tx->anim_max = PLATE_HUE_END; // topcolor end
+			tx->anim_min = PLATE_HUE_START;	// topcolor start
+			tx->anim_max = PLATE_HUE_END;	// topcolor end
 
 			// bottomcolor start always equal is (topcolor end + 1)
-			tx->anim_total = SUIT_HUE_END;// bottomcolor end
+			tx->anim_total = SUIT_HUE_END;	// bottomcolor end
 			}
 		else
 			{
@@ -3982,126 +3745,18 @@ void Mod_StudioUnloadTextures (void *data)
 // pfnMod_StudioExtradata, pfnMod_CacheCheck, gStudioAPI, gStudioDraw
 
 // [FWGS, 01.05.26]
-/*static model_t *pfnModelHandle (int modelindex)*/
 static void pfnStudioDynamicLight (cl_entity_t *ent, alight_t *plight)
 	{
-	/*if ((modelindex < 0) || (modelindex >= MAX_MODELS))
-		return NULL;
-
-	return CL_ModelHandle (modelindex);
-	}
-
-static void *pfnMod_CacheCheck (struct cache_user_s *c)
-	{
-	return gEngfuncs.Mod_CacheCheck (c);
-	}
-
-static void *pfnMod_StudioExtradata (model_t *mod)
-	{
-	return gEngfuncs.Mod_Extradata (mod_studio, mod);
-	}
-
-static void pfnMod_LoadCacheFile (const char *path, struct cache_user_s *cu)
-	{
-	gEngfuncs.Mod_LoadCacheFile (path, cu);
-	}
-
-// [FWGS, 01.03.26]
-static cvar_t *pfnGetCvarPointer (const char *name)
-	{
-	return (cvar_t *)gEngfuncs.pfnGetCvarPointer (name);
-	}
-
-static void *pfnMod_Calloc (int number, size_t size)
-	{
-	return gEngfuncs.Mod_Calloc (number, size);
-	}
-
-static engine_studio_api_t gStudioAPI =
-	{
-	pfnMod_Calloc,
-	pfnMod_CacheCheck,
-	pfnMod_LoadCacheFile,
-	pfnMod_ForName,
-	pfnMod_StudioExtradata,
-	pfnModelHandle,
-	pfnGetCurrentEntity,
-	pfnPlayerInfo,
-	R_StudioGetPlayerState,
-	pfnGetViewEntity,
-	pfnGetEngineTimes,
-	pfnGetCvarPointer,
-	pfnGetViewInfo,
-	R_GetChromeSprite,
-	pfnGetModelCounters,
-	pfnGetAliasScale,
-	pfnStudioGetBoneTransform,
-	pfnStudioGetLightTransform,
-	pfnStudioGetAliasTransform,
-	pfnStudioGetRotationMatrix,
-	R_StudioSetupModel,
-	R_StudioCheckBBox,
-	R_StudioDynamicLight,
-	R_StudioEntityLight,
-	R_StudioSetupLighting,
-	R_StudioDrawPoints,
-	R_StudioDrawHulls,
-	R_StudioDrawAbsBBox,
-	R_StudioDrawBones,
-	(void *)R_StudioSetupSkin,
-	R_StudioSetRemapColors,
-	R_StudioSetupPlayerModel,
-	R_StudioClientEvents,
-	R_StudioGetForceFaceFlags,
-	R_StudioSetForceFaceFlags,
-	(void *)R_StudioSetHeader,
-	R_StudioSetRenderModel,
-	R_StudioSetupRenderer,
-	R_StudioRestoreRenderer,
-	R_StudioSetChromeOrigin,
-	pfnIsHardware,
-	GL_StudioDrawShadow,
-	GL_StudioSetRenderMode,
-	R_StudioSetRenderamt,
-	R_StudioSetCullState,
-	R_StudioRenderShadow,
-	};
-
-static r_studio_interface_t gStudioDraw =
-	{
-	STUDIO_INTERFACE_VERSION,
-	R_StudioDrawModel,
-	R_StudioDrawPlayer,
-	};
-
-/
-===============
-CL_InitStudioAPI*/
 	R_EntityDynamicLight (ent, plight, FBitSet (RI.rvp.flags, RF_DRAW_WORLD), g_studio.time, g_studio.lightspot, g_studio.lightvec);
 	}
 
 // [FWGS, 01.05.26] removed CL_InitStudioAPI
-/*Initialize client studio
-===============
-/
-void CL_InitStudioAPI (void)*/
 
 // [FWGS, 01.05.26]
 qboolean R_StudioFillAPI (engine_studio_api_t *api, r_studio_interface_t *pDefaultDraw)
 	{
-	/*pStudioDraw = &gStudioDraw;
-
-	// [FWGS, 01.03.26] trying to grab them from client.dll*/
 	cl_righthand = gEngfuncs.pfnGetCvarPointer ("cl_righthand");
 
-	/*// Xash will be used internal StudioModelRenderer
-	if (gEngfuncs.pfnGetStudioModelInterface (STUDIO_INTERFACE_VERSION, &pStudioDraw, &gStudioAPI))
-		return;
-
-	// NOTE: we always return true even if game interface was not correct
-	// because we need Draw our StudioModels
-	// just restore pointer to builtin function
-	pStudioDraw = &gStudioDraw;*/
 	api->GetCurrentEntity = pfnGetCurrentEntity;
 	api->PlayerInfo = pfnPlayerInfo;
 	api->GetPlayerState = R_StudioGetPlayerState;

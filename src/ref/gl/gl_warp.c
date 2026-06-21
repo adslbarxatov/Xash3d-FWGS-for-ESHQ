@@ -78,22 +78,28 @@ static struct
 
 // [FWGS, 01.07.24] removed CheckSkybox
 
+// [FWGS, 01.07.26]
 static void DrawSkyPolygon (int nump, vec3_t vecs)
 	{
-	int		i, j, axis;
+	/*int		i, j, axis;
 	float	s, t, dv, *vp;
-	vec3_t	v, av;
+	vec3_t	v, av;*/
 
 	// decide which face it maps to
+	vec3_t v;
 	VectorClear (v);
 
-	for (i = 0, vp = vecs; i < nump; i++, vp += 3)
+	/*for (i = 0, vp = vecs; i < nump; i++, vp += 3)*/
+	float *vp = vecs;
+	for (int i = 0; i < nump; i++, vp += 3)
 		VectorAdd (vp, v, v);
 
+	vec3_t av;
 	av[0] = fabs (v[0]);
 	av[1] = fabs (v[1]);
 	av[2] = fabs (v[2]);
 
+	int axis;
 	if (av[0] > av[1] && av[0] > av[2])
 		axis = (v[0] < 0) ? 1 : 0;
 	else if (av[1] > av[2] && av[1] > av[0])
@@ -102,19 +108,24 @@ static void DrawSkyPolygon (int nump, vec3_t vecs)
 		axis = (v[2] < 0) ? 5 : 4;
 
 	// project new texture coords
-	for (i = 0; i < nump; i++, vecs += 3)
+	/*for (i = 0; i < nump; i++, vecs += 3)*/
+	for (int i = 0; i < nump; i++, vecs += 3)
 		{
-		j = vec_to_st[axis][2];
-		dv = (j > 0) ? vecs[j - 1] : -vecs[-j - 1];
+		/*j = vec_to_st[axis][2];
+		dv = (j > 0) ? vecs[j - 1] : -vecs[-j - 1];*/
+		int j = vec_to_st[axis][2];
+		float dv = (j > 0) ? vecs[j - 1] : -vecs[-j - 1];
 
 		if (dv == 0.0f)
 			continue;
 
 		j = vec_to_st[axis][0];
-		s = (j < 0) ? -vecs[-j - 1] / dv : vecs[j - 1] / dv;
+		/*s = (j < 0) ? -vecs[-j - 1] / dv : vecs[j - 1] / dv;*/
+		float s = (j < 0) ? -vecs[-j - 1] / dv : vecs[j - 1] / dv;
 
 		j = vec_to_st[axis][1];
-		t = (j < 0) ? -vecs[-j - 1] / dv : vecs[j - 1] / dv;
+		/*t = (j < 0) ? -vecs[-j - 1] / dv : vecs[j - 1] / dv;*/
+		float t = (j < 0) ? -vecs[-j - 1] / dv : vecs[j - 1] / dv;
 
 		if (s < RI.skyMins[0][axis])
 			RI.skyMins[0][axis] = s;
@@ -231,21 +242,26 @@ loc1:
 	ClipSkyPolygon (newc[1], newv[1][0], stage + 1);
 	}
 
-// [FWGS, 01.03.25]
+// [FWGS, 01.07.26]
 static void MakeSkyVec (float s, float t, int axis)
 	{
-	int	j, k, farclip;
+	/*int	j, k, farclip;
 	vec3_t	v, b;
 
-	farclip = RI.farClip;
+	farclip = RI.farClip;*/
+	int		farclip = RI.farClip;
+	vec3_t	b;
 
 	b[0] = s * (farclip >> 1);
 	b[1] = t * (farclip >> 1);
 	b[2] = (farclip >> 1);
 
-	for (j = 0; j < 3; j++)
+	/*for (j = 0; j < 3; j++)*/
+	vec3_t v;
+	for (int j = 0; j < 3; j++)
 		{
-		k = st_to_vec[axis][j];
+		/*k = st_to_vec[axis][j];*/
+		int k = st_to_vec[axis][j];
 		v[j] = (k < 0) ? -b[-k - 1] : b[k - 1];
 		v[j] += RI.cullorigin[j];
 		}
@@ -272,14 +288,15 @@ static void MakeSkyVec (float s, float t, int axis)
 
 /***
 ==============
-R_ClearSkyBox
+R_ClearSkyBox [FWGS, 01.07.26]
 ==============
 ***/
 void R_ClearSkyBox (void)
 	{
-	int	i;
+	/*int	i;
 
-	for (i = 0; i < SKYBOX_MAX_SIDES; i++)
+	for (i = 0; i < SKYBOX_MAX_SIDES; i++)*/
+	for (int i = 0; i < SKYBOX_MAX_SIDES; i++)
 		{
 		RI.skyMins[0][i] = RI.skyMins[1][i] = 9999999.0f;
 		RI.skyMaxs[0][i] = RI.skyMaxs[1][i] = -9999999.0f;
@@ -288,23 +305,26 @@ void R_ClearSkyBox (void)
 
 /***
 =================
-R_AddSkyBoxSurface [FWGS, 01.09.24]
+R_AddSkyBoxSurface [FWGS, 01.07.26]
 =================
 ***/
 void R_AddSkyBoxSurface (msurface_t *fa)
 	{
-	vec3_t		verts[MAX_CLIP_VERTS];
+	/*vec3_t		verts[MAX_CLIP_VERTS];
 	glpoly2_t	*p;
 	float		*v;
-	int			i;
+	int			i;*/
 
 	if (FBitSet (tr.world->flags, FWORLD_SKYSPHERE) && fa->polys && !FBitSet (tr.world->flags, FWORLD_CUSTOM_SKYBOX))
 		{
+		/*glpoly2_t *p = fa->polys;*/
 		glpoly2_t *p = fa->polys;
 
 		// draw the sky poly
 		pglBegin (GL_POLYGON);
-		for (i = 0, v = p->verts[0]; i < p->numverts; i++, v += VERTEXSIZE)
+		/*for (i = 0, v = p->verts[0]; i < p->numverts; i++, v += VERTEXSIZE)*/
+		float *v = p->verts[0];
+		for (int i = 0; i < p->numverts; i++, v += VERTEXSIZE)
 			{
 			pglTexCoord2f (v[3], v[4]);
 			pglVertex3fv (v);
@@ -314,9 +334,12 @@ void R_AddSkyBoxSurface (msurface_t *fa)
 		}
 
 	// calculate vertex values for sky box
-	for (p = fa->polys; p; p = p->next)
+	/*for (p = fa->polys; p; p = p->next)*/
+	vec3_t verts[MAX_CLIP_VERTS];
+	for (glpoly2_t *p = fa->polys; p; p = p->next)
 		{
-		for (i = 0; i < p->numverts; i++)
+		/*for (i = 0; i < p->numverts; i++)*/
+		for (int i = 0; i < p->numverts; i++)
 			VectorSubtract (p->verts[i], RI.cullorigin, verts[i]);
 		ClipSkyPolygon (p->numverts, verts[0], 0);
 		}
@@ -324,17 +347,18 @@ void R_AddSkyBoxSurface (msurface_t *fa)
 
 /***
 ==============
-R_UnloadSkybox [FWGS, 01.07.24]
+R_UnloadSkybox [FWGS, 01.07.26]
 
 Unload previous skybox
 ==============
 ***/
 void R_UnloadSkybox (void)
 	{
-	int	i;
+	/*int	i;*/
 
 	// release old skybox
-	for (i = 0; i < SKYBOX_MAX_SIDES; i++)
+	/*for (i = 0; i < SKYBOX_MAX_SIDES; i++)*/
+	for (int i = 0; i < SKYBOX_MAX_SIDES; i++)
 		{
 		if (!tr.skyboxTextures[i])
 			continue;
@@ -354,10 +378,6 @@ R_DrawSkybox [FWGS, 01.05.26]
 ***/
 void R_DrawSkyBox (void)
 	{
-	/*int	i;
-
-	RI.isSkyVisible = true;*/
-
 	// don't fogging skybox (this fix old Half-Life bug)
 	if (!RI.fogSkybox)
 		R_AllowFog (false);
@@ -369,7 +389,6 @@ void R_DrawSkyBox (void)
 	pglDisable (GL_ALPHA_TEST);
 	pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-	/*for (i = 0; i < SKYBOX_MAX_SIDES; i++)*/
 	for (int i = 0; i < SKYBOX_MAX_SIDES; i++)
 		{
 		if ((RI.skyMins[0][i] >= RI.skyMaxs[0][i]) || (RI.skyMins[1][i] >= RI.skyMaxs[1][i]))
@@ -405,23 +424,27 @@ void R_DrawSkyBox (void)
 
 /***
 ==============
-R_CloudVertex
+R_CloudVertex [FWGS, 01.07.26]
 ==============
 ***/
 static void R_CloudVertex (float s, float t, int axis, vec3_t v)
 	{
-	int	j, k, farclip;
+	/*int	j, k, farclip;
 	vec3_t	b;
 
-	farclip = RI.farClip;
+	farclip = RI.farClip;*/
+	int		farclip = RI.farClip;
+	vec3_t	b;
 
 	b[0] = s * (farclip >> 1);
 	b[1] = t * (farclip >> 1);
 	b[2] = (farclip >> 1);
 
-	for (j = 0; j < 3; j++)
+	/*for (j = 0; j < 3; j++)*/
+	for (int j = 0; j < 3; j++)
 		{
-		k = st_to_vec[axis][j];
+		/*k = st_to_vec[axis][j];*/
+		int k = st_to_vec[axis][j];
 		v[j] = (k < 0) ? -b[-k - 1] : b[k - 1];
 		v[j] += RI.cullorigin[j];
 		}
@@ -429,23 +452,24 @@ static void R_CloudVertex (float s, float t, int axis, vec3_t v)
 
 /***
 =============
-R_CloudTexCoord
+R_CloudTexCoord [FWGS, 01.07.26]
 =============
 ***/
 static void R_CloudTexCoord (const vec3_t v, float speed, float *s, float *t)
 	{
-	float	length, speedscale;
+	/*float	length, speedscale;
 	vec3_t	dir;
 
-	speedscale = gp_cl->time * speed;
+	speedscale = gp_cl->time * speed;*/
+	float speedscale = gp_cl->time * speed;
 	speedscale -= (int)speedscale & ~127;
 
-	// [FWGS, 01.05.26]
-	/*VectorSubtract (v, RI.vieworg, dir);*/
+	vec3_t dir;
 	VectorSubtract (v, RI.rvp.vieworigin, dir);
 	dir[2] *= 3.0f;	// flatten the sphere
 
-	length = VectorLength (dir);
+	/*length = VectorLength (dir);*/
+	float length = VectorLength (dir);
 	length = 6.0f * 63.0f / length;
 
 	*s = (speedscale + dir[0] * length) * (1.0f / 128.0f);
@@ -454,21 +478,24 @@ static void R_CloudTexCoord (const vec3_t v, float speed, float *s, float *t)
 
 /***
 ===============
-R_CloudDrawPoly [FWGS, 01.09.24]
+R_CloudDrawPoly [FWGS, 01.07.26]
 ===============
 ***/
 static void R_CloudDrawPoly (const float *verts)
 	{
-	const float	*v;
+	/*const float	*v;
 	float	s, t;
-	int		i;
+	int		i;*/
 
 	GL_SetRenderMode (kRenderNormal);
 	GL_Bind (XASH_TEXTURE0, tr.solidskyTexture);
 
 	pglBegin (GL_QUADS);
-	for (i = 0, v = verts; i < 4; i++, v += VERTEXSIZE)
+	/*for (i = 0, v = verts; i < 4; i++, v += VERTEXSIZE)*/
+	const float *v = verts;
+	for (int i = 0; i < 4; i++, v += VERTEXSIZE)
 		{
+		float s, t;
 		R_CloudTexCoord (v, 8.0f, &s, &t);
 		pglTexCoord2f (s, t);
 		pglVertex3fv (v);
@@ -480,8 +507,11 @@ static void R_CloudDrawPoly (const float *verts)
 	GL_Bind (XASH_TEXTURE0, tr.alphaskyTexture);
 
 	pglBegin (GL_QUADS);
-	for (i = 0, v = verts; i < 4; i++, v += VERTEXSIZE)
+	/*for (i = 0, v = verts; i < 4; i++, v += VERTEXSIZE)*/
+	v = verts;
+	for (int i = 0; i < 4; i++, v += VERTEXSIZE)
 		{
+		float s, t;
 		R_CloudTexCoord (v, 16.0f, &s, &t);
 		pglTexCoord2f (s, t);
 		pglVertex3fv (v);
@@ -494,44 +524,55 @@ static void R_CloudDrawPoly (const float *verts)
 
 /***
 ==============
-R_CloudRenderSide [FWGS, 01.09.24]
+R_CloudRenderSide [FWGS, 01.07.26]
 ==============
 ***/
 static void R_CloudRenderSide (int axis)
 	{
-	vec3_t		verts[4];
+	/*vec3_t		verts[4];
 	float		final_verts[4][VERTEXSIZE];
 	float		di, qi, dj, qj;
 	vec3_t		vup, vright;
 	vec3_t		temp, temp2;
-	int			i, j;
+	int			i, j;*/
+	vec3_t verts[4];
 
 	R_CloudVertex (-1.0f, -1.0f, axis, verts[0]);
 	R_CloudVertex (-1.0f, 1.0f, axis, verts[1]);
 	R_CloudVertex (1.0f, 1.0f, axis, verts[2]);
 	R_CloudVertex (1.0f, -1.0f, axis, verts[3]);
 
+	vec3_t vup, vright;
 	VectorSubtract (verts[2], verts[3], vup);
 	VectorSubtract (verts[2], verts[1], vright);
 
-	di = SKYCLOUDS_QUALITY;
+	/*di = SKYCLOUDS_QUALITY;
 	qi = 1.0f / di;
 	dj = (axis < 4) ? di * 2 : di;	// subdivide vertically more than horizontally on skybox sides
-	qj = 1.0f / dj;
+	qj = 1.0f / dj;*/
+	float di = SKYCLOUDS_QUALITY;
+	float qi = 1.0f / di;
+	float dj = (axis < 4) ? di * 2 : di;	//subdivide vertically more than horizontally on skybox sides
+	float qj = 1.0f / dj;
 
-	for (i = 0; i < di; i++)
+	/*for (i = 0; i < di; i++)*/
+	for (int i = 0; i < di; i++)
 		{
-		for (j = 0; j < dj; j++)
+		/*for (j = 0; j < dj; j++)*/
+		for (int j = 0; j < dj; j++)
 			{
-			if (i * qi < RI.skyMins[0][axis] / 2 + 0.5f - qi
-				|| i * qi > RI.skyMaxs[0][axis] / 2 + 0.5f
-				|| j * qj < RI.skyMins[1][axis] / 2 + 0.5f - qj
-				|| j * qj > RI.skyMaxs[1][axis] / 2 + 0.5f)
+			if ((i * qi < RI.skyMins[0][axis] / 2 + 0.5f - qi) ||
+				(i * qi > RI.skyMaxs[0][axis] / 2 + 0.5f) ||
+				(j * qj < RI.skyMins[1][axis] / 2 + 0.5f - qj) ||
+				(j * qj > RI.skyMaxs[1][axis] / 2 + 0.5f))
 				continue;
 
+			vec3_t temp, temp2;
 			VectorScale (vright, qi * i, temp);
 			VectorScale (vup, qj * j, temp2);
 			VectorAdd (temp, temp2, temp);
+
+			float final_verts[4][VERTEXSIZE];
 			VectorAdd (verts[0], temp, final_verts[0]);
 
 			VectorScale (vup, qj, temp);
@@ -556,16 +597,11 @@ Quake-style clouds
 ***/
 void R_DrawClouds (void)
 	{
-	/*int	i;
-
-	RI.isSkyVisible = true;*/
-
 	if (RI.fogEnabled)
 		pglFogf (GL_FOG_DENSITY, RI.fogDensity * 0.25f);
 	pglDepthFunc (GL_GEQUAL);
 	pglDepthMask (GL_FALSE);
 
-	/*for (i = 0; i < SKYBOX_MAX_SIDES; i++)*/
 	for (int i = 0; i < SKYBOX_MAX_SIDES; i++)
 		{
 		if ((RI.skyMins[0][i] >= RI.skyMaxs[0][i]) || (RI.skyMins[1][i] >= RI.skyMaxs[1][i]))
@@ -694,15 +730,14 @@ static void R_GetRippleTextureSize (const texture_t *image, int *width, int *hei
 		}
 	}
 
-// [FWGS, 01.03.25]
+// [FWGS, 01.07.26]
 qboolean R_UploadRipples (texture_t *image)
 	{
-	const gl_texture_t	*glt;
+	/*const gl_texture_t	*glt;
 	const uint32_t		*pixels;
 	int			y;
-	int			width, height, size;
+	int			width, height, size;*/
 	qboolean	update = g_ripple.update;
-
 	if (!r_ripple.value)
 		{
 		GL_Bind (XASH_TEXTURE0, image->gl_texturenum);
@@ -710,13 +745,15 @@ qboolean R_UploadRipples (texture_t *image)
 		}
 
 	// discard unuseful textures
-	glt = R_GetTexture (image->gl_texturenum);
+	/*glt = R_GetTexture (image->gl_texturenum);*/
+	const gl_texture_t *glt = R_GetTexture (image->gl_texturenum);
 	if (!glt || !glt->original || !glt->original->buffer)
 		{
 		GL_Bind (XASH_TEXTURE0, image->gl_texturenum);
 		return false;
 		}
 
+	int width, height;
 	if (!image->fb_texturenum)
 		{
 		rgbdata_t	pic = { 0 };
@@ -751,15 +788,19 @@ qboolean R_UploadRipples (texture_t *image)
 	image->dt_texturenum = tr.framecount & 0xFFFF;
 	R_GetRippleTextureSize (image, &width, &height);
 
-	size = (r_ripple.value == 1.0f) ? 64 : RIPPLES_CACHEWIDTH;
-	pixels = (const uint32_t *)glt->original->buffer;
+	/*size = (r_ripple.value == 1.0f) ? 64 : RIPPLES_CACHEWIDTH;
+	pixels = (const uint32_t *)glt->original->buffer;*/
+	int size = r_ripple.value == 1.0f ? 64 : RIPPLES_CACHEWIDTH;
+	const uint32_t *pixels = (const uint32_t *)glt->original->buffer;
 
-	for (y = 0; y < height; y++)
+	/*for (y = 0; y < height; y++)*/
+	for (int y = 0; y < height; y++)
 		{
 		int ry = (float)y / height * size;
-		int x;
+		/*int x;
 
-		for (x = 0; x < width; x++)
+		for (x = 0; x < width; x++)*/
+		for (int x = 0; x < width; x++)
 			{
 			int rx = (float)x / width * size;
 			int val = g_ripple.curbuf[ry * RIPPLES_CACHEWIDTH + rx] / 16;

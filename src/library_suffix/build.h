@@ -1,4 +1,4 @@
-/*
+/***
 build.h - compile-time build information
 
 This is free and unencumbered software released into the public domain.
@@ -25,12 +25,13 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
 For more information, please refer to <http://unlicense.org/>
-*/
+***/
+
 #pragma once
 #ifndef BUILD_H
 #define BUILD_H
 
-/*
+/***
 All XASH_* macros set by this header are guaranteed to have positive value
 otherwise not defined.
 
@@ -45,8 +46,9 @@ You can generate #undef list below with this oneliner:
 
 Then you can use another oneliner to query all variables:
   $ grep '^#undef XASH' build.h | awk '{ print $2 }'
-*/
+***/
 
+// [FWGS, 01.07.26]
 #undef XASH_64BIT
 #undef XASH_AMD64
 #undef XASH_ANDROID
@@ -62,11 +64,13 @@ Then you can use another oneliner to query all variables:
 #undef XASH_BIG_ENDIAN
 #undef XASH_DOS4GW
 #undef XASH_E2K
+/*undef XASH_EMSCRIPTEN*/
 #undef XASH_FREEBSD
 #undef XASH_HAIKU
 #undef XASH_HURD
 #undef XASH_IOS
 #undef XASH_IRIX
+/*undef XASH_JS*/
 #undef XASH_LINUX
 #undef XASH_LITTLE_ENDIAN
 #undef XASH_MIPS
@@ -86,23 +90,33 @@ Then you can use another oneliner to query all variables:
 #undef XASH_SPARC
 #undef XASH_SUNOS
 #undef XASH_TERMUX
+/*undef XASH_WIN32
+undef XASH_X86
+undef XASH_NSWITCH
+undef XASH_PSP
+undef XASH_PSVITA*/
 #undef XASH_WASI
 #undef XASH_WASM
 #undef XASH_WIN32
 #undef XASH_X86
 
+// ESHQ: версионирование для мода
+#include "..\\Ver.h"
+#define XASH_BUILD_COMMIT	ESHQ_V1
+#define XASH_BUILD_BRANCH	"master_branch"
+
 //================================================================
-//
-//           PLATFORM DETECTION CODE
-//
+// PLATFORM DETECTION CODE
 //================================================================
+
+// [FWGS, 01.07.26]
 #if defined _WIN32
 	#define XASH_WIN32 1
 #elif defined __WATCOMC__ && defined __DOS__
 	#define XASH_DOS4GW 1
 #elif defined __psp__
 	#define XASH_PSP 1
-#else // POSIX compatible
+#else	// POSIX compatible
 	#define XASH_POSIX 1
 	#if defined __linux__
 		#if defined __ANDROID__
@@ -129,7 +143,7 @@ Then you can use another oneliner to query all variables:
 		#define XASH_APPLE 1
 		#if TARGET_OS_IOS
 			#define XASH_IOS 1
-		#endif // TARGET_OS_IOS
+		#endif	// TARGET_OS_IOS
 	#elif defined __SWITCH__
 		#define XASH_NSWITCH 1
 	#elif defined __vita__
@@ -155,14 +169,13 @@ Then you can use another oneliner to query all variables:
 #endif
 
 //================================================================
-//
-//           ENDIANNESS DEFINES
-//
+// ENDIANNESS DEFINES
 //================================================================
 
+// [FWGS, 01.07.26]
 #if !defined XASH_ENDIANNESS
 	#if defined XASH_WIN32 || __LITTLE_ENDIAN__
-		//!!! Probably all WinNT installations runs in little endian
+	// !!! Probably all WinNT installations runs in little endian
 		#define XASH_LITTLE_ENDIAN 1
 	#elif __BIG_ENDIAN__
 		#define XASH_BIG_ENDIAN 1
@@ -179,22 +192,24 @@ Then you can use another oneliner to query all variables:
 		#elif __BYTE_ORDER == __LITTLE_ENDIAN
 			#define XASH_LITTLE_ENDIAN 1
 		#endif
-	#endif // !XASH_WIN32
+	#endif	// !XASH_WIN32
 #endif
 
-// both macros are always defined, so they can be used in #if and as plain C expressions
+// [FWGS, 01.07.26] both macros are always defined, so they can be used
+// in #if and as plain C expressions
 #ifndef XASH_BIG_ENDIAN
 	#define XASH_BIG_ENDIAN 0
 #endif
+
+// [FWGS, 01.07.26]
 #ifndef XASH_LITTLE_ENDIAN
 	#define XASH_LITTLE_ENDIAN 0
 #endif
 
 //================================================================
-//
-//           CPU ARCHITECTURE DEFINES
-//
+// CPU ARCHITECTURE DEFINES
 //================================================================
+
 #if defined __x86_64__ || defined _M_X64
 	#define XASH_64BIT 1
 	#define XASH_AMD64 1
@@ -213,7 +228,7 @@ Then you can use another oneliner to query all variables:
 	#if defined __PPC64__ || defined __powerpc64__
 		#define XASH_64BIT 1
 	#endif
-#elif defined _M_ARM // msvc
+#elif defined _M_ARM	// msvc
 	#define XASH_ARM 7
 	#define XASH_ARM_HARDFP 1
 #elif defined __arm__
@@ -233,9 +248,9 @@ Then you can use another oneliner to query all variables:
 
 	#if defined __SOFTFP__ || __ARM_PCS_VFP == 0
 		#define XASH_ARM_SOFTFP 1
-	#else // __SOFTFP__
+	#else	// __SOFTFP__
 		#define XASH_ARM_HARDFP 1
-	#endif // __SOFTFP__
+	#endif	// __SOFTFP__
 #elif defined __riscv
 	#define XASH_RISCV 1
 
@@ -269,7 +284,7 @@ Then you can use another oneliner to query all variables:
 #endif
 
 #if !XASH_64BIT && ( defined( __LP64__ ) || defined( _LP64 ))
-#define XASH_64BIT 1
+	#define XASH_64BIT 1
 #endif
 
 #if XASH_ARM == 8
@@ -284,4 +299,4 @@ Then you can use another oneliner to query all variables:
 	#define XASH_ARMv4 1
 #endif
 
-#endif // BUILD_H
+#endif

@@ -178,7 +178,7 @@ typedef int qboolean;
 
 // [FWGS, 01.11.25]
 // [ESHQ: где-то есть проблема с переключением, принудительно выставлен __restrict]
-#if !defined( __cplusplus ) && __STDC_VERSION__ >= 199101L && false // not C++ and C99 or newer
+#if !defined( __cplusplus ) && __STDC_VERSION__ >= 199101L && false	// not C++ and C99 or newer
 	#define XASH_RESTRICT restrict
 #elif _MSC_VER || __GNUC__ || __clang__ // compiler-specific extensions
 	#define XASH_RESTRICT __restrict
