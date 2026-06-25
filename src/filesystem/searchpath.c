@@ -1,4 +1,4 @@
-/*
+/***
 searchpath.c - search path management, archive/dir mounting, file lookup
 Copyright (C) 2003-2006 Mathieu Olivier
 Copyright (C) 2000-2007 DarkPlaces contributors
@@ -14,7 +14,7 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
-*/
+***/
 
 #include "..\library_suffix\build.h"
 #include <stdlib.h>

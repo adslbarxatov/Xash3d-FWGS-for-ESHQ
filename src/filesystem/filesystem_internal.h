@@ -142,7 +142,7 @@ extern poolhandle_t		fs_mempool;
 extern fs_interface_t	g_engfuncs;
 /*extern char				fs_rootdir[MAX_SYSPATH];
 extern const fs_api_t	g_api;	// [FWGS, 01.08.24]*/
-extern const fs_api_t	g_api;
+extern const struct fs_api_t	g_api;
 
 #define GI FI.GameInfo
 

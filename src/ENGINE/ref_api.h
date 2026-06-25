@@ -21,10 +21,7 @@ GNU General Public License for more details
 #include <stdarg.h>
 #include "com_image.h"
 #include "vgui_api.h"
-/*include "render_api.h"
-include "triangleapi.h"*/
 #include "const.h"
-/*include "cl_entity.h"*/
 #include "com_model.h"
 #include "cl_entity.h"
 #include "render_api.h"
@@ -33,7 +30,7 @@ include "triangleapi.h"*/
 #include "r_efx.h"
 #include "filesystem.h"
 #include "common/protocol.h"
-#include "cvardef.h"	// [FWGS, 01.12.24]
+#include "cvardef.h"
 
 #ifndef CLIENT_DLL
 #include "q_client.h"	// [FWGS, 01.03.26]
@@ -70,7 +67,6 @@ include "triangleapi.h"*/
 // 11. Added size argument to Mod_ProcessRenderData
 // 12. [FWGS, 01.03.26] Added Image_CalcImageSize
 // 13. [FWGS, 01.03.26] Removed ignore_flags argument from GetCvarPointer
-/*define REF_API_VERSION	13*/
 // 14. Removed reserved functions, they are leftover from RenderAPI
 // - Removed CL_AddCustomBeam, it's now handled through R_AddEntity
 // 15. Replaced CL_InitStudioAPI with R_StudioFillAPI + R_StudioSetDrawInterface
@@ -82,7 +78,11 @@ include "triangleapi.h"*/
 // - Moved detail textures parsing and cinematic texture management to engine
 // - Moved creation of default textures to the engine
 // 16. RefGetParm return type changed from int to intptr_t
-#define REF_API_VERSION 16
+/*define REF_API_VERSION 16*/
+// 17. [FWGS, 01.07.26] _Mem_AllocPool now takes a flags argument (see MEM_SMALL_ALLOC_OPT in engine/common/common.h).
+// Pools that opt into MEM_SMALL_ALLOC_OPT use a compact 16/24-byte header for allocations
+// <= 255 bytes, dropping per-allocation filename/fileline tracking
+#define REF_API_VERSION	17
 
 #define TF_SKY		(TF_SKYSIDE|TF_NOMIPMAP|TF_ALLOW_NEAREST)
 #define TF_FONT		(TF_NOMIPMAP|TF_CLAMP|TF_ALLOW_NEAREST)
@@ -215,7 +215,7 @@ enum
 	MAX_TEXTURE_UNITS = 32	// can't access to all over units without GLSL or cg
 	};
 
-enum // r_speeds counters
+enum	// r_speeds counters
 	{
 	RS_ACTIVE_TENTS = 0,
 	};
@@ -265,7 +265,7 @@ typedef enum
 	SAFE_LAST,        // must be last
 	} ref_safegl_context_t;
 
-enum // OpenGL configuration attributes
+enum	// OpenGL configuration attributes
 	{
 	REF_GL_RED_SIZE,
 	REF_GL_GREEN_SIZE,
@@ -294,7 +294,7 @@ enum
 	{
 	REF_GL_CONTEXT_PROFILE_CORE = 0x0001,
 	REF_GL_CONTEXT_PROFILE_COMPATIBILITY = 0x0002,
-	REF_GL_CONTEXT_PROFILE_ES = 0x0004 // < GLX_CONTEXT_ES2_PROFILE_BIT_EXT
+	REF_GL_CONTEXT_PROFILE_ES = 0x0004	// < GLX_CONTEXT_ES2_PROFILE_BIT_EXT
 	};
 
 // binary compatible with SDL and EGL_KHR_create_context(0x0007 mask)
@@ -342,7 +342,6 @@ typedef enum
 	PARM_WATER_LEVEL = -8,		// cl.local.water_level
 	PARM_GET_WORLD_PTR = -9,	// world
 	PARM_LOCAL_HEALTH = -10,	// cl.local.health
-	/*PARM_LOCAL_GAME = -11,*/
 	PARM_SINGLEPLAYER_GAME = -11,	// was PARM_LOCAL_GAME
 	PARM_NUMENTITIES = -12,			// local game only
 	PARM_GET_MOVEVARS_PTR = -13,	// clgame.movevars
@@ -412,7 +411,6 @@ typedef struct ref_api_s
 	// [FWGS, 01.05.26] brushes
 	int			(*Mod_SampleSizeForFace)(const struct msurface_s *surf);
 	qboolean	(*Mod_BoxVisible)(const vec3_t mins, const vec3_t maxs, const byte *visbits);
-	/*mleaf_t		*(*Mod_PointInLeaf)(const vec3_t p, mnode_t *node);*/
 	mleaf_t		*(*Mod_PointInLeaf)(const vec3_t p, mnode_t *node, struct model_s *mod);
 	void		(*R_DrawWorldHull)(void);
 	void		(*R_DrawModelHull)(model_t *mod);
@@ -455,11 +453,10 @@ typedef struct ref_api_s
 	void		*(*Mod_CacheCheck)(struct cache_user_s *c);
 	void		(*Mod_LoadCacheFile)(const char *path, struct cache_user_s *cu);
 	void		*(*Mod_Calloc)(int number, size_t size);
-	/*int			(*pfnGetStudioModelInterface)(int version, struct r_studio_interface_s **ppinterface,
-		struct engine_studio_api_s *pstudio);*/
 
-	// memory
-	poolhandle_t	(*_Mem_AllocPool)(const char *name, const char *filename, int fileline) WARN_UNUSED_RESULT;
+	// [FWGS, 01.07.26] memory
+	/*poolhandle_t	(*_Mem_AllocPool)(const char *name, const char *filename, int fileline) WARN_UNUSED_RESULT;*/
+	poolhandle_t (*_Mem_AllocPool)(const char *name, unsigned int flags, const char *filename, int fileline) WARN_UNUSED_RESULT;
 	void		(*_Mem_FreePool)(poolhandle_t *poolptr, const char *filename, int fileline);
 
 	void		*(*_Mem_Alloc)(poolhandle_t poolptr, size_t size, qboolean clear, const char *filename,
@@ -524,7 +521,7 @@ typedef struct ref_api_s
 	render_interface_t	*drawFuncs;
 
 	// filesystem exports
-	fs_api_t	*fsapi;
+	struct fs_api_t	*fsapi;	// ESHQ: исправление дефектного определения
 
 	// [FWGS, 01.06.25] for abstracting the engine's rendering
 	ref_window_type_t (*R_GetWindowHandle)(void **handle, ref_window_type_t type);
@@ -565,9 +562,7 @@ typedef struct ref_interface_s
 
 	// [FWGS, 01.05.26]
 	qboolean	(*R_AddEntity)(struct cl_entity_s *clent, int type);
-	/*void		(*CL_AddCustomBeam)(cl_entity_t *pEnvBeam);*/
 	void		(*R_ProcessEntData)(qboolean allocate, cl_entity_t *entities, unsigned int max_entities);
-	/*void		(*R_Flush)(unsigned int flush_flags);*/
 
 	// debug
 	void		(*R_ShowTextures)(void);
@@ -580,7 +575,6 @@ typedef struct ref_interface_s
 
 	// [FWGS, 01.05.26] 2D
 	void		(*R_Set2DMode)(qboolean enable);
-	/*void		(*R_DrawStretchRaw)(float x, float y, float w, float h, int cols, int rows, const byte *data, qboolean dirty);*/
 	void		(*R_DrawStretchPic)(float x, float y, float w, float h, float s1, float t1, float s2, float t2, int texnum);
 
 	// in screen space
@@ -604,7 +598,6 @@ typedef struct ref_interface_s
 	// [FWGS, 01.05.26] studio interface
 	float		(*R_StudioEstimateFrame)(cl_entity_t *e, mstudioseqdesc_t *pseqdesc, double time);
 	void		(*R_StudioLerpMovement)(cl_entity_t *e, double time, vec3_t origin, vec3_t angles);
-	/*void		(*CL_InitStudioAPI)(void);*/
 	qboolean	(*R_StudioFillAPI)(struct engine_studio_api_s *api, struct r_studio_interface_s *pDefaultDraw);
 	void		(*R_StudioSetDrawInterface)(struct r_studio_interface_s *pDraw);
 
@@ -612,12 +605,6 @@ typedef struct ref_interface_s
 	void		(*R_SetSkyCloudsTextures)(int solidskyTexture, int alphaskyTexture);
 	void		(*GL_SubdivideSurface)(model_t *mod, msurface_t *fa);
 	void		(*CL_RunLightStyles)(lightstyle_t *ls);
-
-	// [FWGS, 01.05.26]
-	/*// sprites
-	void		(*R_GetSpriteParms)(int *frameWidth, int *frameHeight, int *numFrames, int currentFrame,
-		const model_t *pSprite);
-	int			(*R_GetSpriteTexture)(const model_t *m_pSpriteModel, int frame);*/
 
 	// model management
 	// [FWGS, 01.11.25] flags ignored for everything except spritemodels
@@ -628,66 +615,30 @@ typedef struct ref_interface_s
 	void		(*CL_DrawParticles)(double frametime, particle_t *particles, float partsize);
 	void		(*CL_DrawTracers)(double frametime, particle_t *tracers);
 	void		(*CL_DrawBeams)(int fTrans, BEAM *beams);
-	/*qboolean	(*R_BeamCull)(const vec3_t start, const vec3_t end, qboolean pvsOnly);*/
 
 	// [FWGS, 01.05.26] Xash3D Render Interface
-	/*// Get renderer info (doesn't changes engine state at all)
-	int			(*RefGetParm)(int parm, int arg);	// generic
-	void		(*GetDetailScaleForTexture)(int texture, float *xScale, float *yScale);
-	void		(*GetExtraParmsForTexture)(int texture, byte *red, byte *green, byte *blue, byte *alpha);
-	float		(*GetFrameTime)(void);*/
 	intptr_t	(*RefGetParm)(int parm, int arg);	// generic
 
-	/*// Set renderer info (tell engine about changes)
-	void		(*R_SetCurrentEntity)(struct cl_entity_s *ent); // tell engine about both currententity and currentmodel
-	void		(*R_SetCurrentModel)(struct model_s *mod);	// change currentmodel but leave currententity unchanged*/
 	// [FWGS, 01.05.26] detail texture scale
 	void		(*R_GetDetailScaleForTexture)(int texture, float *xScale, float *yScale);
 	void		(*R_SetDetailScaleForTexture)(int texture, float xScale, float yScale);
 
-	/*// Texture tools*/
 	// [FWGS, 01.05.26] Texture tools (used by engine directly)
 	int			(*GL_CreateTexture)(const char *name, int width, int height, const void *buffer, texFlags_t flags);
 	int			(*GL_FindTexture)(const char *name);
 	const char	*(*GL_TextureName)(unsigned int texnum);
 	const byte	*(*GL_TextureData)(unsigned int texnum);	// may be NULL
 	int			(*GL_LoadTexture)(const char *name, const byte *buf, size_t size, int flags);
-	/*int			(*GL_CreateTexture)(const char *name, int width, int height, const void *buffer, texFlags_t flags);
-	int			(*GL_LoadTextureArray)(const char **names, int flags);
-	int			(*GL_CreateTextureArray)(const char *name, int width, int height, int depth, const void *buffer,
-		texFlags_t flags);*/
 	void		(*GL_FreeTexture)(unsigned int texnum);
 
 	// used to override decal size for texture replacement
 	void		(*R_OverrideTextureSourceSize)(unsigned int texnum, unsigned int srcWidth, unsigned int srcHeight);
 
 	// [FWGS, 01.05.26]
-	/*// Decals manipulating (draw & remove)
-	void		(*DrawSingleDecal)(struct decal_s *pDecal, struct msurface_s *fa);
-	float		*(*R_DecalSetupVerts)(struct decal_s *pDecal, struct msurface_s *surf, int texture, int *outCount);
-	void		(*R_EntityRemoveDecals)(struct model_s *mod); // remove all the decals from specified entity (BSP only)
-
-	// AVI
-	void		(*AVI_UploadRawFrame)(int texture, int cols, int rows, int width, int height, const byte *data);*/
 	void		(*GL_UpdateTexture)(int texnum, int cols, int rows, int width, int height, const byte *buffer, pixformat_t fmt);
 
 	// [FWGS, 01.05.26] glState related calls (used by engine directly)
 	void		(*GL_Bind)(int tmu, unsigned int texnum);
-	/*void		(*GL_SelectTexture)(int tmu);
-	void		(*GL_LoadTextureMatrix)(const float *glmatrix);
-	void		(*GL_TexMatrixIdentity)(void);
-	void		(*GL_CleanUpTextureUnits)(int last);	// pass 0 for clear all the texture units
-	void		(*GL_TexGen)(unsigned int coord, unsigned int mode);
-	void		(*GL_TextureTarget)(unsigned int target); // change texture unit mode without bind texture
-	void		(*GL_TexCoordArrayMode)(unsigned int texmode);
-	void		(*GL_UpdateTexSize)(int texnum, int width, int height, int depth); // recalc statistics
-	void		(*GL_Reserved0)(void);	// for potential interface expansion without broken compatibility
-	void		(*GL_Reserved1)(void);
-
-	// Misc renderer functions
-	void		(*GL_DrawParticles)(const struct ref_viewpass_s *rvp, qboolean trans_pass, float frametime);
-	colorVec	(*LightVec)(const float *start, const float *end, float *lightspot, float *lightvec);
-	struct mstudiotex_s	*(*StudioGetTexture)(struct cl_entity_s *e);*/
 
 	// passed through R_RenderFrame (0 - use engine renderer, 1 - use custom client renderer)
 	void		(*GL_RenderFrame)(const struct ref_viewpass_s *rvp);
@@ -702,26 +653,14 @@ typedef struct ref_interface_s
 	// clear the render entities before each frame
 	void		(*R_ClearScene)(void);
 
-	// [FWGS, 01.05.26]
-	/*// GL_GetProcAddress for client renderer
-	void		*(*R_GetProcAddress)(const char *name);*/
-
 	// [FWGS, 01.05.26] TriAPI Interface (functions used by engine wrappers)
 	void		(*TriRenderMode)(int mode);
 	void		(*Begin)(int primitiveCode);
 	void		(*End)(void);
 	void		(*Color4f)(float r, float g, float b, float a);	// real glColor4f
 	void		(*Color4ub)(unsigned char r, unsigned char g, unsigned char b, unsigned char a);	// real glColor4ub
-	/*void		(*TexCoord2f)(float u, float v);*/
 	void		(*Vertex3fv)(const float *worldPnt);
 	void		(*Vertex3f)(float x, float y, float z);
-
-	/*// Works just like GL_FOG, flFogColor is r/g/b
-	void		(*Fog)(float flFogColor[3], float flStart, float flEnd, int bOn);
-
-	void		(*ScreenToWorld)(const float *screen, float *world);
-	void		(*GetMatrix)(const int pname, float *matrix);
-	void		(*FogParams)(float flDensity, int iFogSkybox);*/
 	void		(*CullFace)(TRICULLSTYLE mode);
 
 	// [FWGS, 01.05.26] fill render_api_t and triangleapi_t with renderer-specific functions
@@ -730,7 +669,6 @@ typedef struct ref_interface_s
 
 	// [FWGS, 01.05.26] vgui drawing implementation
 	void		(*VGUI_SetupDrawing)(qboolean rect);
-	/*void		(*VGUI_UploadTextureBlock)(int drawX, int drawY, const byte *rgba, int blockWidth, int blockHeight);*/
 	} ref_interface_t;
 
 typedef int (*REFAPI)(int version, ref_interface_t *pFunctionTable, ref_api_t *engfuncs, ref_globals_t *pGlobals);

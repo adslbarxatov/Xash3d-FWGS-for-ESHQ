@@ -24,354 +24,12 @@ GNU General Public License for more details
 
 // [FWGS, 01.05.26] removed R_SpriteInit, R_SpriteLoadFrame, R_SpriteLoadGroup, Mod_LoadSpriteModel,
 // Mod_SpriteUnloadTextures
-
-/*// [FWGS, 01.04.26]
-static char		sprite_name[MAX_QPATH];
-static char		group_suffix[8];
-static uint		r_texFlags = 0;
-static int		sprite_version;
-static float	sprite_radius;
-
-/
-====================
-R_SpriteInit
-====================
-/
-void R_SpriteInit (void)
-	{
-	}
-
-/
-====================
-R_SpriteLoadFrame
-
-upload a single frame
-====================
-/
-static const byte *R_SpriteLoadFrame (model_t *mod, const void *pin, mspriteframe_t **ppframe, int num)
-	{
-	dspriteframe_t	pinframe;
-	mspriteframe_t	*pspriteframe;
-	int		gl_texturenum = 0;
-	char	texname[128];
-	int		bytes = 1;
-
-	// [FWGS, 01.09.24]
-	memcpy (&pinframe, pin, sizeof (dspriteframe_t));
-
-	if (sprite_version == SPRITE_VERSION_32)
-		bytes = 4;
-
-	// [FWGS, 01.07.24] build uinque frame name
-	if (FBitSet (mod->flags, MODEL_CLIENT)) // it's a HUD sprite
-		{
-		Q_snprintf (texname, sizeof (texname), "#HUD/%s(%s:%i%i).spr", sprite_name, group_suffix, num / 10, num % 10);
-		gl_texturenum = GL_LoadTexture (texname, pin, pinframe.width * pinframe.height * bytes, r_texFlags);
-		}
-	else
-		{
-		// partial HD-textures support
-		if (Mod_AllowMaterials ())
-			{
-			if (R_SearchForTextureReplacement (texname, sizeof (texname), sprite_name, "materials/%s/%s%i%i.tga",
-				sprite_name, group_suffix, num / 10, num % 10))
-				{
-				gl_texturenum = GL_LoadTexture (texname, NULL, 0, r_texFlags);
-				R_TextureReplacementReport (sprite_name, gl_texturenum, texname);
-				}
-			}
-
-		if (gl_texturenum == 0)
-			{
-			Q_snprintf (texname, sizeof (texname), "#%s(%s:%i%i).spr", sprite_name, group_suffix, num / 10, num % 10);
-			gl_texturenum = GL_LoadTexture (texname, pin, pinframe.width * pinframe.height * bytes, r_texFlags);
-			}
-		}
-
-	// setup frame description
-	pspriteframe = Mem_Malloc (mod->mempool, sizeof (mspriteframe_t));
-	pspriteframe->width = pinframe.width;
-	pspriteframe->height = pinframe.height;
-	pspriteframe->up = pinframe.origin[1];
-	pspriteframe->left = pinframe.origin[0];
-	pspriteframe->down = pinframe.origin[1] - pinframe.height;
-	pspriteframe->right = pinframe.width + pinframe.origin[0];
-	pspriteframe->gl_texturenum = gl_texturenum;
-	*ppframe = pspriteframe;
-
-	return ((const byte *)pin + sizeof (dspriteframe_t) + pinframe.width * pinframe.height * bytes);
-	}
-
-/
-====================
-R_SpriteLoadGroup [FWGS, 01.05.24]
-
-upload a group frames
-====================
-/
-static const byte *R_SpriteLoadGroup (model_t *mod, const void *pin, mspriteframe_t **ppframe, int framenum)
-	{
-	const dspritegroup_t	*pingroup;
-	mspritegroup_t			*pspritegroup;
-	const dspriteinterval_t	*pin_intervals;
-	float		*poutintervals;
-	int			i, groupsize, numframes;
-	const void	*ptemp;
-
-	pingroup = (const dspritegroup_t *)pin;
-	numframes = pingroup->numframes;
-
-	groupsize = sizeof (mspritegroup_t) + (numframes - 1) * sizeof (pspritegroup->frames[0]);
-	pspritegroup = Mem_Calloc (mod->mempool, groupsize);
-	pspritegroup->numframes = numframes;
-
-	*ppframe = (mspriteframe_t *)pspritegroup;
-	pin_intervals = (const dspriteinterval_t *)(pingroup + 1);
-	poutintervals = Mem_Calloc (mod->mempool, numframes * sizeof (float));
-	pspritegroup->intervals = poutintervals;
-
-	for (i = 0; i < numframes; i++)
-		{
-		*poutintervals = pin_intervals->interval;
-		if (*poutintervals <= 0.0f)
-			*poutintervals = 1.0f;	// set error value
-		poutintervals++;
-		pin_intervals++;
-		}
-
-	ptemp = (const void *)pin_intervals;
-	for (i = 0; i < numframes; i++)
-		{
-		ptemp = R_SpriteLoadFrame (mod, ptemp, &pspritegroup->frames[i], framenum * 10 + i);
-		}
-
-	return ptemp;
-	}
-
-/
-====================
-Mod_LoadSpriteModel [FWGS, 01.06.25]
-
-load sprite model
-====================
-/
-void Mod_LoadSpriteModel (model_t *mod, const void *buffer, qboolean *loaded, uint texFlags)
-	{
-	const dsprite_t	*pin;
-	const short		*numi = NULL;
-	const byte		*pframetype;
-	msprite_t		*psprite;
-	int				i;
-
-	pin = buffer;
-	psprite = mod->cache.data;
-
-	if ((pin->version == SPRITE_VERSION_Q1) || (pin->version == SPRITE_VERSION_32))
-		numi = NULL;
-	else if (pin->version == SPRITE_VERSION_HL)
-		numi = (const short *)((const byte *)buffer + sizeof (dsprite_hl_t));
-
-	r_texFlags = texFlags;
-	sprite_version = pin->version;
-	Q_strncpy (sprite_name, mod->name, sizeof (sprite_name));
-	COM_StripExtension (sprite_name);
-
-	if (numi == NULL)
-		{
-		rgbdata_t *pal;
-
-		pal = gEngfuncs.FS_LoadImage ("#id.pal", (byte *)&i, 768);
-		pframetype = ((const byte *)buffer + sizeof (dsprite_q1_t));	// pinq1 + 1
-		gEngfuncs.FS_FreeImage (pal);	// palette installed, no reason to keep this data
-		}
-	else if (*numi <= 256)
-		{
-		const byte	*src = (const byte *)(numi + 1);
-		rgbdata_t	*pal;
-		size_t		pal_bytes = *numi * 3;
-
-		// install palette
-		switch (psprite->texFormat)
-			{
-			case SPR_INDEXALPHA:
-				pal = gEngfuncs.FS_LoadImage ("#gradient.pal", src, pal_bytes);
-				break;
-
-			case SPR_ALPHTEST:
-				pal = gEngfuncs.FS_LoadImage ("#masked.pal", src, pal_bytes);
-				break;
-
-			default:
-				pal = gEngfuncs.FS_LoadImage ("#texgamma.pal", src, pal_bytes);
-				break;
-			}
-
-		pframetype = (const byte *)(src + pal_bytes);
-		gEngfuncs.FS_FreeImage (pal);	// palette installed, no reason to keep this data
-		}
-	else
-		{
-		gEngfuncs.Con_DPrintf (S_ERROR "%s has wrong number of palette colors %i (should be less or equal than 256)\n",
-			mod->name, *numi);
-		return;
-		}
-
-	if (mod->numframes < 1)
-		return;
-
-	for (i = 0; i < mod->numframes; i++)
-		{
-		frametype_t frametype;
-		dframetype_t dframetype;
-
-		memcpy (&dframetype, pframetype, sizeof (dframetype));
-		frametype = dframetype.type;
-
-		psprite->frames[i].type = (spriteframetype_t)frametype;
-
-		switch (frametype)
-			{
-			case FRAME_SINGLE:
-				Q_strncpy (group_suffix, "frame", sizeof (group_suffix));
-				pframetype = R_SpriteLoadFrame (mod, pframetype + sizeof (dframetype_t),
-					&psprite->frames[i].frameptr, i);
-				break;
-
-			case FRAME_GROUP:
-				Q_strncpy (group_suffix, "group", sizeof (group_suffix));
-				pframetype = R_SpriteLoadGroup (mod, pframetype + sizeof (dframetype_t),
-					&psprite->frames[i].frameptr, i);
-				break;
-
-			case FRAME_ANGLED:
-				Q_strncpy (group_suffix, "angle", sizeof (group_suffix));
-				pframetype = R_SpriteLoadGroup (mod, pframetype + sizeof (dframetype_t),
-					&psprite->frames[i].frameptr, i);
-				break;
-			}
-
-		// technically an error
-		if (pframetype == NULL)
-			break;
-		}
-
-	// done
-	if (loaded)
-		*loaded = true;
-	}*/
-
 // [FWGS, 01.12.24] removed Mod_LoadMapSprite
-
 // [FWGS, 01.05.26] removed Mod_SpriteUnloadTextures, R_GetSpriteFrame
-
-/*
-====================
-Mod_SpriteUnloadTextures [FWGS, 01.02.25]
-
-release sprite model and frames
-====================
-/
-void Mod_SpriteUnloadTextures (void *data)
-	{
-	msprite_t	*psprite = data;
-	int			i;
-
-	if (!data)
-		return;
-
-	// release all textures
-	for (i = 0; i < psprite->numframes; i++)
-		{
-		if (!psprite->frames[i].frameptr)
-			continue;
-
-		if (psprite->frames[i].type == SPR_SINGLE)
-			{
-			GL_FreeTexture (psprite->frames[i].frameptr->gl_texturenum);
-			}
-		else
-			{
-			mspritegroup_t *pspritegroup = (mspritegroup_t *)psprite->frames[i].frameptr;
-			int j;
-
-			for (j = 0; j < pspritegroup->numframes; j++)
-				{
-				if (pspritegroup->frames[j])
-					GL_FreeTexture (pspritegroup->frames[j]->gl_texturenum);
-				}
-			}
-		}
-	}
-
-/
-================
-R_GetSpriteFrame [FWGS, 01.01.24]
-
-assume pModel is valid
-================
-/
-mspriteframe_t *R_GetSpriteFrame (const model_t *pModel, int frame, float yaw)
-	{
-	msprite_t		*psprite;
-	mspritegroup_t	*pspritegroup;
-	mspriteframe_t	*pspriteframe = NULL;
-	float			*pintervals, fullinterval;
-	int				i, numframes;
-	float			targettime;
-
-	Assert (pModel != NULL);
-	psprite = pModel->cache.data;
-
-	if (frame < 0)
-		{
-		frame = 0;
-		}
-	else if (frame >= psprite->numframes)
-		{
-		// [FWGS, 01.07.24]
-		if (frame > psprite->numframes)
-			gEngfuncs.Con_Printf (S_WARN "%s: no such frame %d (%s)\n", __func__, frame, pModel->name);
-		frame = psprite->numframes - 1;
-		}
-
-	if (psprite->frames[frame].type == SPR_SINGLE)
-		{
-		pspriteframe = psprite->frames[frame].frameptr;
-		}
-	else if (psprite->frames[frame].type == SPR_GROUP)
-		{
-		pspritegroup = (mspritegroup_t *)psprite->frames[frame].frameptr;
-		pintervals = pspritegroup->intervals;
-		numframes = pspritegroup->numframes;
-		fullinterval = pintervals[numframes - 1];
-
-		// when loading in Mod_LoadSpriteGroup, we guaranteed all interval values
-		// are positive, so we don't have to worry about division by zero
-		targettime = gp_cl->time - ((int)(gp_cl->time / fullinterval)) * fullinterval;
-
-		for (i = 0; i < (numframes - 1); i++)
-			{
-			if (pintervals[i] > targettime)
-				break;
-			}
-
-		pspriteframe = pspritegroup->frames[i];
-		}
-	else if (psprite->frames[frame].type == FRAME_ANGLED)
-		{
-		int	angleframe = (int)(Q_rint ((RI.viewangles[1] - yaw + 45.0f) / 360 * 8) - 4) & 7;
-
-		// e.g. doom-style sprite monsters
-		pspritegroup = (mspritegroup_t *)psprite->frames[frame].frameptr;
-		pspriteframe = pspritegroup->frames[angleframe];
-		}
-
-	return pspriteframe;
-	}*/
 
 /***
 ================
-R_GetSpriteFrameInterpolant
+R_GetSpriteFrameInterpolant [FWGS, 01.07.26]
 
 NOTE: we using prevblending[0] and [1] for holds interval
 between frames where are we lerping
@@ -379,7 +37,7 @@ between frames where are we lerping
 ***/
 static float R_GetSpriteFrameInterpolant (cl_entity_t *ent, mspriteframe_t **oldframe, mspriteframe_t **curframe)
 	{
-	msprite_t		*psprite;
+	/*msprite_t		*psprite;
 	mspritegroup_t	*pspritegroup;
 	int		i, j, numframes, frame;
 	float	lerpFrac, time, jtime, jinterval;
@@ -388,10 +46,14 @@ static float R_GetSpriteFrameInterpolant (cl_entity_t *ent, mspriteframe_t **old
 
 	psprite = ent->model->cache.data;
 	frame = (int)ent->curstate.frame;
-	lerpFrac = 1.0f;
+	lerpFrac = 1.0f;*/
+	msprite_t	*psprite = ent->model->cache.data;
+	int		frame = (int)ent->curstate.frame;
+	float	lerpFrac = 1.0f;
 
 	// misc info
-	m_fDoInterp = (ent->curstate.effects & EF_NOINTERP) ? false : true;
+	/*m_fDoInterp = (ent->curstate.effects & EF_NOINTERP) ? false : true;*/
+	int m_fDoInterp = (ent->curstate.effects & EF_NOINTERP) ? false : true;
 
 	if (frame < 0)
 		{
@@ -399,7 +61,6 @@ static float R_GetSpriteFrameInterpolant (cl_entity_t *ent, mspriteframe_t **old
 		}
 	else if (frame >= psprite->numframes)
 		{
-		// [FWGS, 01.07.24]
 		gEngfuncs.Con_Reportf (S_WARN "%s: no such frame %d (%s)\n", __func__, frame, ent->model->name);
 		frame = psprite->numframes - 1;
 		}
@@ -462,20 +123,29 @@ static float R_GetSpriteFrameInterpolant (cl_entity_t *ent, mspriteframe_t **old
 
 	else if (psprite->frames[frame].type == FRAME_GROUP)
 		{
-		pspritegroup = (mspritegroup_t *)psprite->frames[frame].frameptr;
+		/*pspritegroup = (mspritegroup_t *)psprite->frames[frame].frameptr;
 		pintervals = pspritegroup->intervals;
 		numframes = pspritegroup->numframes;
 		fullinterval = pintervals[numframes - 1];
 		jinterval = pintervals[1] - pintervals[0];
 		time = gp_cl->time;
-		jtime = 0.0f;
+		jtime = 0.0f;*/
+		mspritegroup_t	*pspritegroup = (mspritegroup_t *)psprite->frames[frame].frameptr;
+		float	*pintervals = pspritegroup->intervals;
+		int		numframes = pspritegroup->numframes;
+		float	fullinterval = pintervals[numframes - 1];
+		float	jinterval = pintervals[1] - pintervals[0];
+		float	time = gp_cl->time;
+		float	jtime = 0.0f;
 
 		// when loading in Mod_LoadSpriteGroup, we guaranteed all interval values
 		// are positive, so we don't have to worry about division by zero
-		targettime = time - ((int)(time / fullinterval)) * fullinterval;
+		/*targettime = time - ((int)(time / fullinterval)) * fullinterval;*/
+		float targettime = time - ((int)(time / fullinterval)) * fullinterval;
 
 		// LordHavoc: since I can't measure the time properly when it loops from numframes - 1 to 0,
 		// i instead measure the time of the first frame, hoping it is consistent
+		int i, j;
 		for (i = 0, j = numframes - 1; i < (numframes - 1); i++)
 			{
 			if (pintervals[i] > targettime)
@@ -499,9 +169,8 @@ static float R_GetSpriteFrameInterpolant (cl_entity_t *ent, mspriteframe_t **old
 
 	else if (psprite->frames[frame].type == FRAME_ANGLED)
 		{
-		// [FWGS, 01.05.26] e.g. doom-style sprite monsters
+		// e.g. doom-style sprite monsters
 		float	yaw = ent->angles[YAW];
-		/*int	angleframe = (int)(Q_rint ((RI.viewangles[1] - yaw + 45.0f) / 360 * 8) - 4) & 7;*/
 		int angleframe = (int)(Q_rint ((RI.rvp.viewangles[1] - yaw + 45.0f) / 360 * 8) - 4) & 7;
 
 		if (m_fDoInterp)
@@ -543,7 +212,8 @@ static float R_GetSpriteFrameInterpolant (cl_entity_t *ent, mspriteframe_t **old
 			lerpFrac = 1.0f;
 			}
 
-		pspritegroup = (mspritegroup_t *)psprite->frames[ent->latched.prevblending[0]].frameptr;
+		/*pspritegroup = (mspritegroup_t *)psprite->frames[ent->latched.prevblending[0]].frameptr;*/
+		mspritegroup_t *pspritegroup = (mspritegroup_t *)psprite->frames[ent->latched.prevblending[0]].frameptr;
 		if (oldframe)
 			*oldframe = pspritegroup->frames[angleframe];
 
@@ -578,8 +248,6 @@ static qboolean R_CullSpriteModel (cl_entity_t *e, vec3_t origin)
 	VectorScale (e->model->maxs, scale, sprite_maxs);
 
 	// [FWGS, 01.05.26]
-	/*sprite_radius = RadiusFromBounds (sprite_mins, sprite_maxs);*/
-
 	VectorAdd (sprite_mins, origin, sprite_mins);
 	VectorAdd (sprite_maxs, origin, sprite_maxs);
 
@@ -588,29 +256,30 @@ static qboolean R_CullSpriteModel (cl_entity_t *e, vec3_t origin)
 
 /***
 ================
-R_GlowSightDistance
+R_GlowSightDistance [FWGS, 01.07.26]
 
 Set sprite brightness factor
 ================
 ***/
 static float R_SpriteGlowBlend (vec3_t origin, int rendermode, int renderfx, float *pscale)
 	{
-	float		dist, brightness;
+	/*float		dist, brightness;
 	vec3_t		glowDist;
 	pmtrace_t	*tr;
 
-	// [FWGS, 01.05.26]
-	/*VectorSubtract (origin, RI.vieworg, glowDist);*/
-	VectorSubtract (origin, RI.rvp.vieworigin, glowDist);
-	dist = VectorLength (glowDist);
+	// [FWGS, 01.05.26]*/
+	vec3_t glowDist;
 
-	/*if (RP_NORMALPASS ())*/
+	VectorSubtract (origin, RI.rvp.vieworigin, glowDist);
+	/*dist = VectorLength (glowDist);*/
+	float dist = VectorLength (glowDist);
+
 	if (!FBitSet (RI.rvp.flags, RF_DRAW_CUBEMAP))
 		{
-		/*tr = gEngfuncs.EV_VisTraceLine (RI.vieworg, origin, r_traceglow.value ? PM_GLASS_IGNORE :
+		/*tr = gEngfuncs.EV_VisTraceLine (RI.rvp.vieworigin, origin, r_traceglow.value ? PM_GLASS_IGNORE :
 			(PM_GLASS_IGNORE | PM_STUDIO_IGNORE));*/
-		tr = gEngfuncs.EV_VisTraceLine (RI.rvp.vieworigin, origin, r_traceglow.value ? PM_GLASS_IGNORE :
-			(PM_GLASS_IGNORE | PM_STUDIO_IGNORE));
+		pmtrace_t *tr = gEngfuncs.EV_VisTraceLine (RI.rvp.vieworigin, origin, r_traceglow.value ?
+			PM_GLASS_IGNORE : (PM_GLASS_IGNORE | PM_STUDIO_IGNORE));
 
 		if ((1.0f - tr->fraction) * dist > 8.0f)
 			return 0.0f;
@@ -619,7 +288,8 @@ static float R_SpriteGlowBlend (vec3_t origin, int rendermode, int renderfx, flo
 	if (renderfx == kRenderFxNoDissipation)
 		return 1.0f;
 
-	brightness = GLARE_FALLOFF / (dist * dist);
+	/*brightness = GLARE_FALLOFF / (dist * dist);*/
+	float brightness = GLARE_FALLOFF / (dist * dist);
 	brightness = bound (0.05f, brightness, 1.0f);
 	*pscale *= dist * (1.0f / 200.0f);
 
@@ -643,10 +313,8 @@ static qboolean R_SpriteOccluded (cl_entity_t *e, vec3_t origin, float *pscale)
 		TriWorldToScreen (origin, v);
 
 		// [FWGS, 01.05.26]
-		/*if (v[0] < RI.viewport[0] || v[0] > RI.viewport[0] + RI.viewport[2])*/
 		if ((v[0] < RI.rvp.viewport[0]) || (v[0] > RI.rvp.viewport[0] + RI.rvp.viewport[2]))
 			return true;	// do scissor
-		/*if (v[1] < RI.viewport[1] || v[1] > RI.viewport[1] + RI.viewport[3])*/
 		if ((v[1] < RI.rvp.viewport[1]) || (v[1] > RI.rvp.viewport[1] + RI.rvp.viewport[3]))
 			return true;	// do scissor
 
@@ -748,12 +416,12 @@ static qboolean R_SpriteAllowLerping (cl_entity_t *e, msprite_t *psprite)
 
 /***
 =================
-R_DrawSpriteModel
+R_DrawSpriteModel [FWGS, 01.07.26]
 =================
 ***/
 void R_DrawSpriteModel (cl_entity_t *e)
 	{
-	mspriteframe_t	*frame = NULL, *oldframe = NULL;
+	/*mspriteframe_t	*frame = NULL, *oldframe = NULL;
 	msprite_t		*psprite;
 	model_t		*model;
 	int			i, type;
@@ -762,20 +430,26 @@ void R_DrawSpriteModel (cl_entity_t *e)
 	vec3_t		v_forward, v_right, v_up;
 	vec3_t		origin, color, color2 = { 0.0f };
 
-	// [FWGS, 01.05.26]
-	/*if (RI.params & RP_ENVVIEW)*/
+	// [FWGS, 01.05.26]*/
+
 	if (FBitSet (RI.rvp.flags, RF_DRAW_CUBEMAP))
 		return;
 
-	model = e->model;
+	/*model = e->model;
 	psprite = (msprite_t *)model->cache.data;
-	VectorCopy (e->origin, origin);	// set render origin
+	VectorCopy (e->origin, origin);	// set render origin*/
+	model_t		*model = e->model;
+	msprite_t	*psprite = (msprite_t *)model->cache.data;
+	vec3_t	color, color2 = { 0.0f };
+	vec3_t	v_right, v_up;
+	vec3_t	origin = Vec3 (e->origin);	// set render origin
 
 	// do movewith
 	if ((e->curstate.aiment > 0) && (e->curstate.movetype == MOVETYPE_FOLLOW))
 		{
-		cl_entity_t *parent;
-		parent = CL_GetEntityByIndex (e->curstate.aiment);
+		/*cl_entity_t *parent;
+		parent = CL_GetEntityByIndex (e->curstate.aiment);*/
+		cl_entity_t *parent = CL_GetEntityByIndex (e->curstate.aiment);
 
 		if (parent && parent->model)
 			{
@@ -791,7 +465,8 @@ void R_DrawSpriteModel (cl_entity_t *e)
 			}
 		}
 
-	scale = e->curstate.scale;
+	/*scale = e->curstate.scale;*/
+	float scale = e->curstate.scale;
 	if (!scale)
 		scale = 1.0f;
 
@@ -859,20 +534,20 @@ void R_DrawSpriteModel (cl_entity_t *e)
 		color2[1] = (float)lightColor.g * (1.0f / 255.0f);
 		color2[2] = (float)lightColor.b * (1.0f / 255.0f);
 
-		// [FWGS, 01.07.24] NOTE: sprites with 'lightmap' looks ugly when alpha func is GL_GREATER 0.0
+		// NOTE: sprites with 'lightmap' looks ugly when alpha func is GL_GREATER 0.0
 		// NOTE: make them easier to see with 0.3333, was 0.5 in original
 		pglAlphaFunc (GL_GREATER, 1.0f / 3.0f);
 		}
 
-	// [FWGS, 01.05.26]
+	mspriteframe_t *frame = NULL, *oldframe = NULL;
+	float lerp = 1.0f;
 	if (R_SpriteAllowLerping (e, psprite))
 		lerp = R_GetSpriteFrameInterpolant (e, &oldframe, &frame);
-	/*else
-		frame = oldframe = R_GetSpriteFrame (model, e->curstate.frame, e->angles[YAW]);*/
 	else
 		frame = oldframe = gEngfuncs.R_GetSpriteFrame (model, e->curstate.frame, e->angles[YAW]);
 
-	type = psprite->type;
+	/*type = psprite->type;*/
+	int type = psprite->type;
 
 	// automatically roll parallel sprites if requested
 	if ((e->angles[ROLL] != 0.0f) && (type == SPR_FWD_PARALLEL))
@@ -881,21 +556,26 @@ void R_DrawSpriteModel (cl_entity_t *e)
 	switch (type)
 		{
 		case SPR_ORIENTED:
+			{
+			vec3_t v_forward;
+
 			AngleVectors (e->angles, v_forward, v_right, v_up);
 			VectorScale (v_forward, 0.01f, v_forward);	// to avoid z-fighting
 			VectorSubtract (origin, v_forward, origin);
 			break;
+			}
 
-		// [FWGS, 01.05.26]
 		case SPR_FACING_UPRIGHT:
-			/*VectorSet (v_right, origin[1] - RI.vieworg[1], -(origin[0] - RI.vieworg[0]), 0.0f);*/
 			VectorSet (v_right, origin[1] - RI.rvp.vieworigin[1], -(origin[0] - RI.rvp.vieworigin[0]), 0.0f);
 			VectorSet (v_up, 0.0f, 0.0f, 1.0f);
 			VectorNormalize (v_right);
 			break;
 
 		case SPR_FWD_PARALLEL_UPRIGHT:
-			dot = RI.vforward[2];
+			{
+			float dot = RI.vforward[2];
+			/*dot = RI.vforward[2];*/
+
 			if ((dot > 0.999848f) || (dot < -0.999848f))	// cos(1 degree) = 0.999848
 				return;	// invisible
 
@@ -903,16 +583,23 @@ void R_DrawSpriteModel (cl_entity_t *e)
 			VectorSet (v_right, RI.vforward[1], -RI.vforward[0], 0.0f);
 			VectorNormalize (v_right);
 			break;
+			}
 
 		case SPR_FWD_PARALLEL_ORIENTED:
-			angle = e->angles[ROLL] * (M_PI2 / 360.0f);
+			{
+			float angle = e->angles[ROLL] * (M_PI2 / 360.0f);
+			float sr, cr;
+			/*angle = e->angles[ROLL] * (M_PI2 / 360.0f);*/
+
 			SinCos (angle, &sr, &cr);
-			for (i = 0; i < 3; i++)
+			/*for (i = 0; i < 3; i++)*/
+			for (int i = 0; i < 3; i++)
 				{
 				v_right[i] = (RI.vright[i] * cr + RI.vup[i] * sr);
 				v_up[i] = RI.vright[i] * -sr + RI.vup[i] * cr;
 				}
 			break;
+			}
 
 		case SPR_FWD_PARALLEL:	// normal sprite
 		default:
@@ -935,7 +622,8 @@ void R_DrawSpriteModel (cl_entity_t *e)
 		{
 		// draw two combined lerped frames
 		lerp = bound (0.0f, lerp, 1.0f);
-		ilerp = 1.0f - lerp;
+		/*ilerp = 1.0f - lerp;*/
+		float ilerp = 1.0f - lerp;
 
 		if (ilerp != 0.0f)
 			{
@@ -970,7 +658,7 @@ void R_DrawSpriteModel (cl_entity_t *e)
 		R_DrawSpriteQuad (frame, origin, v_right, v_up, scale);
 		pglAlphaFunc (GL_GREATER, DEFAULT_ALPHATEST);
 		pglDepthFunc (GL_LEQUAL);
-		pglDisable (GL_BLEND);	// [FWGS, 01.04.25]
+		pglDisable (GL_BLEND);
 		}
 
 	if (psprite->facecull == SPR_CULL_NONE)

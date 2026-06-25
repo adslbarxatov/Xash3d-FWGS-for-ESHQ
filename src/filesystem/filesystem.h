@@ -159,7 +159,9 @@ typedef struct fs_globals_t
 // [FWGS, 01.02.25]
 typedef struct file_s file_t;
 
-typedef struct fs_api_t
+// ESHQ: исправление дефектного определения
+/*typedef struct fs_api_t*/
+struct fs_api_t
 	{
 	qboolean (*InitStdio)(qboolean unused_set_to_true, const char *rootdir, const char *basedir,
 		const char *gamedir, const char *rodir);
@@ -185,7 +187,7 @@ typedef struct fs_api_t
 	fs_offset_t (*Write)(file_t *file, const void *data, size_t datasize);
 	fs_offset_t (*Read)(file_t *file, void *buffer, size_t buffersize);
 	int (*Seek)(file_t *file, fs_offset_t offset, int whence);
-	
+
 	// [FWGS, 01.04.26]
 	fs_offset_t (*Tell)(const file_t *file);
 	qboolean (*Eof)(const file_t *file);
@@ -220,12 +222,12 @@ typedef struct fs_api_t
 	qboolean (*Delete)(const char *path);
 	qboolean (*SysFileExists)(const char *path);
 	const char *(*GetDiskPath)(const char *name, qboolean gamedironly);
-	
+
 	// [FWGS, 01.07.24]
 	const char *(*ArchivePath)(file_t *f);	// returns path to archive from which file was opened or "plain"
 	void *(*MountArchive_Fullpath)(const char *path, int flags);	// mounts the archive by path, if supported
 	qboolean (*GetFullDiskPath)(char *buffer, size_t size, const char *name, qboolean gamedironly);
-	
+
 	// [FWGS, 01.03.24] like LoadFile but returns pointer that can be free'd using standard library function
 	byte *(*LoadFileMalloc)(const char *path, fs_offset_t *filesizeptr, qboolean gamedironly);
 
@@ -243,7 +245,7 @@ typedef struct fs_api_t
 	// similarly to Open, opens file but from specified archive
 	// NOTE: for speed reasons, path is case-sensitive here!
 	// Use FindFileInArchive to retrieve real path from caseinsensitive FS emulation!
-	file_t *(*OpenFileFromArchive)(searchpath_t *, const char *path, const char *mode, int pack_ind);
+	file_t *(*OpenFileFromArchive)(searchpath_t *sp, const char *path, const char *mode, int pack_ind);
 
 	// similarly to LoadFile, loads whole file into memory from specified archive
 	// NOTE: for speed reasons, path is case-sensitive here!
@@ -259,7 +261,7 @@ typedef struct fs_api_t
 
 	// [FWGS, 01.07.26]
 	void (*FindFile_f)(const char *filename);
-	} fs_api_t;
+	} /*fs_api_t*/;
 
 typedef struct fs_interface_t
 	{
@@ -285,8 +287,8 @@ typedef struct fs_interface_t
 	void *(*_Sys_GetNativeObject)(const char *object);
 	} fs_interface_t;
 
-// [FWGS, 01.08.24]
-typedef int (*FSAPI)(int version, fs_api_t *api, fs_globals_t **globals, const fs_interface_t *interface);
+// ESHQ: исправление дефектного определения
+typedef int (*FSAPI)(int version, struct fs_api_t *api, fs_globals_t **globals, const fs_interface_t *interface);
 #define GET_FS_API "GetFSAPI"
 
 #ifdef __cplusplus
