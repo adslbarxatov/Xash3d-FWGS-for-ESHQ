@@ -80,23 +80,29 @@ qboolean R_OpaqueEntity (cl_entity_t *ent)
 
 /***
 ===============
-R_TransEntityCompare
+R_TransEntityCompare [FWGS, 01.07.26]
 
 Sorting translucent entities by rendermode then by distance
 ===============
 ***/
 static int R_TransEntityCompare (const void *a, const void *b)
 	{
-	cl_entity_t *ent1, *ent2;
+	/*cl_entity_t *ent1, *ent2;
 	vec3_t		vecLen, org;
 	float		dist1, dist2;
 	int		rendermode1;
-	int		rendermode2;
+	int		rendermode2;*/
+	cl_entity_t	*ent1 = *(cl_entity_t **)a;
+	cl_entity_t	*ent2 = *(cl_entity_t **)b;
+	int	rendermode1 = R_GetEntityRenderMode (ent1);
+	int	rendermode2 = R_GetEntityRenderMode (ent2);
 
-	ent1 = *(cl_entity_t **)a;
+	/*ent1 = *(cl_entity_t **)a;
 	ent2 = *(cl_entity_t **)b;
 	rendermode1 = R_GetEntityRenderMode (ent1);
-	rendermode2 = R_GetEntityRenderMode (ent2);
+	rendermode2 = R_GetEntityRenderMode (ent2);*/
+	vec3_t vecLen, org;
+	float dist1, dist2;
 
 	// ESHQ: сортировка по дистанции без игнорирования аддитивных текстур (иначе наблюдаются проблемы с
 	// прозрачными текстурами при взгляде на объекты с точки ниже их центра)
@@ -105,8 +111,6 @@ static int R_TransEntityCompare (const void *a, const void *b)
 		VectorAverage (ent1->model->mins, ent1->model->maxs, org);
 		VectorAdd (ent1->origin, org, org);
 
-		// [FWGS, 01.05.26]
-		/*VectorSubtract (RI.vieworg, org, vecLen);*/
 		VectorSubtract (RI.rvp.vieworigin, org, vecLen);
 		dist1 = DotProduct (vecLen, vecLen);
 		}
@@ -120,8 +124,6 @@ static int R_TransEntityCompare (const void *a, const void *b)
 		VectorAverage (ent2->model->mins, ent2->model->maxs, org);
 		VectorAdd (ent2->origin, org, org);
 
-		// [FWGS, 01.05.26]
-		/*VectorSubtract (RI.vieworg, org, vecLen);*/
 		VectorSubtract (RI.rvp.vieworigin, org, vecLen);
 		dist2 = DotProduct (vecLen, vecLen);
 		}
@@ -146,7 +148,7 @@ static int R_TransEntityCompare (const void *a, const void *b)
 
 /***
 ===============
-R_WorldToScreen
+R_WorldToScreen [FWGS, 01.07.26]
 
 Convert a given point from world into screen space
 Returns true if we behind to screen
@@ -154,22 +156,27 @@ Returns true if we behind to screen
 ***/
 int R_WorldToScreen (const vec3_t point, vec3_t screen)
 	{
-	matrix4x4	worldToScreen;
+	/*matrix4x4	worldToScreen;
 	qboolean	behind;
-	float	w;
+	float	w;*/
 
 	if (!point || !screen)
 		return true;
 
+	matrix4x4 worldToScreen;
 	Matrix4x4_Copy (worldToScreen, RI.worldviewProjectionMatrix);
 	screen[0] = worldToScreen[0][0] * point[0] + worldToScreen[0][1] * point[1] + worldToScreen[0][2] *
 		point[2] + worldToScreen[0][3];
 	screen[1] = worldToScreen[1][0] * point[0] + worldToScreen[1][1] * point[1] + worldToScreen[1][2] *
 		point[2] + worldToScreen[1][3];
-	w = worldToScreen[3][0] * point[0] + worldToScreen[3][1] * point[1] + worldToScreen[3][2] * point[2] +
+
+	/*w = worldToScreen[3][0] * point[0] + worldToScreen[3][1] * point[1] + worldToScreen[3][2] * point[2] +
+		worldToScreen[3][3];*/
+	float w = worldToScreen[3][0] * point[0] + worldToScreen[3][1] * point[1] + worldToScreen[3][2] * point[2] +
 		worldToScreen[3][3];
 	screen[2] = 0.0f;	// just so we have something valid here
 
+	qboolean behind;
 	if (w < 0.001f)
 		{
 		behind = true;
@@ -187,19 +194,20 @@ int R_WorldToScreen (const vec3_t point, vec3_t screen)
 
 /***
 ===============
-R_ScreenToWorld
+R_ScreenToWorld [FWGS, 01.07.26]
 
 Convert a given point from screen into world space
 ===============
 ***/
 void R_ScreenToWorld (const vec3_t screen, vec3_t point)
 	{
-	matrix4x4	screenToWorld;
-	float	w;
+	/*matrix4x4	screenToWorld;
+	float	w;*/
 
 	if (!point || !screen)
 		return;
 
+	matrix4x4 screenToWorld;
 	Matrix4x4_Invert_Full (screenToWorld, RI.worldviewProjectionMatrix);
 
 	point[0] = screen[0] * screenToWorld[0][0] + screen[1] * screenToWorld[0][1] + screen[2] *
@@ -208,9 +216,13 @@ void R_ScreenToWorld (const vec3_t screen, vec3_t point)
 		screenToWorld[1][2] + screenToWorld[1][3];
 	point[2] = screen[0] * screenToWorld[2][0] + screen[1] * screenToWorld[2][1] + screen[2] *
 		screenToWorld[2][2] + screenToWorld[2][3];
-	w = screen[0] * screenToWorld[3][0] + screen[1] * screenToWorld[3][1] + screen[2] *
+
+	/*w = screen[0] * screenToWorld[3][0] + screen[1] * screenToWorld[3][1] + screen[2] *
+		screenToWorld[3][2] + screenToWorld[3][3];*/
+	float w = screen[0] * screenToWorld[3][0] + screen[1] * screenToWorld[3][1] + screen[2] *
 		screenToWorld[3][2] + screenToWorld[3][3];
-	if (w != 0.0f) VectorScale (point, (1.0f / w), point);
+	if (w != 0.0f)
+		VectorScale (point, (1.0f / w), point);
 	}
 
 /***
@@ -265,9 +277,6 @@ qboolean R_AddEntity (struct cl_entity_s *clent, int type)
 		return false;	// not allow to drawing
 
 	// [FWGS, 01.05.26]
-	/*if (!clent || !clent->model)
-		return false;	// if set to invisible, skip*/
-
 	if (FBitSet (clent->curstate.effects, EF_NODRAW))
 		return false;	// done
 
@@ -283,14 +292,9 @@ qboolean R_AddEntity (struct cl_entity_s *clent, int type)
 		case ET_TEMPENTITY:
 			r_stats.c_active_tents_count++;
 			break;
-
-		// [FWGS, 01.05.26]
-		/*default:
-			break;*/
 		}
 
 	// [FWGS, 01.05.26]
-	/*if (R_OpaqueEntity (clent))*/
 	if (type == ET_BEAM)
 		{
 		if (tr.draw_list->num_beam_entities >= MAX_VISIBLE_PACKET)
@@ -328,19 +332,20 @@ qboolean R_AddEntity (struct cl_entity_s *clent, int type)
 
 /***
 =============
-R_Clear
+R_Clear [FWGS, 01.07.26]
 =============
 ***/
 static void R_Clear (int bitMask)
 	{
-	int	bits;
+	/*int	bits;*/
 
 	if (ENGINE_GET_PARM (PARM_DEV_OVERVIEW))
 		pglClearColor (0.0f, 1.0f, 0.0f, 1.0f);	// green background (Valve rules)
 	else
 		pglClearColor (0.5f, 0.5f, 0.5f, 1.0f);
 
-	bits = GL_DEPTH_BUFFER_BIT;
+	/*bits = GL_DEPTH_BUFFER_BIT;*/
+	int bits = GL_DEPTH_BUFFER_BIT;
 
 	if (glState.stencilEnabled)
 		bits |= GL_STENCIL_BUFFER_BIT;
@@ -349,8 +354,7 @@ static void R_Clear (int bitMask)
 
 	pglClear (bits);
 
-	// [FWGS, 01.05.26] change ordering for overview
-	/*if (RI.drawOrtho)*/
+	// change ordering for overview
 	if (FBitSet (RI.rvp.flags, RF_DRAW_OVERVIEW))
 		{
 		gldepthmin = 1.0f;
@@ -375,8 +379,6 @@ R_GetFarClip [FWGS, 01.05.26]
 ***/
 static float R_GetFarClip (void)
 	{
-	/*if (WORLDMODEL && RI.drawWorld)
-		return tr.movevars->zmax * 1.73f;*/
 	if (WORLDMODEL && FBitSet (RI.rvp.flags, RF_DRAW_WORLD))
 		return gp_movevars->zmax * 1.73f;
 
@@ -390,37 +392,21 @@ R_SetupFrustum [FWGS, 01.05.26]
 ***/
 void R_SetupFrustum (void)
 	{
-	/*const ref_overview_t *ov = gEngfuncs.GetOverviewParms ();
-
-	// [FWGS, 05.04.26]
-	if (RP_NORMALPASS () && FBitSet (gp_host->features, ENGINE_QUAKE_COMPATIBLE) && (ENGINE_GET_PARM (PARM_WATER_LEVEL) >= 3))
-		{
-		RI.fov_x = atan (tan (DEG2RAD (RI.fov_x) / 2) * (0.97f + sin (gp_cl->time * 1.5f) * 0.03f)) *
-			2 / (M_PI_F / 180.0f);
-		RI.fov_y = atan (tan (DEG2RAD (RI.fov_y) / 2) * (1.03f - sin (gp_cl->time * 1.5f) * 0.03f)) *
-			2 / (M_PI_F / 180.0f);
-		}*/
-
 	// build the transformation matrix for the given view angles
-	/*AngleVectors (RI.viewangles, RI.vforward, RI.vright, RI.vup);*/
 	AngleVectors (RI.rvp.viewangles, RI.vforward, RI.vright, RI.vup);
 
 	if (!r_lockfrustum.value)
 		{
-		/*VectorCopy (RI.vieworg, RI.cullorigin);*/
 		VectorCopy (RI.rvp.vieworigin, RI.cullorigin);
 		VectorCopy (RI.vforward, RI.cull_vforward);
 		VectorCopy (RI.vright, RI.cull_vright);
 		VectorCopy (RI.vup, RI.cull_vup);
 		}
 
-	/*if (RI.drawOrtho)*/
 	if (FBitSet (RI.rvp.flags, RF_DRAW_OVERVIEW))
 		{
 		const ref_overview_t *ov = gEngfuncs.GetOverviewParms ();
 		GL_FrustumInitOrtho (&RI.frustum, ov->xLeft, ov->xRight, ov->yTop, ov->yBottom, ov->zNear, ov->zFar);
-		/*else
-		GL_FrustumInitProj (&RI.frustum, 0.0f, R_GetFarClip (), RI.fov_x, RI.fov_y);*/
 		}
 	else
 		{
@@ -431,14 +417,13 @@ void R_SetupFrustum (void)
 
 /***
 =============
-R_SetupProjectionMatrix [FWGS, 01.05.26]
+R_SetupProjectionMatrix [FWGS, 01.07.26]
 =============
 ***/
 static void R_SetupProjectionMatrix (matrix4x4 m)
 	{
-	GLfloat	xMin, xMax, yMin, yMax, zNear, zFar;
+	/*GLfloat	xMin, xMax, yMin, yMax, zNear, zFar;*/
 
-	/*if (RI.drawOrtho)*/
 	if (FBitSet (RI.rvp.flags, RF_DRAW_OVERVIEW))
 		{
 		const ref_overview_t *ov = gEngfuncs.GetOverviewParms ();
@@ -448,16 +433,20 @@ static void R_SetupProjectionMatrix (matrix4x4 m)
 
 	RI.farClip = R_GetFarClip ();
 
-	zNear = 4.0f;
-	zFar = Q_max (256.0f, RI.farClip);
+	/*zNear = 4.0f;
+	zFar = Q_max (256.0f, RI.farClip);*/
+	GLfloat zNear = 4.0f;
+	GLfloat zFar = Q_max (256.0f, RI.farClip);
 
-	/*yMax = zNear * tan (RI.fov_y * M_PI_F / 360.0f);*/
-	yMax = zNear * tan (RI.rvp.fov_y * M_PI_F / 360.0f);
-	yMin = -yMax;
+	/*yMax = zNear * tan (RI.rvp.fov_y * M_PI_F / 360.0f);
+	yMin = -yMax;*/
+	GLfloat yMax = zNear * tan (RI.rvp.fov_y * M_PI_F / 360.0f);
+	GLfloat yMin = -yMax;
 
-	/*xMax = zNear * tan (RI.fov_x * M_PI_F / 360.0f);*/
-	xMax = zNear * tan (RI.rvp.fov_x * M_PI_F / 360.0f);
-	xMin = -xMax;
+	/*xMax = zNear * tan (RI.rvp.fov_x * M_PI_F / 360.0f);
+	xMin = -xMax;*/
+	GLfloat xMax = zNear * tan (RI.rvp.fov_x * M_PI_F / 360.0f);
+	GLfloat xMin = -xMax;
 
 	if (tr.rotation & 1)
 		Matrix4x4_CreateProjection (m, yMax, yMin, xMax, xMin, zNear, zFar);
@@ -476,24 +465,17 @@ static void R_SetupModelviewMatrix (matrix4x4 m)
 
 	if (tr.rotation & 1)
 		{
-		/*Matrix4x4_ConcatRotate (m, anglemod (-RI.viewangles[2] + 90), 1, 0, 0);
-		Matrix4x4_ConcatRotate (m, -RI.viewangles[0], 0, 1, 0);
-		Matrix4x4_ConcatRotate (m, -RI.viewangles[1], 0, 0, 1);*/
 		Matrix4x4_ConcatRotate (m, anglemod (-RI.rvp.viewangles[2] + 90), 1, 0, 0);
 		Matrix4x4_ConcatRotate (m, -RI.rvp.viewangles[0], 0, 1, 0);
 		Matrix4x4_ConcatRotate (m, -RI.rvp.viewangles[1], 0, 0, 1);
 		}
 	else
 		{
-		/*Matrix4x4_ConcatRotate (m, -RI.viewangles[2], 1, 0, 0);
-		Matrix4x4_ConcatRotate (m, -RI.viewangles[0], 0, 1, 0);
-		Matrix4x4_ConcatRotate (m, -RI.viewangles[1], 0, 0, 1);*/
 		Matrix4x4_ConcatRotate (m, -RI.rvp.viewangles[2], 1, 0, 0);
 		Matrix4x4_ConcatRotate (m, -RI.rvp.viewangles[0], 0, 1, 0);
 		Matrix4x4_ConcatRotate (m, -RI.rvp.viewangles[1], 0, 0, 1);
 		}
 
-	/*Matrix4x4_ConcatTranslate (m, -RI.vieworg[0], -RI.vieworg[1], -RI.vieworg[2]);*/
 	Matrix4x4_ConcatTranslate (m, -RI.rvp.vieworigin[0], -RI.rvp.vieworigin[1], -RI.rvp.vieworigin[2]);
 	}
 
@@ -575,7 +557,6 @@ R_FindViewLeaf [FWGS, 01.05.26]
 void R_FindViewLeaf (void)
 	{
 	RI.oldviewleaf = RI.viewleaf;
-	/*RI.viewleaf = gEngfuncs.Mod_PointInLeaf (RI.pvsorigin, WORLDMODEL->nodes);*/
 	RI.viewleaf = gEngfuncs.Mod_PointInLeaf (RI.rvp.vieworigin, WORLDMODEL->nodes, WORLDMODEL);
 	}
 
@@ -587,7 +568,6 @@ R_SetupFrame [FWGS, 01.05.26]
 static void R_SetupFrame (void)
 	{
 	// setup viewplane dist
-	/*RI.viewplanedist = DotProduct (RI.vieworg, RI.vforward);*/
 	RI.viewplanedist = DotProduct (RI.rvp.vieworigin, RI.vforward);
 
 	// NOTE: this request is the fps-killer on some NVidia drivers
@@ -600,17 +580,13 @@ static void R_SetupFrame (void)
 		}
 
 	// current viewleaf
-	/*if (RI.drawWorld)
-		{
-		RI.isSkyVisible = false;	// unknown at this moment*/
 	if (FBitSet (RI.rvp.flags, RF_DRAW_WORLD))
 		R_FindViewLeaf ();
-		/*}*/
 	}
 
 /***
 =============
-R_SetupGL
+R_SetupGL [FWGS, 01.07.26]
 =============
 ***/
 void R_SetupGL (qboolean set_gl_state)
@@ -623,21 +599,19 @@ void R_SetupGL (qboolean set_gl_state)
 	if (!set_gl_state)
 		return;
 
-	// [FWGS, 01.05.26]
-	/*if (RP_NORMALPASS ())*/
 	if (!FBitSet (RI.rvp.flags, RF_DRAW_CUBEMAP))
 		{
-		int x, x2, y, y2;
+		/*int x, x2, y, y2;*/
 
 		// set up viewport (main, playersetup)
-		/*x = floor (RI.viewport[0] * gpGlobals->width / gpGlobals->width);
-		x2 = ceil ((RI.viewport[0] + RI.viewport[2]) * gpGlobals->width / gpGlobals->width);
-		y = floor (gpGlobals->height - RI.viewport[1] * gpGlobals->height / gpGlobals->height);
-		y2 = ceil (gpGlobals->height - (RI.viewport[1] + RI.viewport[3]) * gpGlobals->height / gpGlobals->height);*/
-		x = floor (RI.rvp.viewport[0] * gpGlobals->width / gpGlobals->width);
+		/*x = floor (RI.rvp.viewport[0] * gpGlobals->width / gpGlobals->width);
 		x2 = ceil ((RI.rvp.viewport[0] + RI.rvp.viewport[2]) * gpGlobals->width / gpGlobals->width);
 		y = floor (gpGlobals->height - RI.rvp.viewport[1] * gpGlobals->height / gpGlobals->height);
-		y2 = ceil (gpGlobals->height - (RI.rvp.viewport[1] + RI.rvp.viewport[3]) * gpGlobals->height / gpGlobals->height);
+		y2 = ceil (gpGlobals->height - (RI.rvp.viewport[1] + RI.rvp.viewport[3]) * gpGlobals->height / gpGlobals->height);*/
+		int x = floor (RI.rvp.viewport[0] * gpGlobals->width / gpGlobals->width);
+		int x2 = ceil ((RI.rvp.viewport[0] + RI.rvp.viewport[2]) * gpGlobals->width / gpGlobals->width);
+		int y = floor (gpGlobals->height - RI.rvp.viewport[1] * gpGlobals->height / gpGlobals->height);
+		int y2 = ceil (gpGlobals->height - (RI.rvp.viewport[1] + RI.rvp.viewport[3]) * gpGlobals->height / gpGlobals->height);
 
 		if (tr.rotation & 1)
 			pglViewport (y2, x, y - y2, x2 - x);
@@ -647,7 +621,6 @@ void R_SetupGL (qboolean set_gl_state)
 	else
 		{
 		// envpass, mirrorpass
-		/*pglViewport (RI.viewport[0], RI.viewport[1], RI.viewport[2], RI.viewport[3]);*/
 		pglViewport (RI.rvp.viewport[0], RI.rvp.viewport[1], RI.rvp.viewport[2], RI.rvp.viewport[3]);
 		}
 
@@ -657,21 +630,6 @@ void R_SetupGL (qboolean set_gl_state)
 	pglMatrixMode (GL_MODELVIEW);
 	GL_LoadMatrix (RI.worldviewMatrix);
 
-	// [FWGS, 01.05.26]
-	/*if (FBitSet (RI.params, RP_CLIPPLANE))
-		{
-		GLdouble	clip[4];
-		mplane_t	*p = &RI.clipPlane;
-
-		clip[0] = p->normal[0];
-		clip[1] = p->normal[1];
-		clip[2] = p->normal[2];
-		clip[3] = -p->dist;
-
-		pglClipPlane (GL_CLIP_PLANE0, clip);
-		pglEnable (GL_CLIP_PLANE0);
-		}*/
-
 	GL_Cull (GL_FRONT);
 
 	pglDisable (GL_BLEND);
@@ -680,20 +638,10 @@ void R_SetupGL (qboolean set_gl_state)
 	}
 
 // [FWGS, 01.05.26] removed R_EndGL
-/*
-=============
-R_EndGL
-=============
-/
-static void R_EndGL (void)
-	{
-	if (RI.params & RP_CLIPPLANE)
-		pglDisable (GL_CLIP_PLANE0);
-	}*/
 
 /***
 =============
-R_RecursiveFindWaterTexture [FWGS, 15.04.26]
+R_RecursiveFindWaterTexture [FWGS, 01.07.26]
 
 using to find source waterleaf with
 watertexture to grab fog values from it
@@ -714,9 +662,9 @@ static gl_texture_t *R_RecursiveFindWaterTexture (const mnode_t *node, const mno
 
 	if (node->contents < 0)
 		{
-		mleaf_t *pleaf;
+		/*mleaf_t *pleaf;
 		msurface_t **mark;
-		int		i, c;
+		int		i, c;*/
 
 		// ignore non-liquid leaves
 		if ((node->contents != CONTENTS_WATER) && (node->contents != CONTENTS_LAVA) &&
@@ -724,11 +672,15 @@ static gl_texture_t *R_RecursiveFindWaterTexture (const mnode_t *node, const mno
 			return NULL;
 
 		// find texture
-		pleaf = (mleaf_t *)node;
+		/*pleaf = (mleaf_t *)node;
 		mark = pleaf->firstmarksurface;
-		c = pleaf->nummarksurfaces;
+		c = pleaf->nummarksurfaces;*/
+		mleaf_t *pleaf = (mleaf_t *)node;
+		msurface_t **mark = pleaf->firstmarksurface;
+		int c = pleaf->nummarksurfaces;
 
-		for (i = 0; i < c; i++, mark++)
+		/*for (i = 0; i < c; i++, mark++)*/
+		for (int i = 0; i < c; i++, mark++)
 			{
 			if ((*mark)->flags & SURF_DRAWTURB && (*mark)->texinfo && (*mark)->texinfo->texture)
 				return R_GetTexture ((*mark)->texinfo->texture->gl_texturenum);
@@ -771,7 +723,7 @@ static gl_texture_t *R_RecursiveFindWaterTexture (const mnode_t *node, const mno
 
 /***
 =============
-R_CheckFog
+R_CheckFog [FWGS, 01.07.26]
 
 check for underwater fog
 Using backward recursion to find waterline leaf
@@ -780,13 +732,12 @@ from underwater leaf (idea: XaeroX)
 ***/
 static void R_CheckFog (void)
 	{
-	cl_entity_t		*ent;
+	/*cl_entity_t		*ent;
 	gl_texture_t	*tex;
-	int				i, cnt, count;
+	int				i, cnt, count;*/
 
-	// [FWGS, 05.04.26] quake global fog
+	// quake global fog
 	if ((ENGINE_GET_PARM (PARM_WATER_LEVEL) < 3) &&
-		/*(FBitSet (gp_host->features, ENGINE_QUAKE_COMPATIBLE) || tr.movevars->fog_settings))*/
 		(FBitSet (gp_host->features, ENGINE_QUAKE_COMPATIBLE) || gp_movevars->fog_settings))
 		{
 		// ESHQ: поддержка тумана
@@ -810,16 +761,11 @@ static void R_CheckFog (void)
 			return;
 			}
 
-		// [FWGS, 01.05.26] quake-style global fog
-		/*RI.fogColor[0] = ((tr.movevars->fog_settings & 0xFF000000) >> 24) / 255.0f;
-		RI.fogColor[1] = ((tr.movevars->fog_settings & 0xFF0000) >> 16) / 255.0f;
-		RI.fogColor[2] = ((tr.movevars->fog_settings & 0xFF00) >> 8) / 255.0f;
-		RI.fogDensity = ((tr.movevars->fog_settings & 0xFF) / 255.0f) * 0.01f;*/
+		// quake-style global fog
 		RI.fogColor[0] = ((gp_movevars->fog_settings & 0xFF000000) >> 24) / 255.0f;
 		RI.fogColor[1] = ((gp_movevars->fog_settings & 0xFF0000) >> 16) / 255.0f;
 		RI.fogColor[2] = ((gp_movevars->fog_settings & 0xFF00) >> 8) / 255.0f;
 		RI.fogDensity = ((gp_movevars->fog_settings & 0xFF) / 255.0f) * 0.01f;
-
 		RI.fogStart = RI.fogEnd = 0.0f;
 		RI.fogColor[3] = 1.0f;
 		RI.fogCustom = false;
@@ -830,8 +776,6 @@ static void R_CheckFog (void)
 
 	RI.fogEnabled = false;
 
-	// [FWGS, 01.05.26]
-	/*if (RI.onlyClientDraw || (ENGINE_GET_PARM (PARM_WATER_LEVEL) < 3) || !RI.drawWorld || !RI.viewleaf)*/
 	if (FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW) || (ENGINE_GET_PARM (PARM_WATER_LEVEL) < 3) ||
 		!FBitSet (RI.rvp.flags, RF_DRAW_WORLD) || !RI.viewleaf)
 		{
@@ -849,9 +793,11 @@ static void R_CheckFog (void)
 		return;
 		}
 
-	// [FWGS, 01.05.26]
-	/*ent = gEngfuncs.CL_GetWaterEntity (RI.vieworg);*/
-	ent = gEngfuncs.CL_GetWaterEntity (RI.rvp.vieworigin);
+	/*// [FWGS, 01.05.26]
+	ent = gEngfuncs.CL_GetWaterEntity (RI.rvp.vieworigin);*/
+	cl_entity_t *ent = gEngfuncs.CL_GetWaterEntity (RI.rvp.vieworigin);
+	int cnt;
+
 	if (ent && ent->model && (ent->model->type == mod_brush) && (ent->curstate.skin < 0))
 		cnt = ent->curstate.skin;
 	else
@@ -860,16 +806,20 @@ static void R_CheckFog (void)
 	RI.cached_waterlevel = ENGINE_GET_PARM (PARM_WATER_LEVEL);
 
 	// ESHQ: отменено исправление, выводящее подводный туман из строя
-	tex = NULL;
+	/*tex = NULL;*/
+	gl_texture_t *tex = NULL;
 
 	// check for water texture
 	if (ent && ent->model && (ent->model->type == mod_brush))
 		{
-		msurface_t *surf;
+		/*msurface_t *surf;
 
-		count = ent->model->nummodelsurfaces;
+		count = ent->model->nummodelsurfaces;*/
+		int count = ent->model->nummodelsurfaces;
 
-		for (i = 0, surf = &ent->model->surfaces[ent->model->firstmodelsurface]; i < count; i++, surf++)
+		/*for (i = 0, surf = &ent->model->surfaces[ent->model->firstmodelsurface]; i < count; i++, surf++)*/
+		msurface_t *surf = &ent->model->surfaces[ent->model->firstmodelsurface];
+		for (int i = 0; i < count; i++, surf++)
 			{
 			if (surf->flags & SURF_DRAWTURB && surf->texinfo && surf->texinfo->texture)
 				{
@@ -937,22 +887,25 @@ void R_DrawFog (void)
 
 /***
 =============
-R_DrawEntitiesOnList
+R_DrawEntitiesOnList [FWGS, 01.07.26]
 =============
 ***/
 static void R_DrawEntitiesOnList (void)
 	{
-	int	i;
+	/*int	i;*/
 
 	tr.blend = 1.0f;
 	GL_CheckForErrors ();
 
-	// [FWGS, 01.05.26] first draw solid entities
-	/*for (i = 0; i < tr.draw_list->num_solid_entities && !RI.onlyClientDraw; i++)*/
-	for (i = 0; (i < tr.draw_list->num_solid_entities) && !FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW); i++)
+	// first draw solid entities
+	/*for (i = 0; (i < tr.draw_list->num_solid_entities) && !FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW); i++)*/
+	for (int i = 0; i < tr.draw_list->num_solid_entities && !FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW); i++)
 		{
 		RI.currententity = tr.draw_list->solid_entities[i];
 		RI.currentmodel = RI.currententity->model;
+
+		if (!RI.currentmodel && RI.currententity->player && !FBitSet (RI.rvp.flags, RF_DRAW_WORLD))
+			continue;
 
 		Assert (RI.currententity != NULL);
 		Assert (RI.currentmodel != NULL);
@@ -983,12 +936,15 @@ static void R_DrawEntitiesOnList (void)
 
 	GL_CheckForErrors ();
 
-	// [FWGS, 01.05.26] draw sprites seperately, because of alpha blending
-	/*for (i = 0; i < tr.draw_list->num_solid_entities && !RI.onlyClientDraw; i++)*/
-	for (i = 0; (i < tr.draw_list->num_solid_entities) && !FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW); i++)
+	// draw sprites seperately, because of alpha blending
+	/*for (i = 0; (i < tr.draw_list->num_solid_entities) && !FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW); i++)*/
+	for (int i = 0; i < tr.draw_list->num_solid_entities && !FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW); i++)
 		{
 		RI.currententity = tr.draw_list->solid_entities[i];
 		RI.currentmodel = RI.currententity->model;
+
+		if (!RI.currentmodel && RI.currententity->player && !FBitSet (RI.rvp.flags, RF_DRAW_WORLD))
+			continue;
 
 		Assert (RI.currententity != NULL);
 		Assert (RI.currentmodel != NULL);
@@ -1003,8 +959,6 @@ static void R_DrawEntitiesOnList (void)
 
 	GL_CheckForErrors ();
 
-	// [FWGS, 01.05.26]
-	/*if (!RI.onlyClientDraw)*/
 	if (!FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW))
 		{
 		gEngfuncs.CL_DrawEFX (tr.frametime, false);
@@ -1012,16 +966,14 @@ static void R_DrawEntitiesOnList (void)
 
 	GL_CheckForErrors ();
 
-	// [FWGS, 01.05.26]
-	/*if (RI.drawWorld)*/
 	if (FBitSet (RI.rvp.flags, RF_DRAW_WORLD))
 		gEngfuncs.pfnDrawNormalTriangles ();
 
 	GL_CheckForErrors ();
 
-	// [FWGS, 01.05.26] then draw translucent entities
-	/*for (i = 0; i < tr.draw_list->num_trans_entities && !RI.onlyClientDraw; i++)*/
-	for (i = 0; (i < tr.draw_list->num_trans_entities) && !FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW); i++)
+	// then draw translucent entities
+	/*for (i = 0; (i < tr.draw_list->num_trans_entities) && !FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW); i++)*/
+	for (int i = 0; i < tr.draw_list->num_trans_entities && !FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW); i++)
 		{
 		RI.currententity = tr.draw_list->trans_entities[i];
 		RI.currentmodel = RI.currententity->model;
@@ -1033,6 +985,9 @@ static void R_DrawEntitiesOnList (void)
 			tr.blend = 1.0f;	// draw as solid but sorted by distance
 
 		if (tr.blend <= 0.0f)
+			continue;
+
+		if (!RI.currentmodel && RI.currententity->player && !FBitSet (RI.rvp.flags, RF_DRAW_WORLD))
 			continue;
 
 		Assert (RI.currententity != NULL);
@@ -1063,8 +1018,6 @@ static void R_DrawEntitiesOnList (void)
 
 	GL_CheckForErrors ();
 
-	// [FWGS, 01.05.26]
-	/*if (RI.drawWorld)*/
 	if (FBitSet (RI.rvp.flags, RF_DRAW_WORLD))
 		{
 		pglTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -1073,8 +1026,6 @@ static void R_DrawEntitiesOnList (void)
 
 	GL_CheckForErrors ();
 
-	// [FWGS, 01.05.26]
-	/*if (!RI.onlyClientDraw)*/
 	if (!FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW))
 		{
 		R_AllowFog (false);
@@ -1086,8 +1037,6 @@ static void R_DrawEntitiesOnList (void)
 
 	pglDisable (GL_BLEND);	// Trinity Render issues
 
-	// [FWGS, 01.05.26]
-	/*if (!RI.onlyClientDraw)*/
 	if (!FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW))
 		R_DrawViewModel ();
 	gEngfuncs.CL_ExtraUpdate ();
@@ -1105,12 +1054,10 @@ R_SetupRefParams must be called right before
 void R_RenderScene (void)
 	{
 	// [FWGS, 01.05.26]
-	/*if (!WORLDMODEL && RI.drawWorld)*/
 	if (!WORLDMODEL && FBitSet (RI.rvp.flags, RF_DRAW_WORLD))
 		gEngfuncs.Host_Error ("%s: NULL worldmodel\n", __func__);
 
 	// [FWGS, 01.05.26] frametime is valid only for normal pass
-	/*if (RP_NORMALPASS ())*/
 	if (!FBitSet (RI.rvp.flags, RF_DRAW_CUBEMAP))
 		tr.frametime = gp_cl->time - gp_cl->oldtime;
 	else
@@ -1120,7 +1067,6 @@ void R_RenderScene (void)
 	tr.framecount++;
 
 	// [FWGS, 01.05.26]
-	/*R_PushDlights ();*/
 	tr.dlightframecount = R_PushDlights (WORLDMODEL, tr.framecount);
 	R_SetupFrustum ();
 	R_SetupFrame ();
@@ -1131,7 +1077,6 @@ void R_RenderScene (void)
 	R_DrawFog ();
 
 	// [FWGS, 01.05.26]
-	/*if (RI.drawWorld)*/
 	if (FBitSet (RI.rvp.flags, RF_DRAW_WORLD))
 		R_AnimateRipples ();
 
@@ -1144,7 +1089,6 @@ void R_RenderScene (void)
 	// [FWGS, 01.05.26]
 	R_DrawEntitiesOnList ();
 	R_DrawWaterSurfaces ();
-	/*R_EndGL ();*/
 	}
 
 // [FWGS, 01.01.24]
@@ -1237,30 +1181,7 @@ set initial params for renderer
 ***/
 void R_SetupRefParams (const ref_viewpass_t *rvp)
 	{
-	/*RI.params = RP_NONE;
-	RI.drawWorld = FBitSet (rvp->flags, RF_DRAW_WORLD);
-	RI.onlyClientDraw = FBitSet (rvp->flags, RF_ONLY_CLIENTDRAW);
-	RI.farClip = 0;*/
 	RI.rvp = *rvp;
-
-	/*if (!FBitSet (rvp->flags, RF_DRAW_CUBEMAP))
-		RI.drawOrtho = FBitSet (rvp->flags, RF_DRAW_OVERVIEW);
-	else
-		RI.drawOrtho = false;
-
-	// setup viewport
-	RI.viewport[0] = rvp->viewport[0];
-	RI.viewport[1] = rvp->viewport[1];
-	RI.viewport[2] = rvp->viewport[2];
-	RI.viewport[3] = rvp->viewport[3];
-
-	// calc FOV
-	RI.fov_x = rvp->fov_x;
-	RI.fov_y = rvp->fov_y;
-
-	VectorCopy (rvp->vieworigin, RI.vieworg);
-	VectorCopy (rvp->viewangles, RI.viewangles);
-	VectorCopy (rvp->vieworigin, RI.pvsorigin);*/
 	RI.farClip = 0;
 	}
 
@@ -1278,7 +1199,6 @@ void R_RenderFrame (const ref_viewpass_t *rvp)
 	R_SetupRefParams (rvp);
 
 	// [FWGS, 01.05.26]
-	/*if (gl_finish.value && RI.drawWorld)*/
 	if (gl_finish.value && FBitSet (RI.rvp.flags, RF_DRAW_WORLD))
 		pglFinish ();
 
@@ -1290,7 +1210,6 @@ void R_RenderFrame (const ref_viewpass_t *rvp)
 		// [FWGS, 01.05.26]
 		if (gEngfuncs.drawFuncs->GL_RenderFrame (rvp))
 			{
-			/*R_GatherPlayerLight ();*/
 			R_GatherPlayerLight (tr.viewent);
 			tr.realframecount++;
 			tr.fResetVis = true;
@@ -1300,7 +1219,6 @@ void R_RenderFrame (const ref_viewpass_t *rvp)
 
 	// [FWGS, 01.05.26]
 	tr.fCustomRendering = false;
-	/*if (!RI.onlyClientDraw)*/
 	if (!FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW))
 		R_RunViewmodelEvents ();
 
@@ -1358,16 +1276,18 @@ void R_DrawCubemapView (const vec3_t origin, const vec3_t angles, int size)
 
 /***
 ===============
-CL_FxBlend
+CL_FxBlend [FWGS, 01.07.26]
 ===============
 ***/
 int CL_FxBlend (cl_entity_t *e)
 	{
-	int		blend = 0;
+	/*int		blend = 0;
 	float	offset, dist;
 	vec3_t	tmp;
 
-	offset = ((int)e->index) * 363.0f;	// Use ent index to de-sync these fx
+	offset = ((int)e->index) * 363.0f;	// use ent index to de-sync these fx*/
+	int blend = 0;
+	float offset = ((int)e->index) * 363.0f;	// use ent index to de-sync these fx
 
 	switch (e->curstate.renderfx)
 		{
@@ -1387,9 +1307,7 @@ int CL_FxBlend (cl_entity_t *e)
 			blend = e->curstate.renderamt + 0x10 * sin (gp_cl->time * 8 + offset);
 			break;
 
-		// [FWGS, 01.05.26]
 		case kRenderFxFadeSlow:
-			/*if (RP_NORMALPASS ())*/
 			if (!FBitSet (RI.rvp.flags, RF_DRAW_CUBEMAP))
 				{
 				if (e->curstate.renderamt > 0)
@@ -1401,9 +1319,7 @@ int CL_FxBlend (cl_entity_t *e)
 			blend = e->curstate.renderamt;
 			break;
 
-		// [FWGS, 01.05.26]
 		case kRenderFxFadeFast:
-			/*if (RP_NORMALPASS ())*/
 			if (!FBitSet (RI.rvp.flags, RF_DRAW_CUBEMAP))
 				{
 				if (e->curstate.renderamt > 3)
@@ -1415,9 +1331,7 @@ int CL_FxBlend (cl_entity_t *e)
 			blend = e->curstate.renderamt;
 			break;
 
-		// [FWGS, 01.05.26]
 		case kRenderFxSolidSlow:
-			/*if (RP_NORMALPASS ())*/
 			if (!FBitSet (RI.rvp.flags, RF_DRAW_CUBEMAP))
 				{
 				if (e->curstate.renderamt < 255)
@@ -1429,9 +1343,7 @@ int CL_FxBlend (cl_entity_t *e)
 			blend = e->curstate.renderamt;
 			break;
 
-		// [FWGS, 01.05.26]
 		case kRenderFxSolidFast:
-			/*if (RP_NORMALPASS ())*/
 			if (!FBitSet (RI.rvp.flags, RF_DRAW_CUBEMAP))
 				{
 				if (e->curstate.renderamt < 252)
@@ -1483,13 +1395,14 @@ int CL_FxBlend (cl_entity_t *e)
 				blend = e->curstate.renderamt;
 			break;
 
-		// [FWGS, 01.05.26]
 		case kRenderFxHologram:
 		case kRenderFxDistort:
-			VectorCopy (e->origin, tmp);
-			/*VectorSubtract (tmp, RI.vieworg, tmp);*/
+			{
+			vec3_t tmp = Vec3 (e->origin);
+			/*VectorCopy (e->origin, tmp);*/
 			VectorSubtract (tmp, RI.rvp.vieworigin, tmp);
-			dist = DotProduct (tmp, RI.vforward);
+			/*dist = DotProduct (tmp, RI.vforward);*/
+			float dist = DotProduct (tmp, RI.vforward);
 
 			// turn off distance fade
 			if (e->curstate.renderfx == kRenderFxDistort)
@@ -1509,6 +1422,7 @@ int CL_FxBlend (cl_entity_t *e)
 				blend += gEngfuncs.COM_RandomLong (-32, 31);
 				}
 			break;
+			}
 
 		// ESHQ: поддержка мигалок
 		case kRenderFxLeftPoliceLight:

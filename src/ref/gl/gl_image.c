@@ -24,18 +24,6 @@ static gl_texture_t	*gl_texturesHashTable[TEXTURES_HASH_SIZE];
 static uint			gl_numTextures;
 
 // [FWGS, 01.05.26]
-/*static byte dottexture[8][8] =
-	{
-	{0,1,1,0,0,0,0,0},
-	{1,1,1,1,0,0,0,0},
-	{1,1,1,1,0,0,0,0},
-	{0,1,1,0,0,0,0,0},
-	{0,0,0,0,0,0,0,0},
-	{0,0,0,0,0,0,0,0},
-	{0,0,0,0,0,0,0,0},
-	{0,0,0,0,0,0,0,0},
-	};*/
-
 #define IsLightMap( tex )	( FBitSet(( tex )->flags, TF_ATLAS_PAGE ))
 
 /***
@@ -761,97 +749,6 @@ static void GL_SetTextureFormat (gl_texture_t *tex, pixformat_t format, int chan
 	}
 
 // [FWGS, 01.05.26] removed GL_ResampleTexture
-/*
-=================
-GL_ResampleTexture
-
-Assume input buffer is RGBA
-=================
-/
-byte *GL_ResampleTexture (const byte *source, int inWidth, int inHeight, int outWidth, int outHeight, qboolean isNormalMap)
-	{
-	uint		frac, fracStep;
-	uint		*in = (uint *)source;
-	uint		p1[0x1000], p2[0x1000];
-	byte		*pix1, *pix2, *pix3, *pix4;
-	uint		*out, *inRow1, *inRow2;
-	static byte	*scaledImage = NULL;	// pointer to a scaled image
-	vec3_t		normal;
-	int			i, x, y;
-
-	if (!source)
-		return NULL;
-
-	scaledImage = Mem_Realloc (r_temppool, scaledImage, outWidth * outHeight * 4);
-	fracStep = inWidth * 0x10000 / outWidth;
-	out = (uint *)scaledImage;
-
-	frac = fracStep >> 2;
-	for (i = 0; i < outWidth; i++)
-		{
-		p1[i] = 4 * (frac >> 16);
-		frac += fracStep;
-		}
-
-	frac = (fracStep >> 2) * 3;
-	for (i = 0; i < outWidth; i++)
-		{
-		p2[i] = 4 * (frac >> 16);
-		frac += fracStep;
-		}
-
-	if (isNormalMap)
-		{
-		for (y = 0; y < outHeight; y++, out += outWidth)
-			{
-			inRow1 = in + inWidth * (int)(((float)y + 0.25f) * inHeight / outHeight);
-			inRow2 = in + inWidth * (int)(((float)y + 0.75f) * inHeight / outHeight);
-
-			for (x = 0; x < outWidth; x++)
-				{
-				pix1 = (byte *)inRow1 + p1[x];
-				pix2 = (byte *)inRow1 + p2[x];
-				pix3 = (byte *)inRow2 + p1[x];
-				pix4 = (byte *)inRow2 + p2[x];
-
-				normal[0] = MAKE_SIGNED (pix1[0]) + MAKE_SIGNED (pix2[0]) + MAKE_SIGNED (pix3[0]) + MAKE_SIGNED (pix4[0]);
-				normal[1] = MAKE_SIGNED (pix1[1]) + MAKE_SIGNED (pix2[1]) + MAKE_SIGNED (pix3[1]) + MAKE_SIGNED (pix4[1]);
-				normal[2] = MAKE_SIGNED (pix1[2]) + MAKE_SIGNED (pix2[2]) + MAKE_SIGNED (pix3[2]) + MAKE_SIGNED (pix4[2]);
-
-				if (!VectorNormalizeLength (normal))
-					VectorSet (normal, 0.5f, 0.5f, 1.0f);
-
-				((byte *)(out + x))[0] = 128 + (byte)(127.0f * normal[0]);
-				((byte *)(out + x))[1] = 128 + (byte)(127.0f * normal[1]);
-				((byte *)(out + x))[2] = 128 + (byte)(127.0f * normal[2]);
-				((byte *)(out + x))[3] = 255;
-				}
-			}
-		}
-	else
-		{
-		for (y = 0; y < outHeight; y++, out += outWidth)
-			{
-			inRow1 = in + inWidth * (int)(((float)y + 0.25f) * inHeight / outHeight);
-			inRow2 = in + inWidth * (int)(((float)y + 0.75f) * inHeight / outHeight);
-
-			for (x = 0; x < outWidth; x++)
-				{
-				pix1 = (byte *)inRow1 + p1[x];
-				pix2 = (byte *)inRow1 + p2[x];
-				pix3 = (byte *)inRow2 + p1[x];
-				pix4 = (byte *)inRow2 + p2[x];
-
-				((byte *)(out + x))[0] = (pix1[0] + pix2[0] + pix3[0] + pix4[0]) >> 2;
-				((byte *)(out + x))[1] = (pix1[1] + pix2[1] + pix3[1] + pix4[1]) >> 2;
-				((byte *)(out + x))[2] = (pix1[2] + pix2[2] + pix3[2] + pix4[2]) >> 2;
-				((byte *)(out + x))[3] = (pix1[3] + pix2[3] + pix3[3] + pix4[3]) >> 2;
-				}
-			}
-		}
-
-	return scaledImage;
-	}*/
 
 /***
 =================
@@ -2112,34 +2009,6 @@ INTERNAL TEXTURES
 ***/
 
 // [FWGS, 01.05.26] removed GL_FakeImage
-/*
-==================
-GL_FakeImage
-==================
-/
-static rgbdata_t *GL_FakeImage (int width, int height, int depth, int flags)
-	{
-	static byte			data2D[1024];	// 16x16x4
-	static rgbdata_t	r_image;
-
-	// also use this for bad textures, but without alpha
-	r_image.width = Q_max (1, width);
-	r_image.height = Q_max (1, height);
-	r_image.depth = Q_max (1, depth);
-	r_image.flags = flags;
-	r_image.type = PF_RGBA_32;
-	r_image.size = r_image.width * r_image.height * r_image.depth * 4;
-	r_image.buffer = (r_image.size > sizeof (data2D)) ? NULL : data2D;
-	r_image.palette = NULL;
-	r_image.numMips = 1;
-	r_image.encode = 0;
-
-	if (FBitSet (r_image.flags, IMAGE_CUBEMAP))
-		r_image.size *= 6;
-	memset (data2D, 0xFF, sizeof (data2D));
-
-	return &r_image;
-	}*/
 
 /***
 ==================
@@ -2166,71 +2035,6 @@ void R_InitDlightTexture (void)
 	}
 
 // [FWGS, 01.05.26] removed GL_CreateInternalTextures
-/*
-==================
-GL_CreateInternalTextures
-==================
-/
-static void GL_CreateInternalTextures (void)
-	{
-	int		dx2, dy, d;
-	int		x, y;
-	rgbdata_t	*pic;
-
-	// emo-texture from quake1
-	pic = GL_FakeImage (16, 16, 1, IMAGE_HAS_COLOR);
-
-	for (y = 0; y < 16; y++)
-		{
-		for (x = 0; x < 16; x++)
-			{
-			if ((y < 8) ^ (x < 8))
-				((uint *)pic->buffer)[y * 16 + x] = 0xFFFF00FF;
-			else
-				((uint *)pic->buffer)[y * 16 + x] = 0xFF000000;
-			}
-		}
-
-	tr.defaultTexture = GL_LoadTextureInternal (REF_DEFAULT_TEXTURE, pic, TF_COLORMAP);
-
-	// particle texture from quake1
-	pic = GL_FakeImage (8, 8, 1, IMAGE_HAS_COLOR | IMAGE_HAS_ALPHA);
-
-	for (x = 0; x < 8; x++)
-		{
-		for (y = 0; y < 8; y++)
-			{
-			if (dottexture[x][y])
-				pic->buffer[(y * 8 + x) * 4 + 3] = 255;
-			else
-				pic->buffer[(y * 8 + x) * 4 + 3] = 0;
-			}
-		}
-
-	tr.particleTexture = GL_LoadTextureInternal (REF_PARTICLE_TEXTURE, pic, TF_CLAMP);
-
-	// white texture
-	pic = GL_FakeImage (4, 4, 1, IMAGE_HAS_COLOR);
-	for (x = 0; x < 16; x++)
-		((uint *)pic->buffer)[x] = 0xFFFFFFFF;
-	tr.whiteTexture = GL_LoadTextureInternal (REF_WHITE_TEXTURE, pic, TF_COLORMAP);
-
-	// gray texture
-	pic = GL_FakeImage (4, 4, 1, IMAGE_HAS_COLOR);
-	for (x = 0; x < 16; x++)
-		((uint *)pic->buffer)[x] = 0xFF7F7F7F;
-	tr.grayTexture = GL_LoadTextureInternal (REF_GRAY_TEXTURE, pic, TF_COLORMAP);
-
-	// black texture
-	pic = GL_FakeImage (4, 4, 1, IMAGE_HAS_COLOR);
-	for (x = 0; x < 16; x++)
-		((uint *)pic->buffer)[x] = 0xFF000000;
-	tr.blackTexture = GL_LoadTextureInternal (REF_BLACK_TEXTURE, pic, TF_COLORMAP);
-
-	// cinematic dummy
-	pic = GL_FakeImage (640, 100, 1, IMAGE_HAS_COLOR);
-	tr.cinTexture = GL_LoadTextureInternal ("*cintexture", pic, TF_NOMIPMAP | TF_CLAMP);
-	}*/
 
 /***
 ===============
@@ -2516,9 +2320,6 @@ void R_InitImages (void)
 
 	// validate cvars
 	R_SetTextureParameters ();
-
-	// [FWGS, 01.05.26]
-	/*GL_CreateInternalTextures ();*/
 
 	// [FWGS, 01.02.25]
 	gEngfuncs.Cmd_AddCommand ("texturelist", R_TextureList_f, "display loaded textures list");

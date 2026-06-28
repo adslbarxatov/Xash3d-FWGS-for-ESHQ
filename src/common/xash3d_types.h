@@ -17,6 +17,10 @@
 #define CS_SIZE			64		// size of one config string
 #define CS_TIME			16		// size of time string
 
+// [FWGS, 01.07.26] FIXME: find better place for the shared definition
+#define MAX_CLIENT_BITS	5
+#define MAX_CLIENTS		(1<<MAX_CLIENT_BITS)	// 5 bits == 32 clients ( int32 limit )
+
 // platform-specific alignment for types, to not break ABI
 #if XASH_PSP
 	#define MAYBE_ALIGNED( x ) __attribute__(( aligned( 16 )))
@@ -135,6 +139,10 @@ typedef int qboolean;
 	#define FORMAT_CHECK( x ) __attribute__(( format( printf, x, x + 1 )))
 	#define ALLOC_CHECK( x ) __attribute__(( alloc_size( x )))
 	#define WARN_UNUSED_RESULT __attribute__(( warn_unused_result ))
+
+	// [FWGS, 01.07.26]
+	#define MAYBE_UNUSED __attribute__(( unused ))
+
 	#define RENAME_SYMBOL( x ) asm( x )
 
 	// [FWGS, 01.03.26]
@@ -233,6 +241,11 @@ typedef int qboolean;
 	#define WARN_UNUSED_RESULT
 #endif
 
+// [FWGS, 01.07.26]
+#if !defined( MAYBE_UNUSED )
+	#define MAYBE_UNUSED
+#endif
+
 // [FWGS, 01.04.26]
 #if !defined( RENAME_SYMBOL )
 	#define RENAME_SYMBOL( x )
@@ -285,7 +298,6 @@ typedef int qboolean;
 #define Swap16Store( x ) ( x = Swap16( x ))
 
 // [FWGS, 01.05.26]
-/*ifdef XASH_BIG_ENDIAN*/
 #define LittleFourCC( a, b, c, d )	(((uint32_t)( d ) << 24 ) | ((uint32_t)( c ) << 16 ) | ((uint32_t)( b ) << 8 ) | (uint32_t)( a ))
 #define BigFourCC( a, b, c, d )		(((uint32_t)( a ) << 24 ) | ((uint32_t)( b ) << 16 ) | ((uint32_t)( c ) << 8 ) | (uint32_t)( d ))
 
@@ -310,5 +322,13 @@ typedef int qboolean;
 	#define BigFloat( x ) SwapFloat( x )
 	#define HostFourCC( a, b, c, d ) LittleFourCC( a, b, c, d )
 #endif
+
+// [FWGS, 01.07.26]
+static inline short UnalignedShort (short *x)
+	{
+	short y;
+	memcpy (&y, x, sizeof (y));
+	return y;
+	}
 
 #endif
