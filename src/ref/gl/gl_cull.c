@@ -46,7 +46,6 @@ qboolean R_CullModel (const cl_entity_t *e, const vec3_t absmin, const vec3_t ab
 		if (ENGINE_GET_PARM (PARM_DEV_OVERVIEW))
 			return true;
 
-		/*if (RP_NORMALPASS () && !ENGINE_GET_PARM (PARM_THIRDPERSON) && CL_IsViewEntityLocalPlayer ())*/
 		if (!FBitSet (RI.rvp.flags, RF_DRAW_CUBEMAP) && !ENGINE_GET_PARM (PARM_THIRDPERSON) &&
 			CL_IsViewEntityLocalPlayer ())
 			return false;
@@ -59,16 +58,17 @@ qboolean R_CullModel (const cl_entity_t *e, const vec3_t absmin, const vec3_t ab
 
 /***
 =================
-R_CullSurface [FWGS, 15.04.26]
+R_CullSurface [FWGS, 01.07.26]
 
 cull invisible surfaces
 =================
 ***/
 int R_CullSurface (const msurface_t *surf, const gl_frustum_t *frustum, uint clipflags)
 	{
-	cl_entity_t *e = RI.currententity;
+	/*cl_entity_t *e = RI.currententity;*/
+	const cl_entity_t *e = RI.currententity;
 
-	if (surf->visframe != tr.framecount && e == CL_GetEntityByIndex (0))
+	if ((surf->visframe != tr.framecount) && (e == CL_GetEntityByIndex (0)))
 		return CULL_VISFRAME;
 
 	if (unlikely (!surf->texinfo || !surf->texinfo->texture))
@@ -85,8 +85,7 @@ int R_CullSurface (const msurface_t *surf, const gl_frustum_t *frustum, uint cli
 		{
 		float	dist;
 
-		// [FWGS, 01.05.26] can use normal.z for world (optimisation)
-		/*if (RI.drawOrtho)*/
+		// can use normal.z for world (optimisation)
 		if (FBitSet (RI.rvp.flags, RF_DRAW_OVERVIEW))
 			{
 			vec3_t	orthonormal;
