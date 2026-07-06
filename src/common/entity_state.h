@@ -26,11 +26,12 @@ struct entity_state_s
 	{
 	// Fields which are filled in by routines outside of delta compression
 	int		entityType;
-	// Index into cl_entities array for this entity.
+
+	// Index into cl_entities array for this entity
 	int		number;
 	float		msg_time;
 
-	// Message number last time the player/entity state was updated.
+	// Message number last time the player/entity state was updated
 	int		messagenum;
 
 	// Fields which can be transitted and reconstructed over the network stream
@@ -61,16 +62,18 @@ struct entity_state_s
 	byte		blending[4];
 	vec3_t		velocity;
 
-	// Send bbox down to client for use during prediction.
+	// Send bbox down to client for use during prediction
 	vec3_t		mins;
 	vec3_t		maxs;
 
 	int		aiment;
-	// If owned by a player, the index of that player ( for projectiles ).
+
+	// If owned by a player, the index of that player (for projectiles)
 	int		owner;
 
-	// Friction, for prediction.
+	// Friction, for prediction
 	float		friction;
+
 	// Gravity multiplier
 	float		gravity;
 
@@ -81,15 +84,20 @@ struct entity_state_s
 	qboolean		spectator;
 	int		weaponmodel;
 	int		gaitsequence;
+
 	// If standing on conveyor, e.g.
 	vec3_t		basevelocity;
-	// Use the crouched hull, or the regular player hull.
+
+	// Use the crouched hull, or the regular player hull
 	int		usehull;
-	// Latched buttons last time state updated.
+
+	// Latched buttons last time state updated
 	int		oldbuttons;
+
 	// -1 = in air, else pmove entity number
 	int		onground;
 	int		iStepLeft;
+
 	// How fast we are falling
 	float		flFallVelocity;
 
@@ -128,14 +136,14 @@ typedef struct clientdata_s
 	vec3_t		punchangle;
 	int		flags;
 	int		waterlevel;
-	// Изменено для поддержки собираемых объектов
+	// ESHQ: support collectibles
 	int		collectedItems;
 	int		watertype;
 	vec3_t		view_ofs;
 	float		health;
 
 	int		bInDuck;
-	int		weapons; // remove?
+	int		weapons;	// remove?
 
 	int		flTimeStepSound;
 	int		flDuckTime;
@@ -172,7 +180,6 @@ typedef struct clientdata_s
 	vec3_t		vuser2;
 	vec3_t		vuser3;
 	vec3_t		vuser4;
-
 	} clientdata_t;
 
 #include "weaponinfo.h"

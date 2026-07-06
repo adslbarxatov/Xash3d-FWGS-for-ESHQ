@@ -46,7 +46,7 @@ static CVAR_DEFINE_AUTO (fs_mount_l10n, "0", FCVAR_PRIVILEGED,
 static CVAR_DEFINE_AUTO (ui_language, "english", FCVAR_PRIVILEGED,
 	"selected game language");
 
-fs_api_t		g_fsapi;
+fs_api_t	g_fsapi;
 fs_globals_t	*FI;
 
 static pfnCreateInterface_t fs_pfnCreateInterface;

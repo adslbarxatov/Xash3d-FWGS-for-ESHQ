@@ -16,7 +16,7 @@ GNU General Public License for more details
 #include "common.h"
 #include "entity_types.h"
 #include "studio.h"
-#include "world.h" // BOX_ON_PLANE_SIDE
+#include "world.h"	// BOX_ON_PLANE_SIDE
 #include "client.h"
 #include "xash3d_mathlib.h"
 
@@ -27,7 +27,7 @@ ENTITY FRAGMENT FUNCTIONS
 ***/
 
 // [FWGS, 01.09.24]
-#define NUM_EFRAGS_ALLOC 64 // alloc 64 efrags (1-2kb each alloc)
+#define NUM_EFRAGS_ALLOC	64	// alloc 64 efrags (1-2kb each alloc)
 
 static efrag_t		**lastlink;
 static mnode_t		*r_pefragtopnode;
@@ -38,10 +38,10 @@ static cl_entity_t	*r_addent;
 static int		cl_efrags_num;
 static efrag_t	*cl_efrags;
 
-// [FWGS, 01.09.24]
+// [FWGS, 01.07.26]
 static efrag_t *CL_AllocEfrags (int num)
 	{
-	int		i;
+	/*int		i;*/
 	efrag_t	*efrags;
 
 	if (!cl.worldmodel)
@@ -57,7 +57,8 @@ static efrag_t *CL_AllocEfrags (int num)
 	efrags = Mem_Calloc (cl.worldmodel->mempool, sizeof (*efrags) * num);
 
 	// initialize linked list
-	for (i = 0; i < num - 1; i++)
+	/*for (i = 0; i < num - 1; i++)*/
+	for (int i = 0; i < num - 1; i++)
 		efrags[i].entnext = &efrags[i + 1];
 
 	cl_efrags_num += num;
@@ -77,13 +78,13 @@ void CL_ClearEfrags (void)
 
 /***
 ===================
-R_SplitEntityOnNode
+R_SplitEntityOnNode [FWGS, 01.07.26]
 ===================
 ***/
 static void R_SplitEntityOnNode (mnode_t *node)
 	{
-	efrag_t	*ef;
-	mleaf_t	*leaf;
+	/*efrag_t	*ef;
+	mleaf_t	*leaf;*/
 	int		sides;
 
 	if (node->contents == CONTENTS_SOLID)
@@ -92,6 +93,9 @@ static void R_SplitEntityOnNode (mnode_t *node)
 	// add an efrag if the node is a leaf
 	if (node->contents < 0)
 		{
+		efrag_t *ef;
+		mleaf_t *leaf;
+
 		if (!r_pefragtopnode)
 			r_pefragtopnode = node;
 
@@ -128,11 +132,7 @@ static void R_SplitEntityOnNode (mnode_t *node)
 			r_pefragtopnode = node;
 		}
 
-	// [FWGS, 01.02.25] recurse down the contacted sides
-	/*if (sides & 1)
-		R_SplitEntityOnNode (node->children[0]);
-	if (sides & 2)
-		R_SplitEntityOnNode (node->children[1]);*/
+	// recurse down the contacted sides
 	if (sides & 1)
 		R_SplitEntityOnNode (node_child (node, 0, cl.worldmodel));
 	if (sides & 2)
@@ -141,14 +141,14 @@ static void R_SplitEntityOnNode (mnode_t *node)
 
 /***
 ===========
-R_AddEfrags
+R_AddEfrags [FWGS, 01.07.26]
 ===========
 ***/
 void R_AddEfrags (cl_entity_t *ent)
 	{
 	matrix3x4	transform;
 	vec3_t		outmins, outmaxs;
-	int			i;
+	/*int			i;*/
 
 	if (!ent->model)
 		return;
@@ -161,7 +161,8 @@ void R_AddEfrags (cl_entity_t *ent)
 	Matrix3x4_CreateFromEntity (transform, ent->angles, vec3_origin, 1.0f);
 	Matrix3x4_TransformAABB (transform, ent->model->mins, ent->model->maxs, outmins, outmaxs);
 
-	for (i = 0; i < 3; i++)
+	/*for (i = 0; i < 3; i++)*/
+	for (int i = 0; i < 3; i++)
 		{
 		r_emins[i] = ent->origin[i] + outmins[i];
 		r_emaxs[i] = ent->origin[i] + outmaxs[i];
@@ -173,19 +174,21 @@ void R_AddEfrags (cl_entity_t *ent)
 
 /***
 ================
-R_StoreEfrags [FWGS, 01.09.24]
+R_StoreEfrags [FWGS, 01.07.26]
 ================
 ***/
 void R_StoreEfrags (efrag_t **ppefrag, int framecount)
 	{
 	efrag_t		*pefrag;
-	cl_entity_t	*pent;
-	model_t		*clmodel;
+	/*cl_entity_t	*pent;
+	model_t		*clmodel;*/
 
 	while ((pefrag = *ppefrag) != NULL)
 		{
-		pent = pefrag->entity;
-		clmodel = pent->model;
+		/*pent = pefrag->entity;
+		clmodel = pent->model;*/
+		cl_entity_t *pent = pefrag->entity;
+		model_t *clmodel = pent->model;
 
 		// how this could happen?
 		if (unlikely ((clmodel->type < mod_brush) || (clmodel->type > mod_studio)))

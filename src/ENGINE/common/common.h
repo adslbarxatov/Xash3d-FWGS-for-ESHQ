@@ -1000,7 +1000,7 @@ typedef enum soundlst_group_e
 	EntityWaterEnter,
 	EntityWaterExit,
 
-	SoundList_Groups // must be last
+	SoundList_Groups	// must be last
 	} soundlst_group_t;
 
 int SoundList_Count (soundlst_group_t group);

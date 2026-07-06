@@ -57,15 +57,15 @@ void CL_PlayVideo_f (void)
 
 /***
 ===============
-CL_PlayCDTrack_f
+CL_PlayCDTrack_f [FWGS, 01.07.26]
 
 Emulate audio-cd system
 ===============
 ***/
 void CL_PlayCDTrack_f (void)
 	{
-	const char	*command;
-	const char	*pszTrack;
+	/*const char	*command;
+	const char	*pszTrack;*/
 	static int	track = 0;
 	static qboolean	paused = false;
 	static qboolean	looped = false;
@@ -74,11 +74,13 @@ void CL_PlayCDTrack_f (void)
 	if (Cmd_Argc () < 2)
 		return;
 
-	command = Cmd_Argv (1);
-	pszTrack = Cmd_Argv (2);
+	/*command = Cmd_Argv (1);
+	pszTrack = Cmd_Argv (2);*/
+	const char *command = Cmd_Argv (1);
+	const char *pszTrack = Cmd_Argv (2);
 
 	if (!enabled && Q_stricmp (command, "on"))
-		return; // CD-player is disabled
+		return;	// CD-player is disabled
 
 	if (!Q_stricmp (command, "play"))
 		{
@@ -109,7 +111,6 @@ void CL_PlayCDTrack_f (void)
 			{
 			// [FWGS, 05.04.26]
 			track = bound (1, Q_atoi (Cmd_Argv (2)), MAX_CDTRACKS);
-			/*S_StartBackgroundTrack (clgame.cdtracks[track - 1], clgame.cdtracks[track - 1], 0, false);*/
 
 			// a1ba: some maps contain cd track set in worldspawn
 			// forcibly stopping music on changelevel
@@ -171,11 +172,8 @@ void CL_PlayCDTrack_f (void)
 	// [FWGS, 01.03.26]
 	else if (!Q_stricmp (command, "info"))
 		{
-		/*int	i, maxTrack;*/
 		int maxTrack = 0;
 
-		/*for (maxTrack = i = 0; i < MAX_CDTRACKS; i++)
-			if (COM_CheckStringEmpty (clgame.cdtracks[i])) maxTrack++;*/
 		for (int i = 0; i < MAX_CDTRACKS; i++)
 			{
 			if (!COM_StringEmpty (clgame.cdtracks[i]))
@@ -267,12 +265,14 @@ static scrshot_t CL_GetScreenshotTypeFromString (const char *string)
 	return scrshot_inactive;
 	}
 
+// [FWGS, 01.07.26]
 void CL_GenericShot_f (void)
 	{
 	const char	*argv0 = Cmd_Argv (0);
-	scrshot_t	type;
+	/*scrshot_t	type;
 
-	type = CL_GetScreenshotTypeFromString (argv0);
+	type = CL_GetScreenshotTypeFromString (argv0);*/
+	scrshot_t type = CL_GetScreenshotTypeFromString (argv0);
 
 	if ((type == scrshot_normal) || (type == scrshot_snapshot))
 		{
@@ -303,12 +303,11 @@ void CL_GenericShot_f (void)
 			Q_snprintf (cls.shotname, sizeof (cls.shotname), "overviews/%s.bmp", clgame.mapname);
 			break;
 
-		// [FWGS, 01.04.25]
 		case scrshot_normal:
 		case scrshot_snapshot:
 			{
 			string checkname;
-			int i;
+			/*int i;*/
 
 			// allow overriding screenshot by users request
 			if (Cmd_Argc () > 1)
@@ -320,7 +319,8 @@ void CL_GenericShot_f (void)
 			if (type == scrshot_snapshot)
 				FS_AllowDirectPaths (true);
 
-			for (i = 0; i < 9999; i++)
+			/*for (i = 0; i < 9999; i++)*/
+			for (int i = 0; i < 9999; i++)
 				{
 				int ret;
 
@@ -349,10 +349,10 @@ void CL_GenericShot_f (void)
 		case scrshot_inactive:
 		case scrshot_plaque:
 		default:
-			return; // shouldn't happen
+			return;	// shouldn't happen
 		}
 
-	cls.scrshot_action = type; // build new frame for saveshot
+	cls.scrshot_action = type;	// build new frame for saveshot
 	cls.envshot_vieworg = NULL;
 	cls.envshot_viewsize = 0;
 	}
@@ -413,13 +413,13 @@ void SCR_Viewpos_f (void)
 
 /***
 =============
-CL_WavePlayLen_f
+CL_WavePlayLen_f [FWGS, 01.07.26]
 =============
 ***/
 void CL_WavePlayLen_f (void)
 	{
-	const char *name;
-	uint msecs;
+	/*const char *name;
+	uint msecs;*/
 
 	if (Cmd_Argc () != 2)
 		{
@@ -427,8 +427,10 @@ void CL_WavePlayLen_f (void)
 		return;
 		}
 
-	name = Cmd_Argv (1);
-	msecs = Sound_GetApproxWavePlayLen (name);
+	/*name = Cmd_Argv (1);
+	msecs = Sound_GetApproxWavePlayLen (name);*/
+	const char *name = Cmd_Argv (1);
+	uint msecs = Sound_GetApproxWavePlayLen (name);
 
 	if (msecs == 0)
 		{

@@ -17,10 +17,8 @@ GNU General Public License for more details
 #include "common.h"
 #include "client.h"
 #include "net_encode.h"
-/*include "particledef.h"*/
 #include "cl_tent.h"
 #include "shake.h"
-/*include "hltv.h"*/
 #include "input.h"
 
 #define MSG_COUNT		32		// last 32 messages parsed
@@ -59,10 +57,6 @@ const char *CL_MsgInfo (int cmd)
 				svc_string = svc_strings[cmd];
 				break;
 
-			/*case PROTO_LEGACY:
-				svc_string = svc_legacy_strings[cmd];
-				break;*/
-
 			case PROTO_QUAKE:
 				svc_string = svc_quake_strings[cmd];
 				break;
@@ -78,11 +72,14 @@ const char *CL_MsgInfo (int cmd)
 
 		Q_strncpy (sz, svc_string, sizeof (sz));
 		}
+
+	// [FWGS, 01.07.26]
 	else if ((cmd > svc_lastmsg) && (cmd <= (svc_lastmsg + MAX_USER_MESSAGES)))
 		{
-		int	i;
+		/*int	i;
 
-		for (i = 0; i < MAX_USER_MESSAGES; i++)
+		for (i = 0; i < MAX_USER_MESSAGES; i++)*/
+		for (int i = 0; i < MAX_USER_MESSAGES; i++)
 			{
 			if (clgame.msg[i].number == cmd)
 				{
@@ -108,19 +105,20 @@ void CL_Parse_Debug (qboolean enable)
 
 /***
 =====================
-CL_Parse_RecordCommand
+CL_Parse_RecordCommand [FWGS, 01.07.26]
 
 record new message params into debug buffer
 =====================
 ***/
 void CL_Parse_RecordCommand (int cmd, int startoffset)
 	{
-	int	slot;
+	/*int	slot;*/
 
 	if (cmd == svc_nop)
 		return;
 
-	slot = (cls_message_debug.currentcmd++ & MSG_MASK);
+	/*slot = (cls_message_debug.currentcmd++ & MSG_MASK);*/
+	int slot = (cls_message_debug.currentcmd++ & MSG_MASK);
 	cls_message_debug.oldcmd[slot].command = cmd;
 	cls_message_debug.oldcmd[slot].starting_offset = startoffset;
 	cls_message_debug.oldcmd[slot].frame_number = host.framecount;
@@ -143,7 +141,7 @@ void CL_ResetFrame (frame_t *frame)
 
 /***
 =====================
-CL_WriteErrorMessage
+CL_WriteErrorMessage [FWGS, 01.07.26]
 
 write net_message into buffer.dat for debugging
 =====================
@@ -151,12 +149,12 @@ write net_message into buffer.dat for debugging
 static void CL_WriteErrorMessage (int current_count, sizebuf_t *msg)
 	{
 	const char *buffer_file = "buffer.dat";
-	file_t *fp;
+
+	/*file_t *fp;
 
 	// [FWGS, 01.03.26]
-	fp = FS_Open (buffer_file, "wb", false);
-	/*if (!fp)
-		return;*/
+	fp = FS_Open (buffer_file, "wb", false);*/
+	file_t *fp = FS_Open (buffer_file, "wb", false);
 	if (!fp)
 		{
 		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, buffer_file);
@@ -165,7 +163,7 @@ static void CL_WriteErrorMessage (int current_count, sizebuf_t *msg)
 
 	FS_Write (fp, &cls.starting_count, sizeof (int));
 	FS_Write (fp, &current_count, sizeof (int));
-	FS_Write (fp, &cls.legacymode, sizeof (cls.legacymode));	// [FWGS, 01.02.25]
+	FS_Write (fp, &cls.legacymode, sizeof (cls.legacymode));
 	FS_Write (fp, MSG_GetData (msg), MSG_GetMaxBytes (msg));
 	FS_Close (fp);
 
@@ -174,7 +172,7 @@ static void CL_WriteErrorMessage (int current_count, sizebuf_t *msg)
 
 /***
 =====================
-CL_WriteMessageHistory [FWGS, 01.02.25]
+CL_WriteMessageHistory [FWGS, 01.07.26]
 
 list last 32 messages for debugging net troubleshooting
 =====================
@@ -183,7 +181,8 @@ void CL_WriteMessageHistory (void)
 	{
 	oldcmd_t	*old;
 	sizebuf_t	*msg = &net_message;
-	int			i, thecmd;
+	/*int			i, thecmd;*/
+	int		thecmd;
 
 	if (!cls.initialized || (cls.state == ca_disconnected))
 		return;
@@ -197,7 +196,8 @@ void CL_WriteMessageHistory (void)
 	thecmd = cls_message_debug.currentcmd - 1;
 	thecmd -= (MSG_COUNT - 1);	// back up to here
 
-	for (i = 0; i < MSG_COUNT - 1; i++)
+	/*for (i = 0; i < MSG_COUNT - 1; i++)*/
+	for (int i = 0; i < MSG_COUNT - 1; i++)
 		{
 		thecmd &= MSG_MASK;
 		old = &cls_message_debug.oldcmd[thecmd];

@@ -136,11 +136,13 @@ static void Matrix4x4_CreateTranslate (matrix4x4 out, float x, float y, float z)
 	out[3][3] = 1.0f;
 	}
 
+// [FWGS, 01.07.26]
 static void Matrix4x4_CreateRotate (matrix4x4 out, float angle, float x, float y, float z)
 	{
-	float len, c, s;
+	/*float len, c, s;
 
-	len = x * x + y * y + z * z;
+	len = x * x + y * y + z * z;*/
+	float len = x * x + y * y + z * z;
 	if (len != 0.0f)
 		len = 1.0f / sqrt (len);
 
@@ -148,6 +150,7 @@ static void Matrix4x4_CreateRotate (matrix4x4 out, float angle, float x, float y
 	y *= len;
 	z *= len;
 
+	float c, s;
 	angle *= (-M_PI_F / 180.0f);
 	SinCos (angle, &s, &c);
 

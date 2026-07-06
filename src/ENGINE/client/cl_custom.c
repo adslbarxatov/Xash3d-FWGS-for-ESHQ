@@ -52,7 +52,6 @@ qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource)
 	// [FWGS, 01.12.24]
 	if (!cl_allow_download.value)
 		{
-		/*Con_Reportf ("Download refused, cl_allow_download is 0\n");*/
 		Con_Reportf ("Download refused, cl_allowdownload is 0\n");
 		return true;
 		}
@@ -78,7 +77,6 @@ qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource)
 
 	if (cl.http_download)
 		{
-		/*HTTP_AddDownload (filepath, pResource->nDownloadSize, true);*/
 		HTTP_AddDownload (filepath, pResource->nDownloadSize, true, pResource);
 		}
 	else
@@ -86,7 +84,6 @@ qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource)
 		MSG_BeginClientCmd (msg, clc_stringcmd);
 		MSG_WriteStringf (msg, "dlfile %s", filepath);
 		}
-
 
 	return false;
 	}
@@ -134,11 +131,13 @@ void CL_MoveToOnHandList (resource_t *pResource)
 	CL_AddToResourceList (pResource, &cl.resourcesonhand);
 	}
 
+// [FWGS, 01.07.26]
 static void CL_ClearResourceList (resource_t *pList)
 	{
-	resource_t *p, *n;
+	/*resource_t *p, *n;
 
-	for (p = pList->pNext; (p != pList) && p; p = n)
+	for (p = pList->pNext; (p != pList) && p; p = n)*/
+	for (resource_t *p = pList->pNext, *n; p != pList && p; p = n)
 		{
 		n = p->pNext;
 

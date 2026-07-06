@@ -85,7 +85,7 @@ typedef struct gameinfo_s
 	char		startmap[MAX_QPATH];	// map to start singleplayer game
 	char		trainmap[MAX_QPATH];	// map to start hazard course (if specified)
 
-	char		creditsmap[MAX_QPATH];	// ESHQ: поддержка титров
+	char		creditsmap[MAX_QPATH];	// ESHQ: title support
 
 	char		title[64];	// Game Main Title
 	float		version;	// game version (optional)
@@ -160,8 +160,12 @@ typedef struct fs_globals_t
 typedef struct file_s file_t;
 
 // ESHQ: исправление дефектного определения
-/*typedef struct fs_api_t*/
-struct fs_api_t
+#ifdef SetCurrentDirectory
+#undef SetCurrentDirectory
+#endif
+
+// ESHQ: крайне сомнительное определение (typedef fs_api_t fs_api_t)
+typedef struct fs_api_s
 	{
 	qboolean (*InitStdio)(qboolean unused_set_to_true, const char *rootdir, const char *basedir,
 		const char *gamedir, const char *rodir);
@@ -261,7 +265,7 @@ struct fs_api_t
 
 	// [FWGS, 01.07.26]
 	void (*FindFile_f)(const char *filename);
-	} /*fs_api_t*/;
+	} fs_api_t;
 
 typedef struct fs_interface_t
 	{
@@ -287,8 +291,7 @@ typedef struct fs_interface_t
 	void *(*_Sys_GetNativeObject)(const char *object);
 	} fs_interface_t;
 
-// ESHQ: исправление дефектного определения
-typedef int (*FSAPI)(int version, struct fs_api_t *api, fs_globals_t **globals, const fs_interface_t *interface);
+typedef int (*FSAPI)(int version, fs_api_t *api, fs_globals_t **globals, const fs_interface_t *interface);
 #define GET_FS_API "GetFSAPI"
 
 #ifdef __cplusplus

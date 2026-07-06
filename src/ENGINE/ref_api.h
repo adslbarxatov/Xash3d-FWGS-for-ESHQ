@@ -521,7 +521,7 @@ typedef struct ref_api_s
 	render_interface_t	*drawFuncs;
 
 	// filesystem exports
-	struct fs_api_t	*fsapi;	// ESHQ: исправление дефектного определения
+	fs_api_t	*fsapi;	// ESHQ: исправление дефектного определения
 
 	// [FWGS, 01.06.25] for abstracting the engine's rendering
 	ref_window_type_t (*R_GetWindowHandle)(void **handle, ref_window_type_t type);

@@ -26,8 +26,8 @@ extern fs_globals_t *FI;
 #define FS_Title()   GI->title
 
 // [FWGS, 05.04.26]
-/*#define FS_InitStdio     (*g_fsapi.InitStdio)
-#define FS_ShutdownStdio (*g_fsapi.ShutdownStdio)*/
+/*define FS_InitStdio     (*g_fsapi.InitStdio)
+define FS_ShutdownStdio (*g_fsapi.ShutdownStdio)*/
 
 // search path utils
 #define FS_Rescan (*g_fsapi.Rescan)
