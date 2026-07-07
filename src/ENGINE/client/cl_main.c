@@ -438,7 +438,6 @@ static int CL_DriftInterpolationAmount (int goal)
 	int		msec;
 
 	fgoal = (float)goal / 1000.0f;
-
 	if (fgoal != cl.local.interp_amount)
 		{
 		maxmove = host.frametime * 0.05;
@@ -1183,7 +1182,7 @@ static void CL_WriteSteamTicket (sizebuf_t *send)
 
 	if (!Q_strcmp (cl_ticket_generator.string, "null"))
 		{
-		MSG_WriteBytes (send, buf, 512); // specifically 512 bytes of zeros
+		MSG_WriteBytes (send, buf, 512);	// specifically 512 bytes of zeros
 		return;
 		}
 
@@ -1304,7 +1303,6 @@ static void CL_SendConnectPacket (connprotocol_t proto, int challenge)
 		{
 		// [FWGS, 01.05.26]
 		const char *qport = Cvar_VariableString ("net_qport");
-		/*int extensions = Host_IsLocalGame () ? 0 : NET_EXT_SPLITSIZE;*/
 		int extensions = (adrtype == NA_LOOPBACK) ? 0 : NET_EXT_SPLITSIZE;
 
 		string key;
@@ -1547,7 +1545,6 @@ static void CL_CreateResourceList (void)
 		return;
 
 	// [FWGS, 01.05.26]
-	/*MD5_HashFile (rgucMD5_hash, szFileName, NULL);*/
 	nSize = FS_FileLength (fp);
 
 	if (nSize != 0)
@@ -1645,7 +1642,7 @@ static void CL_Connect_f (void)
 	if (SV_Active ())
 		SV_Shutdown ("Server was killed due to connection to remote server\n");
 
-	NET_Config (true, !cl_nat.value); // allow remote
+	NET_Config (true, !cl_nat.value);	// allow remote
 
 	Con_Printf ("server %s\n", server);
 	CL_Disconnect ();
@@ -2756,7 +2753,6 @@ static void CL_ServerList (netadr_t from, sizebuf_t *msg)
 			}
 
 		// [FWGS, 01.05.26]
-		/*servadr.port = MSG_ReadShort (msg);	// 2 bytes for Port*/
 		MSG_ReadBytes (msg, &servadr.port, sizeof (servadr.port));	// 2 bytes for Port, in network byte order
 
 		// list is ends here
@@ -2799,11 +2795,6 @@ static void CL_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		Con_Reportf ("%s: %s : %s\n", __func__, NET_AdrToString (from), c);
 
 	// [FWGS, 01.05.26] server connection
-	/*if (!Q_strcmp (c, "sb_connect"))
-		{
-		SteamBroker_HandlePacket (from, msg);
-		}*/
-
 	if (!Q_strcmp (c, S2C_GOLDSRC_CONNECTION) || !Q_strcmp (c, S2C_CONNECTION))
 		{
 		CL_ClientConnect (cls.legacymode, c, from);
@@ -2994,7 +2985,7 @@ static void CL_ReadNetMessage (void)
 	// build list of all solid entities per next frame (exclude clients)
 	CL_SetSolidEntities ();
 
-	// check for fragmentation/reassembly related packets.
+	// check for fragmentation / reassembly related packets
 	if ((cls.state != ca_disconnected) && Netchan_IncomingReady (&cls.netchan))
 		{
 		// process the incoming buffer(s)
@@ -3021,7 +3012,7 @@ static void CL_ReadNetMessage (void)
 =================
 CL_ReadPackets
 
-Updates the local time and reads/handles messages
+Updates the local time and reads / handles messages
 on client net connection
 =================
 ***/
@@ -3043,7 +3034,6 @@ static void CL_ReadPackets (void)
 	// [FWGS, 01.05.26] hot precache and downloading resources
 	if ((cls.signon == SIGNONS) && (cl.lastresourcecheck < host.realtime))
 		{
-		/*double checktime = Host_IsLocalGame () ? 0.1 : 1.0;*/
 		double checktime = Host_IsLocalClient () ? 0.1 : 1.0;
 
 		if (!cls.dl.custom && (cl.resourcesneeded.pNext != &cl.resourcesneeded))
@@ -3147,10 +3137,6 @@ void CL_ProcessFile (qboolean successfully_received, const char *filename)
 		{
 		if (filename[0] != '!')
 			Con_Printf ("processing %s\n", filename);
-
-		/*// skip "downloaded/" part to avoid mismatch with needed resources list
-		if (!Q_strnicmp (filename, DEFAULT_DOWNLOADED_DIRECTORY, sizeof (DEFAULT_DOWNLOADED_DIRECTORY) - 1))
-			filename += sizeof (DEFAULT_DOWNLOADED_DIRECTORY) - 1;*/
 		}
 	else if (!successfully_received)
 		{
@@ -4000,7 +3986,7 @@ void CL_Init (void)
 	string libpath;
 
 	if (host.type == HOST_DEDICATED)
-		return; // nothing running on the client
+		return;	// nothing running on the client
 
 	// [FWGS, 15.04.26]
 	CL_InitLocal ();
@@ -4009,10 +3995,6 @@ void CL_Init (void)
 	// unreliable buffer. unsed for unreliable commands and voice stream
 	MSG_Init (&cls.datagram, "cls.datagram", cls.datagram_buf, sizeof (cls.datagram_buf));
 	COM_GetCommonLibraryPath (LIBRARY_CLIENT, libpath, sizeof (libpath));
-
-	// [FWGS, 01.05.26]
-	/*if (!CL_LoadProgs (libpath))
-		Host_Error ("can't initialize %s: %s\n", libpath, COM_GetLibraryError ());*/
 
 	// [FWGS, 15.04.26]
 	S_Init ();	// init sound

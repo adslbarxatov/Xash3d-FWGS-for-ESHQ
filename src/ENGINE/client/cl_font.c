@@ -39,19 +39,22 @@ qboolean CL_FixedFont (cl_font_t *font)
 	return font && font->valid && (font->type == FONT_FIXED);
 	}
 
+// [FWGS, 01.07.26]
 static int CL_LoadFontTexture (const char *fontname, uint texFlags, int *width)
 	{
-	int font_width;
-	int tex;
+	/*int font_width;
+	int tex;*/
 
 	if (!g_fsapi.FileExists (fontname, false))
 		return 0;
 
-	tex = ref.dllFuncs.GL_LoadTexture (fontname, NULL, 0, texFlags);
+	/*tex = ref.dllFuncs.GL_LoadTexture (fontname, NULL, 0, texFlags);*/
+	int tex = ref.dllFuncs.GL_LoadTexture (fontname, NULL, 0, texFlags);
 	if (!tex)
 		return 0;
 
-	font_width = REF_GET_PARM (PARM_TEX_WIDTH, tex);
+	/*font_width = REF_GET_PARM (PARM_TEX_WIDTH, tex);*/
+	int font_width = REF_GET_PARM (PARM_TEX_WIDTH, tex);
 	if (!font_width)
 		{
 		ref.dllFuncs.GL_FreeTexture (tex);
@@ -95,10 +98,11 @@ void CL_SetFontColor (cl_font_t *font, const rgba_t color)
 	ref.dllFuncs.Color4ub (color[0], color[1], color[2], color[3]);
 	}
 
-// [FWGS, 01.03.24]
+// [FWGS, 01.07.26]
 qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font, float scale, convar_t *rendermode, uint texFlags)
 	{
-	int font_width, i;
+	/*int font_width, i;*/
+	int font_width;
 
 	if (!rendermode)
 		return false;
@@ -116,7 +120,8 @@ qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font, float sc
 	font->rendermode = rendermode;
 	font->charHeight = Q_rint (font_width / 16 * scale);
 
-	for (i = 0; i < HLARRAYSIZE (font->fontRc); i++)
+	/*for (i = 0; i < HLARRAYSIZE (font->fontRc); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (font->fontRc); i++)
 		{
 		font->fontRc[i].left = (i * font_width / 16) % font_width;
 		font->fontRc[i].right = font->fontRc[i].left + font_width / 16;
@@ -129,13 +134,15 @@ qboolean Con_LoadFixedWidthFont (const char *fontname, cl_font_t *font, float sc
 	return true;
 	}
 
+// [FWGS, 01.07.26]
 qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float scale, convar_t *rendermode,
 	uint texFlags)
 	{
 	fs_offset_t	length;
 	qfont_t		src;
-	byte		*pfile;
-	int			font_width, i;
+	/*byte		*pfile;
+	int			font_width, i;*/
+	int		font_width;
 
 	if (!rendermode)
 		return false;
@@ -143,7 +150,8 @@ qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float
 	if (font->valid)
 		return true;
 
-	pfile = g_fsapi.LoadFile (fontname, &length, false);
+	/*pfile = g_fsapi.LoadFile (fontname, &length, false);*/
+	byte *pfile = g_fsapi.LoadFile (fontname, &length, false);
 	if (!pfile)
 		return false;
 
@@ -153,7 +161,6 @@ qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float
 		return false;
 		}
 
-	// [FWGS, 01.05.26]
 	memcpy (&src, pfile, sizeof (src));
 	le_struct_swap (qfont_swap, &src);
 	Mem_Free (pfile);
@@ -168,7 +175,8 @@ qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float
 	font->rendermode = rendermode;
 	font->charHeight = Q_rint (src.rowheight * scale);
 
-	for (i = 0; i < HLARRAYSIZE (font->fontRc); i++)
+	/*for (i = 0; i < HLARRAYSIZE (font->fontRc); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (font->fontRc); i++)
 		{
 		const charinfo *ci = &src.fontinfo[i];
 
@@ -205,12 +213,13 @@ static int CL_CalcTabStop (const cl_font_t *font, int x)
 	return stop;
 	}
 
+// [FWGS, 01.07.26]
 int CL_DrawCharacter (float x, float y, int number, const rgba_t color, cl_font_t *font, int flags)
 	{
-	wrect_t *rc;
+	/*wrect_t *rc;
 	float w, h;
 	float s1, t1, s2, t2, half = 0.5f;
-	int texw, texh;
+	int texw, texh;*/
 
 	if (!font || !font->valid || (y < -font->charHeight))
 		return 0;
@@ -234,20 +243,29 @@ int CL_DrawCharacter (float x, float y, int number, const rgba_t color, cl_font_
 	if (!number || !font->charWidths[number])
 		return 0;
 
+	int texw, texh;
 	R_GetTextureParms (&texw, &texh, font->hFontTexture);
 	if (!texw || !texh)
 		return font->charWidths[number];
 
-	rc = &font->fontRc[number];
+	/*rc = &font->fontRc[number];*/
+	wrect_t *rc = &font->fontRc[number];
+	float half = 0.5f;
 	if ((font->scale <= 1.0f) || !REF_GET_PARM (PARM_TEX_FILTERING, font->hFontTexture))
 		half = 0;
 
-	s1 = ((float)rc->left + half) / texw;
+	/*s1 = ((float)rc->left + half) / texw;
 	t1 = ((float)rc->top + half) / texh;
 	s2 = ((float)rc->right - half) / texw;
 	t2 = ((float)rc->bottom - half) / texh;
 	w = (rc->right - rc->left) * font->scale;
-	h = (rc->bottom - rc->top) * font->scale;
+	h = (rc->bottom - rc->top) * font->scale;*/
+	float s1 = ((float)rc->left + half) / texw;
+	float t1 = ((float)rc->top + half) / texh;
+	float s2 = ((float)rc->right - half) / texw;
+	float t2 = ((float)rc->bottom - half) / texh;
+	float w = (rc->right - rc->left) * font->scale;
+	float h = (rc->bottom - rc->top) * font->scale;
 
 	if (FBitSet (flags, FONT_DRAW_HUD))
 		SPR_AdjustSize (&x, &y, &w, &h);
@@ -255,7 +273,6 @@ int CL_DrawCharacter (float x, float y, int number, const rgba_t color, cl_font_
 	if (!FBitSet (flags, FONT_DRAW_NORENDERMODE))
 		CL_SetFontRendermode (font);
 
-	// [FWGS, 01.04.26]
 	if (!FBitSet (flags, FONT_DRAW_NOCOLOR))
 		CL_SetFontColor (font, color);
 

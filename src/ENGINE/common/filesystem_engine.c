@@ -242,7 +242,7 @@ static void FS_UnloadProgs (void)
 #elif XASH_ANDROID
 #define FILESYSTEM_STDIO_DLL "libfilesystem_stdio.so"
 #else
-// ESHQ: другое название DLL
+// ESHQ: other DLL name
 #define FILESYSTEM_STDIO_DLL "FS." OS_LIB_EXT
 #endif
 

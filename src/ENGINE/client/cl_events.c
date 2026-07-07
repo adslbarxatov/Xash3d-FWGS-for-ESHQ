@@ -34,16 +34,16 @@ void CL_ResetEvent (event_info_t *ei)
 
 /***
 =============
-CL_CalcPlayerVelocity
+CL_CalcPlayerVelocity [FWGS, 01.07.26]
 
 compute velocity for a given client
 =============
 ***/
 static void CL_CalcPlayerVelocity (int idx, vec3_t velocity)
 	{
-	clientdata_t *pcd;
+	/*clientdata_t *pcd;
 	vec3_t		delta;
-	double		dt;
+	double		dt;*/
 
 	VectorClear (velocity);
 
@@ -52,15 +52,18 @@ static void CL_CalcPlayerVelocity (int idx, vec3_t velocity)
 
 	if (idx == cl.playernum + 1)
 		{
-		pcd = &cl.frames[cl.parsecountmod].clientdata;
+		/*pcd = &cl.frames[cl.parsecountmod].clientdata;*/
+		clientdata_t *pcd = &cl.frames[cl.parsecountmod].clientdata;
 		VectorCopy (pcd->velocity, velocity);
 		}
 	else
 		{
-		dt = clgame.entities[idx].curstate.animtime - clgame.entities[idx].prevstate.animtime;
+		/*dt = clgame.entities[idx].curstate.animtime - clgame.entities[idx].prevstate.animtime;*/
+		double dt = clgame.entities[idx].curstate.animtime - clgame.entities[idx].prevstate.animtime;
 
 		if (dt != 0.0)
 			{
+			vec3_t delta;
 			VectorSubtract (clgame.entities[idx].curstate.velocity, clgame.entities[idx].prevstate.velocity, delta);
 			VectorScale (delta, 1.0f / dt, velocity);
 			}
@@ -117,22 +120,25 @@ static void CL_DescribeEvent (event_info_t *ei, int slot)
 
 /***
 =============
-CL_SetEventIndex
+CL_SetEventIndex [FWGS, 01.07.26]
 =============
 ***/
 void CL_SetEventIndex (const char *szEvName, int ev_index)
 	{
-	cl_user_event_t *ev;
-	int		i;
+	/*cl_user_event_t *ev;
+	int		i;*/
 
 	if (!szEvName || !*szEvName)
-		return; // ignore blank names
+		return;	// ignore blank names
 
 	// search event by name to link with
-	for (i = 0; i < MAX_EVENTS; i++)
+	/*for (i = 0; i < MAX_EVENTS; i++)*/
+	for (int i = 0; i < MAX_EVENTS; i++)
 		{
-		ev = clgame.events[i];
-		if (!ev) break;
+		/*ev = clgame.events[i];*/
+		cl_user_event_t *ev = clgame.events[i];
+		if (!ev)
+			break;
 
 		if (!Q_stricmp (ev->name, szEvName))
 			{
@@ -144,19 +150,19 @@ void CL_SetEventIndex (const char *szEvName, int ev_index)
 
 /***
 =============
-CL_EventIndex
+CL_EventIndex [FWGS, 01.07.26]
 =============
 ***/
 word CL_EventIndex (const char *name)
 	{
-	word	i;
+	/*word	i;
 
-	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (name))*/
+	// [FWGS, 01.03.26]*/
 	if (COM_StringEmptyOrNULL (name))
 		return 0;
 
-	for (i = 1; i < MAX_EVENTS && cl.event_precache[i][0]; i++)
+	/*for (i = 1; i < MAX_EVENTS && cl.event_precache[i][0]; i++)*/
+	for (word i = 1; (i < MAX_EVENTS) && cl.event_precache[i][0]; i++)
 		{
 		if (!Q_stricmp (cl.event_precache[i], name))
 			return i;
@@ -191,37 +197,40 @@ void CL_RegisterEvent (int lastnum, const char *szEvName, pfnEventHook func)
 
 /***
 =============
-CL_FireEvent
+CL_FireEvent [FWGS, 01.07.26]
 =============
 ***/
 static qboolean CL_FireEvent (event_info_t *ei, int slot)
 	{
-	cl_user_event_t	*ev;
+	/*cl_user_event_t	*ev;
 	const char		*name;
-	int				i, idx;
+	int				i, idx;*/
 
 	if (!ei || !ei->index)
 		return false;
 
 	// get the func pointer
-	for (i = 0; i < MAX_EVENTS; i++)
+	/*for (i = 0; i < MAX_EVENTS; i++)*/
+	for (int i = 0; i < MAX_EVENTS; i++)
 		{
-		ev = clgame.events[i];
-
+		/*ev = clgame.events[i];*/
+		cl_user_event_t *ev = clgame.events[i];
 		if (!ev)
 			{
-			idx = bound (1, ei->index, (MAX_EVENTS - 1));
-			Con_Reportf (S_ERROR "%s: %s not precached\n", __func__, cl.event_precache[idx]);	// [FWGS, 01.07.24]
+			/*idx = bound (1, ei->index, (MAX_EVENTS - 1));*/
+			int idx = bound (1, ei->index, (MAX_EVENTS - 1));
+			Con_Reportf (S_ERROR "%s: %s not precached\n", __func__, cl.event_precache[idx]);
 			break;
 			}
 
 		if (ev->index == ei->index)
 			{
-			name = cl.event_precache[ei->index];
+			/*name = cl.event_precache[ei->index];*/
+			const char *name = cl.event_precache[ei->index];
 			if (cl_trace_events.value)
 				{
-				Con_Printf ("^3EVENT %s AT %.2f %.2f %.2f\n"    // event name
-					"\t%.2f %.2f %i %i %s %s\n", // bool params
+				Con_Printf ("^3EVENT %s AT %.2f %.2f %.2f\n"	// event name
+					"\t%.2f %.2f %i %i %s %s\n",	// bool params
 					name, ei->args.origin[0], ei->args.origin[1], ei->args.origin[2],
 					ei->args.fparam1, ei->args.fparam2,
 					ei->args.iparam1, ei->args.iparam2,
@@ -235,7 +244,7 @@ static qboolean CL_FireEvent (event_info_t *ei, int slot)
 				return true;
 				}
 
-			Con_Reportf (S_ERROR "%s: %s not hooked\n", __func__, name);	// [FWGS, 01.07.24]
+			Con_Reportf (S_ERROR "%s: %s not hooked\n", __func__, name);
 			break;
 			}
 		}
@@ -245,21 +254,25 @@ static qboolean CL_FireEvent (event_info_t *ei, int slot)
 
 /***
 =============
-CL_FireEvents
+CL_FireEvents [FWGS, 01.07.26]
 
 called right before draw frame
 =============
 ***/
 void CL_FireEvents (void)
 	{
-	event_state_t	*es;
+	/*event_state_t	*es;
 	event_info_t	*ei;
-	int				i;
-	es = &cl.events;
+	int				i;*/
+	event_state_t *es = &cl.events;
 
-	for (i = 0; i < MAX_EVENT_QUEUE; i++)
+	/*es = &cl.events;
+
+	for (i = 0; i < MAX_EVENT_QUEUE; i++)*/
+	for (int i = 0; i < MAX_EVENT_QUEUE; i++)
 		{
-		ei = &es->ei[i];
+		/*ei = &es->ei[i];*/
+		event_info_t *ei = &es->ei[i];
 
 		if (ei->index == 0)
 			continue;
@@ -277,23 +290,26 @@ void CL_FireEvents (void)
 
 /***
 =============
-CL_FindEvent
+CL_FindEmptyEvent [FWGS, 01.07.26]
 
 find first empty event
 =============
 ***/
 static event_info_t *CL_FindEmptyEvent (void)
 	{
-	int				i;
+	/*int				i;
 	event_state_t	*es;
 	event_info_t	*ei;
 
-	es = &cl.events;
+	es = &cl.events;*/
+	event_state_t *es = &cl.events;
 
 	// look for first slot where index is != 0
-	for (i = 0; i < MAX_EVENT_QUEUE; i++)
+	/*for (i = 0; i < MAX_EVENT_QUEUE; i++)*/
+	for (int i = 0; i < MAX_EVENT_QUEUE; i++)
 		{
-		ei = &es->ei[i];
+		/*ei = &es->ei[i];*/
+		event_info_t *ei = &es->ei[i];
 		if (ei->index != 0)
 			continue;
 		return ei;
@@ -305,28 +321,32 @@ static event_info_t *CL_FindEmptyEvent (void)
 
 /***
 =============
-CL_FindEvent
+CL_FindEvent [FWGS, 01.07.26]
 
 replace only unreliable events
 =============
 ***/
 static event_info_t *CL_FindUnreliableEvent (void)
 	{
-	event_state_t	*es;
+	/*event_state_t	*es;
 	event_info_t	*ei;
 	int				i;
 
-	es = &cl.events;
+	es = &cl.events;*/
+	event_state_t *es = &cl.events;
 
-	for (i = 0; i < MAX_EVENT_QUEUE; i++)
+	/*for (i = 0; i < MAX_EVENT_QUEUE; i++)*/
+	for (int i = 0; i < MAX_EVENT_QUEUE; i++)
 		{
-		ei = &es->ei[i];
+		/*ei = &es->ei[i];*/
+		event_info_t *ei = &es->ei[i];
 		if (ei->index != 0)
 			{
 			// it's reliable, so skip it
 			if (FBitSet (ei->flags, FEV_RELIABLE))
 				continue;
 			}
+
 		return ei;
 		}
 
@@ -353,7 +373,8 @@ static void CL_QueueEvent (int flags, int index, float delay, event_args_t *args
 			ei = CL_FindUnreliableEvent ();
 			}
 
-		if (!ei) return;
+		if (!ei)
+			return;
 		}
 
 	ei->index = index;
@@ -405,38 +426,38 @@ void CL_ParseReliableEvent (sizebuf_t *msg, connprotocol_t proto)
 
 /***
 =============
-CL_ParseEvent
+CL_ParseEvent [FWGS, 01.07.26]
 =============
 ***/
 void CL_ParseEvent (sizebuf_t *msg, connprotocol_t proto)
 	{
-	int		event_index;
+	/*int		event_index;
 	int		i, num_events;
-	int		packet_index;
+	int		packet_index;*/
 
 	const event_args_t	nullargs = { 0 };
 	event_args_t	args = { 0 };
 
-	entity_state_t	*state;
-	float	delay;
+	/*entity_state_t	*state;
+	float	delay;*/
 	int		entity_bits;
 
-	num_events = MSG_ReadUBitLong (msg, 5);
+	/*num_events = MSG_ReadUBitLong (msg, 5);*/
+	int num_events = MSG_ReadUBitLong (msg, 5);
 
-	// [FWGS, 01.03.26]
 	if (proto == PROTO_GOLDSRC)
 		entity_bits = MAX_GOLDSRC_ENTITY_BITS;
-	/*else if (proto == PROTO_LEGACY)
-		entity_bits = MAX_LEGACY_ENTITY_BITS;
-	else
-		entity_bits = MAX_ENTITY_BITS;*/
 	else
 		entity_bits = MAX_ENTITY_BITS;
 
 	// parse events queue
-	for (i = 0; i < num_events; i++)
+	/*for (i = 0; i < num_events; i++)*/
+	for (int i = 0; i < num_events; i++)
 		{
-		event_index = MSG_ReadUBitLong (msg, MAX_EVENT_BITS);
+		/*event_index = MSG_ReadUBitLong (msg, MAX_EVENT_BITS);*/
+		int packet_index;
+		float delay;
+		int event_index = MSG_ReadUBitLong (msg, MAX_EVENT_BITS);
 
 		if (MSG_ReadOneBit (msg))
 			{
@@ -466,7 +487,8 @@ void CL_ParseEvent (sizebuf_t *msg, connprotocol_t proto)
 
 			if (packet_index < frame->num_entities)
 				{
-				state = &cls.packet_entities[(frame->first_entity + packet_index) % cls.num_client_entities];
+				/*state = &cls.packet_entities[(frame->first_entity + packet_index) % cls.num_client_entities];*/
+				entity_state_t *state = &cls.packet_entities[(frame->first_entity + packet_index) % cls.num_client_entities];
 				args.entindex = state->number;
 
 				if (VectorIsNull (args.origin))
@@ -477,7 +499,6 @@ void CL_ParseEvent (sizebuf_t *msg, connprotocol_t proto)
 
 				COM_NormalizeAngles (args.angles);
 
-				// [FWGS, 01.04.25]
 				if ((state->number > 0) && (state->number <= cl.maxclients))
 					{
 					args.angles[PITCH] *= 3.0f;
@@ -492,7 +513,6 @@ void CL_ParseEvent (sizebuf_t *msg, connprotocol_t proto)
 				{
 				if (args.entindex != 0)
 					{
-					// [FWGS, 01.04.25]
 					if ((args.entindex > 0) && (args.entindex <= cl.maxclients))
 						{
 						args.angles[PITCH] /= 3.0f;
@@ -510,13 +530,13 @@ void CL_ParseEvent (sizebuf_t *msg, connprotocol_t proto)
 
 /***
 =============
-CL_PlaybackEvent
+CL_PlaybackEvent [FWGS, 01.07.26]
 =============
 ***/
 void GAME_EXPORT CL_PlaybackEvent (int flags, const edict_t *pInvoker, word eventindex, float delay, float *origin,
 	float *angles, float fparam1, float fparam2, int iparam1, int iparam2, int bparam1, int bparam2)
 	{
-	event_args_t	args;
+	/*event_args_t	args;*/
 
 	if (FBitSet (flags, FEV_SERVER))
 		return;
@@ -524,23 +544,23 @@ void GAME_EXPORT CL_PlaybackEvent (int flags, const edict_t *pInvoker, word even
 	// first check event for out of bounds
 	if ((eventindex < 1) || (eventindex >= MAX_EVENTS))
 		{
-		Con_DPrintf (S_ERROR "%s: invalid eventindex %i\n", __func__, eventindex);	// [FWGS, 01.07.24]
+		Con_DPrintf (S_ERROR "%s: invalid eventindex %i\n", __func__, eventindex);
 		return;
 		}
 
 	// check event for precached
 	if (!CL_EventIndex (cl.event_precache[eventindex]))
 		{
-		Con_DPrintf (S_ERROR "%s: event %i was not precached\n", __func__, eventindex);	// [FWGS, 01.07.24]
+		Con_DPrintf (S_ERROR "%s: event %i was not precached\n", __func__, eventindex);
 		return;
 		}
 
-	SetBits (flags, FEV_CLIENT); // it's a client event
+	SetBits (flags, FEV_CLIENT);	// it's a client event
 	ClearBits (flags, FEV_NOTHOST | FEV_HOSTONLY | FEV_GLOBAL);
 	if (delay < 0.0f)
-		delay = 0.0f; // fixup negative delays
+		delay = 0.0f;	// fixup negative delays
 
-	memset (&args, 0, sizeof (args));
+	/*memset (&args, 0, sizeof (args));
 
 	VectorCopy (origin, args.origin);
 	VectorCopy (angles, args.angles);
@@ -553,7 +573,21 @@ void GAME_EXPORT CL_PlaybackEvent (int flags, const edict_t *pInvoker, word even
 	args.iparam1 = iparam1;
 	args.iparam2 = iparam2;
 	args.bparam1 = bparam1;
-	args.bparam2 = bparam2;
+	args.bparam2 = bparam2;*/
+	event_args_t args =
+		{
+		.origin = Vec3 (origin),
+		.angles = Vec3 (angles),
+		.velocity = Vec3 (cl.simvel),
+		.entindex = cl.playernum + 1,
+		.ducking = (cl.local.usehull == 1),
+		.fparam1 = fparam1,
+		.fparam2 = fparam2,
+		.iparam1 = iparam1,
+		.iparam2 = iparam2,
+		.bparam1 = bparam1,
+		.bparam2 = bparam2,
+		};
 
 	CL_QueueEvent (flags, eventindex, delay, &args);
 	}

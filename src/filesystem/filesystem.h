@@ -159,12 +159,12 @@ typedef struct fs_globals_t
 // [FWGS, 01.02.25]
 typedef struct file_s file_t;
 
-// ESHQ: исправление дефектного определения
+// ESHQ: fixed an invalid definition
 #ifdef SetCurrentDirectory
 #undef SetCurrentDirectory
 #endif
 
-// ESHQ: крайне сомнительное определение (typedef fs_api_t fs_api_t)
+// ESHQ: questionable definition (typedef fs_api_t fs_api_t)
 typedef struct fs_api_s
 	{
 	qboolean (*InitStdio)(qboolean unused_set_to_true, const char *rootdir, const char *basedir,
