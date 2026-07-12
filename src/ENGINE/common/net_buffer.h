@@ -207,7 +207,6 @@ static inline void MSG_StartBitWriting (sizebuf_t *sb)
 	}
 
 // [FWGS, 01.02.25]
-/*void MSG_InitMasks (void); // called once at startup engine*/
 void MSG_ExciseBits (sizebuf_t *sb, int startbit, int bitstoremove);
 
 // [FWGS, 01.12.24] Bit-write functions
@@ -245,21 +244,19 @@ void MSG_WriteFloat (sizebuf_t *sb, float val);
 void MSG_WriteVec3Coord (sizebuf_t *sb, const float *fa);
 void MSG_WriteVec3Angles (sizebuf_t *sb, const float *fa);
 qboolean MSG_WriteString (sizebuf_t *sb, const char *pStr);		// returns false if it overflows the buffer
-
-/*qboolean MSG_WriteStringf (sizebuf_t *sb, const char *format, ...) _format (2);*/
 qboolean MSG_WriteStringf (sizebuf_t *sb, const char *format, ...) FORMAT_CHECK (2);
-
 qboolean MSG_WriteBytes (sizebuf_t *sb, const void *pBuf, int nBytes);
 
-// Bit-read functions
+// [FWGS, 01.07.26] bit-read functions
 int MSG_ReadOneBit (sizebuf_t *sb);
-qboolean MSG_ReadBits (sizebuf_t *sb, void *pOutData, int nBits);
+/*qboolean MSG_ReadBits (sizebuf_t *sb, void *pOutData, int nBits);*/
+qboolean MSG_ReadBits (sizebuf_t *sb, void *out, size_t maxBytes, int bits);
 float MSG_ReadBitAngle (sizebuf_t *sb, int numbits);
 int MSG_ReadSBitLong (sizebuf_t *sb, int numbits);
 uint MSG_ReadUBitLong (sizebuf_t *sb, int numbits);
 uint MSG_ReadBitLong (sizebuf_t *sb, int numbits, qboolean bSigned);
 
-// Byte-read functions
+// byte-read functions
 #define MSG_ReadServerCmd( sb ) MSG_ReadCmd( sb, NS_SERVER )
 #define MSG_ReadClientCmd( sb ) MSG_ReadCmd( sb, NS_CLIENT )
 int MSG_ReadCmd (sizebuf_t *sb, netsrc_t type);		// message marker
@@ -268,19 +265,16 @@ int MSG_ReadByte (sizebuf_t *sb);
 int MSG_ReadShort (sizebuf_t *sb);
 int MSG_ReadWord (sizebuf_t *sb);
 int MSG_ReadLong (sizebuf_t *sb);
-
-// [FWGS, 01.12.24]
 uint MSG_ReadDword (sizebuf_t *sb);
 float MSG_ReadCoord (sizebuf_t *sb);
 float MSG_ReadFloat (sizebuf_t *sb);
 void MSG_ReadVec3Coord (sizebuf_t *sb, vec3_t fa);
 void MSG_ReadVec3Angles (sizebuf_t *sb, vec3_t fa);
-
-/*char *MSG_ReadString (sizebuf_t *sb);
-char *MSG_ReadStringLine (sizebuf_t *sb);*/
 char *MSG_ReadString (sizebuf_t *sb) RETURNS_NONNULL;
 char *MSG_ReadStringLine (sizebuf_t *sb) RETURNS_NONNULL;
 
-qboolean MSG_ReadBytes (sizebuf_t *sb, void *pOut, int nBytes);
+// [FWGS, 01.07.26]
+/*qboolean MSG_ReadBytes (sizebuf_t *sb, void *pOut, int nBytes);*/
+qboolean MSG_ReadBytes (sizebuf_t *sb, void *out, size_t maxBytes, int bytes);
 
 #endif

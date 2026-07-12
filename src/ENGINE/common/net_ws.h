@@ -81,10 +81,11 @@ void NET_SendPacketEx (netsrc_t sock, size_t length, const void *data, netadr_t 
 void NET_IP6BytesToNetadr (netadr_t *adr, const uint8_t *ip6);
 void NET_NetadrToIP6Bytes (uint8_t *ip6, const netadr_t *adr);
 
-// [FWGS, 01.05.26]
+// [FWGS, 01.07.26]
 qboolean NET_IsSocketError (int retval);
 qboolean NET_IsSocketValid (int socket);
 qboolean NET_MakeSocketNonBlocking (int socket_fd);
+qboolean NET_MakeSocketReuseAddr (int socket_fd);
 
 // [FWGS, 01.03.25]
 static inline qboolean NET_IsLocalAddress (netadr_t adr)
@@ -95,12 +96,13 @@ static inline qboolean NET_IsLocalAddress (netadr_t adr)
 // [FWGS, 01.04.25]
 void NET_GetLocalAddress (netadr_t *ip4, netadr_t *ip6);
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.07.26]
 #if !XASH_DEDICATED
-int CL_GetSplitSize (void);
+/*int CL_GetSplitSize (void);*/
+size_t CL_GetSplitSize (void);
+qboolean CL_IsFromConnectingServer (netadr_t from);
 #endif
 
-// [FWGS, 01.12.24]
 void HTTP_AddCustomServer (const char *url);
 void HTTP_AddDownload (const char *path, int size, qboolean process, resource_t *res);
 void HTTP_ClearCustomServers (void);
@@ -108,5 +110,9 @@ void HTTP_Shutdown (void);
 void HTTP_ResetProcessState (void);
 void HTTP_Init (void);
 void HTTP_Run (void);
+
+// [FWGS, 01.07.26]
+typedef void (*http_memory_cb_t)(const char *url, qboolean success, const byte *data, size_t size, void *userdata);
+qboolean HTTP_GetToMemory (const char *url, http_memory_cb_t cb, void *userdata);
 
 #endif

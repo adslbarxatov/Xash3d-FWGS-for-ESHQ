@@ -144,9 +144,10 @@ qboolean OSK_KeyEvent (int key, int down)
 					Key_Event (K_TAB, down);
 					break;
 
+				// [FWGS, 01.07.26]
 				default:
 					{
-					int ch;
+					/*int ch;*/
 
 					if (!down)
 						{
@@ -158,7 +159,8 @@ qboolean OSK_KeyEvent (int key, int down)
 						break;
 						}
 
-					ch = (byte)osk.curbutton.val;
+					/*ch = (byte)osk.curbutton.val;*/
+					int ch = (byte)osk.curbutton.val;
 
 					// do not pass UTF-8 sequence into the engine, convert it here
 					if (!cls.accept_utf8)

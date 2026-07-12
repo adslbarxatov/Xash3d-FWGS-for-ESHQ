@@ -18,8 +18,8 @@ GNU General Public License for more details
 
 // [FWGS, 05.04.26]
 #include <stdio.h>
-#include <stdlib.h> // rand, adbs
-#include <stdarg.h> // va
+#include <stdlib.h>	// rand, adbs
+#include <stdarg.h>	// va
 
 // [FWGS, 05.04.26]
 #include "..\library_suffix\build.h"
@@ -385,13 +385,18 @@ extern host_parm_t	host;
 typedef void (*xcommand_t)(void);
 
 //
-// zone.c [FWGS, 01.04.26]
+// zone.c [FWGS, 01.07.26]
 //
 void Memory_Init (void);
 void _Mem_Free (void *data, const char *filename, int fileline);
 void *_Mem_Realloc (poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename, int fileline) ALLOC_CHECK (3) WARN_UNUSED_RESULT;
 void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline) ALLOC_CHECK (2) MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
-poolhandle_t _Mem_AllocPool (const char *name, const char *filename, int fileline) WARN_UNUSED_RESULT;
+/*poolhandle_t _Mem_AllocPool (const char *name, const char *filename, int fileline) WARN_UNUSED_RESULT;*/
+poolhandle_t _Mem_AllocPool (const char *name, unsigned int flags, const char *filename, int fileline) WARN_UNUSED_RESULT;
+
+// [FWGS, 01.07.26] pool flags
+#define MEM_SMALL_ALLOC_OPT (1U<<0)		// use compact header for allocations <= 255 bytes (drops filename/fileline tracking)
+
 void _Mem_FreePool (poolhandle_t *poolptr, const char *filename, int fileline);
 void _Mem_EmptyPool (poolhandle_t poolptr, const char *filename, int fileline);
 void _Mem_Check (const char *filename, int fileline);
@@ -409,7 +414,11 @@ void Mem_Stats_f (void);
 	_Mem_Free( *ptr, __FILE__, __LINE__ ); \
 	*ptr = NULL; }
 
-#define Mem_AllocPool( name ) _Mem_AllocPool( name, __FILE__, __LINE__ )
+// [FWGS, 01.07.26]
+/*define Mem_AllocPool( name ) _Mem_AllocPool( name, __FILE__, __LINE__ )*/
+#define Mem_AllocPool( name ) _Mem_AllocPool( name, 0, __FILE__, __LINE__ )
+#define Mem_AllocPoolExt( name, flags ) _Mem_AllocPool( name, flags, __FILE__, __LINE__ )
+
 #define Mem_FreePool( pool ) _Mem_FreePool( pool, __FILE__, __LINE__ )
 #define Mem_EmptyPool( pool ) _Mem_EmptyPool( pool, __FILE__, __LINE__ )
 #define Mem_IsAllocated( mem ) Mem_IsAllocatedExt( NULL, mem )
@@ -676,13 +685,12 @@ SHARED ENGFUNCS
 // [FWGS, 01.03.26]
 void COM_HexConvert (const char *pszInput, int nInputLength, byte *pOutput);
 
-// [FWGS, 22.01.25]
+// [FWGS, 01.07.26]
 byte COM_Nibble (char c);
 int COM_SaveFile (const char *filename, const void *data, int len);
 byte *COM_LoadFileForMe (const char *filename, int *pLength) MALLOC_LIKE (free, 1);
-
 qboolean COM_IsSafeFileToDownload (const char *filename);
-cvar_t *pfnCVarGetPointer (const char *szVarName);
+/*cvar_t *pfnCVarGetPointer (const char *szVarName);*/
 int pfnDrawConsoleString (int x, int y, char *string);
 void pfnDrawSetTextColor (float r, float g, float b);
 void pfnDrawConsoleStringLen (const char *pText, int *length, int *height);
@@ -787,7 +795,7 @@ typedef struct sizebuf_s sizebuf_t;
 // [FWGS, 01.02.25]
 int SV_GetMaxClients (void);
 
-// [FWGS, 01.03.25]
+// [FWGS, 01.07.26]
 #if !XASH_DEDICATED
 	qboolean CL_Initialized (void);
 	qboolean CL_IsInGame (void);
@@ -797,6 +805,7 @@ int SV_GetMaxClients (void);
 	qboolean CL_IsRecordDemo (void);
 	qboolean CL_IsPlaybackDemo (void);
 	qboolean UI_CreditsActive (void);
+	void *UI_GetMenuFactory (void);
 	int CL_GetMaxClients (void);
 #else
 	static inline qboolean CL_Initialized (void) { return false; }
@@ -807,6 +816,7 @@ int SV_GetMaxClients (void);
 	static inline qboolean CL_IsRecordDemo (void) { return false; }
 	static inline qboolean CL_IsPlaybackDemo (void) { return false; }
 	static inline qboolean UI_CreditsActive (void) { return false; }
+	static inline void *UI_GetMenuFactory (void) { return NULL; }
 	static inline int CL_GetMaxClients (void) { return SV_GetMaxClients (); }
 #endif
 
@@ -860,8 +870,6 @@ void SCR_CheckStartupVids (void);
 // [FWGS, 01.07.25]
 void SCR_Shutdown (void);
 void Con_Print (const char *txt);
-
-// [FWGS, 01.12.24]
 void Con_NPrintf (int idx, const char *fmt, ...) FORMAT_CHECK (2);
 void Con_NXPrintf (con_nprint_t *info, const char *fmt, ...) FORMAT_CHECK (2);
 void UI_NPrintf (int idx, const char *fmt, ...) FORMAT_CHECK (2);
@@ -925,8 +933,6 @@ static inline connprotocol_t CL_Protocol (void)
 	}
 #endif
 
-/*// [FWGS, 01.07.24]
-static inline qboolean Host_IsLocalGame (void)*/
 // [FWGS, 01.05.26] true in singleplayer only but not specific to local game
 static inline qboolean Host_IsSinglePlayerGame (void)
 	{
@@ -961,7 +967,7 @@ void V_CheckGammaEnd (void);
 intptr_t V_GetGammaPtr (int parm);
 
 //
-// [FWGS, 01.11.25] masterlist.c
+// [FWGS, 01.07.26] masterlist.c
 //
 void NET_InitMasters (void);
 void NET_SaveMasters (void);
@@ -971,6 +977,7 @@ void NET_MasterClear (void);
 void NET_MasterShutdown (void);
 qboolean NET_GetMaster (netadr_t from, uint * challenge, double *last_heartbeat);
 qboolean NET_MasterQuery (uint32_t key, qboolean net, const char *filter);
+void NET_QueryServerByAddress (netadr_t adr, connprotocol_t proto);
 
 //
 // munge.c [FWGS, 05.04.26]
@@ -1008,6 +1015,15 @@ const char *SoundList_GetRandom (soundlst_group_t group);
 const char *SoundList_Get (soundlst_group_t group, int idx);
 void SoundList_Init (void);
 void SoundList_Shutdown (void);
+
+//
+// xrcon.c [FWGS, 01.07.26]
+//
+void XRcon_Init (void);
+void XRcon_Shutdown (void);
+void XRcon_Frame (void);
+void XRcon_Print (const char *msg);
+qboolean XRcon_IsActive (void);
 
 #ifdef REF_DLL
 	#error "common.h in ref_dll"

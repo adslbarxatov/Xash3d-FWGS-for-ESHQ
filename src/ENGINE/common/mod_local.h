@@ -166,7 +166,9 @@ void Mod_LoadCacheFile (const char *path, struct cache_user_s *cu);
 void *Mod_AliasExtradata (model_t *mod);
 void *Mod_StudioExtradata (model_t *mod);
 model_t *Mod_FindName (const char *name, qboolean trackCRC);
-model_t *Mod_LoadModel (model_t *mod, qboolean crash);
+
+// [FWGS, 01.07.26]
+/*model_t *Mod_LoadModel (model_t *mod, qboolean crash);*/
 model_t *Mod_ForName (const char *name, qboolean crash, qboolean trackCRC);
 
 // [FWGS, 01.03.26]
@@ -200,7 +202,6 @@ void Mod_PrintWorldStats_f (void);
 //
 // mod_studio.c [FWGS, 01.05.26]
 //
-/*void Mod_LoadStudioModel (model_t *mod, const void *buffer, qboolean *loaded);*/
 void Mod_LoadStudioModel (model_t *mod, void *buffer, size_t buffersize, qboolean *loaded);
 void Mod_InitStudioAPI (void);
 void Mod_InitStudioHull (void);
@@ -219,9 +220,6 @@ void Mod_ClearStudioCache (void);
 //
 // mod_sprite.c [FWGS, 01.05.26]
 //
-/*void Mod_LoadSpriteModel (model_t *mod, const void *buffer, size_t buffersize, qboolean *loaded);
-
-endif*/
 void Mod_LoadSpriteModel (model_t *mod, void *buffer, size_t buffersize, qboolean *loaded);
 void Mod_SpriteLoadTextures (model_t *mod, const void *buffer);
 void Mod_SpriteUnloadTextures (void *data);

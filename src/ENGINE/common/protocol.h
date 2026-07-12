@@ -99,21 +99,21 @@ GNU General Public License for more details
 #define MAX_VISIBLE_PACKET		(1<<MAX_VISIBLE_PACKET_BITS)
 #define MAX_VISIBLE_PACKET_VIS_BYTES	((MAX_VISIBLE_PACKET + 7) / 8)
 
-// additional protocol data
-#define MAX_CLIENT_BITS		5
-#define MAX_CLIENTS			(1<<MAX_CLIENT_BITS)// 5 bits == 32 clients ( int32 limit )
+// [FWGS, 01.07.26] additional protocol data
+/*define MAX_CLIENT_BITS		5
+define MAX_CLIENTS			(1<<MAX_CLIENT_BITS)// 5 bits == 32 clients ( int32 limit )*/
 
 #define MAX_WEAPON_BITS		6
-#define MAX_WEAPONS			(1<<MAX_WEAPON_BITS)// 6 bits == 64 predictable weapons
+#define MAX_WEAPONS			(1<<MAX_WEAPON_BITS)	// 6 bits == 64 predictable weapons
 
 #define MAX_EVENT_BITS		10
-#define MAX_EVENTS			(1<<MAX_EVENT_BITS)	// 10 bits == 1024 events (the original Half-Life limit)
+#define MAX_EVENTS			(1<<MAX_EVENT_BITS)		// 10 bits == 1024 events (the original Half-Life limit)
 
 #define MAX_MODEL_BITS		12		// 12 bits == 4096 models
 #define MAX_MODELS			(1<<MAX_MODEL_BITS)
 
 #define MAX_SOUND_BITS		11
-#define MAX_SOUNDS			(1<<MAX_SOUND_BITS)	// 11 bits == 2048 sounds
+#define MAX_SOUNDS			(1<<MAX_SOUND_BITS)		// 11 bits == 2048 sounds
 #define MAX_SOUNDS_NONSENTENCE MAX_SOUNDS
 
 #define MAX_ENTITY_BITS		13		// 13 bits = 8192 edicts
@@ -198,7 +198,7 @@ GNU General Public License for more details
 #define MAX_CUSTOM			32
 #define MAX_DLIGHTS			16		// dynamic lights (rendered per one frame)
 #define MAX_ELIGHTS			32		// entity only point lights
-#define MAX_RENDER_DECALS		64		// max rendering decals per a level
+#define MAX_RENDER_DECALS	64		// max rendering decals per a level
 #define MAX_RESOURCES		1024
 #elif XASH_LOW_MEMORY == 1
 #undef MAX_VISIBLE_PACKET
@@ -239,7 +239,7 @@ GNU General Public License for more details
 #define svc_skybox			37	// [string] skyname
 #define svc_skyboxsize		50	// [coord] size (default is 4096)
 #define svc_fog				51	// [byte] enable <optional past this point, only included if enable is true>
-					// [float] density [byte] red [byte] green [byte] blue
+								// [float] density [byte] red [byte] green [byte] blue
 
 // if the high bit of the servercmd is set, the low bits are fast update flags:
 #define U_MOREBITS		(1<<0)
@@ -279,43 +279,13 @@ GNU General Public License for more details
 
 // [FWGS, 01.03.26]
 extern const char *const svc_strings[svc_lastmsg + 1];
-/*extern const char *const svc_legacy_strings[svc_lastmsg + 1];*/
 extern const char *const svc_quake_strings[svc_lastmsg + 1];
 extern const char *const svc_goldsrc_strings[svc_lastmsg + 1];
 
-// FWGS extensions
-#define NET_EXT_SPLITSIZE (1U<<0) // set splitsize by cl_dlmax
-
-// [FWGS, 01.03.26]
-/*// legacy protocol definitons
-#define PROTOCOL_LEGACY_VERSION		48
-#define svc_legacy_modelindex		31	// [index][modelpath]
-#define svc_legacy_soundindex		28	// [index][soundpath]
-#define svc_legacy_eventindex		34	// [index][eventname]
-#define svc_legacy_ambientsound		29
-#define svc_legacy_chokecount		42	// old client specified count, new just sends svc_choke
-#define svc_legacy_event			27	// playback event queue
-#define svc_legacy_changing			3	// changelevel by server request
-
-#define clc_legacy_userinfo			6	// [[userinfo string]
-
-#define SND_LEGACY_LARGE_INDEX		(1<<2)	// a send sound as short
-#define MAX_LEGACY_ENTITY_BITS		12
-#define MAX_LEGACY_WEAPON_BITS		5
-#define MAX_LEGACY_MODEL_BITS		11
-#define MAX_LEGACY_TOTAL_CMDS		16		// 28 - 16 = 12 real legacy max backup
-#define MAX_LEGACY_BACKUP_CMDS		12
-
-#define MAX_LEGACY_EDICTS			(1 << MAX_LEGACY_ENTITY_BITS)	// 4096 edicts
-#define MIN_LEGACY_EDICTS			30
-
-// [FWGS, 01.01.24] legacy engine features that can be implemented through currently supported features
-#define ENGINE_LEGACY_FEATURES_MASK \
-	( ENGINE_WRITE_LARGE_COORD \
-	| ENGINE_LOAD_DELUXEDATA \
-	| ENGINE_LARGE_LIGHTMAPS \
-	| ENGINE_COMPENSATE_QUAKE_BUG \
-	| ENGINE_COMPUTE_STUDIO_LERP )*/
+// [FWGS, 01.07.26] FWGS extensions
+/*define NET_EXT_SPLITSIZE (1U<<0)	// set splitsize by cl_dlmax*/
+#define NET_EXT_SPLITSIZE (1U<<0)		// set splitsize by cl_dlmax
+#define NET_EXT_NETCHAN_COOKIE (1U<<1)	// per-connection 64-bit netchan cookie validated on every sequenced packet
 
 // [FWGS, 25.12.24] GoldSrc protocol definitions
 #define PROTOCOL_GOLDSRC_VERSION	48
@@ -329,8 +299,8 @@ extern const char *const svc_goldsrc_strings[svc_lastmsg + 1];
 #define svc_goldsrc_decalname		svc_bspdecal
 #define svc_goldsrc_sendextrainfo	54
 #define svc_goldsrc_timescale		55
-#define clc_goldsrc_hltv			clc_requestcvarvalue // 9
-#define clc_goldsrc_requestcvarvalue	clc_requestcvarvalue2 // 10
+#define clc_goldsrc_hltv			clc_requestcvarvalue	// 9
+#define clc_goldsrc_requestcvarvalue	clc_requestcvarvalue2	// 10
 #define clc_goldsrc_requestcvarvalue2	11
 
 // [FWGS, 01.03.26]
@@ -360,8 +330,9 @@ extern const char *const svc_goldsrc_strings[svc_lastmsg + 1];
 #define A2S_GOLDSRC_RULES	'V'
 #define A2S_GOLDSRC_PLAYERS	'U'
 
-// [FWGS, 01.12.24] from server to any
+// [FWGS, 01.07.26] from server to any
 #define S2A_GOLDSRC_INFO	'I'
+#define S2A_GOLDSRC_LEGACY_INFO		'm'
 #define S2A_GOLDSRC_RULES	'E'
 #define S2A_GOLDSRC_PLAYERS	'D'
 
@@ -396,7 +367,7 @@ extern const char *const svc_goldsrc_strings[svc_lastmsg + 1];
 #define A2C_GOLDSRC_PRINT	'l'
 
 // [FWGS, 01.11.25] from any to master
-#define A2M_SCAN_REQUEST	"1\xFF" "0.0.0.0:0\0" // TODO: implement IP filter
+#define A2M_SCAN_REQUEST	"1\xFF" "0.0.0.0:0\0"	// TODO: implement IP filter
 
 // [FWGS, 01.11.25] from master to any
 #define M2A_SERVERSLIST		"f"

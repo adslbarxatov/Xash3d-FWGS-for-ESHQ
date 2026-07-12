@@ -79,10 +79,6 @@ ELEMENTS COMMUNICATED ACROSS THE NET
 #define CMD_MASK				(CMD_BACKUP - 1)
 #define NUM_PACKET_ENTITIES		256	// 170 Mb for multiplayer with 32 players
 #define MAX_CUSTOM_BASELINES	64
-/*define NET_LEGACY_EXT_SPLIT	(1U<<1)
-define NETSPLIT_BACKUP			8
-define NETSPLIT_BACKUP_MASK	(NETSPLIT_BACKUP - 1)
-define NETSPLIT_HEADER_SIZE	18*/
 
 #if XASH_LOW_MEMORY == 2
 #undef MULTIPLAYER_BACKUP
@@ -108,41 +104,6 @@ define NETSPLIT_HEADER_SIZE	18*/
 
 // [FWGS, 01.03.26] removed netsplit_chain_packet_s, netsplit_packet_s,
 // netsplit_s, NetSplit_GetLong
-
-/*typedef struct netsplit_chain_packet_s
-	{
-	// bool vector
-	uint32_t recieved_v[8];
-	// serial number
-	uint32_t id;
-	byte data[NET_MAX_PAYLOAD];
-	byte received;
-	byte count;
-	} netsplit_chain_packet_t;
-
-// raw packet format
-typedef struct netsplit_packet_s
-	{
-	uint32_t signature; // 0xFFFFFFFE
-	uint32_t length;
-	uint32_t part;
-	uint32_t id;
-	// max 256 parts
-	byte count;
-	byte index;
-	byte data[NET_MAX_PAYLOAD - NETSPLIT_HEADER_SIZE];
-	} netsplit_packet_t;
-
-
-typedef struct netsplit_s
-	{
-	netsplit_chain_packet_t packets[NETSPLIT_BACKUP];
-	uint64_t total_received;
-	uint64_t total_received_uncompressed;
-	} netsplit_t;
-
-// packet splitting
-qboolean NetSplit_GetLong (netsplit_t *ns, netadr_t *from, byte *data, size_t *length);*/
 
 /***
 ==============================================================
@@ -206,18 +167,18 @@ typedef enum fragsize_e
 	FRAGSIZE_UNRELIABLE
 	} fragsize_t;
 
-// [FWGS, 01.03.26]
+// [FWGS, 01.07.26]
 typedef enum netchan_flags_e
 	{
-	/*NETCHAN_USE_LEGACY_SPLIT =	BIT (0),
-	NETCHAN_USE_MUNGE =			BIT (1),
-	NETCHAN_USE_BZIP2 =			BIT (2),
-	NETCHAN_GOLDSRC =			BIT (3),
-	NETCHAN_USE_LZSS =			BIT (4),	// mutually exclusive with bzip2*/
+	/*NETCHAN_USE_MUNGE =		BIT (0),
+	NETCHAN_USE_BZIP2 =		BIT (1),
+	NETCHAN_GOLDSRC =		BIT (2),
+	NETCHAN_USE_LZSS =		BIT (3),	// mutually exclusive with bzip2*/
 	NETCHAN_USE_MUNGE =		BIT (0),
 	NETCHAN_USE_BZIP2 =		BIT (1),
 	NETCHAN_GOLDSRC =		BIT (2),
 	NETCHAN_USE_LZSS =		BIT (3),	// mutually exclusive with bzip2
+	NETCHAN_USE_COOKIE =	BIT (4),	// per-connection 64-bit cookie prefixed to every sequenced packet (NET_EXT_NETCHAN_COOKIE)
 	} netchan_flags_t;
 
 // Network Connection Channel
@@ -282,17 +243,16 @@ typedef struct netchan_s
 	// [FWGS, 01.03.26] added for net_speeds
 	size_t		total_sended;
 	size_t		total_received;
-	/*unsigned int	maxpacket;
-	unsigned int	splitid;
-
-	netsplit_t	netsplit;
-	qboolean	split;*/
 	qboolean	use_munge;
 	qboolean	use_bz2;
 
 	// [FWGS, 01.02.25]
 	qboolean	use_lzss;
 	qboolean	gs_netchan;
+
+	// [FWGS, 01.07.26]
+	qboolean	use_cookie;
+	uint64_t	cookie;
 	} netchan_t;
 
 // [FWGS, 01.04.25]
@@ -305,21 +265,20 @@ extern int			net_drop;
 
 void Netchan_Init (void);
 void Netchan_Shutdown (void);
-
-// [FWGS, 01.12.24]
 void Netchan_Setup (netsrc_t sock, netchan_t *chan, netadr_t adr, int qport, void *client,
 	int (*pfnBlockSize)(void *, fragsize_t mode), uint flags);
+
+// [FWGS, 01.07.26]
+void Netchan_SetCookie (netchan_t *chan, uint64_t cookie);
 void Netchan_CreateFileFragmentsFromBuffer (netchan_t *chan, const char *filename, byte *pbuf, int size);
 qboolean Netchan_CopyNormalFragments (netchan_t *chan, sizebuf_t *msg, size_t *length);
 qboolean Netchan_CopyFileFragments (netchan_t *chan, sizebuf_t *msg);
 void Netchan_CreateFragments (netchan_t *chan, sizebuf_t *msg);
 int Netchan_CreateFileFragments (netchan_t *chan, const char *filename);
 
-// [FWGS, 01.12.24]
 void Netchan_TransmitBits (netchan_t *chan, int lengthInBits, const byte *data);
 void Netchan_OutOfBand (int net_socket, netadr_t adr, int length, const byte *data);
 void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, const char *format, ...) FORMAT_CHECK (3);
-
 qboolean Netchan_Process (netchan_t *chan, sizebuf_t *msg);
 void Netchan_UpdateProgress (netchan_t *chan);
 qboolean Netchan_IncomingReady (netchan_t *chan);

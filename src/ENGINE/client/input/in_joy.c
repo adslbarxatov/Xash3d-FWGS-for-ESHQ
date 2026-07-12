@@ -144,7 +144,7 @@ void Joy_SetCalibrationState (joy_calibration_state_t state)
 
 /***
 ============
-Joy_HatMotionEvent [FWGS, 01.03.25]
+Joy_HatMotionEvent [FWGS, 01.07.26]
 
 DPad events
 ============
@@ -163,20 +163,21 @@ static void Joy_HatMotionEvent (int value)
 				{ JOY_HAT_RIGHT, K_RIGHTARROW },
 			};
 
-		int i;
-		for (i = 0; i < HLARRAYSIZE (keys); i++)
+	/*int i;*/
+	/*for (i = 0; i < HLARRAYSIZE (keys); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (keys); i++)
+		{
+		if (value & keys[i].mask)
 			{
-			if (value & keys[i].mask)
-				{
-				if (!Key_IsDown (keys[i].key))
-					Key_Event (keys[i].key, true);
-				}
-			else
-				{
-				if (Key_IsDown (keys[i].key))
-					Key_Event (keys[i].key, false);
-				}
+			if (!Key_IsDown (keys[i].key))
+				Key_Event (keys[i].key, true);
 			}
+		else
+			{
+			if (Key_IsDown (keys[i].key))
+				Key_Event (keys[i].key, false);
+			}
+		}
 	}
 
 /***
@@ -235,7 +236,6 @@ static int Joy_GetHatValueForAxis (const engineAxis_t engineAxis)
 
 		// [FWGS, 01.05.26]
 		case JOY_AXIS_FWD:
-			/*threshold = joy_side_key_threshold.value;*/
 			threshold = joy_forward_key_threshold.value;
 			negative = JOY_HAT_UP;
 			positive = JOY_HAT_DOWN;
@@ -372,14 +372,14 @@ void Joy_FinalizeMove (float *fw, float *side, float *dpitch, float *dyaw)
 	if (!Joy_IsActive ())
 		return;
 
+	// [FWGS, 01.07.26]
 	if (FBitSet (joy_axis_binding.flags, FCVAR_CHANGED))
 		{
 		const char *bind = joy_axis_binding.string;
-		size_t i;
+		/*size_t i;*/
 
-		// [FWGS, 01.05.26]
-		/*for (i = 0; bind[i]; i++)*/
-		for (i = 0; bind[i] && (i < MAX_AXES); i++)
+		/*for (i = 0; bind[i] && (i < MAX_AXES); i++)*/
+		for (size_t i = 0; bind[i] && (i < MAX_AXES); i++)
 			{
 			switch (bind[i])
 				{
@@ -422,7 +422,6 @@ void Joy_FinalizeMove (float *fw, float *side, float *dpitch, float *dyaw)
 	*dyaw -= joy_yaw.value * (float)joyaxis[JOY_AXIS_YAW].val / (float)SHRT_MAX * host.realframetime;
 
 	// [FWGS, 01.05.26]
-	/*if (joy_have_gyro.value && ((int)joy_calibrated.value == JOY_CALIBRATED))*/
 	if (joy_gyro_enable.value && joy_have_gyro.value && ((int)joy_calibrated.value == JOY_CALIBRATED))
 		{
 		float pitch_speed = joy_gyro_speed[0] * (180.0f / M_PI);
@@ -500,7 +499,6 @@ void Joy_DrawDebug (void)
 	// draw axes as labeled bars
 	for (int i = 0; i < MAX_AXES; i++)
 		{
-
 		qboolean	is_trigger = (i >= JOY_AXIS_RT);
 		float	fval = (float)joyaxis[i].val / SHRT_MAX;
 		float	fprev = (float)joyaxis[i].prevval / SHRT_MAX;
@@ -517,7 +515,6 @@ void Joy_DrawDebug (void)
 			{
 			// fill bar from the left for triggers
 			float filled = fval * bar_w;
-
 			if (filled > 0)
 				{
 				ref.dllFuncs.FillRGBA (kRenderTransTexture, x, y, filled, bar_h, bar_fillcolor[0], bar_fillcolor[1],
@@ -624,9 +621,10 @@ void Joy_DrawDebug (void)
 			continue;
 			}
 
+		// [FWGS, 01.07.26]
 		qboolean	pressed = Key_IsDown (buttons[i]);
-		int		btn_w = 0;
-		rgba_t	color;
+		/*int		btn_w = 0;
+		rgba_t	color;*/
 		string	name;
 
 		Q_strncpy (name, Key_KeynumToString (buttons[i]), sizeof (name));
@@ -635,8 +633,11 @@ void Joy_DrawDebug (void)
 		if (p)
 			*p = 0;
 
+		rgba_t color;
 		MakeRGBA (color, pressed ? 0 : 255, pressed ? 255 : 0, 0, 255);
 		CL_DrawString (x, y, name, color, font, 0);
+
+		int btn_w = 0;
 		CL_DrawStringLen (font, name, &btn_w, NULL, 0);
 		x += btn_w + 6;
 		}

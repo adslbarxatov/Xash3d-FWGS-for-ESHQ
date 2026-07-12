@@ -29,12 +29,14 @@ GNU General Public License for more details
 typedef int		HIMAGE;		// handle to a graphic
 
 // flags for PIC_Load
-#define PIC_NEAREST		(1<<0)		// disable texfilter
-#define PIC_KEEP_SOURCE	(1<<1)		// some images keep source
-#define PIC_NOFLIP_TGA	(1<<2)		// Steam background completely ignore tga attribute 0x20
+#define PIC_NEAREST			(1<<0)		// disable texfilter
+#define PIC_KEEP_SOURCE		(1<<1)		// some images keep source
+#define PIC_NOFLIP_TGA		(1<<2)		// Steam background completely ignore tga attribute 0x20
 
-// FWGS
+// [FWGS, 01.07.26] FWGS
 #define PIC_EXPAND_SOURCE	(1<<3)		// don't keep as 8-bit source, expand to RGBA
+#define PIC_NOMIPMAP		(1<<12)		// disable mipmaps
+#define PIC_HAS_ALPHA		(1<<16)		// image has alpha channel
 
 // [FWGS, 01.12.24] flags for COM_ParseFileSafe
 #define PFILE_IGNOREBRACKET	(1<<0)
@@ -233,7 +235,6 @@ typedef struct ui_extendedfuncs_s
 	gameinfo2_t *(*pfnGetGameInfo)(int gi_version);	// might return NULL if gi_version is unsupported
 
 	// [FWGS, 15.04.26]
-	/*gameinfo2_t *(*pfnGetModInfo)(int gi_version, int mod_index); // continiously call it until it returns null*/
 	gameinfo2_t *(*pfnGetModInfo)(int gi_version, int mod_index);	// continuously call it until it returns null
 
 	// [FWGS, 01.12.24] returns 1 if cvar has read-only flag
@@ -257,7 +258,7 @@ typedef struct
 		int iCurrent, int iTotal, const char *comment);
 	void (*pfnConnectionProgress_DownloadEnd)(void);
 	void (*pfnConnectionProgress_Precache)(void);
-	void (*pfnConnectionProgress_Connect)(const char *server); // NULL for local server
+	void (*pfnConnectionProgress_Connect)(const char *server);	// NULL for local server
 	void (*pfnConnectionProgress_ChangeLevel)(void);
 	void (*pfnConnectionProgress_ParseServerInfo)(const char *server);
 	} UI_EXTENDED_FUNCTIONS;

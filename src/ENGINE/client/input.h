@@ -45,6 +45,9 @@ void IN_GyroCheckAvailability (void);
 void IN_GyroEvent (vec3_t data);
 void IN_GyroFinalizeMove (float *fw, float *side, float *dpitch, float *dyaw);
 
+// [FWGS, 01.07.26]
+void IN_GyroDrawDebug (void);
+
 uint IN_CollectInputDevices (void);
 void IN_LockInputDevices (qboolean lock);
 void IN_EngineAppendMove (float frametime, usercmd_t *cmd, qboolean active);	// [FWGS, 01.12.24]

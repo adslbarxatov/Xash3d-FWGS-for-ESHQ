@@ -44,9 +44,9 @@ extern int SV_UPDATE_BACKUP;
 #define SVF_MERGE_VISIBILITY	BIT( 1 )	// we are do portal pass
 
 // [FWGS, 01.05.24] mapvalid flags
-#define MAP_IS_EXIST		BIT( 0 )
-#define MAP_HAS_LANDMARK	BIT( 2 )
-#define MAP_INVALID_VERSION	BIT( 3 )
+#define MAP_IS_EXIST			BIT( 0 )
+#define MAP_HAS_LANDMARK		BIT( 2 )
+#define MAP_INVALID_VERSION		BIT( 3 )
 
 #define SV_SPAWN_TIME	0.1
 
@@ -67,6 +67,7 @@ extern int SV_UPDATE_BACKUP;
 #define MAX_LOCALINFO_STRING	32768	// localinfo used on server and not sended to the clients
 #define MAX_ENT_LEAFS(ext)		(( ext ) ? MAX_ENT_LEAFS_32 : MAX_ENT_LEAFS_16 )
 
+// [FWGS, 01.07.26]
 #define FCL_RESEND_USERINFO		BIT( 0 )
 #define FCL_RESEND_MOVEVARS		BIT( 1 )
 #define FCL_SKIP_NET_MESSAGE	BIT( 2 )
@@ -78,6 +79,7 @@ extern int SV_UPDATE_BACKUP;
 #define FCL_HLTV_PROXY			BIT( 8 )	// this is a proxy for a HLTV client (spectator)
 #define FCL_SEND_RESOURCES		BIT( 9 )
 #define FCL_FORCE_UNMODIFIED	BIT( 10 )
+#define FCL_EXPECT_RESOURCELIST	BIT( 11 )	// engine sent svc_resourcerequest, expect one clc_resourcelist in response
 
 typedef enum
 	{

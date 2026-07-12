@@ -582,6 +582,9 @@ typedef struct
 	sizebuf_t		datagram;			// unreliable stuff. gets sent in CL_Move about cl_cmdrate times per second
 	byte			datagram_buf[MAX_DATAGRAM];
 
+	// [FWGS, 01.07.26]
+	uint64_t		netchan_pending_cookie;		// random NET_EXT_NETCHAN_COOKIE
+
 	netchan_t		netchan;
 
 	float			packet_loss;
@@ -645,11 +648,12 @@ typedef struct
 	file_t			*demoheader;			// contain demo startup info in case we record a demo on this level
 	qboolean		internetservers_wait;	// [FWGS, 01.11.25] internetservers is waiting for dns request
 	
-	// [FWGS, 01.11.25]
 	qboolean		internetservers_pending;	// if true, clean master server pings
 	qboolean		internetservers_nat;
 	string			internetservers_customfilter;
-	uint32_t		internetservers_key;		// compare key to validate master server reply
+
+	// [FWGS, 01.07.26]
+	/*uint32_t		internetservers_key;		// compare key to validate master server reply*/
 	
 	// multiprotocol support
 	connprotocol_t	legacymode;
@@ -804,8 +808,9 @@ void CL_SignonReply (connprotocol_t proto);
 void CL_ClearState (void);
 void CL_SetCheatState (qboolean multiplayer, qboolean allow_cheats);
 
-// [FWGS, 01.03.26]
+// [FWGS, 01.07.26]
 void CL_SendGoldSrcConnectPacket (netadr_t adr, int challenge, const void *ticket, size_t ticketlen);
+void CL_NotifyServerListResponse (void);
 
 //
 // cl_demo.c
@@ -1186,8 +1191,12 @@ void S_StopStreaming (void);
 void S_BeginRegistration (void);
 sound_t S_RegisterSound (const char *sample);
 void S_EndRegistration (void);
+
+// [FWGS, 01.07.26]
+/*void S_RestoreSound (const vec3_t pos, int ent, int chan, sound_t handle, float fvol, float attn,
+	int pitch, int flags, double sample, double end, int wordIndex);*/
 void S_RestoreSound (const vec3_t pos, int ent, int chan, sound_t handle, float fvol, float attn,
-	int pitch, int flags, double sample, double end, int wordIndex);
+	int pitch, int flags, double sample, double end, uint wordIndex);
 void S_StartSound (const vec3_t pos, int ent, int chan, sound_t sfx, float vol, float attn, int pitch, int flags);
 void S_AmbientSound (const vec3_t pos, int ent, sound_t handle, float fvol, float attn, int pitch, int flags);
 
@@ -1249,8 +1258,6 @@ void CL_GetSecuredClientAPI (CL_EXPORT_FUNCS F);
 void SteamBroker_Init (void);
 void SteamBroker_Shutdown (void);
 void SteamBroker_Frame (void);
-/*void SteamBroker_HandlePacket (netadr_t from, sizebuf_t *msg);
-int SteamBroker_InitiateGameConnection (netadr_t serveradr, int challenge);*/
 qboolean SteamBroker_InitiateGameConnection (netadr_t serveradr, int challenge);
 void SteamBroker_TerminateGameConnection (void);
 
@@ -1283,7 +1290,6 @@ void Key_EnumCmds_f (void);
 void Key_SetKeyDest (int key_dest);
 void Key_EnableTextInput (qboolean enable, qboolean force);
 int Key_ToUpper (int key);
-/*void OSK_Draw (void);*/
 qboolean Cmd_GetKeysList (const char *s, char *completedname, int length, qboolean print_suggestions);
 
 //

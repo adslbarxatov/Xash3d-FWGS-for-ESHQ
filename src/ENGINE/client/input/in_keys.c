@@ -162,11 +162,6 @@ static const keyname_t keynames[] =
 	};
 
 // [FWGS, 01.05.26]
-/*static void OSK_EnableTextInput (qboolean enable, qboolean force);
-static qboolean OSK_KeyEvent (int key, int down);
-
-static CVAR_DEFINE_AUTO (osk_enable, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
-	"enable built-in on-screen keyboard");*/
 static CVAR_DEFINE_AUTO (key_rotate, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"rotate arrow keys (0-3)");
 
@@ -185,7 +180,7 @@ int GAME_EXPORT Key_IsDown (int keynum)
 
 /***
 ===================
-Key_StringToKeynum
+Key_StringToKeynum [FWGS, 01.07.26]
 
 Returns a key number to be used to index keys[] by looking at
 the given string.  Single ascii characters return themselves, while
@@ -198,7 +193,7 @@ to be configured even if they don't have defined names
 ***/
 static int Key_StringToKeynum (const char *str)
 	{
-	int i;
+	/*int i;*/
 
 	if (!str || !str[0])
 		return -1;
@@ -206,7 +201,7 @@ static int Key_StringToKeynum (const char *str)
 	if (!str[1])
 		return str[0];
 
-	// [FWGS, 01.05.26] check for hex code
+	// check for hex code
 	if ((str[0] == '0') && (str[1] == 'x'))
 		{
 		int key = Q_atoi (str);
@@ -216,10 +211,10 @@ static int Key_StringToKeynum (const char *str)
 
 		return key;
 		}
-	/*return Q_atoi (str);*/
 
 	// scan for a text match
-	for (i = 0; i < HLARRAYSIZE (keynames); i++)
+	/*for (i = 0; i < HLARRAYSIZE (keynames); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (keynames); i++)
 		{
 		if (!Q_stricmp (str, keynames[i].name))
 			return keynames[i].keynum;
@@ -303,27 +298,28 @@ const char *Key_GetBinding (int keynum)
 
 /***
 ===================
-Key_GetKey
+Key_GetKey [FWGS, 01.07.26]
 ===================
 ***/
 static int Key_GetKey (const char *pBinding)
 	{
-	int			i, len;
-	const char	*p;
+	/*int			i, len;
+	const char	*p;*/
 
 	if (!pBinding)
 		return -1;
 
-	len = Q_strlen (pBinding);
+	/*len = Q_strlen (pBinding);*/
+	int len = Q_strlen (pBinding);
 
-	// [FWGS, 01.04.26]
-	for (i = 0; i < HLARRAYSIZE (keys); i++)
+	/*for (i = 0; i < HLARRAYSIZE (keys); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (keys); i++)
 		{
 		if (!keys[i].binding)
 			continue;
 
-		p = keys[i].binding;
-
+		/*p = keys[i].binding;*/
+		const char *p = keys[i].binding;
 		if (*p == '+')
 			p++;
 
@@ -350,12 +346,12 @@ const char *Key_LookupBinding (const char *pBinding)
 
 /***
 ===================
-Key_Unbind_f
+Key_Unbind_f [FWGS, 01.07.26]
 ===================
 ***/
 static void Key_Unbind_f (void)
 	{
-	int	b;
+	/*int	b;*/
 
 	if (Cmd_Argc () != 2)
 		{
@@ -363,14 +359,14 @@ static void Key_Unbind_f (void)
 		return;
 		}
 
-	b = Key_StringToKeynum (Cmd_Argv (1));
+	/*b = Key_StringToKeynum (Cmd_Argv (1));*/
+	int b = Key_StringToKeynum (Cmd_Argv (1));
 	if (b == -1)
 		{
 		Con_Printf ("\"%s\" isn't a valid key\n", Cmd_Argv (1));
 		return;
 		}
 
-	// [FWGS, 01.02.25]
 	if (b == K_ESCAPE)
 		{
 		Con_Printf ("Can't unbind ESCAPE key\n");
@@ -382,64 +378,68 @@ static void Key_Unbind_f (void)
 
 /***
 ===================
-Key_Unbindall_f
+Key_Unbindall_f [FWGS, 01.07.26]
 ===================
 ***/
 static void Key_Unbindall_f (void)
 	{
-	int	i;
+	/*int	i;
 
-	for (i = 0; i < HLARRAYSIZE (keys); i++)
+	for (i = 0; i < HLARRAYSIZE (keys); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (keys); i++)
 		{
 		if (keys[i].binding)
 			Key_SetBinding (i, "");
 		}
 
-	// [FWGS, 01.02.25] set some defaults
+	// set some defaults
 	Key_SetBinding (K_ESCAPE, "cancelselect");
 	Key_SetBinding (K_START_BUTTON, "cancelselect");
 	}
 
 /***
 ===================
-Key_Reset_f [FWGS, 22.01.25]
+Key_Reset_f [FWGS, 01.07.26]
 ===================
 ***/
 static void Key_Reset_f (void)
 	{
-	int			i;
+	/*int			i;*/
 
 	// clear all keys first
-	for (i = 0; i < HLARRAYSIZE (keys); i++)
+	/*for (i = 0; i < HLARRAYSIZE (keys); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (keys); i++)
 		{
 		if (keys[i].binding)
 			Key_SetBinding (i, "");
 		}
 
 	// apply default values
-	for (i = 0; i < HLARRAYSIZE (keynames); i++)
+	/*for (i = 0; i < HLARRAYSIZE (keynames); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (keynames); i++)
 		Key_SetBinding (keynames[i].keynum, keynames[i].binding);
 	}
 
 /***
 ===================
-Key_Bind_f
+Key_Bind_f [FWGS, 01.07.26]
 ===================
 ***/
 static void Key_Bind_f (void)
 	{
-	char	cmd[1024];
+	/*char	cmd[1024];
 	int		i, c, b;
 
-	c = Cmd_Argc ();
-
+	c = Cmd_Argc ();*/
+	int c = Cmd_Argc ();
 	if (c < 2)
 		{
 		Con_Printf (S_USAGE "bind <key> [command] : attach a command to a key\n");
 		return;
 		}
 
-	b = Key_StringToKeynum (Cmd_Argv (1));
+	/*b = Key_StringToKeynum (Cmd_Argv (1));*/
+	int b = Key_StringToKeynum (Cmd_Argv (1));
 	if (b == -1)
 		{
 		Con_Printf ("\"%s\" isn't a valid key\n", Cmd_Argv (1));
@@ -456,9 +456,11 @@ static void Key_Bind_f (void)
 		}
 
 	// copy the rest of the command line
+	char cmd[1024];
 	cmd[0] = 0;	// start out with a null string
 
-	for (i = 2; i < c; i++)
+	/*for (i = 2; i < c; i++)*/
+	for (int i = 2; i < c; i++)
 		{
 		Q_strncat (cmd, Cmd_Argv (i), sizeof (cmd));
 		if (i != (c - 1))
@@ -470,27 +472,29 @@ static void Key_Bind_f (void)
 
 /***
 ============
-Key_WriteBindings
+Key_WriteBindings [FWGS, 01.07.26]
 
 Writes lines containing "bind key value"
 ============
 ***/
 void Key_WriteBindings (file_t *f)
 	{
-	int	i;
-	string newCommand;
+	/*int	i;
+	string newCommand;*/
 
 	if (!f)
 		return;
 
 	FS_Printf (f, "unbindall\n");
 
-	// [FWGS, 01.04.26]
-	for (i = 0; i < HLARRAYSIZE (keys); i++)
+	/*// [FWGS, 01.04.26]
+	for (i = 0; i < HLARRAYSIZE (keys); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (keys); i++)
 		{
 		if (COM_StringEmptyOrNULL (keys[i].binding))
 			continue;
 
+		string newCommand;
 		Cmd_Escape (newCommand, keys[i].binding, sizeof (newCommand));
 
 		// NOTE: as TheKingFireS figured out, some particular mods (like CoF) do not
@@ -503,15 +507,16 @@ void Key_WriteBindings (file_t *f)
 
 /***
 ============
-Key_Bindlist_f
+Key_Bindlist_f [FWGS, 01.07.26]
 ============
 ***/
 static void Key_Bindlist_f (void)
 	{
-	int	i;
+	/*int	i;
 
 	// [FWGS, 01.04.26]
-	for (i = 0; i < HLARRAYSIZE (keys); i++)
+	for (i = 0; i < HLARRAYSIZE (keys); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (keys); i++)
 		{
 		if (COM_StringEmptyOrNULL (keys[i].binding))
 			continue;
@@ -522,7 +527,7 @@ static void Key_Bindlist_f (void)
 
 /***
 =====================================
-Cmd_GetKeysList
+Cmd_GetKeysList [FWGS, 01.07.26]
 
 Autocomplete for bind command
 =====================================
@@ -532,18 +537,17 @@ qboolean Cmd_GetKeysList (const char *s, char *completedname, int length, qboole
 	size_t	i, numkeys;
 	string	keys_strings[HLARRAYSIZE (keys)];
 	string	matchbuf;
-	int		len;
+	/*int		len;*/
 
 	// compare keys list with current keyword
-	len = Q_strlen (s);
+	/*len = Q_strlen (s);*/
+	int len = Q_strlen (s);
 
 	for (i = 0, numkeys = 0; i < HLARRAYSIZE (keys); i++)
 		{
 		const char *keyname = Key_KeynumToString (i);
 
-		// [FWGS, 01.05.26]
 		if ((*s == '*') || !Q_strnicmp (keyname, s, len))
-			/*Q_strncpy (keys_strings[numkeys++], keyname, sizeof (keys[0]));*/
 			Q_strncpy (keys_strings[numkeys++], keyname, sizeof (keys_strings[0]));
 		}
 
@@ -587,12 +591,12 @@ LINE TYPING INTO THE CONSOLE
 
 /***
 ===================
-Key_Init
+Key_Init [FWGS, 01.07.26]
 ===================
 ***/
 void Key_Init (void)
 	{
-	int	i;
+	/*int	i;*/
 
 	// register our functions
 	Cmd_AddRestrictedCommand ("bind", Key_Bind_f,
@@ -609,37 +613,42 @@ void Key_Init (void)
 		"write help.txt that contains all console cvars and cmds");
 
 	// setup default binding. "unbindall" from config.cfg will be reset it
-	for (i = 0; i < HLARRAYSIZE (keynames); i++)
+	/*for (i = 0; i < HLARRAYSIZE (keynames); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (keynames); i++)
 		Key_SetBinding (keynames[i].keynum, keynames[i].binding);
 
-	// [FWGS, 01.05.26]
-	/*Cvar_RegisterVariable (&osk_enable);*/
 	Cvar_RegisterVariable (&key_rotate);
 	}
 
 /***
 ===================
-Key_AddKeyCommands [FWGS, 01.07.24]
+Key_AddKeyCommands [FWGS, 01.07.26]
 ===================
 ***/
 static void Key_AddKeyCommands (int key, const char *kb, qboolean down)
 	{
-	char	button[1024];
+	/*char	button[1024];
 	char	*buttonPtr;
 	char	cmd[1024];
-	int		i;
+	int		i;*/
 
 	if (!kb)
 		return;
-	buttonPtr = button;
+	/*buttonPtr = button;*/
 
-	for (i = 0; ; i++)
+	/*for (i = 0; ; i++)*/
+	char	button[1024];
+	char	*buttonPtr = button;
+
+	for (int i = 0; ; i++)
 		{
 		if ((kb[i] == ';') || !kb[i])
 			{
 			*buttonPtr = '\0';
 			if (button[0] == '+')
 				{
+				char cmd[1024];
+
 				// button commands add keynum as a parm
 				if (down)
 					Q_snprintf (cmd, sizeof (cmd), "%s %i\n", button, key);
@@ -733,17 +742,16 @@ static int Key_Rotate (int key)
 	return key;
 	}
 
-
 /***
 ===================
-Key_Event
+Key_Event [FWGS, 01.07.26]
 
 Called by the system for both key up and key down events
 ===================
 ***/
 void GAME_EXPORT Key_Event (int key, int down)
 	{
-	const char *kb;
+	/*const char *kb;*/
 
 	key = Key_Rotate (key);
 
@@ -754,8 +762,9 @@ void GAME_EXPORT Key_Event (int key, int down)
 	if (!keys[key].down && !down)
 		return;
 
-	// [FWGS, 01.04.26]
-	kb = keys[key].binding;
+	/*// [FWGS, 01.04.26]
+	kb = keys[key].binding;*/
+	const char *kb = keys[key].binding;
 	keys[key].down = down ? true : false;
 
 #ifdef HACKS_RELATED_HLMODS
@@ -951,26 +960,28 @@ void GAME_EXPORT Key_SetKeyDest (int key_dest)
 			break;
 
 		default:
-			Host_Error ("%s: wrong destination (%i)\n", __func__, key_dest);	// [FWGS, 01.07.24]
+			Host_Error ("%s: wrong destination (%i)\n", __func__, key_dest);
 			break;
 		}
 	}
 
 /***
 ===================
-Key_ClearStates
+Key_ClearStates [FWGS, 01.07.26]
 ===================
 ***/
 void GAME_EXPORT Key_ClearStates (void)
 	{
-	int	i;
+	/*int	i;
 
-	// [FWGS, 01.02.25] don't clear keys during changelevel
+	// [FWGS, 01.02.25]*/
+	// don't clear keys during changelevel
 	if (cls.changelevel)
 		return;
 
-	// [FWGS, 01.04.26]
-	for (i = 0; i < HLARRAYSIZE (keys); i++)
+	/*// [FWGS, 01.04.26]
+	for (i = 0; i < HLARRAYSIZE (keys); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (keys); i++)
 		{
 		if ((i >= K_MOUSE1) && (i <= K_MOUSE5))
 			IN_MouseEvent (i - K_MOUSE1, false);
@@ -1041,293 +1052,3 @@ int Key_ToUpper (int keynum)
 
 // [FWGS, 01.05.26] osk_keylayout, OSK_KeyEvent, OSK_EnableTextInput, OSK_DrawSymbolButton,
 // OSK_DrawSpecialButton, OSK_Draw moved to in_osk.c
-/*
-On-screen keyboard:
-
-4 lines with 13 buttons each
-Left trigger == backspace
-Right trigger == space
-Any button press is button press on keyboard
-
-Our layout:
- 0  1  2  3  4  5  6  7  8  9  10 11 12
-+--+--+--+--+--+--+--+--+--+--+--+--+--+
-|` |1 |2 |3 |4 |5 |6 |7 |8 |9 |0 |- |= | 0
-+--+--+--+--+--+--+--+--+--+--+--+--+--+
-|q |w |e |r |t |y |u |i |o |p |[ |] |\ | 1
-+--+--+--+--+--+--+--+--+--+--+--+--+--+
-|CL|a |s |d |f |g |h |j |k |l |; |' |BS| 2
-+--+--+--+--+--+--+--+--+--+--+--+--+--+
-|SH|z |x |c |v |b |n |m |, |. |/ |SP|EN| 3
-+--+--+--+--+--+--+--+--+--+--+--+--+--+
-/
-
-#define MAX_OSK_ROWS 13
-#define MAX_OSK_LINES 4
-
-enum
-	{
-	OSK_DEFAULT = 0,
-	OSK_UPPER,	// on caps, shift
-	OSK_LAST
-	};
-
-enum
-	{
-	OSK_TAB = 16,
-	OSK_SHIFT,
-	OSK_BACKSPACE,
-	OSK_ENTER,
-	OSK_SPECKEY_LAST
-	};
-static const char *osk_keylayout[][4] =
-	{
-		{
-				  "`1234567890-=",  // 13
-				  "qwertyuiop[]\\", // 13
-			"\x10" "asdfghjkl;'" "\x12",   // 11 + caps on a left, enter on a right
-			"\x11" "zxcvbnm,./ " "\x13"     // 10 + esc on left + shift on a left/right
-		},
-		{
-				  "~!@#$%^&*()_+",
-				  "QWERTYUIOP{}|",
-			"\x10" "ASDFGHJKL:\"" "\x12",
-			"\x11" "ZXCVBNM<>? "  "\x13"
-		}
-	};
-
-struct osk_s
-	{
-	qboolean enable;
-	int curlayout;
-	qboolean shift;
-	qboolean sending;
-	struct
-		{
-		signed char x;
-		signed char y;
-		char val;
-		} curbutton;
-	} osk;
-
-static qboolean OSK_KeyEvent (int key, int down)
-	{
-	if (!osk.enable || !osk_enable.value)
-		return false;
-
-	if (osk.sending)
-		{
-		osk.sending = false;
-		return false;
-		}
-
-	// [FWGS, 01.11.25]
-	if (osk.curbutton.val == 0)
-		{
-		if ((key == K_ENTER) || (key == K_A_BUTTON))
-			{
-			osk.curbutton.val = osk_keylayout[osk.curlayout][osk.curbutton.y][osk.curbutton.x];
-			return true;
-			}
-
-		return false;
-		}
-
-	switch (key)
-		{
-		// [FWGS, 01.11.25]
-		case K_A_BUTTON:
-		case K_ENTER:
-			switch (osk.curbutton.val)
-				{
-				case OSK_ENTER:
-					osk.sending = true;
-					Key_Event (K_ENTER, down);
-					break;
-
-				case OSK_SHIFT:
-					if (!down)
-						break;
-
-					if (osk.curlayout & 1)
-						osk.curlayout--;
-					else
-						osk.curlayout++;
-
-					osk.shift = true;
-					osk.curbutton.val = osk_keylayout[osk.curlayout][osk.curbutton.y][osk.curbutton.x];
-					break;
-
-				case OSK_BACKSPACE:
-					Key_Event (K_BACKSPACE, down);
-					break;
-
-				case OSK_TAB:
-					Key_Event (K_TAB, down);
-					break;
-
-				default:
-					{
-					int ch;
-
-					if (!down)
-						{
-						if (osk.shift && (osk.curlayout & 1))
-							osk.curlayout--;
-
-						osk.shift = false;
-						osk.curbutton.val = osk_keylayout[osk.curlayout][osk.curbutton.y][osk.curbutton.x];
-						break;
-						}
-
-					ch = (byte)osk.curbutton.val;
-
-					// do not pass UTF-8 sequence into the engine, convert it here
-					if (!cls.accept_utf8)
-						ch = Con_UtfProcessCharForce (ch);
-
-					if (!ch)
-						break;
-
-					CL_CharEvent (ch);
-
-					break;
-					}
-				}
-			break;
-
-		case K_UPARROW:
-			if (down && --osk.curbutton.y < 0)
-				{
-				osk.curbutton.y = MAX_OSK_LINES - 1;
-				osk.curbutton.val = 0;
-				return true;
-				}
-			break;
-
-		case K_DOWNARROW:
-			if (down && ++osk.curbutton.y >= MAX_OSK_LINES)
-				{
-				osk.curbutton.y = 0;
-				osk.curbutton.val = 0;
-				return true;
-				}
-			break;
-
-		case K_LEFTARROW:
-			if (down && --osk.curbutton.x < 0)
-				osk.curbutton.x = MAX_OSK_ROWS - 1;
-			break;
-
-		case K_RIGHTARROW:
-			if (down && ++osk.curbutton.x >= MAX_OSK_ROWS)
-				osk.curbutton.x = 0;
-			break;
-
-		default:
-			return false;
-		}
-
-	osk.curbutton.val = osk_keylayout[osk.curlayout][osk.curbutton.y][osk.curbutton.x];
-	return true;
-	}
-
-/
-=============
-OSK_EnableTextInput
-
-Enables built-in IME
-=============
-/
-static void OSK_EnableTextInput (qboolean enable, qboolean force)
-	{
-	qboolean old = osk.enable;
-
-	osk.enable = enable;
-
-	if (osk.enable && (!old || force))
-		{
-		osk.curlayout = 0;
-		osk.curbutton.val = osk_keylayout[osk.curlayout][osk.curbutton.y][osk.curbutton.x];
-
-		}
-	}
-
-#define X_START 0.1347475f
-#define Y_START 0.567f
-#define X_STEP 0.05625
-#define Y_STEP 0.0825
-
-/
-============
-Joy_DrawSymbolButton [FWGS, 01.12.24]
-
-Draw button with symbol on it
-============
-/
-static void OSK_DrawSymbolButton (int symb, float x, float y, float width, float height)
-	{
-	cl_font_t *font = Con_GetCurFont ();
-
-	byte color[] = { 255, 255, 255, 255 };
-	int x1 = x * refState.width,
-		y1 = y * refState.height,
-		w = width * refState.width,
-		h = height * refState.height;
-
-	if (symb == osk.curbutton.val)
-		ref.dllFuncs.FillRGBA (kRenderTransTexture, x1, y1, w, h, 255, 160, 0, 100);
-
-	if (!symb || (symb == ' ') || ((symb >= OSK_TAB) && (symb < OSK_SPECKEY_LAST)))
-		return;
-
-	CL_DrawCharacter (x1 + width * 0.4 * refState.width, y1 + height * 0.4 * refState.height,
-		symb, color, font, 0);
-	}
-
-/
-=============
-Joy_DrawSpecialButton
-
-Draw special button, like shift, enter or esc
-=============
-/
-static void OSK_DrawSpecialButton (const char *name, float x, float y, float width, float height)
-	{
-	byte color[] = { 0, 255, 0, 255 };
-
-	Con_DrawString (x * refState.width + width * 0.4 * refState.width,
-		y * refState.height + height * 0.4 * refState.height, name, color);
-	}
-
-/
-=============
-Joy_DrawOnScreenKeyboard [FWGS, 01.12.24]
-
-Draw on screen keyboard, if enabled
-=============
-/
-void OSK_Draw (void)
-	{
-	const char	**curlayout = osk_keylayout[osk.curlayout];	// shortcut :)
-	float		x, y;
-	int			i, j;
-
-	if (!osk.enable || !osk_enable.value || !osk.curbutton.val)
-		return;
-
-	// draw keyboard
-	ref.dllFuncs.FillRGBA (kRenderTransTexture, X_START * refState.width, Y_START * refState.height,
-		X_STEP * MAX_OSK_ROWS * refState.width,
-		Y_STEP * MAX_OSK_LINES * refState.height, 100, 100, 100, 100);
-
-	OSK_DrawSpecialButton ("-]", X_START, Y_START + Y_STEP * 2, X_STEP, Y_STEP);
-	OSK_DrawSpecialButton ("<-", X_START + X_STEP * 12, Y_START + Y_STEP * 2, X_STEP, Y_STEP);
-
-	OSK_DrawSpecialButton ("sh", X_START, Y_START + Y_STEP * 3, X_STEP, Y_STEP);
-	OSK_DrawSpecialButton ("en", X_START + X_STEP * 12, Y_START + Y_STEP * 3, X_STEP, Y_STEP);
-
-	for (y = Y_START, j = 0; j < MAX_OSK_LINES; j++, y += Y_STEP)
-		for (x = X_START, i = 0; i < MAX_OSK_ROWS; i++, x += X_STEP)
-			OSK_DrawSymbolButton (curlayout[j][i], x, y, X_STEP, Y_STEP);
-	}*/
