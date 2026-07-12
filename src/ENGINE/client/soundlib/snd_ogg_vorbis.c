@@ -159,7 +159,6 @@ qboolean Sound_LoadOggVorbis (const char *name, const byte *buffer, fs_offset_t 
 	Sound_ScanVorbisComments (&vorbisFile);
 
 	// [FWGS, 01.05.26]
-	/*while ((ret = ov_read (&vorbisFile, (char *)sound.wav + written, sound.size - written, 0, sound.width, 1, &section)) != 0)*/
 	while ((ret = ov_read (&vorbisFile, (char *)sound.wav + written, sound.size - written, XASH_BIG_ENDIAN, sound.width, 1, &section)) != 0)
 		{
 		if (ret < 0)
@@ -237,7 +236,6 @@ int Stream_ReadOggVorbis (stream_t *stream, int needBytes, void *buffer)
 		if (!stream->buffsize)
 			{
 			// [FWGS, 01.05.26]
-			/*stream->pos = ov_read (&ctx->vf, (char *)stream->temp, OUTBUF_SIZE, 0, stream->width, 1, &section);*/
 			stream->pos = ov_read (&ctx->vf, (char *)stream->temp, OUTBUF_SIZE, XASH_BIG_ENDIAN, stream->width, 1, &section);
 			if (stream->pos == 0)
 				{
@@ -272,15 +270,20 @@ int Stream_ReadOggVorbis (stream_t *stream, int needBytes, void *buffer)
 	return 0;
 	}
 
+// [FWGS, 01.07.26]
 int Stream_SetPosOggVorbis (stream_t *stream, int newpos)
 	{
-	int ret;
+	/*int ret;*/
 	vorbis_streaming_ctx_t *ctx = (vorbis_streaming_ctx_t *)stream->ptr;
-	if ((ret = ov_raw_seek_lap (&ctx->vf, newpos)) == 0)
+
+	/*if ((ret = ov_raw_seek_lap (&ctx->vf, newpos)) == 0)*/
+	int ret = ov_raw_seek_lap (&ctx->vf, newpos);
+	if (ret == 0)
 		{
 		stream->buffsize = 0;	// flush any previous data
 		return true;
 		}
+
 	Con_DPrintf (S_ERROR "%s: error during seek: %s\n", __func__, Vorbis_GetErrorDesc (ret));
 	return false;	// failed to seek
 	}

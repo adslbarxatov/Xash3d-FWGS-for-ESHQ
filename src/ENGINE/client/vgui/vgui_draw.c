@@ -82,12 +82,13 @@ static void GAME_EXPORT VGUI_DrawInit (void)
 	vgui.enable_texture = true;
 	}
 
-// [FWGS, 22.01.25]
+// [FWGS, 01.07.26]
 static void GAME_EXPORT VGUI_DrawShutdown (void)
 	{
-	int i;
+	/*int i;
 
-	for (i = 1; i < vgui.texture_id; i++)
+	for (i = 1; i < vgui.texture_id; i++)*/
+	for (int i = 1; i < vgui.texture_id; i++)
 		ref.dllFuncs.GL_FreeTexture (vgui.textures[i].gl_texturenum);
 
 	Mem_FreePool (&vgui.mempool);
@@ -127,10 +128,9 @@ static int GAME_EXPORT VGUI_GenerateTexture (void)
 	return ++vgui.texture_id;
 	}
 
-// [FWGS, 22.01.25]
 static void GAME_EXPORT VGUI_UploadTexture (int id, const char *buffer, int width, int height)
 	{
-	rgbdata_t		r_image = { 0 };
+	rgbdata_t	r_image = { 0 };
 	char	texName[32];
 	MD5Context_t	ctx;
 	byte	hash[16];
@@ -147,12 +147,13 @@ static void GAME_EXPORT VGUI_UploadTexture (int id, const char *buffer, int widt
 	MD5Update (&ctx, buffer, width * height * 4);
 	MD5Final (hash, &ctx);
 
-	// it's a new texture, try to find a copy
+	// [FWGS, 01.07.26] it's a new texture, try to find a copy
 	if (vgui.textures[id].gl_texturenum == 0)
 		{
-		int i;
+		/*int i;
 
-		for (i = 1; i < vgui.texture_id; i++)
+		for (i = 1; i < vgui.texture_id; i++)*/
+		for (int i = 1; i < vgui.texture_id; i++)
 			{
 			if ((vgui.textures[i].gl_texturenum != 0) && !memcmp (vgui.textures[i].hash, hash, sizeof (hash)))
 				{
@@ -229,29 +230,37 @@ static void GAME_EXPORT VGUI_SetupDrawingText (int *pColor)
 	Vector4Set (vgui.color, pColor[0], pColor[1], pColor[2], 255 - pColor[3]);
 	}
 
-// [FWGS, 22.01.25]
+// [FWGS, 01.07.26]
 static void GAME_EXPORT VGUI_DrawQuad (const vpoint_t *ul, const vpoint_t *lr)
 	{
-	float x, y, w, h;
+	/*float x, y, w, h;*/
 
 	if (!ul || !lr)
 		return;
 
-	x = ul->point[0];
+	/*x = ul->point[0];
 	y = ul->point[1];
 	w = lr->point[0] - x;
-	h = lr->point[1] - y;
+	h = lr->point[1] - y;*/
+	float x = ul->point[0];
+	float y = ul->point[1];
+	float w = lr->point[0] - x;
+	float h = lr->point[1] - y;
 
 	SPR_AdjustSize (&x, &y, &w, &h);
 
 	if (vgui.enable_texture)
 		{
-		float s1, s2, t1, t2;
+		/*float s1, s2, t1, t2;
 
 		s1 = ul->coord[0];
 		t1 = ul->coord[1];
 		s2 = lr->coord[0];
-		t2 = lr->coord[1];
+		t2 = lr->coord[1];*/
+		float s1 = ul->coord[0];
+		float t1 = ul->coord[1];
+		float s2 = lr->coord[0];
+		float t2 = lr->coord[1];
 
 		ref.dllFuncs.Color4ub (vgui.color[0], vgui.color[1], vgui.color[2], vgui.color[3]);
 		ref.dllFuncs.R_DrawStretchPic (x, y, w, h, s1, t1, s2, t2, vgui.textures[vgui.bound_texture].gl_texturenum);

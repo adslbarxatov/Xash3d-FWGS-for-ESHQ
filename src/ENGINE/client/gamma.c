@@ -38,10 +38,11 @@ static CVAR_DEFINE (v_brightness, "brightness", "1.0", FCVAR_ARCHIVE,
 static CVAR_DEFINE (v_gamma, "gamma", "1.5", FCVAR_ARCHIVE,
 	"gamma amount");		// ESHQ
 
+// [FWGS, 01.07.26]
 static void BuildGammaTable (const float gamma, const float brightness, const float texgamma, const float lightgamma)
 	{
 	float	g1, g2, g3;
-	int		i;
+	/*int		i;*/
 
 	if (gamma != 0.0)
 		g1 = 1.0 / gamma;
@@ -56,11 +57,10 @@ static void BuildGammaTable (const float gamma, const float brightness, const fl
 	else
 		g3 = 0.05;
 
-	// [FWGS, 05.04.26]
-	for (i = 0; i < 256; i++)
+	/*// [FWGS, 05.04.26]
+	for (i = 0; i < 256; i++)*/
+	for (int i = 0; i < 256; i++)
 		{
-		/*double d = pow (i / 255.0, (double)g2);
-		int inf = d * 255.0;*/
 		// keep it float or texgamma test will fail with -ffast-math
 		float	d = pow (i / 255.0, (double)g2);
 		int		inf = d * 255.0f;
@@ -68,11 +68,12 @@ static void BuildGammaTable (const float gamma, const float brightness, const fl
 		texgammatable[i] = bound (0, inf, 255);
 		}
 
-	for (i = 0; i < 1024; i++)
+	/*for (i = 0; i < 1024; i++)*/
+	for (int i = 0; i < 1024; i++)
 		{
-		double	d;
+		/*double	d;*/
 		float	f = pow (i / 1023.0, (double)lightgamma);
-		int		inf;
+		/*int		inf;*/
 
 		if (brightness > 1.0)
 			f *= brightness;
@@ -82,8 +83,10 @@ static void BuildGammaTable (const float gamma, const float brightness, const fl
 		else
 			f = ((f - g3) / (1.0 - g3)) * 0.875 + 0.125;
 
-		d = pow ((double)f, (double)g1); // do not remove the cast, or tests fail
-		inf = d * 1023.0;
+		/*d = pow ((double)f, (double)g1);	// do not remove the cast, or tests fail
+		inf = d * 1023.0;*/
+		double d = pow ((double)f, (double)g1);	// do not remove the cast, or tests fail
+		int inf = d * 1023.0;
 		lightgammatable[i] = bound (0, inf, 1023);
 
 		// do these calculations in the same loop...
@@ -133,7 +136,7 @@ void V_CheckGamma (void)
 
 	if ((cls.scrshot_action == scrshot_envshot) || (cls.scrshot_action == scrshot_skyshot))
 		{
-		dirty = true; // force recalculate next normal frame
+		dirty = true;	// force recalculate next normal frame
 		BuildGammaTable (1.8f, 0.0f, 2.0f, 2.5f);
 		if (ref.initialized)
 			ref.dllFuncs.R_GammaChanged (true);
@@ -265,6 +268,7 @@ typedef struct precomputed_gamma_tables_s
 // put at the end of the file, to not confuse Qt Creator's parser
 precomputed_gamma_tables_t *Test_GetGammaTables (int i);
 
+// [FWGS, 01.07.26]
 static void Test_PrecomputedGammaTables (void)
 	{
 	precomputed_gamma_tables_t *data;
@@ -272,11 +276,12 @@ static void Test_PrecomputedGammaTables (void)
 
 	while ((data = Test_GetGammaTables (i)))
 		{
-		int j;
+		/*int j;*/
 
 		BuildGammaTable (data->gamma, data->brightness, data->texgamma, data->lightgamma);
 
-		for (j = 0; j < 1024; j++)
+		/*for (j = 0; j < 1024; j++)*/
+		for (int j = 0; j < 1024; j++)
 			{
 			if (j < 256)
 				{

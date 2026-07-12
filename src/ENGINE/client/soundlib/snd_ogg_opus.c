@@ -161,7 +161,7 @@ qboolean Sound_LoadOggOpus (const char *name, const byte *buffer, fs_offset_t fi
 	// but this isn't a problem, engine can do resampling
 	sound.channels = opusHead->channel_count;
 	sound.rate = 48000;
-	sound.width = 2; // always 16-bit PCM
+	sound.width = 2;	// always 16-bit PCM
 	sound.type = WF_PCMDATA;
 	sound.samples = op_pcm_total (of, -1);
 	sound.size = sound.samples * sound.width * sound.channels;
@@ -242,16 +242,17 @@ stream_t *Stream_OpenOggOpus (const char *filename)
 		return NULL;
 		}
 
-	stream->buffsize = 0; // how many samples left from previous frame
+	stream->buffsize = 0;	// how many samples left from previous frame
 	stream->channels = opusHead->channel_count;
-	stream->rate = 48000; // that's fixed at 48kHz for Opus format
-	stream->width = 2;    // always 16 bit
+	stream->rate = 48000;	// that's fixed at 48kHz for Opus format
+	stream->width = 2;		// always 16 bit
 	stream->ptr = ctx;
 	stream->type = WF_OPUSDATA;
 
 	return stream;
 	}
 
+// [FWGS, 01.07.26]
 int Stream_ReadOggOpus (stream_t *stream, int needBytes, void *buffer)
 	{
 	int bytesWritten = 0;
@@ -259,15 +260,16 @@ int Stream_ReadOggOpus (stream_t *stream, int needBytes, void *buffer)
 
 	while (1)
 		{
-		int  ret;
+		/*int  ret;*/
 		byte *data;
 		int  outsize;
 
 		if (!stream->buffsize)
 			{
-			ret = op_read (ctx->of, (opus_int16 *)stream->temp, OUTBUF_SIZE / stream->width, NULL);
+			/*ret = op_read (ctx->of, (opus_int16 *)stream->temp, OUTBUF_SIZE / stream->width, NULL);*/
+			int ret = op_read (ctx->of, (opus_int16 *)stream->temp, OUTBUF_SIZE / stream->width, NULL);
 			if (ret == 0)
-				break; // end of file
+				break;	// end of file
 			else if (ret < 0)
 				Con_DPrintf (S_ERROR "%s: error during read: %s\n", __func__, Opus_GetErrorDesc (ret));
 			else
@@ -291,23 +293,29 @@ int Stream_ReadOggOpus (stream_t *stream, int needBytes, void *buffer)
 		if (bytesWritten >= needBytes)
 			return bytesWritten;
 
-		stream->buffsize = 0; // no bytes remaining
+		stream->buffsize = 0;	// no bytes remaining
 		}
 
 	return 0;
 	}
 
+// [FWGS, 01.07.26]
 int Stream_SetPosOggOpus (stream_t *stream, int newpos)
 	{
-	int ret;
+	/*int ret;*/
 	opus_streaming_ctx_t *ctx = (opus_streaming_ctx_t *)stream->ptr;
-	if ((ret = op_raw_seek (ctx->of, newpos)) == 0)
+
+
+	/*if ((ret = op_raw_seek (ctx->of, newpos)) == 0)*/
+	int ret = op_raw_seek (ctx->of, newpos);
+	if (ret == 0)
 		{
-		stream->buffsize = 0; // flush any previous data
+		stream->buffsize = 0;	// flush any previous data
 		return true;
 		}
+
 	Con_DPrintf (S_ERROR "%s: error during seek: %s\n", __func__, Opus_GetErrorDesc (ret));
-	return false; // failed to seek
+	return false;	// failed to seek
 	}
 
 int Stream_GetPosOggOpus (stream_t *stream)

@@ -20,11 +20,11 @@ GNU General Public License for more details
 #pragma pack( push, 1 )
 typedef struct did3v2_header_s
 	{
-	char     ident[3];  // must be "ID3"
-	uint8_t  major_ver; // must be 4
-	uint8_t  minor_ver; // must be 0
+	char     ident[3];	// must be "ID3"
+	uint8_t  major_ver;	// must be 4
+	uint8_t  minor_ver;	// must be 0
 	uint8_t  flags;
-	uint32_t length; // size of extended header, padding and frames
+	uint32_t length;	// size of extended header, padding and frames
 	} did3v2_header_t;
 
 // [FWGS, 01.12.24]
@@ -99,7 +99,6 @@ static qboolean Sound_ParseID3Frame (const did3v2_frame_t *frame, const byte *bu
 			value_len = frame_length - (1 + key_len + 1);
 
 			// [FWGS, 01.11.25]
-			/*if ((value_len <= 0) || (value_len >= sizeof (value)))*/
 			if ((value_len <= 0) || (value_len >= sizeof (value) - 1))
 				{
 				Con_Printf (S_ERROR "%s: invalid TXXX description, possibly broken file.\n", __func__);
@@ -114,7 +113,7 @@ static qboolean Sound_ParseID3Frame (const did3v2_frame_t *frame, const byte *bu
 		else
 			{
 			// [FWGS, 01.07.24]
-			if ((buffer[0] == 0x01) || (buffer[0] == 0x02)) // UTF-16 with BOM
+			if ((buffer[0] == 0x01) || (buffer[0] == 0x02))	// UTF-16 with BOM
 				Con_Printf (S_ERROR "%s: UTF-16 encoding is unsupported. Use UTF-8 or ISO-8859!\n", __func__);
 			else
 				Con_Printf (S_ERROR "%s: unknown TXXX tag encoding %d, possibly broken file.\n", __func__, buffer[0]);
@@ -144,7 +143,7 @@ static qboolean Sound_ParseID3Tag (const byte *buffer, fs_offset_t filesize)
 		if (CHECK_IDENT (header->ident, 'T', 'A', 'G'))
 			Con_Printf (S_ERROR "%s: ID3v1 is not supported! Convert to ID3v2.4!\n", __func__);
 
-		return true; // missing tag header is not an error
+		return true;	// missing tag header is not an error
 		}
 
 	// [FWGS, 01.07.24] support only latest id3 v2.4
@@ -296,7 +295,7 @@ qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesi
 			pos += bufsize;
 
 			if (feed_mpeg_stream (mpeg, data, bufsize, out, &outsize) != MP3_OK)
-				break; // there was end of the stream
+				break;	// there was end of the stream
 			}
 
 		if (bytesWrite + outsize > sound.size)
@@ -371,7 +370,7 @@ stream_t *Stream_OpenMPG (const char *filename)
 		return NULL;
 		}
 
-	stream->buffsize = 0; // how many samples left from previous frame
+	stream->buffsize = 0;	// how many samples left from previous frame
 	stream->channels = sc.channels;
 	stream->rate = sc.rate;
 	stream->width = 2;	// always 16 bit
@@ -383,7 +382,7 @@ stream_t *Stream_OpenMPG (const char *filename)
 
 /***
 =================
-Stream_ReadMPG
+Stream_ReadMPG [FWGS, 01.07.26]
 
 assume stream is valid
 =================
@@ -392,9 +391,10 @@ int Stream_ReadMPG (stream_t *stream, int needBytes, void *buffer)
 	{
 	// buffer handling
 	int	bytesWritten = 0;
-	void *mpg;
+	/*void *mpg;
 
-	mpg = stream->ptr;
+	mpg = stream->ptr;*/
+	void *mpg = stream->ptr;
 
 	while (1)
 		{
@@ -404,7 +404,7 @@ int Stream_ReadMPG (stream_t *stream, int needBytes, void *buffer)
 		if (!stream->buffsize)
 			{
 			if (read_mpeg_stream (mpg, (byte *)stream->temp, &stream->pos) != MP3_OK)
-				break; // there was end of the stream
+				break;	// there was end of the stream
 			}
 
 		// check remaining size
@@ -423,7 +423,7 @@ int Stream_ReadMPG (stream_t *stream, int needBytes, void *buffer)
 		if (bytesWritten >= needBytes)
 			return bytesWritten;
 
-		stream->buffsize = 0; // no bytes remaining
+		stream->buffsize = 0;	// no bytes remaining
 		}
 
 	return 0;

@@ -172,12 +172,12 @@ static qboolean StreamFindNextChunk (file_t *file, const char *name, int *last_c
 
 /***
 =============
-Sound_LoadWAV
+Sound_LoadWAV [FWGS, 01.07.26]
 =============
 ***/
 qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
-	int			samples, fmt;
+	/*int			samples, fmt;*/
 	qboolean	mpeg_stream = false;
 
 	if (!buffer || (filesize <= 0))
@@ -189,7 +189,6 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	// find "RIFF" chunk
 	FindChunk (name, "RIFF");
 
-	// [FWGS, 01.07.24]
 	if (!iff_dataPtr || !IsFourCC (iff_dataPtr + 8, "WAVE"))
 		{
 		Con_DPrintf (S_ERROR "%s: %s missing 'RIFF/WAVE' chunks\n", __func__, name);
@@ -200,7 +199,6 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	iff_data = iff_dataPtr + 12;
 	FindChunk (name, "fmt ");
 
-	// [FWGS, 01.07.24]
 	if (!iff_dataPtr)
 		{
 		Con_DPrintf (S_ERROR "%s: %s missing 'fmt ' chunk\n", __func__, name);
@@ -208,13 +206,13 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 
 	iff_dataPtr += 8;
-	fmt = GetLittleShort ();
 
+	/*fmt = GetLittleShort ();*/
+	int fmt = GetLittleShort ();
 	if (fmt != 1)
 		{
 		if (fmt != 85)
 			{
-			// [FWGS, 01.07.24]
 			Con_DPrintf (S_ERROR "%s: %s not a Microsoft PCM format\n", __func__, name);
 			return false;
 			}
@@ -225,7 +223,6 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 			}
 		}
 
-	// [FWGS, 01.07.24]
 	sound.channels = GetLittleShort ();
 	if ((sound.channels != 1) && (sound.channels != 2))
 		{
@@ -240,7 +237,6 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	if (mpeg_stream)
 		sound.width = 2;	// mp3 always 16bit
 
-	// [FWGS, 01.07.24]
 	if ((sound.width != 1) && (sound.width != 2))
 		{
 		Con_DPrintf (S_ERROR "%s: only 8 and 16 bit WAV files supported (%s)\n", __func__, name);
@@ -250,7 +246,6 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	// get cue chunk
 	FindChunk (name, "cue ");
 
-	// [FWGS, 01.09.24]
 	if (iff_dataPtr && (iff_end - iff_dataPtr >= 36))
 		{
 		iff_dataPtr += 32;
@@ -277,7 +272,6 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	// find data chunk
 	FindChunk (name, "data");
 
-	// [FWGS, 01.07.24]
 	if (!iff_dataPtr)
 		{
 		Con_DPrintf (S_ERROR "%s: %s missing 'data' chunk\n", __func__, name);
@@ -285,13 +279,13 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 
 	iff_dataPtr += 4;
-	samples = GetLittleLong () / sound.width;
+	/*samples = GetLittleLong () / sound.width;*/
+	int samples = GetLittleLong () / sound.width;
 
 	if (sound.samples)
 		{
 		if (samples < sound.samples)
 			{
-			// [FWGS, 01.07.24]
 			Con_DPrintf (S_ERROR "%s: %s has a bad loop length\n", __func__, name);
 			return false;
 			}
@@ -301,7 +295,6 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		sound.samples = samples;
 		}
 
-	// [FWGS, 01.07.24]
 	if (sound.samples <= 0)
 		{
 		Con_Reportf (S_ERROR "%s: file with %i samples (%s)\n", __func__, sound.samples, name);
@@ -333,7 +326,7 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 
 	memcpy (sound.wav, buffer + (iff_dataPtr - buffer), sound.size);
 
-	// [FWGS, 01.05.26] swap 16-bit samples from little endian to native
+	// swap 16-bit samples from little endian to native
 	if (sound.width == 2)
 		{
 		short *p = (short *)sound.wav;
@@ -345,12 +338,14 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	// now convert 8-bit sounds to signed
 	if (sound.width == 1)
 		{
-		int	i, j;
+		/*int	i, j;*/
 		signed char *pData = (signed char *)sound.wav;
 
-		for (i = 0; i < sound.samples; i++)
+		/*for (i = 0; i < sound.samples; i++)*/
+		for (int i = 0; i < sound.samples; i++)
 			{
-			for (j = 0; j < sound.channels; j++)
+			/*for (j = 0; j < sound.channels; j++)*/
+			for (int j = 0; j < sound.channels; j++)
 				{
 				*pData = (byte)((int)((byte)*pData) - 128);
 				pData++;
@@ -358,16 +353,32 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 			}
 		}
 
-	// [FWGS, 01.05.26] silence known-broken WAVs that contain stray non-zero samples masquerading as silence
-	if (Q_stristr (name, "null.wav"))
+	// silence known-broken WAVs that contain stray non-zero samples masquerading as silence
+	/*if (Q_stristr (name, "null.wav"))*/
+	if (Q_stristr (name, "null.wav") || Q_stristr (name, "_period.wav") || Q_stristr (name, "_comma.wav"))
 		{
+		static const uint32_t broken_crcs[] =
+			{
+			0x14a36f29,	// common/null.wav (HL1/Q1)
+			0x005a43ab,	// vox/_period.wav (HL1)
+			0x7749ed15,	// vox/_comma.wav (HL1)
+			};
+
 		uint32_t crc;
 		CRC32_Init (&crc);
 		CRC32_ProcessBuffer (&crc, buffer, filesize);
 		crc = CRC32_Final (crc);
 
-		if (crc == 0x14a36f29)	// common/null.wav (Half-Life)
-			memset (sound.wav, 0, sound.size);
+		/*if (crc == 0x14a36f29)	// common/null.wav (Half-Life)
+			memset (sound.wav, 0, sound.size);*/
+		for (size_t i = 0; i < HLARRAYSIZE (broken_crcs); i++)
+			{
+			if (crc == broken_crcs[i])
+				{
+				memset (sound.wav, 0, sound.size);
+				break;
+				}
+			}
 		}
 
 	return true;
@@ -375,17 +386,17 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 
 /***
 =================
-Stream_OpenWAV [FWGS, 01.05.24]
+Stream_OpenWAV [FWGS, 01.07.26]
 =================
 ***/
 stream_t *Stream_OpenWAV (const char *filename)
 	{
 	stream_t	*stream;
-	int 		last_chunk = 0;
-	char		chunkName[4];
-	int			iff_data;
-	file_t		*file;
-	short		t;
+	int 	last_chunk = 0;
+	char	chunkName[4];
+	/*int			iff_data;*/
+	file_t	*file;
+	short	t;
 
 	if (!filename || !*filename)
 		return NULL;
@@ -395,7 +406,7 @@ stream_t *Stream_OpenWAV (const char *filename)
 	if (!file)
 		return NULL;
 
-	// [FWGS, 01.07.24] find "RIFF" chunk
+	// find "RIFF" chunk
 	if (!StreamFindNextChunk (file, "RIFF", &last_chunk))
 		{
 		Con_DPrintf (S_ERROR "%s: %s missing RIFF chunk\n", __func__, filename);
@@ -406,13 +417,11 @@ stream_t *Stream_OpenWAV (const char *filename)
 	FS_Seek (file, 4, SEEK_CUR);
 	if (FS_Read (file, chunkName, 4) != 4)
 		{
-		// [FWGS, 01.07.24]
 		Con_DPrintf (S_ERROR "%s: %s missing WAVE chunk, truncated\n", __func__, filename);
 		FS_Close (file);
 		return false;
 		}
 
-	// [FWGS, 01.07.24]
 	if (!IsFourCC (chunkName, "WAVE"))
 		{
 		Con_DPrintf (S_ERROR "%s: %s missing WAVE chunk\n", __func__, filename);
@@ -421,11 +430,11 @@ stream_t *Stream_OpenWAV (const char *filename)
 		}
 
 	// get "fmt " chunk
-	iff_data = FS_Tell (file);
+	/*iff_data = FS_Tell (file);*/
+	int iff_data = FS_Tell (file);
 	last_chunk = iff_data;
 	if (!StreamFindNextChunk (file, "fmt ", &last_chunk))
 		{
-		// [FWGS, 01.07.24]
 		Con_DPrintf (S_ERROR "%s: %s missing 'fmt ' chunk\n", __func__, filename);
 		FS_Close (file);
 		return NULL;
@@ -433,7 +442,6 @@ stream_t *Stream_OpenWAV (const char *filename)
 
 	FS_Read (file, chunkName, 4);
 
-	// [FWGS, 01.05.26]
 	FS_Read (file, &t, sizeof (t));
 	t = LittleShort (t);
 
@@ -444,9 +452,7 @@ stream_t *Stream_OpenWAV (const char *filename)
 		return NULL;
 		}
 
-	// [FWGS, 01.05.26]
 	FS_Read (file, &t, sizeof (t));
-	/*sound.channels = t;*/
 	sound.channels = LittleShort (t);
 
 	FS_Read (file, &sound.rate, sizeof (int));
@@ -454,12 +460,11 @@ stream_t *Stream_OpenWAV (const char *filename)
 
 	FS_Seek (file, 6, SEEK_CUR);
 	FS_Read (file, &t, sizeof (t));	
-	/*sound.width = t / 8;*/
 	sound.width = LittleShort (t) / 8;
 
 	sound.loopstart = 0;
 
-	// [FWGS, 01.07.24] find data chunk
+	// find data chunk
 	last_chunk = iff_data;
 	if (!StreamFindNextChunk (file, "data", &last_chunk))
 		{
@@ -468,9 +473,7 @@ stream_t *Stream_OpenWAV (const char *filename)
 		return NULL;
 		}
 
-	// [FWGS, 01.05.26]
 	FS_Read (file, &sound.samples, sizeof (int));
-	/*sound.samples = (sound.samples / sound.width) / sound.channels;*/
 	sound.samples = (LittleLong (sound.samples) / sound.width) / sound.channels;
 
 	// at this point we have valid stream
@@ -488,20 +491,21 @@ stream_t *Stream_OpenWAV (const char *filename)
 
 /***
 =================
-Stream_ReadWAV
+Stream_ReadWAV [FWGS, 01.07.26]
 
 assume stream is valid
 =================
 ***/
 int Stream_ReadWAV (stream_t *stream, int bytes, void *buffer)
 	{
-	int	remaining;
+	/*int	remaining;*/
 
 	// invalid file
 	if (!stream->file)
 		return 0;
 
-	remaining = stream->size - stream->pos;
+	/*remaining = stream->size - stream->pos;*/
+	int remaining = stream->size - stream->pos;
 	if (remaining <= 0)
 		return 0;
 	if (bytes > remaining)
@@ -510,7 +514,6 @@ int Stream_ReadWAV (stream_t *stream, int bytes, void *buffer)
 	stream->pos += bytes;
 	FS_Read (stream->file, buffer, bytes);
 
-	// [FWGS, 01.05.26]
 	if (stream->width == 2)
 		{
 		short *p = (short *)buffer;

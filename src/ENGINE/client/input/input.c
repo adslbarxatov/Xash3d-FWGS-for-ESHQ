@@ -27,10 +27,10 @@ GNU General Public License for more details
 #include "cursor_type.h"	// [FWGS, 01.07.24]
 #include "platform/platform.h"
 
-// [FWGS, 01.03.26]
+// [FWGS, 01.07.26]
 static qboolean in_mouseactive;	// false when not focus app
 static qboolean in_mouseinitialized;
-static qboolean in_mouse_suspended;
+/*static qboolean in_mouse_suspended;*/
 
 static struct
 	{
@@ -354,17 +354,17 @@ void IN_DeactivateMouse (void)
 
 /***
 ================
-IN_MouseMove [FWGS, 01.09.24]
+IN_MouseMove [FWGS, 01.07.26]
 ================
 ***/
 static void IN_MouseMove (void)
 	{
-	int x, y;
+	/*int x, y;*/
 
 	if (!in_mouseinitialized)
 		return;
 
-	// [FWGS, 01.03.25] touch emulation overrides all input
+	// touch emulation overrides all input
 	if (Touch_WantVisibleCursor ())
 		{
 		Touch_KeyEvent (0, 0);
@@ -372,6 +372,7 @@ static void IN_MouseMove (void)
 		}
 
 	// find mouse movement
+	int x, y;
 	Platform_GetMousePos (&x, &y);
 	VGui_MouseMove (x, y);
 
@@ -603,14 +604,14 @@ static void IN_CollectInput (float *forward, float *side, float *pitch, float *y
 
 /***
 ================
-IN_EngineAppendMove [FWGS, 01.12.24]
+IN_EngineAppendMove [FWGS, 01.07.26]
 
 Called from cl_main.c after generating command in client
 ================
 ***/
 void IN_EngineAppendMove (float frametime, usercmd_t *cmd, qboolean active)
 	{
-	float	forward, side, pitch, yaw;
+	/*float	forward, side, pitch, yaw;*/
 
 	if (clgame.dllFuncs.pfnLookEvent)
 		return;
@@ -618,10 +619,11 @@ void IN_EngineAppendMove (float frametime, usercmd_t *cmd, qboolean active)
 	if ((cls.key_dest != key_game) || cl.paused || cl.intermission)
 		return;
 
-	forward = side = pitch = yaw = 0;
+	/*forward = side = pitch = yaw = 0;*/
 
 	if (active)
 		{
+		float forward = 0, side = 0, pitch = 0, yaw = 0;
 		float sensitivity = 1;
 
 		IN_CollectInput (&forward, &side, &pitch, &yaw, false);

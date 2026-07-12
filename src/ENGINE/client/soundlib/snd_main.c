@@ -33,7 +33,6 @@ static MALLOC_LIKE (FS_FreeSound, 1) wavdata_t *SoundPack (void)
 	wavdata_t *pack = Mem_Malloc (host.soundpool, sizeof (*pack) + sound.size);
 
 	pack->size = sound.size;
-	/*pack->loopStart = sound.loopstart;*/
 	pack->loop_start = sound.loopstart;
 	pack->samples = sound.samples;
 	pack->type = sound.type;
@@ -51,7 +50,7 @@ static MALLOC_LIKE (FS_FreeSound, 1) wavdata_t *SoundPack (void)
 
 /***
 ================
-FS_LoadSound
+FS_LoadSound [FWGS, 01.07.26]
 
 loading and unpack to wav any known sound
 ================
@@ -61,18 +60,17 @@ wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 	const char	*ext = COM_FileExtension (filename);
 	string		loadname;
 	qboolean	anyformat = true;
-	const loadwavfmt_t	*format;
+	/*const loadwavfmt_t	*format;*/
 
-	Sound_Reset (); // clear old sounddata
+	Sound_Reset ();	// clear old sounddata
 	Q_strncpy (loadname, filename, sizeof (loadname));
 
-	// [FWGS, 01.03.26]
-	/*if (COM_CheckStringEmpty (ext))*/
 	if (!COM_StringEmpty (ext))
 		{
 		// we needs to compare file extension with list of supported formats
 		// and be sure what is real extension, not a filename with dot
-		for (format = sound.loadformats; format && format->ext; format++)
+		/*for (format = sound.loadformats; format && format->ext; format++)*/
+		for (const loadwavfmt_t *format = sound.loadformats; format && format->ext; format++)
 			{
 			if (!Q_stricmp (format->ext, ext))
 				{
@@ -88,33 +86,35 @@ wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 		goto load_internal;
 
 	// now try all the formats in the selected list
-	for (format = sound.loadformats; format && format->ext; format++)
+	/*for (format = sound.loadformats; format && format->ext; format++)*/
+	for (const loadwavfmt_t *format = sound.loadformats; format && format->ext; format++)
 		{
 		if (anyformat || !Q_stricmp (ext, format->ext))
 			{
 			qboolean	success = false;
 			fs_offset_t	filesize = 0;
-			byte *f;
+			/*byte *f;*/
 			string	path;
 
 			Q_snprintf (path, sizeof (path), DEFAULT_SOUNDPATH "%s.%s", loadname, format->ext);
 
-			f = FS_LoadFile (path, &filesize, false);
+			/*f = FS_LoadFile (path, &filesize, false);*/
+			byte *f = FS_LoadFile (path, &filesize, false);
 			if (f && (filesize > 0))
 				{
 				success = format->loadfunc (path, f, filesize);
-				Mem_Free (f); // release buffer
+				Mem_Free (f);	// release buffer
 				}
 
 			if (success)
-				return SoundPack (); // loaded
+				return SoundPack ();	// loaded
 
 			Q_snprintf (path, sizeof (path), "%s.%s", loadname, format->ext);
 			f = FS_LoadFile (path, &filesize, false);
 			if (f && (filesize > 0))
 				{
 				success = format->loadfunc (path, f, filesize);
-				Mem_Free (f); // release buffer
+				Mem_Free (f);	// release buffer
 				}
 
 			if (success)
@@ -123,14 +123,15 @@ wavdata_t *FS_LoadSound (const char *filename, const byte *buffer, size_t size)
 		}
 
 load_internal:
-	for (format = sound.loadformats; format && format->ext; format++)
+	/*for (format = sound.loadformats; format && format->ext; format++)*/
+	for (const loadwavfmt_t *format = sound.loadformats; format && format->ext; format++)
 		{
 		if (anyformat || !Q_stricmp (ext, format->ext))
 			{
 			if (buffer && (size > 0))
 				{
 				if (format->loadfunc (loadname, buffer, size))
-					return SoundPack (); // loaded
+					return SoundPack ();	// loaded
 				}
 			}
 		}
@@ -158,7 +159,7 @@ void FS_FreeSound (wavdata_t *pack)
 
 /***
 ================
-FS_OpenStream
+FS_OpenStream [FWGS, 01.07.26]
 
 open and reading basic info from sound stream
 ================
@@ -168,20 +169,19 @@ stream_t *FS_OpenStream (const char *filename)
 	const char	*ext = COM_FileExtension (filename);
 	string		loadname;
 	qboolean	anyformat = true;
-	const streamfmt_t	*format;
+	/*const streamfmt_t	*format;*/
 	stream_t	*stream = NULL;
 
 	// clear old streaminfo
 	Sound_Reset ();
 	Q_strncpy (loadname, filename, sizeof (loadname));
 
-	// [FWGS, 01.03.26]
-	/*if (COM_CheckStringEmpty (ext))*/
 	if (!COM_StringEmpty (ext))
 		{
 		// we needs to compare file extension with list of supported formats
 		// and be sure what is real extension, not a filename with dot
-		for (format = sound.streamformat; format && format->ext; format++)
+		/*for (format = sound.streamformat; format && format->ext; format++)*/
+		for (const streamfmt_t *format = sound.streamformat; format && format->ext; format++)
 			{
 			if (!Q_stricmp (format->ext, ext))
 				{
@@ -193,7 +193,8 @@ stream_t *FS_OpenStream (const char *filename)
 		}
 
 	// now try all the formats in the selected list
-	for (format = sound.streamformat; format && format->ext; format++)
+	/*for (format = sound.streamformat; format && format->ext; format++)*/
+	for (const streamfmt_t *format = sound.streamformat; format && format->ext; format++)
 		{
 		if (anyformat || !Q_stricmp (ext, format->ext))
 			{
@@ -203,7 +204,7 @@ stream_t *FS_OpenStream (const char *filename)
 			if ((stream = format->openfunc (path)) != NULL)
 				{
 				stream->format = format;
-				return stream; // done
+				return stream;	// done
 				}
 			}
 		}
@@ -309,4 +310,5 @@ int HLEXPORT export( const uint8_t *Data, size_t Size ) \
 
 IMPLEMENT_SOUNDLIB_FUZZ_TARGET (Fuzz_Sound_LoadMPG, Sound_LoadMPG)
 IMPLEMENT_SOUNDLIB_FUZZ_TARGET (Fuzz_Sound_LoadWAV, Sound_LoadWAV)
+
 #endif

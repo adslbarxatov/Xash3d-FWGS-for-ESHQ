@@ -127,7 +127,6 @@ void COM_ChangeLevel (char const *pNewLevel, char const *pLandmarkName, qboolean
 	GameState->backgroundMap = background;
 
 	// [FWGS, 01.03.26]
-	/*if (COM_CheckString (pLandmarkName))*/
 	if (!COM_StringEmptyOrNULL (pLandmarkName))
 		{
 		Q_strncpy (GameState->landmarkName, pLandmarkName, sizeof (GameState->landmarkName));
@@ -208,17 +207,19 @@ void Host_AbortCurrentFrame (void)
 	longjmp (g_abortframe, 1);
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.07.26]
 void COM_Frame (double time)
 	{
-	int	loopCount = 0;
+	/*int	loopCount = 0;*/
 
 	if (setjmp (g_abortframe))
 		return;
 
+	int loopCount = 0;
 	while (1)
 		{
-		int	oldState = GameState->curstate;
+		/*int	oldState = GameState->curstate;*/
+		int oldState = GameState->curstate;
 
 		// execute the current state (and transition to the next state if not in STATE_RUNFRAME)
 		switch (GameState->curstate)

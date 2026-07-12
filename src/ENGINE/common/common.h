@@ -446,6 +446,7 @@ void FS_LoadGameInfo (void);
 void FS_SaveVFSConfig (void);
 
 // ESHQ: поддержка скриптов достижений
+
 #define ACHI_SCRIPT_С		"achi0.sc"
 #define ACHI_SCRIPT_G		"achi2.sc"
 #define ACHI_EXEC_LINE_G	"exec " ACHI_SCRIPT_G "\n"

@@ -65,15 +65,17 @@ static int pfnDrawScaledCharacter (int x, int y, int number, int r, int g, int b
 	if (hud_utf8.value)
 		SetBits (flags, FONT_DRAW_UTF8);
 
+	// [FWGS, 01.07.26]
 	if ((fabs (g_font_scale - scale) > 0.1f) ||
 		(g_scaled_font.hFontTexture != cls.creditsFont.hFontTexture))
 		{
-		int i;
+		/*int i;*/
 
 		g_scaled_font = cls.creditsFont;
 		g_scaled_font.scale *= scale;
 		g_scaled_font.charHeight *= scale;
-		for (i = 0; i < HLARRAYSIZE (g_scaled_font.charWidths); i++)
+		/*for (i = 0; i < HLARRAYSIZE (g_scaled_font.charWidths); i++)*/
+		for (int i = 0; i < HLARRAYSIZE (g_scaled_font.charWidths); i++)
 			g_scaled_font.charWidths[i] *= scale;
 
 		g_font_scale = scale;
@@ -117,7 +119,6 @@ static const mobile_engfuncs_t gMobileEngfuncs =
 	pfnDrawScaledCharacter,
 	Sys_Warn,
 	Sys_GetNativeObject,
-	/*ID_SetCustomClientID,*/
 	pfnSetCustomClientID,	// [FWGS, 01.03.25]
 	pfnParseFileSafe
 	};
@@ -135,7 +136,7 @@ qboolean Mobile_Init (void)
 	// find mobility interface
 	if ((ExportToClient = COM_GetProcAddress (clgame.hInstance, MOBILITY_CLIENT_EXPORT)))
 		{
-		static mobile_engfuncs_t mobile_engfuncs; // keep a copy, don't let user change engine pointers
+		static mobile_engfuncs_t mobile_engfuncs;	// keep a copy, don't let user change engine pointers
 
 		mobile_engfuncs = gMobileEngfuncs;
 

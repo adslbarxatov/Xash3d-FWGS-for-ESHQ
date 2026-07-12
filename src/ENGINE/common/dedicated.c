@@ -23,7 +23,7 @@ ref_globals_t refState;
 
 // [FWGS, 01.12.24] removed CL_ProcessFile
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.07.26]
 const char *CL_MsgInfo (int cmd)
 	{
 	static string sz;
@@ -38,9 +38,10 @@ const char *CL_MsgInfo (int cmd)
 		}
 	else if ((cmd > svc_lastmsg) && (cmd <= (svc_lastmsg + MAX_USER_MESSAGES)))
 		{
-		int i;
+		/*int i;
 
-		for (i = 0; i < MAX_USER_MESSAGES; i++)
+		for (i = 0; i < MAX_USER_MESSAGES; i++)*/
+		for (int i = 0; i < MAX_USER_MESSAGES; i++)
 			{
 			if (svgame.msg[i].number == cmd)
 				{
@@ -92,9 +93,6 @@ void Host_InputFrame (void)
 	}
 
 // [FWGS, 01.03.26] removed VID_InitDefaultResolution
-/*void VID_InitDefaultResolution (void)
-	{
-	}*/
 
 void Con_Init (void)
 	{
@@ -120,9 +118,6 @@ void CL_Disconnect (void)
 // [FWGS, 01.02.25] removed CL_Shutdown
 
 // [FWGS, 01.03.26] removed R_ClearStaticEntities
-/*void R_ClearStaticEntities (void)
-	{
-	}*/
 
 void Host_Credits (void)
 	{

@@ -27,8 +27,6 @@ static rgbdata_t *CustomDecal_LoadImage (const char *path, void *raw, int size)
 		testname = "#logo.png";
 	else if (!Q_stricmp (COM_FileExtension (path), "wad"))
 		testname = "#logo.wad";
-	/*else
-		testname = "#logo.bmp";*/
 	else
 		testname = "#logo.bmp";
 
@@ -50,12 +48,14 @@ static qboolean CustomDecal_Validate (const char *path, void *raw, int nFileSize
 	return false;
 	}
 
+// [FWGS, 01.07.26]
 void COM_ClearCustomizationList (customization_t *pHead, qboolean bCleanDecals)
 	{
-	customization_t *pCurrent;
+	/*customization_t *pCurrent;*/
 	customization_t *pNext;
 
-	for (pCurrent = pHead->pNext; pCurrent != NULL; pCurrent = pNext)
+	/*for (pCurrent = pHead->pNext; pCurrent != NULL; pCurrent = pNext)*/
+	for (customization_t *pCurrent = pHead->pNext; pCurrent != NULL; pCurrent = pNext)
 		{
 		pNext = pCurrent->pNext;
 
@@ -81,18 +81,19 @@ void COM_ClearCustomizationList (customization_t *pHead, qboolean bCleanDecals)
 	pHead->pNext = NULL;
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.07.26]
 qboolean COM_CreateCustomization (customization_t *pListHead, resource_t *pResource, int playernumber, 
 	int flags, customization_t **pOut, int *nLumps)
 	{
-	qboolean		bError = false;
-	fs_offset_t		checksize = 0;
-	customization_t	*pCust;
+	qboolean	bError = false;
+	/*fs_offset_t		checksize = 0;
+	customization_t	*pCust;*/
 
 	if (pOut)
 		*pOut = NULL;
 
-	pCust = Z_Calloc (sizeof (customization_t));
+	/*pCust = Z_Calloc (sizeof (customization_t));*/
+	customization_t *pCust = Z_Calloc (sizeof (customization_t));
 	pCust->resource = *pResource;
 
 	if (pResource->nDownloadSize <= 0)
@@ -107,6 +108,8 @@ qboolean COM_CreateCustomization (customization_t *pListHead, resource_t *pResou
 		}
 	else
 		{
+		fs_offset_t checksize = 0;
+
 		pCust->pBuffer = FS_LoadFile (pResource->szFileName, &checksize, true);
 		if ((int)checksize != pCust->resource.nDownloadSize)
 			bError = true;
@@ -166,14 +169,16 @@ CustomizationError:
 	return false;
 	}
 
+// [FWGS, 01.07.26]
 int COM_SizeofResourceList (resource_t *pList, resourceinfo_t *ri)
 	{
 	int	nSize = 0;
-	resource_t	*p;
+	/*resource_t	*p;*/
 
 	memset (ri, 0, sizeof (*ri));
 
-	for (p = pList->pNext; p != pList; p = p->pNext)
+	/*for (p = pList->pNext; p != pList; p = p->pNext)*/
+	for (resource_t *p = pList->pNext; p != pList; p = p->pNext)
 		{
 		nSize += p->nDownloadSize;
 
