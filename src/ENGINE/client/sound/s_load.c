@@ -21,16 +21,9 @@ GNU General Public License for more details
 // than could actually be referenced during gameplay,
 // because we don't want to free anything until we are
 // sure we won't need it
-/*define MAX_SFX			8192
-define MAX_SFX_HASH	(MAX_SFX/4)*/
 #define MAX_SFX			8192
 #define MAX_SFX_HASH	(MAX_SFX/4)
 
-/*static int		s_numSfx = 0;
-static sfx_t	s_knownSfx[MAX_SFX];
-static sfx_t	*s_sfxHashList[MAX_SFX_HASH];
-static string	s_sentenceImmediateName;	// keep dummy sentence name
-qboolean		s_registering = false;*/
 static int		s_numSfx = 0;
 static sfx_t	s_knownSfx[MAX_SFX];
 static sfx_t	*s_sfxHashList[MAX_SFX_HASH];
@@ -41,22 +34,26 @@ static string	s_sentenceImmediateName;	// keep dummy sentence name
 
 /***
 =================
-S_SoundList_f [FWGS, 09.05.24]
+S_SoundList_f [FWGS, 01.07.26]
 =================
 ***/
 void S_SoundList_f (void)
 	{
-	sfx_t		*sfx;
+	/*sfx_t		*sfx;
 	wavdata_t	*sc;
 	int			i, totalSfx = 0;
-	int			totalSize = 0;
+	int			totalSize = 0;*/
+	sfx_t	*sfx;
+	int		i, totalSfx = 0;
+	int		totalSize = 0;
 
 	for (i = 0, sfx = s_knownSfx; i < s_numSfx; i++, sfx++)
 		{
 		if (!sfx->name[0])
 			continue;
 
-		sc = sfx->cache;
+		/*sc = sfx->cache;*/
+		wavdata_t *sc = sfx->cache;
 		if (sc)
 			{
 			totalSize += sc->size;
@@ -82,35 +79,6 @@ void S_SoundList_f (void)
 	}
 
 // [FWGS, 01.03.26] removed S_TestSoundChar, S_SkipSoundChar
-/*// return true if char 'c' is one of 1st 2 characters in pch
-qboolean S_TestSoundChar (const char *pch, char c)
-	{
-	char	*pcht = (char *)pch;
-	int		i;
-
-	if (!pch || !*pch)
-		return false;
-
-	// check first 2 characters
-	for (i = 0; i < 2; i++)
-		{
-		if (*pcht == c)
-			return true;
-		pcht++;
-		}
-	return false;
-	}
-
-// return pointer to first valid character in file name
-char *S_SkipSoundChar (const char *pch)
-	{
-	char *pcht = (char *)pch;
-
-	// check first character
-	if (*pcht == '!')
-		pcht++;
-	return pcht;
-	}*/
 
 /***
 =================
@@ -119,12 +87,10 @@ S_CreateDefaultSound [FWGS, 01.03.26]
 ***/
 static wavdata_t *S_CreateDefaultSound (void)
 	{
-	/*wavdata_t	*sc;*/
 	uint	samples = SOUND_DMA_SPEED;
 	uint	channels = 1;
 	uint	width = 2;
 	size_t	size = samples * width * channels;
-	/*sc = Mem_Calloc (sndpool, sizeof (wavdata_t) + size);*/
 	wavdata_t	*sc = Mem_Calloc (sndpool, sizeof (wavdata_t) + size);
 
 	sc->width = width;
@@ -153,7 +119,6 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 		return sfx->cache;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (sfx->name))*/
 	if (COM_StringEmptyOrNULL (sfx->name))
 		return NULL;
 
@@ -166,8 +131,6 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 
 		if (sfx->name[0] == '*')
 			sc = FS_LoadSound (sfx->name + 1, NULL, 0);
-		/*else
-			sc = FS_LoadSound (sfx->name, NULL, 0);*/
 		else
 			sc = FS_LoadSound (sfx->name, NULL, 0);
 		}
@@ -176,13 +139,13 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 		sc = S_CreateDefaultSound ();
 
 	// [FWGS, 25.12.24]
-	if (sc->rate < SOUND_11k) // some bad sounds
+	if (sc->rate < SOUND_11k)	// some bad sounds
 		Sound_Process (&sc, SOUND_11k, sc->width, sc->channels, SOUND_RESAMPLE);
 
 	else if ((sc->rate > SOUND_11k) && (sc->rate < SOUND_22k))	// some bad sounds
 		Sound_Process (&sc, SOUND_22k, sc->width, sc->channels, SOUND_RESAMPLE);
 
-	else if ((sc->rate > SOUND_22k) && (sc->rate != SOUND_44k))		// some bad sounds
+	else if ((sc->rate > SOUND_22k) && (sc->rate != SOUND_44k))	// some bad sounds
 		Sound_Process (&sc, SOUND_44k, sc->width, sc->channels, SOUND_RESAMPLE);
 
 	sfx->cache = sc;
@@ -191,16 +154,16 @@ wavdata_t *S_LoadSound (sfx_t *sfx)
 
 /***
 ==================
-S_FindName [FWGS, 15.04.26]
+S_FindName [FWGS, 01.07.26]
 ==================
 ***/
 sfx_t *S_FindName (const char *pname, qboolean *pfInCache)
 	{
 	sfx_t	*sfx;
-	uint	i, hash;
+	/*uint	i, hash;*/
+	uint	i;
 	string	name;
 
-	/*if (COM_StringEmptyOrNULL (pname) || !dma.initialized)*/
 	if (COM_StringEmptyOrNULL (pname) || !snd.initialized)
 		return NULL;
 
@@ -211,7 +174,8 @@ sfx_t *S_FindName (const char *pname, qboolean *pfInCache)
 	COM_FixSlashes (name);
 
 	// see if already loaded
-	hash = COM_HashKey (name, MAX_SFX_HASH);
+	/*hash = COM_HashKey (name, MAX_SFX_HASH);*/
+	uint hash = COM_HashKey (name, MAX_SFX_HASH);
 	for (sfx = s_sfxHashList[hash]; sfx; sfx = sfx->hashNext)
 		{
 		if (!Q_strcmp (sfx->name, name))
@@ -231,7 +195,7 @@ sfx_t *S_FindName (const char *pname, qboolean *pfInCache)
 	// find a free sfx slot spot
 	for (i = 0, sfx = s_knownSfx; i < s_numSfx; i++, sfx++)
 		if (!sfx->name[0])
-			break; // free spot
+			break;	// free spot
 
 	if (i == s_numSfx)
 		{
@@ -258,22 +222,24 @@ sfx_t *S_FindName (const char *pname, qboolean *pfInCache)
 
 /***
 ==================
-S_FreeSound
+S_FreeSound [FWGS, 01.07.26]
 ==================
 ***/
 void S_FreeSound (sfx_t *sfx)
 	{
-	sfx_t *hashSfx;
-	sfx_t **prev;
+	/*sfx_t *hashSfx;
+	sfx_t **prev;*/
 
 	if (!sfx || !sfx->name[0])
 		return;
 
 	// de-link it from the hash tree
-	prev = &s_sfxHashList[sfx->hashValue];
+	/*prev = &s_sfxHashList[sfx->hashValue];*/
+	sfx_t **prev = &s_sfxHashList[sfx->hashValue];
 	while (1)
 		{
-		hashSfx = *prev;
+		/*hashSfx = *prev;*/
+		sfx_t *hashSfx = *prev;
 		if (!hashSfx)
 			break;
 
@@ -282,10 +248,10 @@ void S_FreeSound (sfx_t *sfx)
 			*prev = hashSfx->hashNext;
 			break;
 			}
+
 		prev = &hashSfx->hashNext;
 		}
 
-	// [FWGS, 15.04.26]
 	if (clgame.soundFuncs.pfnS_FreeSound)
 		{
 		clgame.soundFuncs.pfnS_FreeSound (sfx, sfx - s_knownSfx);
@@ -299,24 +265,21 @@ void S_FreeSound (sfx_t *sfx)
 
 /***
 =====================
-S_BeginRegistration [FWGS, 15.04.26]
+S_BeginRegistration [FWGS, 01.07.26]
 =====================
 ***/
 void S_BeginRegistration (void)
 	{
-	int	i;
-	/*snd_ambient = false;*/
+	/*int	i;*/
 	snd.have_ambient_sfx = false;
 
 	// check for automatic ambient sounds
-	for (i = 0; i < NUM_AMBIENTS; i++)
+	/*for (i = 0; i < NUM_AMBIENTS; i++)*/
+	for (int i = 0; i < NUM_AMBIENTS; i++)
 		{
 		if (!GI->ambientsound[i][0])
 			continue;	// empty slot
 
-		/*ambient_sfx[i] = S_RegisterSound (GI->ambientsound[i]);
-		if (ambient_sfx[i])
-			snd_ambient = true; // allow auto-ambients*/
 		snd.ambient_sfx[i] = S_RegisterSound (GI->ambientsound[i]);
 		if (snd.ambient_sfx[i])
 			snd.have_ambient_sfx = true;	// allow auto-ambients
@@ -336,7 +299,6 @@ void S_EndRegistration (void)
 	int		i;
 
 	// [FWGS, 15.04.26]
-	/*if (!s_registering || !dma.initialized)*/
 	if (!s_registering || !snd.initialized)
 		return;
 
@@ -370,7 +332,6 @@ sound_t S_RegisterSound (const char *name)
 	sfx_t *sfx;
 
 	// [FWGS, 15.04.26]
-	/*if (COM_StringEmptyOrNULL (name) || !dma.initialized)*/
 	if (COM_StringEmptyOrNULL (name) || !snd.initialized)
 		return -1;
 
@@ -400,7 +361,6 @@ sound_t S_RegisterSound (const char *name)
 sfx_t *S_GetSfxByHandle (sound_t handle)
 	{
 	// [FWGS, 15.04.26]
-	/*if (!dma.initialized)*/
 	if (!snd.initialized)
 		return NULL;
 
@@ -441,7 +401,6 @@ void S_FreeSounds (void)
 	int		i;
 
 	// [FWGS, 15.04.26]
-	/*if (!dma.initialized)*/
 	if (!snd.initialized)
 		return;
 

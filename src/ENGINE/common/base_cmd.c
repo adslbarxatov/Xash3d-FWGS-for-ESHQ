@@ -28,9 +28,6 @@ struct base_command_hashmap_s
 	{
 	base_command_t		*basecmd;	// base command: cvar, alias or command
 	base_command_hashmap_t	*next;
-	
-	/*base_command_type_e type;	// type for faster searching
-	char name[]; // key for searching*/
 	base_command_type_e		type;	// type for faster searching
 	char	name[]; // key for searching
 	};
@@ -43,7 +40,7 @@ static poolhandle_t basecmd_pool;
 
 /***
 ============
-BaseCmd_FindInBucket [FWGS, 01.02.25]
+BaseCmd_FindInBucket [FWGS, 01.07.26]
 
 Find base command in bucket
 ============
@@ -51,17 +48,18 @@ Find base command in bucket
 static base_command_hashmap_t *BaseCmd_FindInBucket (base_command_hashmap_t *bucket, base_command_type_e type,
 	const char *name)
 	{
-	base_command_hashmap_t *i;
+	/*base_command_hashmap_t *i;
 
-	for (i = bucket; i != NULL; i = i->next)
+	for (i = bucket; i != NULL; i = i->next)*/
+	for (base_command_hashmap_t *i = bucket; i != NULL; i = i->next)
 		{
-		int cmp;
+		/*int cmp;*/
 
 		if (i->type != type)
 			continue;
 
-		cmp = Q_stricmp (i->name, name);
-
+		/*cmp = Q_stricmp (i->name, name);*/
+		int cmp = Q_stricmp (i->name, name);
 		if (cmp < 0)
 			continue;
 
@@ -151,25 +149,26 @@ void BaseCmd_FindAll (const char *name, cmd_t **cmd, cmdalias_t **alias, convar_
 
 /***
 ============
-BaseCmd_Insert
+BaseCmd_Insert [FWGS, 01.07.26]
 
 Add new typed base command to hashmap
 ============
 ***/
 void BaseCmd_Insert (base_command_type_e type, base_command_t *basecmd, const char *name)
 	{
-	base_command_hashmap_t *elem, *cur, *find;
-	uint hash = BaseCmd_HashKey (name);
-	size_t len = Q_strlen (name);
+	/*base_command_hashmap_t *elem, *cur, *find;*/
+	uint	hash = BaseCmd_HashKey (name);
+	size_t	len = Q_strlen (name);
 
-	// [FWGS, 01.02.25]
-	elem = Mem_Malloc (basecmd_pool, sizeof (base_command_hashmap_t) + len + 1);
+	base_command_hashmap_t *elem = Mem_Malloc (basecmd_pool, sizeof (base_command_hashmap_t) + len + 1);
+	/*elem = Mem_Malloc (basecmd_pool, sizeof (base_command_hashmap_t) + len + 1);*/
 
 	elem->basecmd = basecmd;
 	elem->type = type;
 	Q_strncpy (elem->name, name, len + 1);
 
-	// [FWGS, 01.02.25] link the variable in alphanumerical order
+	// link the variable in alphanumerical order
+	base_command_hashmap_t *cur, *find;
 	for (cur = NULL, find = hashed_cmds[hash];
 		find && Q_stricmp (find->name, elem->name) < 0;
 		cur = find, find = find->next);
@@ -184,7 +183,7 @@ void BaseCmd_Insert (base_command_type_e type, base_command_t *basecmd, const ch
 
 /***
 ============
-BaseCmd_Remove [FWGS, 01.02.25]
+BaseCmd_Remove [FWGS, 01.07.26]
 
 Remove base command from hashmap
 ============
@@ -196,13 +195,13 @@ void BaseCmd_Remove (base_command_type_e type, const char *name)
 
 	for (prev = NULL, i = hashed_cmds[hash]; i != NULL; prev = i, i = i->next)
 		{
-		int cmp;
+		/*int cmp;*/
 
 		if (i->type != type)
 			continue;
 
-		cmp = Q_stricmp (i->name, name);
-
+		/*cmp = Q_stricmp (i->name, name);*/
+		int cmp = Q_stricmp (i->name, name);
 		if (cmp < 0)
 			continue;
 
@@ -228,14 +227,15 @@ void BaseCmd_Remove (base_command_type_e type, const char *name)
 
 /***
 ============
-BaseCmd_Init [FWGS, 01.02.25]
+BaseCmd_Init [FWGS, 01.07.26]
 
 initialize base command hashmap system
 ============
 ***/
 void BaseCmd_Init (void)
 	{
-	basecmd_pool = Mem_AllocPool ("BaseCmd");
+	/*basecmd_pool = Mem_AllocPool ("BaseCmd");*/
+	basecmd_pool = Mem_AllocPoolExt ("BaseCmd", MEM_SMALL_ALLOC_OPT);
 	memset (hashed_cmds, 0, sizeof (hashed_cmds));
 	}
 
@@ -247,22 +247,21 @@ void BaseCmd_Shutdown (void)
 
 /***
 ============
-BaseCmd_Stats_f [FWGS, 01.04.26]
+BaseCmd_Stats_f [FWGS, 01.07.26]
 ============
 ***/
 void BaseCmd_Stats_f (void)
 	{
-	/*int i, minsize = 99999, maxsize = -1, empty = 0;*/
 	int minsize = 99999, maxsize = -1, empty = 0;
 
-	/*for (i = 0; i < HASH_SIZE; i++)*/
 	for (int i = 0; i < HASH_SIZE; i++)
 		{
-		base_command_hashmap_t *hm;
+		/*base_command_hashmap_t *hm;*/
 		int len = 0;
 
 		// count bucket length
-		for (hm = hashed_cmds[i]; hm; hm = hm->next, len++);
+		/*for (hm = hashed_cmds[i]; hm; hm = hm->next, len++);*/
+		for (base_command_hashmap_t *hm = hashed_cmds[i]; hm; hm = hm->next, len++);
 
 		if (len == 0)
 			{
@@ -281,18 +280,15 @@ void BaseCmd_Stats_f (void)
 	}
 
 // [FWGS, 01.04.26]
-/*typedef struct*/
 struct basecmd_test_stats_s
 	{
 	qboolean	valid;
 	int			lookups;
-	/*} basecmd_test_stats_t;*/
 	};
 
 // [FWGS, 01.04.26]
 static void BaseCmd_CheckCvars (const char *key, const char *value, const void *unused, void *ptr)
 	{
-	/*basecmd_test_stats_t *stats = ptr;*/
 	struct basecmd_test_stats_s *stats = ptr;
 
 	stats->lookups++;
@@ -305,36 +301,28 @@ static void BaseCmd_CheckCvars (const char *key, const char *value, const void *
 
 /***
 ============
-BaseCmd_Stats_f [FWGS, 01.04.26]
+BaseCmd_Stats_f [FWGS, 01.07.26]
 
 testing order matches cbuf execute
 ============
 ***/
 void BaseCmd_Test_f (void)
 	{
-	/*basecmd_test_stats_t stats;
-	double start, end, dt;
-	int i;
-
-	stats.valid = true;
-	stats.lookups = 0;*/
 	struct basecmd_test_stats_s stats =
 		{
 		.valid = true,
 		};
 
-	/*start = Sys_DoubleTime () * 1000;
-	start = Platform_DoubleTime () * 1000;*/
 	double start = Platform_DoubleTime () * 1000;
 
-	/*for (i = 0; i < 1000; i++)*/
 	for (int i = 0; i < 1000; i++)
 		{
-		cmdalias_t *a;
-		void *cmd;
+		/*cmdalias_t *a;
+		void *cmd;*/
 
 		// Cmd_LookupCmds don't allows to check alias, so just iterate
-		for (a = Cmd_AliasGetList (); a; a = a->next, stats.lookups++)
+		/*for (a = Cmd_AliasGetList (); a; a = a->next, stats.lookups++)*/
+		for (cmdalias_t *a = Cmd_AliasGetList (); a; a = a->next, stats.lookups++)
 			{
 			if (!BaseCmd_Find (HM_CMDALIAS, a->name))
 				{
@@ -343,7 +331,8 @@ void BaseCmd_Test_f (void)
 				}
 			}
 
-		for (cmd = Cmd_GetFirstFunctionHandle (); cmd;
+		/*for (cmd = Cmd_GetFirstFunctionHandle (); cmd;*/
+		for (void *cmd = Cmd_GetFirstFunctionHandle (); cmd;
 			cmd = Cmd_GetNextFunctionHandle (cmd), stats.lookups++)
 			{
 			if (!BaseCmd_Find (HM_CMD, Cmd_GetName (cmd)))
@@ -356,10 +345,6 @@ void BaseCmd_Test_f (void)
 		Cvar_LookupVars (0, NULL, &stats.valid, (setpair_t)BaseCmd_CheckCvars);
 		}
 
-	/*// [FWGS, 01.03.26]
-	end = Sys_DoubleTime () * 1000;
-	end = Platform_DoubleTime () * 1000;
-	dt = end - start;*/
 	double end = Platform_DoubleTime () * 1000;
 	double dt = end - start;
 

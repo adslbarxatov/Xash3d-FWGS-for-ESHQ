@@ -25,7 +25,7 @@ static int   sprite_version;
 
 /***
 ================
-R_GetSpriteFrame
+R_GetSpriteFrame [FWGS, 01.07.26]
 
 assume pModel is valid
 ================
@@ -33,11 +33,11 @@ assume pModel is valid
 mspriteframe_t *R_GetSpriteFrame (const model_t *pModel, int frame, float yaw)
 	{
 	msprite_t	*psprite;
-	mspritegroup_t	*pspritegroup;
+	/*mspritegroup_t	*pspritegroup;*/
 	mspriteframe_t	*pspriteframe = NULL;
-	float		*pintervals, fullinterval;
+	/*float		*pintervals, fullinterval;
 	int			i, numframes;
-	float		targettime;
+	float		targettime;*/
 
 	if (!pModel)
 		return NULL;
@@ -61,20 +61,27 @@ mspriteframe_t *R_GetSpriteFrame (const model_t *pModel, int frame, float yaw)
 		}
 	else if (psprite->frames[frame].type == SPR_GROUP)
 		{
-		pspritegroup = (mspritegroup_t *)psprite->frames[frame].frameptr;
+		/*pspritegroup = (mspritegroup_t *)psprite->frames[frame].frameptr;
 		pintervals = pspritegroup->intervals;
 		numframes = pspritegroup->numframes;
-		fullinterval = pintervals[numframes - 1];
+		fullinterval = pintervals[numframes - 1];*/
+		mspritegroup_t	*pspritegroup = (mspritegroup_t *)psprite->frames[frame].frameptr;
+		float	*pintervals = pspritegroup->intervals;
+		int		numframes = pspritegroup->numframes;
+		float	fullinterval = pintervals[numframes - 1];
 
 		// when loading in Mod_LoadSpriteGroup, we guaranteed all interval values
 		// are positive, so we don't have to worry about division by zero
-		targettime = cl.time - ((int)(cl.time / fullinterval)) * fullinterval;
+		/*targettime = cl.time - ((int)(cl.time / fullinterval)) * fullinterval;*/
+		float	targettime = cl.time - ((int)(cl.time / fullinterval)) * fullinterval;
 
+		int	i;
 		for (i = 0; i < (numframes - 1); i++)
 			{
 			if (pintervals[i] > targettime)
 				break;
 			}
+
 		pspriteframe = pspritegroup->frames[i];
 		}
 	else if (psprite->frames[frame].type == FRAME_ANGLED)
@@ -82,7 +89,8 @@ mspriteframe_t *R_GetSpriteFrame (const model_t *pModel, int frame, float yaw)
 		int angleframe = (int)(Q_rint ((refState.viewangles[1] - yaw + 45.0f) / 360 * 8) - 4) & 7;
 
 		// e.g. doom-style sprite monsters
-		pspritegroup = (mspritegroup_t *)psprite->frames[frame].frameptr;
+		/*pspritegroup = (mspritegroup_t *)psprite->frames[frame].frameptr;*/
+		mspritegroup_t *pspritegroup = (mspritegroup_t *)psprite->frames[frame].frameptr;
 		pspriteframe = pspritegroup->frames[angleframe];
 		}
 
@@ -202,17 +210,20 @@ static const byte *Mod_SpriteLoadFrame (model_t *mod, const void *pin, mspritefr
 	return (const byte *)pin + sizeof (dspriteframe_t) + pinframe.width * pinframe.height * bytes;
 	}
 
+// [FWGS, 01.07.26]
 static const byte *Mod_SpriteLoadGroup (model_t *mod, const void *pin, mspriteframe_t **ppframe, int framenum)
 	{
-	const dspritegroup_t	*pingroup;
-	mspritegroup_t		*pspritegroup;
+	/*const dspritegroup_t	*pingroup;*/
+	const dspritegroup_t	*pingroup = (const dspritegroup_t *)pin;
+	mspritegroup_t			*pspritegroup;
 	const dspriteinterval_t	*pin_intervals;
 	float	*poutintervals;
-	int		i, groupsize, numframes;
+	/*int		i, groupsize, numframes;*/
+	int		groupsize, numframes = pingroup->numframes;
 	const void	*ptemp;
 
-	pingroup = (const dspritegroup_t *)pin;
-	numframes = pingroup->numframes;
+	/*pingroup = (const dspritegroup_t *)pin;
+	numframes = pingroup->numframes;*/
 
 	groupsize = sizeof (mspritegroup_t) + (numframes - 1) * sizeof (pspritegroup->frames[0]);
 	pspritegroup = Mem_Calloc (mod->mempool, groupsize);
@@ -223,17 +234,20 @@ static const byte *Mod_SpriteLoadGroup (model_t *mod, const void *pin, mspritefr
 	poutintervals = Mem_Calloc (mod->mempool, numframes * sizeof (float));
 	pspritegroup->intervals = poutintervals;
 
-	for (i = 0; i < numframes; i++)
+	/*for (i = 0; i < numframes; i++)*/
+	for (int i = 0; i < numframes; i++)
 		{
 		*poutintervals = pin_intervals->interval;
 		if (*poutintervals <= 0.0f)
 			*poutintervals = 1.0f;	// set error value
+
 		poutintervals++;
 		pin_intervals++;
 		}
 
 	ptemp = (const void *)pin_intervals;
-	for (i = 0; i < numframes; i++)
+	/*for (i = 0; i < numframes; i++)*/
+	for (int i = 0; i < numframes; i++)
 		{
 		ptemp = Mod_SpriteLoadFrame (mod, ptemp, &pspritegroup->frames[i], framenum * 10 + i);
 		}
@@ -246,7 +260,7 @@ void Mod_SpriteLoadTextures (model_t *mod, const void *buffer)
 	const dsprite_t	*pin = buffer;
 	const short		*numi = NULL;
 	const byte		*pframetype;
-	msprite_t		*psprite = mod->cache.data;
+	msprite_t	*psprite = mod->cache.data;
 	int		i;
 
 	if ((pin->version == SPRITE_VERSION_Q1) || (pin->version == SPRITE_VERSION_32))
@@ -294,7 +308,8 @@ void Mod_SpriteLoadTextures (model_t *mod, const void *buffer)
 		}
 	else
 		{
-		Con_DPrintf (S_ERROR "%s has wrong number of palette colors %i (should be less or equal than 256)\n", mod->name, *numi);
+		Con_DPrintf (S_ERROR "%s has wrong number of palette colors %i (should be less or equal than 256)\n",
+			mod->name, *numi);
 		return;
 		}
 
@@ -333,16 +348,18 @@ void Mod_SpriteLoadTextures (model_t *mod, const void *buffer)
 		}
 	}
 
+// [FWGS, 01.07.26]
 void Mod_SpriteUnloadTextures (void *data)
 	{
 	msprite_t	*psprite = data;
-	int		i;
+	/*int		i;*/
 
 	if (!data)
 		return;
 
 	// release all textures
-	for (i = 0; i < psprite->numframes; i++)
+	/*for (i = 0; i < psprite->numframes; i++)*/
+	for (int i = 0; i < psprite->numframes; i++)
 		{
 		if (!psprite->frames[i].frameptr)
 			continue;
@@ -354,9 +371,10 @@ void Mod_SpriteUnloadTextures (void *data)
 		else
 			{
 			mspritegroup_t *pspritegroup = (mspritegroup_t *)psprite->frames[i].frameptr;
-			int j;
+			/*int j;*/
 
-			for (j = 0; j < pspritegroup->numframes; j++)
+			/*for (j = 0; j < pspritegroup->numframes; j++)*/
+			for (int j = 0; j < pspritegroup->numframes; j++)
 				{
 				if (pspritegroup->frames[j])
 					ref.dllFuncs.GL_FreeTexture (pspritegroup->frames[j]->gl_texturenum);

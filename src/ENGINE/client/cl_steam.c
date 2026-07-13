@@ -45,7 +45,9 @@ GNU General Public License for more details
 #define SBRK_CONNECT_RETRY_DELAY	5.0
 #define SBRK_TICKET_SIZE_MAX 		2048
 
-static CVAR_DEFINE_AUTO (cl_steam_broker_addr, "127.0.0.1:27420", FCVAR_ARCHIVE, "address of steam broker instance");
+// [FWGS, 01.07.26]
+/*static CVAR_DEFINE_AUTO (cl_steam_broker_addr, "127.0.0.1:27420", FCVAR_ARCHIVE, "address of steam broker instance");*/
+static CVAR_DEFINE_AUTO (cl_steam_broker_addr, "127.0.0.1:27420", FCVAR_PRIVILEGED | FCVAR_ARCHIVE, "address of steam broker instance");
 
 typedef enum
 	{
@@ -125,7 +127,8 @@ static qboolean SteamBroker_ConnectImpl (void)
 		}
 	else
 		{
-		Con_Printf (S_ERROR "%s: unsupported broker address type for %s\n", __func__, cl_steam_broker_addr.string);
+		Con_Printf (S_ERROR "%s: unsupported broker address type for %s\n", __func__,
+			cl_steam_broker_addr.string);
 		return false;
 		}
 
@@ -138,7 +141,8 @@ static qboolean SteamBroker_ConnectImpl (void)
 
 	if (!NET_MakeSocketNonBlocking (broker.socket))
 		{
-		Con_Printf (S_ERROR "%s: failed to set non-blocking mode, error %s\n", __func__, NET_ErrorString ());
+		Con_Printf (S_ERROR "%s: failed to set non-blocking mode, error %s\n", __func__,
+			NET_ErrorString ());
 		SteamBroker_CloseSocket ();
 		return false;
 		}
@@ -222,9 +226,10 @@ static qboolean SteamBroker_ProcessFrame (void)
 	sizebuf_t sb;
 	MSG_Init (&sb, "SteamBroker_ProcessFrame", broker.rx_buffer, broker.rx_buffer_pos);
 
-	// verify frame header
+	// [FWGS, 01.07.26] verify frame header
 	char header[SBRK_FRAME_HEADER_SIZE];
-	if (!MSG_ReadBytes (&sb, header, SBRK_FRAME_HEADER_SIZE))
+	/*if (!MSG_ReadBytes (&sb, header, SBRK_FRAME_HEADER_SIZE))*/
+	if (!MSG_ReadBytes (&sb, header, sizeof (header), SBRK_FRAME_HEADER_SIZE))
 		return false;
 
 	if (memcmp (header, SBRK_FRAME_HEADER, SBRK_FRAME_HEADER_SIZE) != 0)
@@ -240,8 +245,10 @@ static qboolean SteamBroker_ProcessFrame (void)
 	if (MSG_GetNumBytesLeft (&sb) < payload_size)
 		return false;	// need more data
 
+	// [FWGS, 01.07.26]
 	char response_header[SBRK_RESPONSE_HEADER_SIZE];
-	if (MSG_ReadBytes (&sb, response_header, SBRK_RESPONSE_HEADER_SIZE))
+	/*if (MSG_ReadBytes (&sb, response_header, SBRK_RESPONSE_HEADER_SIZE))*/
+	if (MSG_ReadBytes (&sb, response_header, sizeof (response_header), SBRK_RESPONSE_HEADER_SIZE))
 		{
 		if (memcmp (response_header, SBRK_RESPONSE_HEADER, SBRK_RESPONSE_HEADER_SIZE) == 0)
 			{
@@ -253,7 +260,9 @@ static qboolean SteamBroker_ProcessFrame (void)
 			else
 				{
 				uint64_t steam_id;
-				MSG_ReadBytes (&sb, &steam_id, sizeof (steam_id));
+				/*MSG_ReadBytes (&sb, &steam_id, sizeof (steam_id));*/
+				MSG_ReadBytes (&sb, &steam_id, sizeof (steam_id), sizeof (steam_id));
+
 				uint32_t ticket_size = MSG_ReadDword (&sb);
 				uint8_t ticket_data[SBRK_TICKET_SIZE_MAX];
 
@@ -261,7 +270,8 @@ static qboolean SteamBroker_ProcessFrame (void)
 					{
 					Con_Printf (S_ERROR "%s: ticket size exceeds limit (%u)\n", __func__, ticket_size);
 					}
-				else if (MSG_ReadBytes (&sb, ticket_data, ticket_size))
+				/*else if (MSG_ReadBytes (&sb, ticket_data, ticket_size))*/
+				else if (MSG_ReadBytes (&sb, ticket_data, sizeof (ticket_data), ticket_size))
 					{
 					Con_Printf ("%s: SteamID: %"PRIu64", ticket: [%d, %d, %d, %d...]\n", __func__, steam_id,
 						ticket_data[0], ticket_data[1], ticket_data[2], ticket_data[3]);
@@ -354,14 +364,17 @@ static void SteamBroker_UpdateIdle (void)
 			}
 		else
 			{
-			Con_Printf (S_ERROR "%s: failed to resolve broker address \"%s\"\n", __func__, cl_steam_broker_addr.string);
+			Con_Printf (S_ERROR "%s: failed to resolve broker address \"%s\"\n", __func__,
+				cl_steam_broker_addr.string);
 			}
 
 		broker.idle_cycle_timeout = Platform_DoubleTime () + SBRK_CONNECT_RETRY_DELAY;
 		}
 	}
 
-void SteamBroker_AnnounceGameStart (const char *gamedir)
+// [FWGS, 01.07.26]
+/*void SteamBroker_AnnounceGameStart (const char *gamedir)*/
+static void SteamBroker_AnnounceGameStart (const char *gamedir)
 	{
 	if (Q_stricmp (cl_ticket_generator.string, "steam") != 0)
 		return;
@@ -377,7 +390,9 @@ void SteamBroker_AnnounceGameStart (const char *gamedir)
 		SteamBroker_SendFrame (buf, len);
 	}
 
-void SteamBroker_AnnounceGameShutdown (void)
+// [FWGS, 01.07.26]
+/*void SteamBroker_AnnounceGameShutdown (void)*/
+static void SteamBroker_AnnounceGameShutdown (void)
 	{
 	if (Q_stricmp (cl_ticket_generator.string, "steam") != 0)
 		return;
@@ -401,9 +416,11 @@ static void SteamBroker_UpdateConnecting (void)
 	FD_ZERO (&writefds);
 	FD_SET (broker.socket, &writefds);
 
-	struct timeval tv;
+	// [FWGS, 01.07.26]
+	/*struct timeval tv;
 	tv.tv_sec = 0;
-	tv.tv_usec = 0;
+	tv.tv_usec = 0;*/
+	struct timeval tv = { 0 };
 
 #if XASH_WIN32
 	int select_result = select (0, NULL, &writefds, NULL, &tv);
@@ -486,7 +503,8 @@ void SteamBroker_TerminateGameConnection (void)
 
 	// sb_disconnect <ip:port> <challenge>
 	char buf[512];
-	int len = Q_snprintf (buf, sizeof (buf), "sb_disconnect %s %d", NET_AdrToString (cls.serveradr), broker.challenge);
+	int len = Q_snprintf (buf, sizeof (buf), "sb_disconnect %s %d", NET_AdrToString (cls.serveradr),
+		broker.challenge);
 
 	SteamBroker_SendFrame (buf, len);
 	}

@@ -19,7 +19,6 @@ GNU General Public License for more details
 #include "const.h"
 #include "cl_tent.h"
 #include "pm_local.h"
-/*include "particledef.h"*/
 #include "studio.h"
 
 #define MAX_FORWARD				6		// forward probes for set idealpitch
@@ -101,16 +100,17 @@ void CL_RedoPrediction (void)
 
 /***
 ===============
-CL_SetIdealPitch
+CL_SetIdealPitch [FWGS, 01.07.26]
 ===============
 ***/
 void CL_SetIdealPitch (void)
 	{
-	float		angleval, sinval, cosval;
-	int			i, j, step, dir, steps;
-	float		z[MAX_FORWARD];
+	float	angleval, sinval, cosval;
+	/*int			i, j, step, dir, steps;*/
+	int		i, dir, steps;
+	float	z[MAX_FORWARD];
 	vec3_t		top, bottom;
-	pmtrace_t	tr;
+	/*pmtrace_t	tr;*/
 
 	if (cl.local.onground == -1)
 		return;
@@ -122,6 +122,8 @@ void CL_SetIdealPitch (void)
 	// 160 or so units to see what's below
 	for (i = 0; i < MAX_FORWARD; i++)
 		{
+		pmtrace_t tr;
+
 		top[0] = cl.simorg[0] + cosval * (i + 3.0f) * 12.0f;
 		top[1] = cl.simorg[1] + sinval * (i + 3.0f) * 12.0f;
 		top[2] = cl.simorg[2] + cl.viewheight[2];
@@ -132,7 +134,8 @@ void CL_SetIdealPitch (void)
 
 		// skip any monsters (only world and brush models)
 		tr = CL_TraceLine (top, bottom, PM_STUDIO_BOX);
-		if (tr.allsolid) return; // looking at a wall, leave ideal the way is was
+		if (tr.allsolid)
+			return;	// looking at a wall, leave ideal the way is was
 
 		if (tr.fraction == 1.0f)
 			return;	// near a dropoff
@@ -143,14 +146,16 @@ void CL_SetIdealPitch (void)
 	dir = 0;
 	steps = 0;
 
-	for (j = 1; j < i; j++)
+	/*for (j = 1; j < i; j++)*/
+	for (int j = 1; j < i; j++)
 		{
-		step = z[j] - z[j - 1];
-		if (step > -ON_EPSILON && step < ON_EPSILON)
+		/*step = z[j] - z[j - 1];*/
+		int step = z[j] - z[j - 1];
+		if ((step > -ON_EPSILON) && (step < ON_EPSILON))
 			continue;
 
 		if (dir && ((step - dir > ON_EPSILON) || (step - dir < -ON_EPSILON)))
-			return; // mixed changes
+			return;	// mixed changes
 
 		steps++;
 		dir = step;
@@ -240,30 +245,33 @@ void CL_CheckPredictionError (void)
 
 /***
 =============
-CL_SetUpPlayerPrediction
+CL_SetUpPlayerPrediction [FWGS, 01.07.26]
 
 Calculate the new position of players, without other player clipping
 We do this to set up real player prediction.
 Players are predicted twice, first without clipping other players,
 then with clipping against them.
-This sets up the first phase.
+This sets up the first phase
 =============
 ***/
 void GAME_EXPORT CL_SetUpPlayerPrediction (int dopred, int bIncludeLocalClient)
 	{
-	entity_state_t		*state;
+	/*entity_state_t		*state;
 	predicted_player_t	*player;
 	cl_entity_t			*ent;
 	int		i;
 
-	for (i = 0; i < MAX_CLIENTS; i++)
+	for (i = 0; i < MAX_CLIENTS; i++)*/
+	for (int i = 0; i < MAX_CLIENTS; i++)
 		{
-		state = &cl.frames[cl.parsecountmod].playerstate[i];
-		player = &cls.predicted_players[i];
+		/*state = &cl.frames[cl.parsecountmod].playerstate[i];
+		player = &cls.predicted_players[i];*/
+		entity_state_t	*state = &cl.frames[cl.parsecountmod].playerstate[i];
+		predicted_player_t	*player = &cls.predicted_players[i];
 		player->active = false;
 
 		if (state->messagenum != cl.parsecount)
-			continue; // not present this frame
+			continue;	// not present this frame
 
 		if (!state->modelindex)
 			continue;
@@ -285,8 +293,8 @@ void GAME_EXPORT CL_SetUpPlayerPrediction (int dopred, int bIncludeLocalClient)
 			}
 		else
 			{
-			ent = CL_GetEntityByIndex (i + 1);
-
+			/*ent = CL_GetEntityByIndex (i + 1);*/
+			cl_entity_t *ent = CL_GetEntityByIndex (i + 1);
 			CL_ComputePlayerOrigin (ent);
 
 			VectorCopy (ent->origin, player->origin);
@@ -397,24 +405,28 @@ static void CL_CopyEntityToPhysEnt (physent_t *pe, entity_state_t *state, qboole
 
 /***
 ====================
-CL_AddLinksToPmove
+CL_AddLinksToPmove [FWGS, 01.07.26]
 
 collect solid entities
 ====================
 ***/
 static void CL_AddLinksToPmove (frame_t *frame)
 	{
-	entity_state_t	*state;
+	/*entity_state_t	*state;
 	model_t			*model;
 	physent_t		*pe;
-	int		i;
+	int		i;*/
 
 	if (!frame->valid)
 		return;
 
-	for (i = 0; i < frame->num_entities; i++)
+	/*for (i = 0; i < frame->num_entities; i++)*/
+	for (int i = 0; i < frame->num_entities; i++)
 		{
-		state = &cls.packet_entities[(frame->first_entity + i) % cls.num_client_entities];
+		/*state = &cls.packet_entities[(frame->first_entity + i) % cls.num_client_entities];*/
+		entity_state_t	*state = &cls.packet_entities[(frame->first_entity + i) % cls.num_client_entities];
+		model_t		*model;
+		physent_t	*pe;
 
 		if ((state->number >= 1) && (state->number <= cl.maxclients))
 			continue;
@@ -506,7 +518,7 @@ void CL_SetSolidEntities (void)
 
 /***
 ===============
-CL_SetSolidPlayers
+CL_SetSolidPlayers [FWGS, 01.07.26]
 
 Builds all the pmove physents for the current frame
 Note that CL_SetUpPlayerPrediction() must be called first!
@@ -516,18 +528,22 @@ pmove must be setup with world and solid entity hulls before calling
 ***/
 void GAME_EXPORT CL_SetSolidPlayers (int playernum)
 	{
-	entity_state_t		*state;
+	/*entity_state_t		*state;
 	predicted_player_t	*player;
 	physent_t			*pe;
-	int					i;
+	int					i;*/
 
 	if (!cl_solid_players.value)
 		return;
 
-	for (i = 0; i < MAX_CLIENTS; i++)
+	/*for (i = 0; i < MAX_CLIENTS; i++)*/
+	for (int i = 0; i < MAX_CLIENTS; i++)
 		{
-		state = &cl.frames[cl.parsecountmod].playerstate[i];
-		player = &cls.predicted_players[i];
+		/*state = &cl.frames[cl.parsecountmod].playerstate[i];
+		player = &cls.predicted_players[i];*/
+		entity_state_t	*state = &cl.frames[cl.parsecountmod].playerstate[i];
+		predicted_player_t	*player = &cls.predicted_players[i];
+		physent_t	*pe;
 
 		if (playernum == -1)
 			{
@@ -554,7 +570,7 @@ void GAME_EXPORT CL_SetSolidPlayers (int playernum)
 		CL_CopyEntityToPhysEnt (pe, state, false);
 		clgame.pmove->numphysent++;
 
-		// [FWGS, 01.08.24] some fields needs to be override from cls.predicted_players
+		// some fields needs to be override from cls.predicted_players
 		VectorCopy (player->origin, pe->origin);
 		VectorCopy (player->angles, pe->angles);
 		VectorCopy (host.player_mins[player->usehull], pe->mins);
@@ -566,15 +582,16 @@ void GAME_EXPORT CL_SetSolidPlayers (int playernum)
 
 /***
 =============
-CL_WaterEntity
+CL_WaterEntity [FWGS, 01.07.26]
 =============
 ***/
 int GAME_EXPORT CL_WaterEntity (const float *rgflPos)
 	{
-	physent_t	*pe;
+	/*physent_t	*pe;
 	hull_t		*hull;
 	vec3_t		test, offset;
-	int			i, oldhull;
+	int			i, oldhull;*/
+	int	oldhull;
 
 	if (!rgflPos)
 		return -1;
@@ -582,10 +599,15 @@ int GAME_EXPORT CL_WaterEntity (const float *rgflPos)
 	oldhull = clgame.pmove->usehull;
 
 	// ESHQ: отменено изменение из 4529, нарушающее корректный поиск текстуры
-	for (i = 0; i < clgame.pmove->numphysent; i++)
+	/*for (i = 0; i < clgame.pmove->numphysent; i++)*/
+	for (int i = 0; i < clgame.pmove->numphysent; i++)
 		{
-		pe = &clgame.pmove->physents[i];
-		if (pe->solid != SOLID_NOT) // disabled ?
+		/*pe = &clgame.pmove->physents[i];*/
+		physent_t	*pe = &clgame.pmove->physents[i];
+		hull_t	*hull;
+		vec3_t	test, offset;
+
+		if (pe->solid != SOLID_NOT)	// disabled ?
 			continue;
 
 		// only brushes can have special contents
@@ -661,18 +683,19 @@ pmtrace_t *CL_VisTraceLine (vec3_t start, vec3_t end, int flags)
 
 /***
 =============
-CL_GetWaterEntity
+CL_GetWaterEntity [FWGS, 01.07.26]
 
 returns water brush where inside pos
 =============
 ***/
 cl_entity_t *CL_GetWaterEntity (const float *rgflPos)
 	{
-	int	entnum;
+	/*int	entnum;*/
+	int entnum = CL_WaterEntity (rgflPos);
 
-	entnum = CL_WaterEntity (rgflPos);
+	/*entnum = CL_WaterEntity (rgflPos);*/
 	if (entnum <= 0)
-		return NULL; // world or not water
+		return NULL;	// world or not water
 
 	return CL_GetEntityByIndex (entnum);
 	}
@@ -744,12 +767,12 @@ static pmtrace_t *pfnTraceLineEx (float *start, float *end, int flags, int usehu
 
 /***
 ===============
-CL_InitClientMove
+CL_InitClientMove [FWGS, 01.07.26]
 ===============
 ***/
 void CL_InitClientMove (void)
 	{
-	int	i;
+	/*int	i;*/
 
 	Pmove_Init ();
 
@@ -758,7 +781,8 @@ void CL_InitClientMove (void)
 	clgame.pmove->runfuncs = false;
 
 	// enumerate client hulls
-	for (i = 0; i < MAX_MAP_HULLS; i++)
+	/*for (i = 0; i < MAX_MAP_HULLS; i++)*/
+	for (int i = 0; i < MAX_MAP_HULLS; i++)
 		{
 		if (clgame.dllFuncs.pfnGetHullBounds (i, host.player_mins[i], host.player_maxs[i]))
 			Con_Reportf ("CL: hull%i, player_mins: %g %g %g, player_maxs: %g %g %g\n", i,
@@ -771,7 +795,7 @@ void CL_InitClientMove (void)
 
 	// common utilities
 	clgame.pmove->PM_Info_ValueForKey = Info_ValueForKey;
-	clgame.pmove->PM_Particle = CL_Particle; // ref should be initialized here already
+	clgame.pmove->PM_Particle = CL_Particle;	// ref should be initialized here already
 	clgame.pmove->PM_TestPlayerPosition = pfnTestPlayerPosition;
 	clgame.pmove->Con_NPrintf = Con_NPrintf;
 	clgame.pmove->Con_DPrintf = Con_DPrintf;
@@ -794,7 +818,6 @@ void CL_InitClientMove (void)
 	clgame.pmove->COM_FreeFile = COM_FreeFile;
 	
 	// [FWGS, 01.03.26]
-	/*clgame.pmove->memfgets = COM_MemFgets;*/
 	clgame.pmove->memfgets = Q_memfgets;
 	clgame.pmove->PM_PlaySound = pfnPlaySound;
 	clgame.pmove->PM_TraceTexture = PM_CL_TraceTexture;
@@ -851,7 +874,6 @@ static void CL_SetupPMove (playermove_t *pmove, const local_state_t *from, const
 	VectorCopy (cd->punchangle, pmove->punchangle);
 
 	// [FWGS, 01.03.26] not used by PM_ code
-	/*pmove->flNextPrimaryAttack = 0.0f;*/
 	pmove->effects = ps->effects;
 	pmove->flags = cd->flags;
 	pmove->gravity = ps->gravity;
@@ -980,7 +1002,7 @@ static void CL_RunUsercmd (local_state_t *from, local_state_t *to, usercmd_t *u,
 		if (clgame.pmove->onground > 0 && clgame.pmove->onground < clgame.pmove->numphysent)
 			cl.local.lastground = clgame.pmove->physents[clgame.pmove->onground].info;
 		else 
-			cl.local.lastground = clgame.pmove->onground; // world(0) or in air(-1)
+			cl.local.lastground = clgame.pmove->onground;	// world(0) or in air(-1)
 		}
 
 	clgame.dllFuncs.pfnPostRunCmd (from, to, &cmd, runfuncs, *time, random_seed);
@@ -1113,7 +1135,7 @@ void CL_PredictMovement (qboolean repredicting)
 	if ((i == CL_UPDATE_MASK) || (!to && !repredicting))
 		{
 		cl.local.repredicting = false;
-		return; // net hasn't deliver packets in a long time...
+		return;	// net hasn't deliver packets in a long time...
 		}
 
 	if (!to)

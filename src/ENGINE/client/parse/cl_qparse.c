@@ -17,10 +17,8 @@ GNU General Public License for more details
 #include "common.h"
 #include "client.h"
 #include "net_encode.h"
-/*include "particledef.h"*/
 #include "cl_tent.h"
 #include "shake.h"
-/*include "hltv.h"*/
 #include "input.h"
 #include "base_cmd.h"
 
@@ -57,7 +55,7 @@ CL_DispatchQuakeMessage
 static void CL_DispatchQuakeMessage (const char *name)
 	{
 	CL_DispatchUserMessage (name, msg_demo.iCurBit >> 3, msg_demo.pData);
-	MSG_Clear (&msg_demo); // don't forget to clear buffer
+	MSG_Clear (&msg_demo);	// don't forget to clear buffer
 	}
 
 /***
@@ -76,7 +74,7 @@ static void CL_ParseQuakeStats (sizebuf_t *msg)
 
 /***
 ==================
-CL_EntityTeleported
+CL_EntityTeleported [FWGS, 01.07.26]
 
 check for instant movement in case
 we don't want interpolate this
@@ -84,14 +82,17 @@ we don't want interpolate this
 ***/
 static qboolean CL_QuakeEntityTeleported (cl_entity_t *ent, entity_state_t *newstate)
 	{
-	float	len, maxlen;
+	/*float	len, maxlen;
+	vec3_t	delta;*/
 	vec3_t	delta;
 
 	VectorSubtract (newstate->origin, ent->prevstate.origin, delta);
 
 	// compute potential max movement in units per frame and compare with entity movement
-	maxlen = (clgame.movevars.maxvelocity * (1.0f / GAME_FPS));
-	len = VectorLength (delta);
+	/*maxlen = (clgame.movevars.maxvelocity * (1.0f / GAME_FPS));
+	len = VectorLength (delta);*/
+	float maxlen = (clgame.movevars.maxvelocity * (1.0f / GAME_FPS));
+	float len = VectorLength (delta);
 
 	return (len > maxlen);
 	}
@@ -105,7 +106,7 @@ redirect to qwrap->client
 ***/
 static int CL_UpdateQuakeStats (sizebuf_t *msg, int statnum, qboolean has_update)
 	{
-	int 	value = 0;
+	int value = 0;
 
 	MSG_WriteByte (&msg_demo, statnum);	// stat num
 
@@ -138,62 +139,69 @@ static void CL_UpdateQuakeGameMode (int gamemode)
 
 /***
 ==================
-CL_ParseQuakeSound
+CL_ParseQuakeSound [FWGS, 01.07.26]
 ==================
 ***/
 static void CL_ParseQuakeSound (sizebuf_t *msg)
 	{
-	int 	channel, sound;
+	/*int 	channel, sound;
 	int		flags, entnum;
 	float 	volume, attn;
 	sound_t	handle;
 	vec3_t	pos;
 
-	flags = MSG_ReadByte (msg);
+	flags = MSG_ReadByte (msg);*/
+	int flags = MSG_ReadByte (msg);
 
+	float volume;
 	if (FBitSet (flags, SND_VOLUME))
 		volume = (float)MSG_ReadByte (msg) / 255.0f;
 	else 
 		volume = VOL_NORM;
 
+	float attn;
 	if (FBitSet (flags, SND_ATTENUATION))
 		attn = (float)MSG_ReadByte (msg) / 64.0f;
 	else 
-		attn = ATTN_EVERYWHERE; // ESHQ: плохая идея
+		attn = ATTN_EVERYWHERE;	// ESHQ: плохая идея
 
-	channel = MSG_ReadWord (msg);
-	sound = MSG_ReadByte (msg);	// Quake1 have max 255 precached sounds. erm
+	/*channel = MSG_ReadWord (msg);
+	sound = MSG_ReadByte (msg);	// Quake1 have max 255 precached sounds. erm*/
+	int channel = MSG_ReadWord (msg);
+	int sound = MSG_ReadByte (msg);	// Quake1 have max 255 precached sounds. erm
 
 	// positioned in space
+	vec3_t pos;
 	MSG_ReadVec3Coord (msg, pos);
 
-	entnum = channel >> 3;	// entity reletive
+	/*entnum = channel >> 3;	// entity reletive*/
+	int entnum = channel >> 3;	// entity relative
 	channel &= 7;
 
 	// see precached sound
-	handle = cl.sound_index[sound];
+	/*handle = cl.sound_index[sound];*/
+	sound_t handle = cl.sound_index[sound];
 
 	if (!cl.audio_prepped)
-		return; // too early
+		return;	// too early
 
 	S_StartSound (pos, entnum, channel, handle, volume, attn, PITCH_NORM, flags);
 	}
 
 /***
 ==================
-CL_ParseQuakeServerInfo
+CL_ParseQuakeServerInfo [FWGS, 01.07.26]
 ==================
 ***/
 static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	{
-	resource_t *pResource;
+	/*resource_t *pResource;
 	const char *pResName;
 	int		gametype;
 	int		i;
 
-	// [FWGS, 01.03.26]
+	// [FWGS, 01.03.26]*/
 	Con_Reportf ("Serverdata packet received.\n");
-	/*cls.timestart = Sys_DoubleTime ();*/
 	cls.timestart = Platform_DoubleTime ();
 
 	// server is changed
@@ -206,7 +214,8 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	cls.state = ca_connected;
 
 	// parse protocol version number
-	i = MSG_ReadLong (msg);
+	/*i = MSG_ReadLong (msg);*/
+	int i = MSG_ReadLong (msg);
 	if (i != PROTOCOL_VERSION_QUAKE)
 		{
 		Con_Printf ("\n" S_ERROR "Server use invalid protocol (%i should be %i)\n", i, PROTOCOL_VERSION_QUAKE);
@@ -215,13 +224,14 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 		}
 
 	cl.maxclients = MSG_ReadByte (msg);
-	gametype = MSG_ReadByte (msg);
+
+	/*gametype = MSG_ReadByte (msg);*/
+	int gametype = MSG_ReadByte (msg);
 	clgame.maxEntities = GI->max_edicts;
 	clgame.maxEntities = bound (600, clgame.maxEntities, MAX_EDICTS);
 	clgame.maxModels = MAX_MODELS;
 	Q_strncpy (clgame.maptitle, MSG_ReadString (msg), sizeof (clgame.maptitle));
 
-	// [FWGS, 05.04.26]
 	Host_ValidateEngineFeatures (ENGINE_FEATURES_MASK, ENGINE_QUAKE_COMPATIBLE);
 
 	// Re-init hud video, especially if we changed game directories
@@ -251,11 +261,7 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 		Cvar_DirectSet (&r_decals, NULL);
 		}
 
-	/*if (cl.background)	// tell the game parts about background state
-		Cvar_FullSet ("cl_background", "1", FCVAR_READ_ONLY);
-	else
-		Cvar_FullSet ("cl_background", "0", FCVAR_READ_ONLY);*/
-	// [FWGS, 01.03.26] tell the game parts about background state
+	// tell the game parts about background state
 	Cvar_DirectFullSet (&cl_background, cl.background ? "1" : "0", FCVAR_READ_ONLY);
 
 	S_StopBackgroundTrack ();
@@ -277,16 +283,17 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 	if (!cls.changelevel && !cls.changedemo)
 		CL_InitEdicts (cl.maxclients);	// re-arrange edicts
 
-	// [FWGS, 01.03.26] Quake just have a large packet of initialization data
+	// Quake just have a large packet of initialization data
 	for (i = 1; i < MAX_MODELS; i++)
 		{
-		pResName = MSG_ReadString (msg);
+		/*pResName = MSG_ReadString (msg);*/
+		const char *pResName = MSG_ReadString (msg);
 
-		/*if (!COM_CheckString (pResName))*/
 		if (COM_StringEmptyOrNULL (pResName))
-			break; // end of list
+			break;	// end of list
 
-		pResource = Mem_Calloc (cls.mempool, sizeof (resource_t));
+		/*pResource = Mem_Calloc (cls.mempool, sizeof (resource_t));*/
+		resource_t *pResource = Mem_Calloc (cls.mempool, sizeof (resource_t));
 		pResource->type = t_model;
 
 		Q_strncpy (pResource->szFileName, pResName, sizeof (pResource->szFileName));
@@ -299,16 +306,16 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 		CL_AddToResourceList (pResource, &cl.resourcesneeded);
 		}
 
-	// [FWGS, 01.03.26]
 	for (i = 1; i < MAX_SOUNDS; i++)
 		{
-		pResName = MSG_ReadString (msg);
+		/*pResName = MSG_ReadString (msg);*/
+		const char *pResName = MSG_ReadString (msg);
 
-		/*if (!COM_CheckString (pResName))*/
 		if (COM_StringEmptyOrNULL (pResName))
-			break; // end of list
+			break;	// end of list
 
-		pResource = Mem_Calloc (cls.mempool, sizeof (resource_t));
+		/*pResource = Mem_Calloc (cls.mempool, sizeof (resource_t));*/
+		resource_t *pResource = Mem_Calloc (cls.mempool, sizeof (resource_t));
 		pResource->type = t_sound;
 
 		Q_strncpy (pResource->szFileName, pResName, sizeof (pResource->szFileName));
@@ -363,45 +370,54 @@ static void CL_ParseQuakeServerInfo (sizebuf_t *msg)
 
 /***
 ==================
-CL_ParseQuakeClientData
+CL_ParseQuakeClientData [FWGS, 01.07.26]
 ==================
 ***/
 static void CL_ParseQuakeClientData (sizebuf_t *msg)
 	{
-	int	i, bits = MSG_ReadWord (msg);
-	frame_t *frame;
+	/*int	i, bits = MSG_ReadWord (msg);
+	frame_t *frame;*/
+	int	bits = MSG_ReadWord (msg);
 
 	// this is the frame update that this message corresponds to
-	i = cls.netchan.incoming_sequence;
+	/*i = cls.netchan.incoming_sequence;
 
-	cl.parsecount = i;					// ack'd incoming messages
+	cl.parsecount = i;		// ack'd incoming messages*/
+	cl.parsecount = cls.netchan.incoming_sequence;	// ack'd incoming messages
 	cl.parsecountmod = cl.parsecount & CL_UPDATE_MASK;	// index into window
-	frame = &cl.frames[cl.parsecountmod];			// frame at index
-	frame->time = cl.mtime[0];				// mark network received time
-	frame->receivedtime = host.realtime;			// time now that we are parsing
+
+	/*frame = &cl.frames[cl.parsecountmod];	// frame at index*/
+	frame_t *frame = &cl.frames[cl.parsecountmod];	// frame at index
+	frame->time = cl.mtime[0];		// mark network received time
+	frame->receivedtime = host.realtime;	// time now that we are parsing
 	memset (&frame->graphdata, 0, sizeof (netbandwidthgraph_t));
 	memset (frame->flags, 0, sizeof (frame->flags));
 	frame->first_entity = cls.next_client_entities;
 	frame->num_entities = 0;
-	frame->valid = true; // assume valid
+	frame->valid = true;	// assume valid
 
 	if (FBitSet (bits, SU_VIEWHEIGHT))
 		frame->clientdata.view_ofs[2] = MSG_ReadChar (msg);
-	else frame->clientdata.view_ofs[2] = 22.0f;
+	else
+		frame->clientdata.view_ofs[2] = 22.0f;
 
 	if (FBitSet (bits, SU_IDEALPITCH))
 		cl.local.idealpitch = MSG_ReadChar (msg);
-	else cl.local.idealpitch = 0;
+	else
+		cl.local.idealpitch = 0;
 
-	for (i = 0; i < 3; i++)
+	/*for (i = 0; i < 3; i++)*/
+	for (int i = 0; i < 3; i++)
 		{
 		if (FBitSet (bits, SU_PUNCH1 << i))
 			frame->clientdata.punchangle[i] = (float)MSG_ReadChar (msg);
-		else frame->clientdata.punchangle[i] = 0.0f;
+		else
+			frame->clientdata.punchangle[i] = 0.0f;
 
 		if (FBitSet (bits, (SU_VELOCITY1 << i)))
 			frame->clientdata.velocity[i] = MSG_ReadChar (msg) * 16.0f;
-		else frame->clientdata.velocity[i] = 0;
+		else
+			frame->clientdata.velocity[i] = 0;
 		}
 
 	if (FBitSet (bits, SU_ONGROUND))
@@ -423,7 +439,8 @@ static void CL_ParseQuakeClientData (sizebuf_t *msg)
 
 	if (FBitSet (bits, SU_WEAPON))
 		frame->clientdata.viewmodel = CL_UpdateQuakeStats (msg, STAT_WEAPON, true);
-	else frame->clientdata.viewmodel = CL_UpdateQuakeStats (msg, STAT_WEAPON, false);
+	else
+		frame->clientdata.viewmodel = CL_UpdateQuakeStats (msg, STAT_WEAPON, false);
 
 	cl.local.health = CL_UpdateQuakeStats (msg, STAT_HEALTH, true);
 	CL_UpdateQuakeStats (msg, STAT_AMMO, true);
@@ -485,7 +502,7 @@ static void CL_ParseQuakeEntityData (sizebuf_t *msg, int bits)
 
 	// mark all the players
 	ent = CL_EDICT_NUM (newnum);
-	ent->index = newnum; // enumerate entity index
+	ent->index = newnum;	// enumerate entity index
 	ent->player = CL_IsPlayerIndex (newnum);
 	state->animtime = cl.mtime[0];
 
@@ -606,20 +623,24 @@ static void CL_ParseQuakeEntityData (sizebuf_t *msg, int bits)
 
 /***
 ==================
-CL_ParseQuakeParticles
+CL_ParseQuakeParticles [FWGS, 01.07.26]
 ==================
 ***/
 static void CL_ParseQuakeParticle (sizebuf_t *msg)
 	{
-	int	count, color;
+	/*int		count, color;
+	vec3_t	org, dir;*/
 	vec3_t	org, dir;
 
 	MSG_ReadVec3Coord (msg, org);
 	dir[0] = MSG_ReadChar (msg) * 0.0625f;
 	dir[1] = MSG_ReadChar (msg) * 0.0625f;
 	dir[2] = MSG_ReadChar (msg) * 0.0625f;
-	count = MSG_ReadByte (msg);
-	color = MSG_ReadByte (msg);
+
+	/*count = MSG_ReadByte (msg);
+	color = MSG_ReadByte (msg);*/
+	int count = MSG_ReadByte (msg);
+	int color = MSG_ReadByte (msg);
 	if (count == 255)
 		count = 1024;
 
@@ -628,19 +649,23 @@ static void CL_ParseQuakeParticle (sizebuf_t *msg)
 
 /***
 ===================
-CL_ParseQuakeStaticSound
+CL_ParseQuakeStaticSound [FWGS, 01.07.26]
 ===================
 ***/
 static void CL_ParseQuakeStaticSound (sizebuf_t *msg)
 	{
-	int		sound_num;
+	/*int		sound_num;
 	float 	vol, attn;
+	vec3_t	org;*/
 	vec3_t	org;
 
 	MSG_ReadVec3Coord (msg, org);
-	sound_num = MSG_ReadByte (msg);
+	/*sound_num = MSG_ReadByte (msg);
 	vol = (float)MSG_ReadByte (msg) / 255.0f;
-	attn = (float)MSG_ReadByte (msg) / 64.0f;
+	attn = (float)MSG_ReadByte (msg) / 64.0f;*/
+	int sound_num = MSG_ReadByte (msg);
+	float vol = (float)MSG_ReadByte (msg) / 255.0f;
+	float attn = (float)MSG_ReadByte (msg) / 64.0f;
 
 	S_StartSound (org, 0, CHAN_STATIC, cl.sound_index[sound_num], vol, attn, PITCH_NORM, 0);
 	}
@@ -654,8 +679,8 @@ redirect to qwrap->client
 ***/
 static void CL_ParseQuakeDamage (sizebuf_t *msg)
 	{
-	MSG_WriteByte (&msg_demo, MSG_ReadByte (msg));	// armor
-	MSG_WriteByte (&msg_demo, MSG_ReadByte (msg));	// blood
+	MSG_WriteByte (&msg_demo, MSG_ReadByte (msg));		// armor
+	MSG_WriteByte (&msg_demo, MSG_ReadByte (msg));		// blood
 	MSG_WriteCoord (&msg_demo, MSG_ReadCoord (msg));	// direction
 	MSG_WriteCoord (&msg_demo, MSG_ReadCoord (msg));	// direction
 	MSG_WriteCoord (&msg_demo, MSG_ReadCoord (msg));	// direction
@@ -664,14 +689,14 @@ static void CL_ParseQuakeDamage (sizebuf_t *msg)
 
 /***
 ===================
-CL_ParseStaticEntity [FWGS, 25.12.24]
+CL_ParseStaticEntity [FWGS, 01.07.26]
 ===================
 ***/
 static void CL_ParseQuakeStaticEntity (sizebuf_t *msg)
 	{
 	entity_state_t	state = { 0 };
-	cl_entity_t		*ent;
-	int				i;
+	/*cl_entity_t		*ent;
+	int		i;*/
 
 	if (!clgame.static_entities)
 		clgame.static_entities = Mem_Calloc (clgame.mempool, sizeof (cl_entity_t) * MAX_STATIC_ENTITIES);
@@ -687,14 +712,16 @@ static void CL_ParseQuakeStaticEntity (sizebuf_t *msg)
 	state.origin[2] = MSG_ReadCoord (msg);
 	state.angles[2] = MSG_ReadAngle (msg);
 
-	i = clgame.numStatics;
+	/*i = clgame.numStatics;*/
+	int i = clgame.numStatics;
 	if (i >= MAX_STATIC_ENTITIES)
 		{
 		Con_Printf (S_ERROR "%s: static entities limit exceeded!\n", __func__);
 		return;
 		}
 
-	ent = &clgame.static_entities[i];
+	/*ent = &clgame.static_entities[i];*/
+	cl_entity_t *ent = &clgame.static_entities[i];
 	clgame.numStatics++;
 
 	ent->index = 0;
@@ -728,21 +755,23 @@ static void CL_ParseQuakeStaticEntity (sizebuf_t *msg)
 
 /***
 ===================
-CL_ParseQuakeBaseline [FWGS, 01.09.24]
+CL_ParseQuakeBaseline [FWGS, 01.07.26]
 ===================
 ***/
 static void CL_ParseQuakeBaseline (sizebuf_t *msg)
 	{
-	entity_state_t	state;
+	/*entity_state_t	state;
 	cl_entity_t		*ent;
-	int				newnum;
+	int		newnum;
 
-	newnum = MSG_ReadWord (msg); // entnum
+	newnum = MSG_ReadWord (msg);	// entnum*/
+	int newnum = MSG_ReadWord (msg);	// entnum
 
 	if (newnum >= clgame.maxEntities)
 		Host_Error ("%s: no free edicts\n", __func__);
 
 	// parse baseline
+	entity_state_t state;
 	memset (&state, 0, sizeof (state));
 	state.modelindex = MSG_ReadByte (msg);
 	state.frame = MSG_ReadByte (msg);
@@ -755,10 +784,10 @@ static void CL_ParseQuakeBaseline (sizebuf_t *msg)
 	state.origin[2] = MSG_ReadCoord (msg);
 	state.angles[2] = MSG_ReadAngle (msg);
 
-	ent = CL_EDICT_NUM (newnum);
+	/*ent = CL_EDICT_NUM (newnum);*/
+	cl_entity_t *ent = CL_EDICT_NUM (newnum);
 	ent->index = newnum;
 	ent->player = CL_IsPlayerIndex (newnum);
-
 	ent->prevstate = ent->baseline = state;
 	}
 
@@ -880,7 +909,6 @@ static void CL_QuakeExecStuff (void)
 	int		argc = 0;
 
 	// [FWGS, 01.03.26] check if no commands this frame
-	/*if (!COM_CheckString (text))*/
 	if (COM_StringEmptyOrNULL (text))
 		return;
 
@@ -910,7 +938,6 @@ static void CL_QuakeExecStuff (void)
 		if (argc == 0)
 			{
 			// [FWGS, 01.03.26] debug: find all missed commands and cvars to add them into QWrap
-			/*if (!Cvar_Exists (token) && !Cmd_Exists (token))*/
 			cmdalias_t	*alias;
 			cmd_t		*cmd;
 			convar_t	*cvar;
@@ -981,10 +1008,6 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 		switch (cmd)
 			{
 			// [FWGS, 05.04.26]
-			/*case svc_nop:
-				// this does nothing
-				break;*/
-
 			case svc_disconnect:
 				CL_DemoCompleted ();
 				break;
@@ -1000,17 +1023,13 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				break;
 
 			// [FWGS, 05.04.26]
-			/*case svc_setview:
-				CL_ParseViewEntity (msg);
-				break;*/
-
 			case svc_sound:
 				CL_ParseQuakeSound (msg);
 				cl.frames[cl.parsecountmod].graphdata.sound += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
 
 			case svc_time:
-				Cbuf_AddText ("\n"); // new frame was started
+				Cbuf_AddText ("\n");	// new frame was started
 				CL_ParseServerTime (msg, PROTO_QUAKE);
 				break;
 
@@ -1030,25 +1049,30 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				break;
 
 			case svc_serverdata:
-				Cbuf_Execute (); // make sure any stuffed commands are done
+				Cbuf_Execute ();	// make sure any stuffed commands are done
 				CL_ParseQuakeServerInfo (msg);
 				break;
 
-			// [FWGS, 05.04.26]
-			/*// [FWGS, 22.01.25]
-			case svc_lightstyle:
-				CL_ParseLightStyle (msg, PROTO_QUAKE);
-				break;*/
-
+			// [FWGS, 01.07.26]
 			case svc_updatename:
 				param1 = MSG_ReadByte (msg);
+				if (param1 >= ARRAYSIZE (cl.players))
+					{
+					MSG_ReadString (msg);
+					break;
+					}
+
 				Q_strncpy (cl.players[param1].name, MSG_ReadString (msg), sizeof (cl.players[0].name));
 				Q_strncpy (cl.players[param1].model, "player", sizeof (cl.players[0].name));
 				break;
 
+			// [FWGS, 01.07.26]
 			case svc_updatefrags:
 				param1 = MSG_ReadByte (msg);
 				param2 = MSG_ReadShort (msg);
+				if (param1 >= HLARRAYSIZE (cl.players))
+					break;
+
 				// HACKHACK: store frags into spectator
 				cl.players[param1].spectator = param2;
 				break;
@@ -1064,9 +1088,13 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				cl.frames[cl.parsecountmod].graphdata.sound += MSG_GetNumBytesRead (msg) - bufStart;
 				break;
 
+			// [FWGS, 01.07.26]
 			case svc_updatecolors:
 				param1 = MSG_ReadByte (msg);
 				param2 = MSG_ReadByte (msg);
+				if ((param1 >= HLARRAYSIZE (cl.players)) || (param2 >= HLARRAYSIZE (cl.players)))
+					break;
+
 				cl.players[param1].topcolor = param2 & 0xF;
 				cl.players[param1].bottomcolor = (param2 & 0xF0) >> 4;
 				break;
@@ -1106,17 +1134,15 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 
 			// [FWGS, 05.04.26]
 			case svc_centerprint:
-				/*str = MSG_ReadString (msg);
-				CL_DispatchUserMessage ("HudText", Q_strlen (str) + 1, (void *)str);*/
 				CL_HudMessage (MSG_ReadString (msg));
 				break;
 
 			case svc_killedmonster:
-				CL_DispatchQuakeMessage ("KillMonster"); // just an event
+				CL_DispatchQuakeMessage ("KillMonster");	// just an event
 				break;
 
 			case svc_foundsecret:
-				CL_DispatchQuakeMessage ("FoundSecret"); // just an event
+				CL_DispatchQuakeMessage ("FoundSecret");	// just an event
 				break;
 
 			case svc_spawnstaticsound:
@@ -1124,19 +1150,11 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				break;
 
 			// [FWGS, 05.04.26]
-			/*case svc_intermission:
-				cl.intermission = 1;
-				break;
-
-			case svc_finale:
-				CL_ParseFinaleCutscene (msg, 2);
-				break;*/
-
 			case svc_cdtrack:
 				param1 = MSG_ReadByte (msg);
-				param1 = bound (0, param1, MAX_CDTRACKS - 1); // tracknum
+				param1 = bound (0, param1, MAX_CDTRACKS - 1);	// tracknum
 				param2 = MSG_ReadByte (msg);
-				param2 = bound (0, param2, MAX_CDTRACKS - 1); // loopnum
+				param2 = bound (0, param2, MAX_CDTRACKS - 1);	// loopnum
 
 				if ((cls.demoplayback || cls.demorecording) && (cls.forcetrack != -1))
 					S_StartBackgroundTrack (clgame.cdtracks[cls.forcetrack], clgame.cdtracks[cls.forcetrack], 0, false);
@@ -1149,8 +1167,6 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				break;
 
 			// [FWGS, 05.04.26]
-			/*case svc_cutscene:
-				CL_ParseFinaleCutscene (msg, 3);*/
 			case svc_showlmp:
 				CL_ParseNehahraShowLMP (msg);
 				break;
@@ -1160,16 +1176,12 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 				break;
 
 			// [FWGS, 05.04.26]
-			/*case svc_showlmp:
-				CL_ParseNehahraShowLMP (msg);
-				break;*/
-
 			case svc_skybox:
 				Q_strncpy (clgame.movevars.skyName, MSG_ReadString (msg), sizeof (clgame.movevars.skyName));
 				break;
 
 			case svc_skyboxsize:
-				MSG_ReadCoord (msg); // obsolete
+				MSG_ReadCoord (msg);	// obsolete
 				break;
 
 			case svc_fog:

@@ -166,16 +166,16 @@ static void V_SetRefParams (ref_params_t *fd)
 	fd->playernum = cl.playernum;
 	fd->max_entities = clgame.maxEntities;
 	fd->demoplayback = cls.demoplayback;
-	fd->hardware = 1; // OpenGL
+	fd->hardware = 1;	// OpenGL
 
 	if (cl.first_frame || cl.skip_interp)
 		{
-		cl.first_frame = false;		// now can be unlocked
-		fd->smoothing = true;		// NOTE: currently this used to prevent ugly un-duck effect while level is changed
+		cl.first_frame = false;	// now can be unlocked
+		fd->smoothing = true;	// NOTE: currently this used to prevent ugly un-duck effect while level is changed
 		}
 	else
 		{
-		fd->smoothing = cl.local.pushmsec;		// enable smoothing in multiplayer by server request (AMX uses)
+		fd->smoothing = cl.local.pushmsec;	// enable smoothing in multiplayer by server request (AMX uses)
 		}
 
 	// [FWGS, 01.06.25] get pointers to movement vars and user cmd
@@ -194,7 +194,7 @@ static void V_SetRefParams (ref_params_t *fd)
 
 /***
 ===============
-V_MergeOverviewRefdef
+V_MergeOverviewRefdef [FWGS, 01.07.26]
 
 merge refdef with overview settings
 ===============
@@ -202,18 +202,21 @@ merge refdef with overview settings
 static void V_RefApplyOverview (ref_viewpass_t *rvp)
 	{
 	ref_overview_t	*ov = &clgame.overView;
-	float	aspect;
+	/*float	aspect;
 	float	size_x, size_y;
-	vec2_t	mins, maxs;
+	vec2_t	mins, maxs;*/
 
 	if (!CL_IsDevOverviewMode ())
 		return;
 
 	// NOTE: Xash3D may use 16:9 or 16:10 aspects
-	aspect = (float)refState.width / (float)refState.height;
+	/*aspect = (float)refState.width / (float)refState.height;*/
+	float aspect = (float)refState.width / (float)refState.height;
 
-	size_x = fabs (8192.0f / ov->flZoom);
-	size_y = fabs (8192.0f / (ov->flZoom * aspect));
+	/*size_x = fabs (8192.0f / ov->flZoom);
+	size_y = fabs (8192.0f / (ov->flZoom * aspect));*/
+	float size_x = fabs (8192.0f / ov->flZoom);
+	float size_y = fabs (8192.0f / (ov->flZoom * aspect));
 
 	// compute rectangle
 	ov->xLeft = -(size_x / 2);
@@ -229,8 +232,10 @@ static void V_RefApplyOverview (ref_viewpass_t *rvp)
 
 	VectorCopy (ov->origin, rvp->vieworigin);
 	rvp->vieworigin[2] = ov->zFar + ov->zNear;
-	Vector2Copy (rvp->vieworigin, mins);
-	Vector2Copy (rvp->vieworigin, maxs);
+	/*Vector2Copy (rvp->vieworigin, mins);
+	Vector2Copy (rvp->vieworigin, maxs);*/
+	vec2_t mins = Vec2 (rvp->vieworigin);
+	vec2_t maxs = Vec2 (rvp->vieworigin);
 
 	mins[!ov->rotated] += ov->xLeft;
 	maxs[!ov->rotated] += ov->xRight;
@@ -248,18 +253,20 @@ static void V_RefApplyOverview (ref_viewpass_t *rvp)
 
 /***
 ====================
-V_CalcFov
+V_CalcFov [FWGS, 01.07.26]
 ====================
 ***/
 static float V_CalcFov (float *fov_x, float width, float height)
 	{
-	float	x, half_fov_y;
+	/*float	x, half_fov_y;*/
 
 	if ((*fov_x < 1.0f) || (*fov_x > 179.0f))
 		*fov_x = 90.0f;	// default value
 
-	x = width / tan (DEG2RAD (*fov_x) * 0.5f);
-	half_fov_y = atan (height / x);
+	/*x = width / tan (DEG2RAD (*fov_x) * 0.5f);
+	half_fov_y = atan (height / x);*/
+	float x = width / tan (DEG2RAD (*fov_x) * 0.5f);
+	float half_fov_y = atan (height / x);
 
 	return RAD2DEG (half_fov_y) * 2;
 	}
@@ -517,20 +524,22 @@ static void R_ShowTree_r (mnode_t *node, float x, float y, float scale, int show
 	world.recursion_level--;
 	}
 
+// [FWGS, 01.07.26]
 static void R_ShowTree (void)
 	{
 	float	x = (float)((refState.width - (int)POINT_SIZE) >> 1);
 	float	y = NODE_INTERVAL_Y (1.0f);
-	mleaf_t	*viewleaf;
+	/*mleaf_t	*viewleaf;*/
 
 	if (!cl.worldmodel || !r_showtree.value)
 		return;
 
-	// [FWGS, 01.02.25]
 	world.recursion_level = 0;
-	viewleaf = Mod_PointInLeaf (refState.vieworg, cl.worldmodel->nodes, cl.worldmodel);
+	/*viewleaf = Mod_PointInLeaf (refState.vieworg, cl.worldmodel->nodes, cl.worldmodel);
 
-	// [FWGS, 01.12.24]
+	// [FWGS, 01.12.24]*/
+	mleaf_t *viewleaf = Mod_PointInLeaf (refState.vieworg, cl.worldmodel->nodes, cl.worldmodel);
+
 	ref.dllFuncs.TriRenderMode (kRenderTransTexture);
 	ref.dllFuncs.Color4f (1, 0.7f, 0, 1.0f);
 
@@ -541,7 +550,7 @@ static void R_ShowTree (void)
 
 /***
 ==================
-V_PostRender [FWGS, 01.12.24]
+V_PostRender
 ==================
 ***/
 void V_PostRender (void)
@@ -574,11 +583,13 @@ void V_PostRender (void)
 		SCR_DrawPos ();
 		SCR_DrawEnts ();
 		SCR_DrawNetGraph ();
-
 		SCR_DrawUserCmd ();
 
 		// [FWGS, 15.04.26]
 		Joy_DrawDebug ();
+
+		// [FWGS, 01.07.26]
+		IN_GyroDrawDebug ();
 
 		SV_DrawOrthoTriangles ();
 		CL_DrawDemoRecording ();

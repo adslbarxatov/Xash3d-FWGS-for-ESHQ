@@ -114,7 +114,7 @@ typedef struct ui_enginefuncs_s
 	int		(*pfnDrawConsoleString)(int x, int y, const char *string);
 	void	(*pfnDrawSetTextColor)(int r, int g, int b, int alpha);
 	void	(*pfnDrawConsoleStringLen)(const char *string, int *length, int *height);
-	void	(*pfnSetConsoleDefaultColor)(int r, int g, int b); // color must came from colors.lst
+	void	(*pfnSetConsoleDefaultColor)(int r, int g, int b);	// color must came from colors.lst
 
 	// custom rendering (for playermodel preview)
 	struct cl_entity_s	*(*pfnGetPlayerModel)(void);	// for drawing playermodel previews
@@ -123,7 +123,7 @@ typedef struct ui_enginefuncs_s
 	void	(*pfnRenderScene)(const struct ref_viewpass_s *rvp);
 	int		(*CL_CreateVisibleEntity)(int type, struct cl_entity_s *ent);
 
-	// [FWGS, 01.12.24: отменено] misc handlers
+	// [FWGS, 01.12.24: cancelled] misc handlers
 	void	(*pfnHostError)(const char *szFmt, ...) FORMAT_CHECK (1);
 	int		(*pfnFileExists)(const char *filename, int gamedironly);
 	void	(*pfnGetGameDir)(char *szGetGameDir);

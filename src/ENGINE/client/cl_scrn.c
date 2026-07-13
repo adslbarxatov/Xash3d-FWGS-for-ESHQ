@@ -60,14 +60,14 @@ static qboolean	scr_init = false;
 
 /***
 ==============
-SCR_DrawFPS
+SCR_DrawFPS [FWGS, 01.07.26]
 ==============
 ***/
 void SCR_DrawFPS (int height)
 	{
-	float			calc;
+	/*float			calc;*/
 	rgba_t			color;
-	double			newtime;
+	/*double			newtime;*/
 	static double	nexttime = 0, lasttime = 0;
 	static double	framerate = 0;
 	static int		framecount = 0;
@@ -88,9 +88,9 @@ void SCR_DrawFPS (int height)
 		default: return;
 		}
 
-	// [FWGS, 01.03.26]
-	/*newtime = Sys_DoubleTime ();*/
-	newtime = Platform_DoubleTime ();
+	/*// [FWGS, 01.03.26]
+	newtime = Platform_DoubleTime ();*/
+	double newtime = Platform_DoubleTime ();
 	if (newtime >= nexttime)
 		{
 		framerate = framecount / (newtime - lasttime);
@@ -99,12 +99,12 @@ void SCR_DrawFPS (int height)
 		framecount = 0;
 		}
 
-	calc = framerate;
+	/*calc = framerate;*/
+	float calc = framerate;
 	framecount++;
 
 	if (calc < 1.0f)
 		{
-		// [FWGS, 01.03.26]
 		if (calc == 0.0f)
 			return;
 
@@ -133,7 +133,7 @@ void SCR_DrawFPS (int height)
 
 /***
 ==============
-SCR_DrawPos
+SCR_DrawPos [FWGS, 01.07.26]
 
 Draw local player position, angles and velocity
 ==============
@@ -141,27 +141,26 @@ Draw local player position, angles and velocity
 void SCR_DrawPos (void)
 	{
 	static char	msg[MAX_SYSPATH];
-	float		speed;
-	cl_entity_t	*ent;
+	/*float		speed;
+	cl_entity_t	*ent;*/
 	rgba_t		color;
 
 	if ((cls.state != ca_active) || !cl_showpos.value || cl.background)
 		return;
 
-	// [FWGS, 25.12.24]
+	/*// [FWGS, 25.12.24]
 	ent = CL_GetLocalPlayer ();
-	speed = VectorLength (cl.simvel);
+	speed = VectorLength (cl.simvel);*/
+	cl_entity_t *ent = CL_GetLocalPlayer ();
+	float speed = VectorLength (cl.simvel);
 
 	Q_snprintf (msg, MAX_SYSPATH,
-		"pos: %.2f %.2f %.2f\n"
-		"ang: %.2f %.2f %.2f\n"
-		"velocity: %.2f",
+		"pos: %.2f %.2f %.2f\n" "ang: %.2f %.2f %.2f\n" "velocity: %.2f",
 		cl.simorg[0], cl.simorg[1], cl.simorg[2],
 
 		// should we use entity angles or viewangles?
 		// view isn't always bound to player
-		ent->angles[0], ent->angles[1], ent->angles[2],
-		speed);
+		ent->angles[0], ent->angles[1], ent->angles[2], speed);
 
 	MakeRGBA (color, 255, 255, 255, 255);
 	Con_DrawString (refState.width / 2, 4, msg, color);
@@ -169,29 +168,32 @@ void SCR_DrawPos (void)
 
 /***
 ==============
-SCR_DrawEnts [FWGS, 01.07.24]
+SCR_DrawEnts [FWGS, 01.07.26]
 ==============
 ***/
 void SCR_DrawEnts (void)
 	{
 	rgba_t	color = { 255, 255, 255, 255 };
-	int		i;
+	/*int		i;*/
 
 	if ((cls.state != ca_active) || !cl_showents.value || ((cl.maxclients > 1) && !cls.demoplayback))
 		return;
 
 	// this probably better hook CL_AddVisibleEntities
 	// as entities might get added by client.dll
-	for (i = 0; i < clgame.maxEntities; i++)
+	/*for (i = 0; i < clgame.maxEntities; i++)*/
+	for (int i = 0; i < clgame.maxEntities; i++)
 		{
-		const cl_entity_t *ent = &clgame.entities[i];
-		string msg;
-		vec3_t screen, pos;
+		const cl_entity_t	*ent = &clgame.entities[i];
+		string	msg;
+		/*vec3_t screen, pos;*/
+		vec3_t	screen;
 
 		if (ent->curstate.messagenum != cl.parsecount)
 			continue;
 
-		VectorCopy (ent->origin, pos);
+		/*VectorCopy (ent->origin, pos);*/
+		vec3_t pos = Vec3 (ent->origin);
 
 		if (ent->model != NULL)
 			{
@@ -210,13 +212,8 @@ void SCR_DrawEnts (void)
 
 		if (!ref.dllFuncs.WorldToScreen (pos, screen))
 			{
-			Q_snprintf (msg, sizeof (msg),
-				"entity %d\n"
-				"model %s\n"
-				"movetype %d\n",
-				ent->index,
-				ent->model ? ent->model->name : "(null)",
-				ent->curstate.movetype);
+			Q_snprintf (msg, sizeof (msg), "entity %d\n" "model %s\n" "movetype %d\n",
+				ent->index, ent->model ? ent->model->name : "(null)", ent->curstate.movetype);
 
 			screen[0] = 0.5f * screen[0] * refState.width;
 			screen[1] = -0.5f * screen[1] * refState.height;
@@ -261,40 +258,38 @@ void SCR_DrawUserCmd (void)
 			{ IN_ALT1, "alt1" },
 			{ IN_SCORE, "score" },
 			};
-		cl_font_t *font = Con_GetCurFont ();
-		string msg;
-		int i, ypos = 100;
+	cl_font_t *font = Con_GetCurFont ();
+	string msg;
+	/*int i, ypos = 100;*/
+	int ypos = 100;
 
-		if ((cls.state != ca_active) || (!cl_showcmd.value))
-			return;
+	if ((cls.state != ca_active) || (!cl_showcmd.value))
+		return;
 
-		for (i = 0; i < HLARRAYSIZE (buttons); i++)
-			{
-			rgba_t rgba;
+	/*for (i = 0; i < HLARRAYSIZE (buttons); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (buttons); i++)
+		{
+		rgba_t rgba;
 
-			rgba[0] = FBitSet (pcmd->cmd.buttons, buttons[i].mask) ? 0 : 255;
-			rgba[1] = FBitSet (pcmd->cmd.buttons, buttons[i].mask) ? 255 : 0;
-			rgba[2] = 0;
-			rgba[3] = 255;
+		rgba[0] = FBitSet (pcmd->cmd.buttons, buttons[i].mask) ? 0 : 255;
+		rgba[1] = FBitSet (pcmd->cmd.buttons, buttons[i].mask) ? 255 : 0;
+		rgba[2] = 0;
+		rgba[3] = 255;
 
-			Con_DrawString (100, ypos, buttons[i].name, rgba);
+		Con_DrawString (100, ypos, buttons[i].name, rgba);
 
-			ypos += font->charHeight;
-			}
+		ypos += font->charHeight;
+		}
 
-		Q_snprintf (msg, sizeof (msg),
-			"F/S/U: %g %g %g\n"
-			"impulse: %u\n"
-			"msec: %u",
-			pcmd->cmd.forwardmove, pcmd->cmd.sidemove, pcmd->cmd.upmove,
-			pcmd->cmd.impulse,
-			pcmd->cmd.msec);
-		Con_DrawString (100, ypos, msg, g_color_table[7]);
+	Q_snprintf (msg, sizeof (msg), "F/S/U: %g %g %g\n" "impulse: %u\n" "msec: %u",
+		pcmd->cmd.forwardmove, pcmd->cmd.sidemove, pcmd->cmd.upmove,
+		pcmd->cmd.impulse, pcmd->cmd.msec);
+	Con_DrawString (100, ypos, msg, g_color_table[7]);
 	}
 
 /***
 ==============
-SCR_NetSpeeds
+SCR_NetSpeeds [FWGS, 01.07.26]
 
 same as r_speeds but for network channel
 ==============
@@ -302,7 +297,7 @@ same as r_speeds but for network channel
 void SCR_NetSpeeds (void)
 	{
 	static char	msg[MAX_SYSPATH];
-	int			x, y;
+	/*int			x, y;*/
 	float		time = cl.mtime[0];
 	static int	min_svfps = 100;
 	static int	max_svfps = 0;
@@ -352,8 +347,10 @@ void SCR_NetSpeeds (void)
 		Q_memprint (cls.netchan.total_sended)
 	);
 
-	x = refState.width - 320 * font->scale;
-	y = 384;
+	/*x = refState.width - 320 * font->scale;
+	y = 384;*/
+	int x = refState.width - 320 * font->scale;
+	int y = 384;
 
 	MakeRGBA (color, 255, 255, 255, 255);
 	CL_DrawString (x, y, msg, color, font, FONT_DRAW_RESETCOLORONLF);
@@ -361,7 +358,7 @@ void SCR_NetSpeeds (void)
 
 /***
 ================
-SCR_RSpeeds
+SCR_RSpeeds [FWGS, 01.07.26]
 ================
 ***/
 void SCR_RSpeeds (void)
@@ -373,12 +370,14 @@ void SCR_RSpeeds (void)
 
 	if (ref.dllFuncs.R_SpeedsMessage (msg, sizeof (msg)))
 		{
-		int	x, y;
+		/*int	x, y;*/
 		rgba_t	color;
 		cl_font_t *font = Con_GetCurFont ();
 
-		x = refState.width - 340 * font->scale;
-		y = 64;
+		/*x = refState.width - 340 * font->scale;
+		y = 64;*/
+		int x = refState.width - 340 * font->scale;
+		int y = 64;
 
 		MakeRGBA (color, 255, 255, 255, 255);
 		CL_DrawString (x, y, msg, color, font, FONT_DRAW_RESETCOLORONLF);
@@ -403,7 +402,7 @@ void SCR_MakeLevelShot (void)
 
 /***
 ===============
-VID_WriteOverviewScript
+VID_WriteOverviewScript [FWGS, 01.07.26]
 
 Create overview script file
 ===============
@@ -411,15 +410,13 @@ Create overview script file
 static void VID_WriteOverviewScript (void)
 	{
 	ref_overview_t	*ov = &clgame.overView;
-	string			filename;
-	file_t			*f;
+	string	filename;
+	/*file_t			*f;*/
 
 	Q_snprintf (filename, sizeof (filename), "overviews/%s.txt", clgame.mapname);
 
-	// [FWGS, 01.03.26]
-	f = FS_Open (filename, "w", false);
-	/*if (!f)
-		return;*/
+	/*f = FS_Open (filename, "w", false);*/
+	file_t *f = FS_Open (filename, "w", false);
 	if (!f)
 		{
 		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, filename);
@@ -449,7 +446,7 @@ create a requested screenshot type
 void SCR_MakeScreenShot (void)
 	{
 	qboolean	iRet = false;
-	int			viewsize;
+	int		viewsize;
 
 	if (cls.scrshot_action == scrshot_inactive)
 		return;
@@ -490,7 +487,7 @@ void SCR_MakeScreenShot (void)
 		case scrshot_mapshot:
 			iRet = ref.dllFuncs.VID_ScreenShot (cls.shotname, VID_MAPSHOT);
 			if (iRet)
-				VID_WriteOverviewScript (); // store overview script too
+				VID_WriteOverviewScript ();	// store overview script too
 			break;
 		}
 
@@ -553,7 +550,7 @@ void SCR_BeginLoadingPlaque (qboolean is_background)
 		}
 
 	if ((cls.state == ca_disconnected) || cls.disable_screen)
-		return; // already set
+		return;	// already set
 
 	if (cls.key_dest == key_console)
 		return;
@@ -568,7 +565,7 @@ void SCR_BeginLoadingPlaque (qboolean is_background)
 	cl.video_prepped = false;
 
 	cls.disable_screen = host.realtime;
-	cl.background = is_background;		// set right state before svc_serverdata is came
+	cl.background = is_background;	// set right state before svc_serverdata is came
 	}
 
 /***
@@ -589,10 +586,14 @@ SCR_AddDirtyPoint
 ***/
 static void SCR_AddDirtyPoint (int x, int y)
 	{
-	if (x < scr_dirty.x1) scr_dirty.x1 = x;
-	if (x > scr_dirty.x2) scr_dirty.x2 = x;
-	if (y < scr_dirty.y1) scr_dirty.y1 = y;
-	if (y > scr_dirty.y2) scr_dirty.y2 = y;
+	if (x < scr_dirty.x1)
+		scr_dirty.x1 = x;
+	if (x > scr_dirty.x2)
+		scr_dirty.x2 = x;
+	if (y < scr_dirty.y1)
+		scr_dirty.y1 = y;
+	if (y > scr_dirty.y2)
+		scr_dirty.y2 = y;
 	}
 
 /***
@@ -621,14 +622,14 @@ static void R_DrawTileClear (int texnum, int x, int y, int w, int h, float tw, f
 
 /***
 ================
-SCR_TileClear [FWGS, 01.12.24]
+SCR_TileClear [FWGS, 01.07.26]
 ================
 ***/
 void SCR_TileClear (void)
 	{
 	int		i, top, bottom, left, right, texnum;
 	dirty_t	clear;
-	float	tw, th;
+	/*float	tw, th;*/
 
 	// full screen rendering
 	if (likely (scr_viewsize.value >= 120))
@@ -671,15 +672,17 @@ void SCR_TileClear (void)
 	scr_dirty.y2 = -9999;
 
 	if (clear.y2 <= clear.y1)
-		return; // nothing disturbed
+		return;	// nothing disturbed
 
 	top = clgame.viewport[1];
 	bottom = top + clgame.viewport[3] - 1;
 	left = clgame.viewport[0];
 	right = left + clgame.viewport[2] - 1;
 
-	tw = REF_GET_PARM (PARM_TEX_SRC_WIDTH, texnum);
-	th = REF_GET_PARM (PARM_TEX_SRC_HEIGHT, texnum);
+	/*tw = REF_GET_PARM (PARM_TEX_SRC_WIDTH, texnum);
+	th = REF_GET_PARM (PARM_TEX_SRC_HEIGHT, texnum);*/
+	float tw = REF_GET_PARM (PARM_TEX_SRC_WIDTH, texnum);
+	float th = REF_GET_PARM (PARM_TEX_SRC_HEIGHT, texnum);
 
 	if (clear.y1 < top)
 		{
@@ -724,7 +727,7 @@ text to the screen
 ***/
 void SCR_UpdateScreen (void)
 	{
-	qboolean screen_redraw = true; // assume screen has been redrawn
+	qboolean screen_redraw = true;	// assume screen has been redrawn
 
 	if (!V_PreRender ())
 		return;
@@ -794,17 +797,17 @@ void SCR_LoadCreditsFont (void)
 
 	// [FWGS, 05.04.26]
 	if (!success)
-		/*success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, &hud_fontrender, TF_FONT);*/
 		success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, &hud_fontrender, TF_FONT | TF_NEAREST);
 
-	// copy font size for client.dll
+	// [FWGS, 01.07.26] copy font size for client.dll
 	if (success)
 		{
-		int i;
+		/*int i;*/
 
 		clgame.scrInfo.iCharHeight = cls.creditsFont.charHeight;
 
-		for (i = 0; i < HLARRAYSIZE (cls.creditsFont.charWidths); i++)
+		/*for (i = 0; i < HLARRAYSIZE (cls.creditsFont.charWidths); i++)*/
+		for (int i = 0; i < HLARRAYSIZE (cls.creditsFont.charWidths); i++)
 			clgame.scrInfo.charWidths[i] = cls.creditsFont.charWidths[i];
 		}
 	else
@@ -878,16 +881,6 @@ INTERNAL RESOURCE
 ***/
 void SCR_RegisterTextures (void)
 	{
-	/*// register gfx.wad images
-	if (FS_FileExists ("gfx/lambda.lmp", false))
-		{
-		if (cl_allow_levelshots.value)
-			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0,
-				TF_IMAGE | TF_LUMINANCE | TF_ALLOW_NEAREST);
-		else
-			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/lambda.lmp", NULL, 0, TF_IMAGE | TF_ALLOW_NEAREST);
-		}
-	else if (FS_FileExists ("gfx/loading.lmp", false))*/
 	const char *exts[] = { "lmp", "bmp", "png" };
 	const char *names[] = { "gfx/lambda", "gfx/loading" };
 	uint flags = TF_IMAGE | TF_ALLOW_NEAREST;
@@ -897,11 +890,6 @@ void SCR_RegisterTextures (void)
 
 	for (int i = 0; i < HLARRAYSIZE (names); i++)
 		{
-		/*if (cl_allow_levelshots.value)
-			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0,
-				TF_IMAGE | TF_LUMINANCE | TF_ALLOW_NEAREST);
-		else
-			cls.loadingBar = ref.dllFuncs.GL_LoadTexture ("gfx/loading.lmp", NULL, 0, TF_IMAGE | TF_ALLOW_NEAREST);*/
 		for (int j = 0; j < HLARRAYSIZE (exts); j++)
 			{
 			string path;
@@ -955,8 +943,8 @@ void SCR_VidInit (void)
 	if (!ref.initialized)	// don't call VidInit too soon
 		return;
 
-	memset (&clgame.ds, 0, sizeof (clgame.ds)); // reset a draw state
-	memset (&gameui.ds, 0, sizeof (gameui.ds)); // reset a draw state
+	memset (&clgame.ds, 0, sizeof (clgame.ds));	// reset a draw state
+	memset (&gameui.ds, 0, sizeof (gameui.ds));	// reset a draw state
 	memset (&clgame.centerPrint, 0, sizeof (clgame.centerPrint));
 
 	// update screen sizes for menu
@@ -970,7 +958,7 @@ void SCR_VidInit (void)
 	if (clgame.hInstance)
 		VGui_Startup (refState.width, refState.height);
 
-	CL_ClearSpriteTextures (); // now all hud sprites are invalid
+	CL_ClearSpriteTextures ();	// now all hud sprites are invalid
 
 	// vid_state has changed
 	if (gameui.hInstance) 

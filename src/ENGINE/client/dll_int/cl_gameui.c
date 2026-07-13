@@ -81,9 +81,10 @@ void UI_MouseMove (int x, int y)
 	gameui.dllFuncs.pfnMouseMove (x, y);
 	}
 
+// [FWGS, 01.07.26]
 void UI_SetActiveMenu (qboolean fActive)
 	{
-	movie_state_t *cin_state;
+	/*movie_state_t *cin_state;*/
 
 	if (!gameui.hInstance)
 		{
@@ -98,7 +99,8 @@ void UI_SetActiveMenu (qboolean fActive)
 	if (!fActive)
 		{
 		// close logo when menu is shutdown
-		cin_state = AVI_GetState (CIN_LOGO);
+		/*cin_state = AVI_GetState (CIN_LOGO);*/
+		movie_state_t *cin_state = AVI_GetState (CIN_LOGO);
 		AVI_CloseVideo (cin_state);
 		}
 	}
@@ -195,7 +197,6 @@ void UI_ShowConnectionWarning (void)
 		return;
 
 	// [FWGS, 01.05.26]
-	/*if (Host_IsLocalClient ())*/
 	if (Host_IsLocalClient ())
 		return;
 
@@ -349,26 +350,30 @@ static float GAME_EXPORT UI_GetLogoLength (void)
 	return gameui.logo_length;
 	}
 
+// [FWGS, 01.07.26]
 static void UI_UpdateUserinfo (void)
 	{
-	player_info_t *player;
+	/*player_info_t *player;*/
 
 	if (!host.userinfo_changed)
 		return;
 
-	player = &gameui.playerinfo;
+	/*player = &gameui.playerinfo;*/
+	player_info_t *player = &gameui.playerinfo;
 
 	Q_strncpy (player->userinfo, cls.userinfo, sizeof (player->userinfo));
 	Q_strncpy (player->name, Info_ValueForKey (player->userinfo, "name"), sizeof (player->name));
 	Q_strncpy (player->model, Info_ValueForKey (player->userinfo, "model"), sizeof (player->model));
 	player->topcolor = Q_atoi (Info_ValueForKey (player->userinfo, "topcolor"));
 	player->bottomcolor = Q_atoi (Info_ValueForKey (player->userinfo, "bottomcolor"));
-	host.userinfo_changed = false; // we got it
+	host.userinfo_changed = false;	// we got it
 	}
 
 void Host_Credits (void)
 	{
-	if (!gameui.hInstance) return;
+	if (!gameui.hInstance)
+		return;
+
 	gameui.dllFuncs.pfnFinalCredits ();
 	}
 
@@ -431,13 +436,14 @@ static void UI_ToOldGameInfo (GAMEINFO *out, const gameinfo2_t *in)
 	out->gamemode = in->gamemode;
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.07.26]
 static void UI_GetModsInfo (void)
 	{
-	int i;
+	/*int i;*/
 
 	gameui.modsInfo = Mem_Calloc (gameui.mempool, sizeof (*gameui.modsInfo) * FI->numgames);
-	for (i = 0; i < FI->numgames; i++)
+	/*for (i = 0; i < FI->numgames; i++)*/
+	for (int i = 0; i < FI->numgames; i++)
 		UI_ConvertGameInfo (&gameui.modsInfo[i], FI->games[i]);
 	}
 
@@ -748,20 +754,21 @@ static void GAME_EXPORT pfnDrawCharacter (int ix, int iy, int iwidth, int iheigh
 
 /***
 =============
-UI_DrawConsoleString
+UI_DrawConsoleString [FWGS, 01.07.26]
 
 drawing string like a console string
 =============
 ***/
 static int GAME_EXPORT UI_DrawConsoleString (int x, int y, const char *string)
 	{
-	int	drawLen;
+	/*int	drawLen;*/
 
 	// silent ignore
 	if (!string || !*string)
 		return 0;
 
-	drawLen = Con_DrawString (x, y, string, gameui.ds.textColor);
+	/*drawLen = Con_DrawString (x, y, string, gameui.ds.textColor);*/
+	int drawLen = Con_DrawString (x, y, string, gameui.ds.textColor);
 	MakeRGBA (gameui.ds.textColor, 255, 255, 255, 255);
 
 	// exclude color prexfixes
@@ -949,7 +956,7 @@ static int GAME_EXPORT pfnGetOldGameInfo (GAMEINFO *pgameinfo)
 
 /***
 =========
-pfnGetGamesList
+pfnGetGamesList [FWGS, 01.07.26]
 =========
 ***/
 static GAMEINFO **GAME_EXPORT pfnGetGamesList (int *numGames)
@@ -959,16 +966,17 @@ static GAMEINFO **GAME_EXPORT pfnGetGamesList (int *numGames)
 
 	if (!gameui.oldModsInfo)
 		{
-		int i;
+		/*int i;
 
-		// [FWGS, 01.12.24]
+		// [FWGS, 01.12.24]*/
 		if (!gameui.modsInfo)
 			UI_GetModsInfo ();
 
 		// first allocate array of pointers
 		gameui.oldModsInfo = Mem_Calloc (gameui.mempool, sizeof (*gameui.oldModsInfo) * FI->numgames);
 
-		for (i = 0; i < FI->numgames; i++)
+		/*for (i = 0; i < FI->numgames; i++)*/
+		for (int i = 0; i < FI->numgames; i++)
 			{
 			gameui.oldModsInfo[i] = Mem_Calloc (gameui.mempool, sizeof (*gameui.oldModsInfo[i]));
 			UI_ToOldGameInfo (gameui.oldModsInfo[i], &gameui.modsInfo[i]);
@@ -1135,15 +1143,16 @@ static void GAME_EXPORT pfnCon_DefaultColor (int r, int g, int b)
 	Con_DefaultColor (r, g, b, true);
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.07.26]
 static void GAME_EXPORT pfnSetCursor (void *hCursor)
 	{
-	uintptr_t cursor;
+	/*uintptr_t cursor;*/
 
 	if (!gameui.use_extended_api)
 		return;	// ignore original Xash menus
 
-	cursor = (uintptr_t)hCursor;
+	/*cursor = (uintptr_t)hCursor;*/
+	uintptr_t cursor = (uintptr_t)hCursor;
 	if ((cursor < dc_user) || (cursor > dc_last))
 		return;
 
@@ -1343,6 +1352,15 @@ void UI_UnloadProgs (void)
 	COM_FreeLibrary (gameui.hInstance);
 	Mem_FreePool (&gameui.mempool);
 	memset (&gameui, 0, sizeof (gameui));
+	}
+
+// [FWGS, 01.07.26]
+void *UI_GetMenuFactory (void)
+	{
+	if (!gameui.hInstance)
+		return NULL;
+
+	return COM_GetProcAddress (gameui.hInstance, "CreateInterface");
 	}
 
 qboolean UI_LoadProgs (void)

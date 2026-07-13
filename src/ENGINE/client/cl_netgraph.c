@@ -16,7 +16,6 @@ GNU General Public License for more details
 // [FWGS, 01.03.26]
 #include "common.h"
 #include "client.h"
-/*include "kbutton.h"*/
 
 #if XASH_LOW_MEMORY == 0
 	#define NET_TIMINGS			1024
@@ -114,12 +113,13 @@ static qboolean NetGraph_AtEdge (int x, int width)
 			return true;
 		return false;
 		}
+
 	return true;
 	}
 
 /***
 ==========
-NetGraph_InitColors
+NetGraph_InitColors [FWGS, 01.07.26]
 
 init netgraph colors
 ==========
@@ -129,8 +129,9 @@ static void NetGraph_InitColors (void)
 	byte	mincolor[2][3];
 	byte	maxcolor[2][3];
 	float	dc[2][3];
-	int	i, hfrac;
-	float	f;
+	/*int	i, hfrac;
+	float	f;*/
+	int		hfrac;
 
 	mincolor[0][0] = 63;
 	mincolor[0][1] = 0;
@@ -148,7 +149,8 @@ static void NetGraph_InitColors (void)
 	maxcolor[1][1] = 0;
 	maxcolor[1][2] = 0;
 
-	for (i = 0; i < 3; i++)
+	/*for (i = 0; i < 3; i++)*/
+	for (int i = 0; i < 3; i++)
 		{
 		dc[0][i] = (float)(maxcolor[0][i] - mincolor[0][i]);
 		dc[1][i] = (float)(maxcolor[1][i] - mincolor[1][i]);
@@ -156,8 +158,10 @@ static void NetGraph_InitColors (void)
 
 	hfrac = NETGRAPH_LERP_HEIGHT / 3;
 
-	for (i = 0; i < NETGRAPH_LERP_HEIGHT; i++)
+	/*for (i = 0; i < NETGRAPH_LERP_HEIGHT; i++)*/
+	for (int i = 0; i < NETGRAPH_LERP_HEIGHT; i++)
 		{
+		float f;
 		if (i < hfrac)
 			{
 			f = (float)i / (float)hfrac;
@@ -168,24 +172,25 @@ static void NetGraph_InitColors (void)
 			f = (float)(i - hfrac) / (float)(NETGRAPH_LERP_HEIGHT - hfrac);
 			VectorMA (mincolor[1], f, dc[1], netcolors[NETGRAPH_NET_COLORS + i]);
 			}
+
 		netcolors[NETGRAPH_NET_COLORS + i][3] = 255;
 		}
 	}
 
 /***
 ==========
-NetGraph_GetFrameData [FWGS, 01.03.26]
+NetGraph_GetFrameData [FWGS, 01.07.26]
 
 get frame data info, like chokes, packet losses, also update graph, packet and cmdinfo
 ==========
 ***/
 static void NetGraph_GetFrameData (float *latency, int *latency_count)
 	{
-	int		i, choke_count = 0, loss_count = 0;
-	/*double		newtime = Sys_DoubleTime ();*/
+	/*int		i, choke_count = 0, loss_count = 0;*/
+	int		choke_count = 0, loss_count = 0;
 	double	newtime = Platform_DoubleTime ();
 	static double	nexttime = 0;
-	float	loss, choke;
+	/*float	loss, choke;*/
 
 	*latency_count = 0;
 	*latency = 0.0f;
@@ -197,7 +202,8 @@ static void NetGraph_GetFrameData (float *latency, int *latency_count)
 		nexttime = newtime + 0.05;
 		}
 
-	for (i = cls.netchan.incoming_sequence - CL_UPDATE_BACKUP + 1; i <= cls.netchan.incoming_sequence; i++)
+	/*for (i = cls.netchan.incoming_sequence - CL_UPDATE_BACKUP + 1; i <= cls.netchan.incoming_sequence; i++)*/
+	for (int i = cls.netchan.incoming_sequence - CL_UPDATE_BACKUP + 1; i <= cls.netchan.incoming_sequence; i++)
 		{
 		frame_t *f = cl.frames + (i & CL_UPDATE_MASK);
 		struct packet_latency_t *p = netstat_packet_latency + (i & NET_TIMINGS_MASK);
@@ -208,16 +214,16 @@ static void NetGraph_GetFrameData (float *latency, int *latency_count)
 
 		if (!f->valid)
 			{
-			p->latency = 9998; // broken delta
+			p->latency = 9998;	// broken delta
 			}
 		else if (f->receivedtime == -1.0)
 			{
-			p->latency = 9999; // dropped
+			p->latency = 9999;	// dropped
 			loss_count++;
 			}
 		else if (f->receivedtime == -3.0)
 			{
-			p->latency = 9997; // skipped
+			p->latency = 9997;	// skipped
 			}
 		else
 			{
@@ -240,7 +246,8 @@ static void NetGraph_GetFrameData (float *latency, int *latency_count)
 	if (maxmsgbytes > 1000)
 		maxmsgbytes = 1000;
 
-	for (i = cls.netchan.outgoing_sequence - CL_UPDATE_BACKUP + 1; i <= cls.netchan.outgoing_sequence; i++)
+	/*for (i = cls.netchan.outgoing_sequence - CL_UPDATE_BACKUP + 1; i <= cls.netchan.outgoing_sequence; i++)*/
+	for (int i = cls.netchan.outgoing_sequence - CL_UPDATE_BACKUP + 1; i <= cls.netchan.outgoing_sequence; i++)
 		{
 		netstat_cmdinfo[i & NET_TIMINGS_MASK].cmd_lerp = cl.commands[i & CL_UPDATE_MASK].frame_lerp;
 		netstat_cmdinfo[i & NET_TIMINGS_MASK].sent = cl.commands[i & CL_UPDATE_MASK].heldback ? false : true;
@@ -248,29 +255,36 @@ static void NetGraph_GetFrameData (float *latency, int *latency_count)
 		}
 
 	// packet loss
-	loss = 100.0f * (float)loss_count / CL_UPDATE_BACKUP;
+	/*loss = 100.0f * (float)loss_count / CL_UPDATE_BACKUP;*/
+	float loss = 100.0f * (float)loss_count / CL_UPDATE_BACKUP;
 	packet_loss = PACKETLOSS_AVG_FRAC * packet_loss + (1.0f - PACKETLOSS_AVG_FRAC) * loss;
 
 	// packet choke
-	choke = 100.0f * (float)choke_count / CL_UPDATE_BACKUP;
+	/*choke = 100.0f * (float)choke_count / CL_UPDATE_BACKUP;*/
+	float choke = 100.0f * (float)choke_count / CL_UPDATE_BACKUP;
 	packet_choke = PACKETCHOKE_AVG_FRAC * packet_choke + (1.0f - PACKETCHOKE_AVG_FRAC) * choke;
 	}
 
 /***
 ===========
-NetGraph_DrawTimes
+NetGraph_DrawTimes [FWGS, 01.07.26]
 ===========
 ***/
 static void NetGraph_DrawTimes (wrect_t rect, int x, int w)
 	{
-	int	i, j, extrap_point = NETGRAPH_LERP_HEIGHT / 3, a, h;
-	rgba_t	colors = { 0.9 * 255, 0.9 * 255, 0.7 * 255, 255 };
+	/*int	i, j, extrap_point = NETGRAPH_LERP_HEIGHT / 3, a, h;
+	rgba_t	colors = { 0.9 * 255, 0.9 * 255, 0.7 * 255, 255 };*/
+	int		extrap_point = NETGRAPH_LERP_HEIGHT / 3;
 	wrect_t	fill;
 
-	for (a = 0; a < w; a++)
+	/*for (a = 0; a < w; a++)*/
+	for (int a = 0; a < w; a++)
 		{
-		i = (cls.netchan.outgoing_sequence - a) & NET_TIMINGS_MASK;
-		h = Q_min ((netstat_cmdinfo[i].cmd_lerp / 3.0f) * NETGRAPH_LERP_HEIGHT, net_graphheight.value * 0.7f);
+		/*i = (cls.netchan.outgoing_sequence - a) & NET_TIMINGS_MASK;
+		h = Q_min ((netstat_cmdinfo[i].cmd_lerp / 3.0f) * NETGRAPH_LERP_HEIGHT, net_graphheight.value * 0.7f);*/
+		int i = (cls.netchan.outgoing_sequence - a) & NET_TIMINGS_MASK;
+		int h = Q_min ((netstat_cmdinfo[i].cmd_lerp / 3.0f) * NETGRAPH_LERP_HEIGHT,
+			net_graphheight.value * 0.7f);
 
 		fill.left = x + w - a - 1;
 		fill.right = fill.bottom = 1;
@@ -289,7 +303,8 @@ static void NetGraph_DrawTimes (wrect_t rect, int x, int w)
 				start = (h - 1);
 				}
 
-			for (j = start; j < h; j++)
+			/*for (j = start; j < h; j++)*/
+			for (int j = start; j < h; j++)
 				{
 				int color = NETGRAPH_NET_COLORS + j + extrap_point;
 				color = Q_min (color, HLARRAYSIZE (netcolors) - 1);
@@ -308,7 +323,8 @@ static void NetGraph_DrawTimes (wrect_t rect, int x, int w)
 			if (!net_graphsolid.value)
 				h = 1;
 
-			for (j = 0; j < h; j++)
+			/*for (j = 0; j < h; j++)*/
+			for (int j = 0; j < h; j++)
 				{
 				int color = NETGRAPH_NET_COLORS + j + oldh;
 				color = Q_min (color, HLARRAYSIZE (netcolors) - 1);
@@ -455,7 +471,8 @@ static int NetGraph_DrawDataSegment (wrect_t *fill, int bytes, byte r, byte g, b
 
 	if (net_graphsolid.value)
 		fill->bottom = (int)h;
-	else fill->bottom = 1;
+	else
+		fill->bottom = 1;
 
 	if (fill->top > 1)
 		{
@@ -478,17 +495,17 @@ static void NetGraph_ColorForHeight (struct packet_latency_t *packet, byte color
 	switch (packet->latency)
 		{
 		case 9999:
-			memcpy (color, netcolors[0], sizeof (byte) * 4); // dropped
+			memcpy (color, netcolors[0], sizeof (byte) * 4);	// dropped
 			*ping = 0;
 			break;
 
 		case 9998:
-			memcpy (color, netcolors[1], sizeof (byte) * 4); // invalid
+			memcpy (color, netcolors[1], sizeof (byte) * 4);	// invalid
 			*ping = 0;
 			break;
 
 		case 9997:
-			memcpy (color, netcolors[2], sizeof (byte) * 4); // skipped
+			memcpy (color, netcolors[2], sizeof (byte) * 4);	// skipped
 			*ping = 0;
 			break;
 
@@ -507,20 +524,25 @@ static void NetGraph_ColorForHeight (struct packet_latency_t *packet, byte color
 
 /***
 ===========
-NetGraph_DrawDataUsage
+NetGraph_DrawDataUsage [FWGS, 01.07.26]
 ===========
 ***/
 static void NetGraph_DrawDataUsage (int x, int y, int w, int graphtype)
 	{
-	int	a, i, h, lastvalidh = 0, ping;
-	int	pingheight = net_graphheight.value - NETGRAPH_LERP_HEIGHT - 2;
+	/*int	a, i, h, lastvalidh = 0, ping;*/
+	int		lastvalidh = 0;
+	int		pingheight = net_graphheight.value - NETGRAPH_LERP_HEIGHT - 2;
 	wrect_t	fill = { 0 };
 	byte	color[4];
 
-	for (a = 0; a < w; a++)
+	/*for (a = 0; a < w; a++)*/
+	for (int a = 0; a < w; a++)
 		{
-		i = (cls.netchan.incoming_sequence - a) & NET_TIMINGS_MASK;
-		h = netstat_packet_latency[i].latency;
+		/*i = (cls.netchan.incoming_sequence - a) & NET_TIMINGS_MASK;
+		h = netstat_packet_latency[i].latency;*/
+		int ping;
+		int i = (cls.netchan.incoming_sequence - a) & NET_TIMINGS_MASK;
+		int h = netstat_packet_latency[i].latency;
 
 		NetGraph_ColorForHeight (&netstat_packet_latency[i], color, &ping);
 
@@ -580,7 +602,7 @@ static void NetGraph_DrawDataUsage (int x, int y, int w, int graphtype)
 		fill.top -= 1;
 
 		if (netstat_packet_latency[i].latency > 9995)
-			continue; // skip invalid
+			continue;	// skip invalid
 
 		if (!NetGraph_DrawDataSegment (&fill, netstat_graph[i].client, 255, 0, 0, 128))
 			continue;
@@ -636,13 +658,13 @@ static void NetGraph_GetScreenPos (wrect_t *rect, int *w, int *x, int *y)
 	// detect x and y position
 	switch ((int)net_graphpos.value)
 		{
-		case 1: // right sided
+		case 1:		// right sided
 			*x = rect->left + rect->right - 5 - *w;
 			break;
-		case 2: // center
+		case 2:		// center
 			*x = (rect->left + (rect->right - 10 - *w)) / 2;
 			break;
-		default: // left sided
+		default:	// left sided
 			*x = rect->left + 5;
 			break;
 		}
@@ -690,7 +712,7 @@ void SCR_DrawNetGraph (void)
 		{
 		ref.dllFuncs.GL_SetRenderMode (kRenderTransColor);
 		ref.dllFuncs.GL_Bind (XASH_TEXTURE0, R_GetBuiltinTexture (REF_WHITE_TEXTURE));
-		ref.dllFuncs.Begin (TRI_QUADS); // draw all the fills as a long solid sequence of quads for speedup reasons
+		ref.dllFuncs.Begin (TRI_QUADS);	// draw all the fills as a long solid sequence of quads for speedup reasons
 
 		// NOTE: fill colors without texture at this point
 		NetGraph_DrawDataUsage (x, y, w, graphtype);

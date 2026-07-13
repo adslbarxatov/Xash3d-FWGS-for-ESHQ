@@ -85,23 +85,27 @@ REF_HOST_CHECK (features);
 
 // [FWGS, 01.12.24] removed R_GetTextureParms
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.07.26]
 static qboolean CheckSkybox (const char *name, char out[SKYBOX_MAX_SIDES][MAX_STRING])
 	{
 	static const char *skybox_ext[3] = { "dds", "tga", "bmp" };
 	static const char *skybox_delim[2] = { "", "_" };	// no space for HL style, underscore for Q1 style
-	int i;
+	/*int i;*/
 
 	// search for skybox images
-	for (i = 0; i < HLARRAYSIZE (skybox_ext); i++)
+	/*for (i = 0; i < HLARRAYSIZE (skybox_ext); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (skybox_ext); i++)
 		{
-		int j;
+		/*int j;
 
-		for (j = 0; j < HLARRAYSIZE (skybox_delim); j++)
+		for (j = 0; j < HLARRAYSIZE (skybox_delim); j++)*/
+		for (int j = 0; j < HLARRAYSIZE (skybox_delim); j++)
 			{
-			int k, num_checked_sides = 0;
+			/*int k, num_checked_sides = 0;*/
+			int num_checked_sides = 0;
 
-			for (k = 0; k < SKYBOX_MAX_SIDES; k++)
+			/*for (k = 0; k < SKYBOX_MAX_SIDES; k++)*/
+			for (int k = 0; k < SKYBOX_MAX_SIDES; k++)
 				{
 				char sidename[MAX_VA_STRING];
 
@@ -122,15 +126,17 @@ static qboolean CheckSkybox (const char *name, char out[SKYBOX_MAX_SIDES][MAX_ST
 	return false;
 	}
 
+// [FWGS, 01.07.26]
 void R_SetupSky (const char *name)
 	{
 	string	loadname;
 	char	sidenames[SKYBOX_MAX_SIDES][MAX_STRING];
 	int		skyboxTextures[SKYBOX_MAX_SIDES] = { 0 };
 	int		i, len;
-	qboolean	result;
+	/*qboolean	result;
 
-	// [FWGS, 01.03.26]
+	// [FWGS, 01.03.26]*/
+
 	if (COM_StringEmptyOrNULL (name))
 		{
 		ref.dllFuncs.R_SetupSky (NULL);	// unload skybox
@@ -145,10 +151,11 @@ void R_SetupSky (const char *name)
 
 	if (loadname[len - 1] == '_')
 		loadname[len - 1] = '\0';
-	result = CheckSkybox (loadname, sidenames);
+	/*result = CheckSkybox (loadname, sidenames);*/
 
 	// to prevent infinite recursion if default skybox was missed
-	if (!result && Q_stricmp (name, DEFAULT_SKYBOX_NAME))
+	/*if (!result && Q_stricmp (name, DEFAULT_SKYBOX_NAME))*/
+	if (!CheckSkybox (loadname, sidenames) && Q_stricmp (name, DEFAULT_SKYBOX_NAME))
 		{
 		Con_Reportf (S_WARN "missed or incomplete skybox '%s'\n", name);
 		R_SetupSky (DEFAULT_SKYBOX_NAME);	// force to default
@@ -268,7 +275,6 @@ static model_t *pfnGetDefaultSprite (enum ref_defaultsprite_e spr)
 // [FWGS, 01.03.26]
 static void *pfnMod_Extradata (int type, model_t *m)
 	{
-	/*switch (type)*/
 	if ((type == mod_alias) || (type == mod_studio))
 		{
 		if (m && (m->type == type))
@@ -336,13 +342,6 @@ static entity_state_t *R_StudioGetPlayerState (int index)
 	}
 
 // [FWGS, 01.05.26] removed pfnGetStudioModelInterface
-/*static int pfnGetStudioModelInterface (int version, struct r_studio_interface_s **ppinterface,
-	struct engine_studio_api_s *pstudio)
-	{
-	return clgame.dllFuncs.pfnGetStudioModelInterface ?
-		clgame.dllFuncs.pfnGetStudioModelInterface (version, ppinterface, pstudio) : 0;
-	}*/
-
 // [FWGS, 01.01.24] removed pfnImage_GetPool
 
 static const bpc_desc_t *pfnImage_GetPFDesc (int idx)
@@ -384,11 +383,6 @@ static qboolean R_Init_Video_ (ref_graphic_apis_t type)
 	}
 
 // [FWGS, 01.05.26] removed pfnMod_PointInLeaf
-/*static mleaf_t *pfnMod_PointInLeaf (const vec3_t p, mnode_t *node)
-	{
-	// FIXME: get rid of this on next RefAPI update
-	return Mod_PointInLeaf (p, node, cl.models[1]);
-	}*/
 
 static const ref_api_t gEngfuncs =
 	{
@@ -427,7 +421,6 @@ static const ref_api_t gEngfuncs =
 	// [FWGS, 01.05.26]
 	Mod_SampleSizeForFace,
 	Mod_BoxVisible,
-	/*pfnMod_PointInLeaf,*/
 	Mod_PointInLeaf,
 	R_DrawWorldHull,
 	R_DrawModelHull,
@@ -462,7 +455,6 @@ static const ref_api_t gEngfuncs =
 	Mod_CacheCheck,
 	Mod_LoadCacheFile,
 	Mod_Calloc,
-	/*pfnGetStudioModelInterface,*/
 
 	_Mem_AllocPool,
 	_Mem_FreePool,
@@ -543,29 +535,19 @@ static void R_UnloadProgs (void)
 	}
 
 // [FWGS, 01.05.26]
-/*static void CL_FillTriAPIFromRef (triangleapi_t *dst, const ref_interface_t *src)*/
 static void CL_FillTriAPI (triangleapi_t *dst)
 	{
 	dst->version = TRI_API_VERSION;
-	/*dst->Begin = src->Begin;*/
 	dst->RenderMode = TriRenderMode;
-	/*dst->End = src->End;*/
 	dst->Color4f = TriColor4f;
 	dst->Color4ub = TriColor4ub;
-	/*dst->TexCoord2f = src->TexCoord2f;
-	dst->Vertex3f = src->Vertex3f;
-	dst->Vertex3fv = src->Vertex3fv;*/
 	dst->Brightness = TriBrightness;
 	dst->CullFace = TriCullFace;
 	dst->SpriteTexture = TriSpriteTexture;
 	dst->WorldToScreen = TriWorldToScreen;
-	/*dst->Fog = src->Fog;
-	dst->ScreenToWorld = src->ScreenToWorld;
-	dst->GetMatrix = src->GetMatrix;*/
 	dst->BoxInPVS = TriBoxInPVS;
 	dst->LightAtPoint = TriLightAtPoint;
 	dst->Color4fRendermode = TriColor4fRendermode;
-	/*dst->FogParams = src->FogParams;*/
 	dst->Begin = ref.dllFuncs.Begin;
 	dst->End = ref.dllFuncs.End;
 	dst->Vertex3f = ref.dllFuncs.Vertex3f;
@@ -672,8 +654,6 @@ static qboolean R_LoadProgs (const char *name)
 	ref.initialized = true;
 
 	// [FWGS, 01.05.26]
-	/*// initialize TriAPI callbacks
-	CL_FillTriAPIFromRef (&gTriApi, &ref.dllFuncs);*/
 	R_CreateBuiltinTextures ();
 	CL_FillTriAPI (&gTriApi);
 

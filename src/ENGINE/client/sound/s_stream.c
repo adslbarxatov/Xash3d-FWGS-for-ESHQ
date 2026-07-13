@@ -59,28 +59,25 @@ void S_PrintBackgroundTrackState (void)
 S_MusicFade [FWGS, 01.03.26]
 =================
 ***/
-/*void S_FadeMusicVolume (float fadePercent)*/
 void S_MusicFade (float fade_percent)
 	{
-	/*musicfade.percent = bound (0.0f, fadePercent, 100.0f);*/
 	musicfade.percent = bound (0.0f, fade_percent, 100.0f);
 	}
 
 /***
 =================
-S_GetMusicVolume
+S_GetMusicVolume [FWGS, 01.07.26]
 =================
 ***/
 float S_GetMusicVolume (void)
 	{
-	float scale = 1.0f;
+	/*float scale = 1.0f;*/
 
 	// we return zero volume to keep sounds running
 	if ((host.status == HOST_NOFOCUS) && (snd_mute_losefocus.value != 0.0f))
 		return 0.0f;
 
-	// [FWGS, 01.03.26]
-	/*if (!s_listener.inmenu && (musicfade.percent != 0))*/
+	float scale = 1.0f;
 	if ((cls.key_dest != key_menu) && (musicfade.percent != 0))
 		{
 		scale = bound (0.0f, musicfade.percent / 100.0f, 1.0f);
@@ -100,8 +97,6 @@ void S_StartBackgroundTrack (const char *introTrack, const char *mainTrack, int 
 	S_StopBackgroundTrack ();
 
 	// [FWGS, 15.04.26]
-	/*if (!dma.initialized)
-		return;*/
 	if (!snd.initialized)
 		return;
 
@@ -113,7 +108,6 @@ void S_StartBackgroundTrack (const char *introTrack, const char *mainTrack, int 
 		mainTrack = NULL;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (introTrack) && !COM_CheckString (mainTrack))*/
 	if (COM_StringEmptyOrNULL (introTrack) && COM_StringEmptyOrNULL (mainTrack))
 		return;
 
@@ -123,7 +117,6 @@ void S_StartBackgroundTrack (const char *introTrack, const char *mainTrack, int 
 		return;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (mainTrack))*/
 	if (COM_StringEmptyOrNULL (mainTrack))
 		s_bgTrack.loopName[0] = '\0';
 	else
@@ -132,7 +125,7 @@ void S_StartBackgroundTrack (const char *introTrack, const char *mainTrack, int 
 	// open stream
 	s_bgTrack.stream = FS_OpenStream (introTrack);
 	Q_strncpy (s_bgTrack.current, introTrack, sizeof (s_bgTrack.current));
-	memset (&musicfade, 0, sizeof (musicfade)); // clear any soundfade
+	memset (&musicfade, 0, sizeof (musicfade));	// clear any soundfade
 	s_bgTrack.source = cls.key_dest;
 
 	// restore message, update song position
@@ -148,11 +141,8 @@ S_StopBackgroundTrack
 void S_StopBackgroundTrack (void)
 	{
 	// [FWGS, 15.04.26]
-	/*s_listener.stream_paused = false;*/
 	snd.stream_paused = false;
 
-	/*if (!dma.initialized)
-		return;*/
 	if (!snd.initialized)
 		return;
 
@@ -161,7 +151,6 @@ void S_StopBackgroundTrack (void)
 
 	// [FWGS, 01.03.26]
 	FS_FreeStream (s_bgTrack.stream);
-	/*memset (&s_bgTrack, 0, sizeof (bg_track_t));*/
 	memset (&s_bgTrack, 0, sizeof (s_bgTrack));
 	memset (&musicfade, 0, sizeof (musicfade));
 	}
@@ -173,7 +162,6 @@ S_StreamSetPause [FWGS, 15.04.26]
 ***/
 void S_StreamSetPause (int pause)
 	{
-	/*s_listener.stream_paused = pause;*/
 	snd.stream_paused = pause;
 	}
 
@@ -181,7 +169,7 @@ void S_StreamSetPause (int pause)
 =================
 S_StreamGetCurrentState [FWGS, 09.05.24]
 
-save\restore code
+save / restore code
 =================
 ***/
 qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, char *loopTrack,
@@ -214,25 +202,23 @@ qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, c
 
 /***
 =================
-S_StreamBackgroundTrack
+S_StreamBackgroundTrack [FWGS, 01.07.26]
 =================
 ***/
 void S_StreamBackgroundTrack (void)
 	{
-	int		bufferSamples;
-	int		fileSamples;
+	/*int		bufferSamples;
+	int		fileSamples;*/
 	byte	raw[MAX_RAW_SAMPLES];
-	int		r, fileBytes;
+	/*int		r, fileBytes;
 	rawchan_t	*ch = NULL;
 
-	// [FWGS, 15.04.26]
-	/*if (!dma.initialized || !s_bgTrack.stream || s_listener.streaming)*/
+	// [FWGS, 15.04.26]*/
+
 	if (!snd.initialized || !s_bgTrack.stream || snd.streaming)
 		return;
 
-	// [FWGS, 15.04.26] don't bother playing anything if musicvolume is 0
-	/*if (!s_musicvolume.value || s_listener.paused || s_listener.stream_paused)
-	if (!s_musicvolume.value || cl.paused || s_listener.stream_paused)*/
+	// don't bother playing anything if musicvolume is 0
 	if (!s_musicvolume.value || cl.paused || snd.stream_paused)
 		return;
 
@@ -249,34 +235,32 @@ void S_StreamBackgroundTrack (void)
 		return;
 		}
 
-	ch = S_FindRawChannel (S_RAW_SOUND_BACKGROUNDTRACK, true);
-
+	/*ch = S_FindRawChannel (S_RAW_SOUND_BACKGROUNDTRACK, true);*/
+	rawchan_t *ch = S_FindRawChannel (S_RAW_SOUND_BACKGROUNDTRACK, true);
 	Assert (ch != NULL);
 
-	// [FWGS, 15.04.26] see how many samples should be copied into the raw buffer
-	/*if (ch->s_rawend < soundtime)
-		ch->s_rawend = soundtime;*/
+	// see how many samples should be copied into the raw buffer
 	if (ch->s_rawend < snd.soundtime)
 		ch->s_rawend = snd.soundtime;
 
-	// [FWGS, 15.04.26]
-	/*while (ch->s_rawend < soundtime + ch->max_samples)*/
 	while (ch->s_rawend < snd.soundtime + ch->max_samples)
 		{
 		const stream_t *info = s_bgTrack.stream;
 
-		/*bufferSamples = ch->max_samples - (ch->s_rawend - soundtime);*/
-		bufferSamples = ch->max_samples - (ch->s_rawend - snd.soundtime);
+		/*bufferSamples = ch->max_samples - (ch->s_rawend - snd.soundtime);*/
+		int bufferSamples = ch->max_samples - (ch->s_rawend - snd.soundtime);
 
 		// decide how much data needs to be read from the file
-		fileSamples = bufferSamples * ((float)info->rate / SOUND_DMA_SPEED);
+		/*fileSamples = bufferSamples * ((float)info->rate / SOUND_DMA_SPEED);*/
+		int fileSamples = bufferSamples * ((float)info->rate / SOUND_DMA_SPEED);
 
 		// no more samples need
 		if (fileSamples <= 1)
 			return;
 
 		// our max buffer size
-		fileBytes = fileSamples * (info->width * info->channels);
+		/*fileBytes = fileSamples * (info->width * info->channels);*/
+		int fileBytes = fileSamples * (info->width * info->channels);
 		if (fileBytes > sizeof (raw))
 			{
 			fileBytes = sizeof (raw);
@@ -284,7 +268,8 @@ void S_StreamBackgroundTrack (void)
 			}
 
 		// read
-		r = FS_ReadStream (s_bgTrack.stream, fileBytes, raw);
+		/*r = FS_ReadStream (s_bgTrack.stream, fileBytes, raw);*/
+		int r = FS_ReadStream (s_bgTrack.stream, fileBytes, raw);
 		if (r < fileBytes)
 			{
 			fileBytes = r;
@@ -296,8 +281,6 @@ void S_StreamBackgroundTrack (void)
 			// add to raw buffer
 			int music_vol = (int)(255.0f * S_GetMusicVolume ());
 
-			/*S_RawEntSamples (S_RAW_SOUND_BACKGROUNDTRACK, fileSamples, info->rate, info->width, info->channels,
-				raw, music_vol);*/
 			S_RawEntSamples (S_RAW_SOUND_BACKGROUNDTRACK, fileSamples, info->rate, info->width,
 				info->channels, raw, music_vol, ATTN_EVERYWHERE);
 			}
@@ -330,13 +313,10 @@ S_StartStreaming [FWGS, 15.04.26]
 ***/
 void S_StartStreaming (void)
 	{
-	/*if (!dma.initialized)
-		return;*/
 	if (!snd.initialized)
 		return;
 
 	// begin streaming movie soundtrack
-	/*s_listener.streaming = true;*/
 	snd.streaming = true;
 	}
 
@@ -347,10 +327,6 @@ S_StopStreaming [FWGS, 15.04.26]
 ***/
 void S_StopStreaming (void)
 	{
-	/*if (!dma.initialized)
-		return;
-
-	s_listener.streaming = false;*/
 	if (!snd.initialized)
 		return;
 
