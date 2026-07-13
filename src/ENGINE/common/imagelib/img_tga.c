@@ -32,24 +32,27 @@ le_struct_end ();
 
 /***
 =============
-Image_LoadTGA
+Image_LoadTGA [FWGS, 01.07.26]
 =============
 ***/
 qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
-	int	i	, columns, rows, row_inc, row, col;
-	byte	*buf_p, *pixbuf, *targa_rgba;
+	/*int	i	, columns, rows, row_inc, row, col;
+	byte	*buf_p, *pixbuf, *targa_rgba;*/
+	int		columns, rows, row_inc, row, col;
+	byte	*pixbuf;
 	rgba_t	palette[256];
 	byte	red = 0, green = 0, blue = 0, alpha = 0;
-	int		readpixelcount, pixelcount;
+	/*int		readpixelcount, pixelcount;*/
 	uint	reflectivity[3] = { 0, 0, 0 };
-	qboolean	compressed;
+	/*qboolean	compressed;*/
 	tga_t	targa_header;
 
 	if (filesize < sizeof (tga_t))
 		return false;
 
-	buf_p = (byte *)buffer;
+	/*buf_p = (byte *)buffer;*/
+	byte *buf_p = (byte *)buffer;
 	targa_header.id_length = *buf_p++;
 	targa_header.colormap_type = *buf_p++;
 	targa_header.image_type = *buf_p++;
@@ -61,11 +64,6 @@ qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesi
 	targa_header.colormap_size = *buf_p;
 	buf_p += 1;
 
-	// [FWGS, 01.05.26]
-	/*targa_header.x_origin = *(short *)buf_p;			buf_p += 2;
-	targa_header.y_origin = *(short *)buf_p;			buf_p += 2;
-	targa_header.width = image.width = *(short *)buf_p;		buf_p += 2;
-	targa_header.height = image.height = *(short *)buf_p;		buf_p += 2;*/
 	targa_header.x_origin = buf_p[0] + buf_p[1] * 256;
 	buf_p += 2;
 	targa_header.y_origin = buf_p[0] + buf_p[1] * 256;
@@ -81,13 +79,14 @@ qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesi
 		buf_p += targa_header.id_length;	// skip TARGA image comment
 
 	// check for tga file
-	if (!Image_ValidSize (name)) return false;
+	if (!Image_ValidSize (name))
+		return false;
 
 	image.type = PF_RGBA_32;	// always exctracted to 32-bit buffer
 
 	if ((targa_header.image_type == 1) || (targa_header.image_type == 9))
 		{
-		// [FWGS, 01.07.24] uncompressed colormapped image
+		// uncompressed colormapped image
 		if (targa_header.pixel_size != 8)
 			{
 			Con_DPrintf (S_ERROR "%s: (%s) Only 8 bit images supported for type 1 and 9\n",
@@ -95,7 +94,6 @@ qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesi
 			return false;
 			}
 
-		// [FWGS, 01.07.24]
 		if (targa_header.colormap_length != 256)
 			{
 			Con_DPrintf (S_ERROR "%s: (%s) Only 8 bit colormaps are supported for type 1 and 9\n",
@@ -103,7 +101,6 @@ qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesi
 			return false;
 			}
 
-		// [FWGS, 01.07.24]
 		if (targa_header.colormap_index)
 			{
 			Con_DPrintf (S_ERROR "%s: (%s) colormap_index is not supported for type 1 and 9\n",
@@ -113,7 +110,8 @@ qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesi
 
 		if (targa_header.colormap_size == 24)
 			{
-			for (i = 0; i < targa_header.colormap_length; i++)
+			/*for (i = 0; i < targa_header.colormap_length; i++)*/
+			for (int i = 0; i < targa_header.colormap_length; i++)
 				{
 				palette[i][2] = *buf_p++;
 				palette[i][1] = *buf_p++;
@@ -123,7 +121,8 @@ qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesi
 			}
 		else if (targa_header.colormap_size == 32)
 			{
-			for (i = 0; i < targa_header.colormap_length; i++)
+			/*for (i = 0; i < targa_header.colormap_length; i++)*/
+			for (int i = 0; i < targa_header.colormap_length; i++)
 				{
 				palette[i][2] = *buf_p++;
 				palette[i][1] = *buf_p++;
@@ -133,7 +132,6 @@ qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesi
 			}
 		else
 			{
-			// [FWGS, 01.07.24]
 			Con_DPrintf (S_ERROR "%s: (%s) only 24 and 32 bit colormaps are supported for type 1 and 9\n",
 				__func__, name);
 			return false;
@@ -141,7 +139,7 @@ qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 	else if ((targa_header.image_type == 2) || (targa_header.image_type == 10))
 		{
-		// [FWGS, 01.07.24] uncompressed or RLE compressed RGB
+		// uncompressed or RLE compressed RGB
 		if ((targa_header.pixel_size != 32) && (targa_header.pixel_size != 24))
 			{
 			Con_DPrintf (S_ERROR "%s: (%s) Only 32 or 24 bit images supported for type 2 and 10\n",
@@ -151,7 +149,7 @@ qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 	else if ((targa_header.image_type == 3) || (targa_header.image_type == 11))
 		{
-		// [FWGS, 01.07.24] uncompressed greyscale
+		// uncompressed greyscale
 		if ((targa_header.pixel_size != 8) && (targa_header.pixel_size != 16))
 			{
 			Con_DPrintf (S_ERROR "%s: (%s) Only 8 bit images supported for type 3 and 11\n",
@@ -164,7 +162,8 @@ qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesi
 	rows = targa_header.height;
 
 	image.size = image.width * image.height * 4;
-	targa_rgba = image.rgba = Mem_Malloc (host.imagepool, image.size);
+	/*targa_rgba = image.rgba = Mem_Malloc (host.imagepool, image.size);*/
+	byte *targa_rgba = image.rgba = Mem_Malloc (host.imagepool, image.size);
 
 	// if bit 5 of attributes isn't set, the image has been stored from bottom to top
 	if (!Image_CheckFlag (IL_DONTFLIP_TGA) && targa_header.attributes & 0x20)
@@ -178,12 +177,16 @@ qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesi
 		row_inc = -columns * 4 * 2;
 		}
 
-	compressed = ((targa_header.image_type == 9) || (targa_header.image_type == 10) ||
+	/*compressed = ((targa_header.image_type == 9) || (targa_header.image_type == 10) ||
+		(targa_header.image_type == 11));*/
+	qboolean compressed = ((targa_header.image_type == 9) || (targa_header.image_type == 10) ||
 		(targa_header.image_type == 11));
 	for (row = col = 0; row < rows; )
 		{
-		pixelcount = 0x10000;
-		readpixelcount = 0x10000;
+		/*pixelcount = 0x10000;
+		readpixelcount = 0x10000;*/
+		int pixelcount = 0x10000;
+		int readpixelcount = 0x10000;
 
 		if (compressed)
 			{
@@ -273,16 +276,17 @@ qboolean Image_LoadTGA (const char *name, const byte *buffer, fs_offset_t filesi
 
 /***
 =============
-Image_SaveTGA
+Image_SaveTGA [FWGS, 01.07.26]
 =============
 ***/
 qboolean Image_SaveTGA (const char *name, rgbdata_t *pix)
 	{
-	int				y, outsize, pixel_size;
+	/*int				y, outsize, pixel_size;
 	const uint8_t	*bufend, *in;
-	uint8_t			*buffer, *out;
-	tga_t			targa_header = { 0 };
-	const char		comment[] = "Generated by Xash ImageLib";
+	uint8_t			*buffer, *out;*/
+	int		pixel_size;
+	tga_t	targa_header = { 0 };
+	const char	comment[] = "Generated by Xash ImageLib";
 
 	if (FS_FileExists (name, false) && !Image_CheckFlag (IL_ALLOW_OVERWRITE))
 		return false;	// already existed
@@ -302,11 +306,13 @@ qboolean Image_SaveTGA (const char *name, rgbdata_t *pix)
 			return false;
 		}
 
-	outsize = pix->width * pix->height * pixel_size;
+	/*outsize = pix->width * pix->height * pixel_size;*/
+	int outsize = pix->width * pix->height * pixel_size;
 	outsize += sizeof (tga_t);
 	outsize += sizeof (comment) - 1;
 
-	buffer = (uint8_t *)Mem_Malloc (host.imagepool, outsize);
+	/*buffer = (uint8_t *)Mem_Malloc (host.imagepool, outsize);*/
+	uint8_t *buffer = (uint8_t *)Mem_Malloc (host.imagepool, outsize);
 
 	// prepare header
 	targa_header.id_length = sizeof (comment) - 1;	// tga comment length
@@ -325,9 +331,11 @@ qboolean Image_SaveTGA (const char *name, rgbdata_t *pix)
 		targa_header.attributes = 0;
 		}
 
-	out = buffer;
+	/*out = buffer;
 
-	// [FWGS, 01.05.26]
+	// [FWGS, 01.05.26]*/
+	uint8_t *out = buffer;
+
 	le_struct_swap (tga_swap, &targa_header);
 
 	memcpy (out, &targa_header, sizeof (tga_t));
@@ -341,10 +349,14 @@ qboolean Image_SaveTGA (const char *name, rgbdata_t *pix)
 		case PF_RGB_24:
 		case PF_RGBA_32:
 			// swap rgba to bgra and flip upside down
-			for (y = pix->height - 1; y >= 0; y--)
+			/*for (y = pix->height - 1; y >= 0; y--)*/
+			for (int y = pix->height - 1; y >= 0; y--)
 				{
-				in = pix->buffer + y * pix->width * pixel_size;
-				bufend = in + pix->width * pixel_size;
+				/*in = pix->buffer + y * pix->width * pixel_size;
+				bufend = in + pix->width * pixel_size;*/
+				const uint8_t *in = pix->buffer + y * pix->width * pixel_size;
+				const uint8_t *bufend = in + pix->width * pixel_size;
+
 				for (; in < bufend; in += pixel_size)
 					{
 					*out++ = in[2];
@@ -359,10 +371,14 @@ qboolean Image_SaveTGA (const char *name, rgbdata_t *pix)
 		case PF_BGR_24:
 		case PF_BGRA_32:
 			// flip upside down
-			for (y = pix->height - 1; y >= 0; y--)
+			/*for (y = pix->height - 1; y >= 0; y--)*/
+			for (int y = pix->height - 1; y >= 0; y--)
 				{
-				in = pix->buffer + y * pix->width * pixel_size;
-				bufend = in + pix->width * pixel_size;
+				/*in = pix->buffer + y * pix->width * pixel_size;
+				bufend = in + pix->width * pixel_size;*/
+				const uint8_t *in = pix->buffer + y * pix->width * pixel_size;
+				const uint8_t *bufend = in + pix->width * pixel_size;
+
 				for (; in < bufend; in += pixel_size)
 					{
 					*out++ = in[0];
