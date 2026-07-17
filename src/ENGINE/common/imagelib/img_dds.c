@@ -63,30 +63,38 @@ le_struct_field (dds_header_dxt10_t, arraySize)
 le_struct_field (dds_header_dxt10_t, miscFlags2)
 le_struct_end ();
 
+// [FWGS, 01.07.26]
 static qboolean Image_CheckDXT3Alpha (dds_t *hdr, byte *fin)
 	{
-	word	sAlpha;
+	/*word	sAlpha;
 	byte	*alpha;
 	int		x, y, i, j;
 
-	for (y = 0; y < hdr->dwHeight; y += 4)
+	for (y = 0; y < hdr->dwHeight; y += 4)*/
+	for (int y = 0; y < hdr->dwHeight; y += 4)
 		{
-		for (x = 0; x < hdr->dwWidth; x += 4)
+		/*for (x = 0; x < hdr->dwWidth; x += 4)*/
+		for (int x = 0; x < hdr->dwWidth; x += 4)
 			{
-			alpha = fin + 8;
+			/*alpha = fin + 8;*/
+			byte *alpha = fin + 8;
 			fin += 16;
 
-			for (j = 0; j < 4; j++)
+			/*for (j = 0; j < 4; j++)*/
+			for (int j = 0; j < 4; j++)
 				{
-				sAlpha = alpha[2 * j] + 256 * alpha[2 * j + 1];
+				/*sAlpha = alpha[2 * j] + 256 * alpha[2 * j + 1];*/
+				word sAlpha = alpha[2 * j] + 256 * alpha[2 * j + 1];
 
-				for (i = 0; i < 4; i++)
+				/*for (i = 0; i < 4; i++)*/
+				for (int i = 0; i < 4; i++)
 					{
 					if (((x + i) < hdr->dwWidth) && ((y + j) < hdr->dwHeight))
 						{
 						if (sAlpha == 0)
 							return true;
 						}
+
 					sAlpha >>= 4;
 					}
 				}
@@ -96,31 +104,39 @@ static qboolean Image_CheckDXT3Alpha (dds_t *hdr, byte *fin)
 	return false;
 	}
 
+// [FWGS, 01.07.26]
 static qboolean Image_CheckDXT5Alpha (dds_t *hdr, byte *fin)
 	{
-	uint	bits, bitmask;
+	/*uint	bits, bitmask;
 	byte	*alphamask;
 	int		x, y, i, j;
 
-	for (y = 0; y < hdr->dwHeight; y += 4)
+	for (y = 0; y < hdr->dwHeight; y += 4)*/
+	for (int y = 0; y < hdr->dwHeight; y += 4)
 		{
-		for (x = 0; x < hdr->dwWidth; x += 4)
+		/*for (x = 0; x < hdr->dwWidth; x += 4)*/
+		for (int x = 0; x < hdr->dwWidth; x += 4)
 			{
 			if ((y >= hdr->dwHeight) || (x >= hdr->dwWidth))
 				break;
 
-			alphamask = fin + 2;
+			/*alphamask = fin + 2;*/
+			byte *alphamask = fin + 2;
 			fin += 8;
 
-			bitmask = ((uint *)fin)[1];
+			/*bitmask = ((uint *)fin)[1];*/
+			byte *alphamask = fin + 2;
 			fin += 8;
 
 			// last three bytes
-			bits = (alphamask[3]) | (alphamask[4] << 8) | (alphamask[5] << 16);
+			/*bits = (alphamask[3]) | (alphamask[4] << 8) | (alphamask[5] << 16);*/
+			uint bits = (alphamask[3]) | (alphamask[4] << 8) | (alphamask[5] << 16);
 
-			for (j = 2; j < 4; j++)
+			/*for (j = 2; j < 4; j++)*/
+			for (int j = 2; j < 4; j++)
 				{
-				for (i = 0; i < 4; i++)
+				/*for (i = 0; i < 4; i++)*/
+				for (int i = 0; i < 4; i++)
 					{
 					// only put pixels out < width or height
 					if (((x + i) < hdr->dwWidth) && ((y + j) < hdr->dwHeight))
@@ -128,6 +144,7 @@ static qboolean Image_CheckDXT5Alpha (dds_t *hdr, byte *fin)
 						if (bits & 0x07)
 							return true;
 						}
+
 					bits >>= 3;
 					}
 				}
@@ -282,31 +299,37 @@ static void Image_DXTGetPixelFormat (dds_t *hdr, dds_header_dxt10_t *headerExt)
 		image.num_mips = hdr->dwMipMapCount;	// get actual mip count
 	}
 
-// [FWGS, 01.03.26]
+// [FWGS, 01.07.26]
 static size_t Image_DXTCalcMipmapSize (dds_t *hdr)
 	{
 	size_t	buffsize = 0;
-	int		i, width, height, depth;
+	/*int		i, width, height, depth;*/
 
 	// now correct buffer size
-	for (i = 0; i < Q_max (1, (hdr->dwMipMapCount)); i++)
+	/*for (i = 0; i < Q_max (1, (hdr->dwMipMapCount)); i++)*/
+	for (int i = 0; i < Q_max (1, (hdr->dwMipMapCount)); i++)
 		{
-		width = Q_max (1, (hdr->dwWidth >> i));
+		/*width = Q_max (1, (hdr->dwWidth >> i));
 		height = Q_max (1, (hdr->dwHeight >> i));
 
-		depth = Q_max (1, (image.depth >> i));
+		depth = Q_max (1, (image.depth >> i));*/
+		int width = Q_max (1, (hdr->dwWidth >> i));
+		int height = Q_max (1, (hdr->dwHeight >> i));
+		int depth = Q_max (1, (image.depth >> i));
+
 		buffsize += Image_ComputeSize (image.type, width, height, depth);
 		}
 
 	return buffsize;
 	}
 
+// [FWGS, 01.07.26]
 static uint Image_DXTCalcSize (const char *name, dds_t *hdr, size_t filesize)
 	{
 	size_t	buffsize = 0;
-	int		w = image.width;
+	/*int		w = image.width;
 	int		h = image.height;
-	int		d = image.depth;
+	int		d = image.depth;*/
 
 	if (hdr->dsCaps.dwCaps2 & DDS_CUBEMAP)
 		{
@@ -331,7 +354,6 @@ static uint Image_DXTCalcSize (const char *name, dds_t *hdr, size_t filesize)
 
 	if (filesize != buffsize)	// main check
 		{
-		// [FWGS, 01.07.24]
 		Con_DPrintf (S_WARN "%s: (%s) probably corrupted (%zu should be %zu)\n", __func__,
 			name, buffsize, filesize);
 		if (buffsize > filesize)
@@ -352,14 +374,14 @@ static void Image_DXTAdjustVolume (dds_t *hdr)
 
 /***
 =============
-Image_LoadDDS
+Image_LoadDDS [FWGS, 01.07.26]
 =============
 ***/
 qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	dds_t	header;
-	byte	*fin;
-	int		headersOffset;
+	/*byte	*fin;
+	int		headersOffset;*/
 	dds_header_dxt10_t	header2;
 
 	if (filesize < sizeof (header))
@@ -367,29 +389,29 @@ qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesi
 
 	memcpy (&header, buffer, sizeof (header));
 
-	// [FWGS, 01.05.26] it's not a dds file, just skip it
+	// it's not a dds file, just skip it
 	le_struct_swap (dds_swap, &header);
 	if (header.dwIdent != DDSHEADER)
 		return false;
 
-	// [FWGS, 01.07.24] size of the structure (minus MagicNum)
+	// size of the structure (minus MagicNum)
 	if (header.dwSize != sizeof (header) - sizeof (uint))
 		{
 		Con_DPrintf (S_ERROR "%s: (%s) have corrupted header\n", __func__, name);
 		return false;
 		}
 
-	// [FWGS, 01.07.24] size of the structure
+	// size of the structure
 	if (header.dsPixelFormat.dwSize != sizeof (dds_pixf_t))
 		{
 		Con_DPrintf (S_ERROR "%s: (%s) have corrupt pixelformat header\n", __func__, name);
 		return false;
 		}
 
-	headersOffset = sizeof (header);
+	/*headersOffset = sizeof (header);*/
+	int headersOffset = sizeof (header);
 	if (header.dsPixelFormat.dwFourCC == TYPE_DX10)
 		{
-		// [FWGS, 01.05.26]
 		memcpy (&header2, buffer + sizeof (header), sizeof (header2));
 		le_struct_swap (dds_dxt10_swap, &header2);
 		headersOffset += sizeof (header2);
@@ -414,7 +436,6 @@ qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesi
 	if (!Image_CheckFlag (IL_DDS_HARDWARE) && ImageCompressed (image.type))
 		return false;
 
-	// [FWGS, 01.07.24]
 	if (image.type == PF_UNKNOWN)
 		{
 		Con_DPrintf (S_ERROR "%s: (%s) has unrecognized type\n", __func__, name);
@@ -425,7 +446,8 @@ qboolean Image_LoadDDS (const char *name, const byte *buffer, fs_offset_t filesi
 	if (image.size == 0)
 		return false;	// just in case
 
-	fin = (byte *)(buffer + headersOffset);
+	/*fin = (byte *)(buffer + headersOffset);*/
+	byte *fin = (byte *)(buffer + headersOffset);
 
 	// copy an encode method
 	image.encode = (word)header.dwReserved1[0];

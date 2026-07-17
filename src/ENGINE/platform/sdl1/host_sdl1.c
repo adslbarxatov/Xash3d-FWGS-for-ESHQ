@@ -129,25 +129,14 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 		}
 
 	// ESHQ: удалён спорный макрос
-	/*define DECLARE_KEY_RANGE( min, max, repl ) \
-	if( keynum >= (min) && keynum <= (max) ) \
-	{ \
-		keynum = keynum - (min) + (repl); \
-	}*/
-
-	/*DECLARE_KEY_RANGE (SDL_SCANCODE_A, SDL_SCANCODE_Z, 'a')*/
 	if (keynum >= (SDL_SCANCODE_A) && keynum <= (SDL_SCANCODE_Z))
 		{
 		keynum = keynum - (SDL_SCANCODE_A) + ('a');
 		}
-
-	/*DECLARE_KEY_RANGE (SDL_SCANCODE_1, SDL_SCANCODE_9, '1')*/
 	else if (keynum >= (SDL_SCANCODE_1) && keynum <= (SDL_SCANCODE_9))
 		{
 		keynum = keynum - (SDL_SCANCODE_1) + ('1');
 		}
-
-	/*DECLARE_KEY_RANGE (SDL_SCANCODE_F1, SDL_SCANCODE_F12, K_F1)*/
 	else if (keynum >= (SDL_SCANCODE_F1) && keynum <= (SDL_SCANCODE_F12))
 		{
 		keynum = keynum - (SDL_SCANCODE_F1) + (K_F1);
@@ -385,17 +374,18 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 
 /***
 =============
-SDLash_MouseEvent
+SDLash_MouseEvent [FWGS, 01.07.26]
 =============
 ***/
 static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
 	{
-	int down;
+	/*int down;
 
 	if (button.state == SDL_RELEASED)
 		down = 0;
 	else
-		down = 1;
+		down = 1;*/
+	const int down = (button.state != SDL_RELEASED);
 
 	switch (button.button)
 		{

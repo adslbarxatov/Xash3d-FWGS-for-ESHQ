@@ -65,12 +65,12 @@ void Cbuf_Clear (void)
 
 /***
 ============
-Cbuf_GetSpace [FWGS, 01.04.26]
+Cbuf_GetSpace [FWGS, 01.07.26]
 ============
 ***/
 static void *Cbuf_GetSpace (cmdbuf_t *buf, int length)
 	{
-	void *data;
+	/*void *data;*/
 
 	if ((buf->cursize + length) >= sizeof (buf->data))
 		{
@@ -78,7 +78,8 @@ static void *Cbuf_GetSpace (cmdbuf_t *buf, int length)
 		Host_Error ("%s: overflow\n", __func__);
 		}
 
-	data = buf->data + buf->cursize;
+	/*data = buf->data + buf->cursize;*/
+	void *data = buf->data + buf->cursize;
 	buf->cursize += length;
 
 	return data;
@@ -171,19 +172,19 @@ void Cbuf_InsertText (const char *text)
 
 /***
 ============
-Cbuf_Execute
+Cbuf_ExecuteCommandsFromBuffer [FWGS, 01.07.26]
 ============
 ***/
 static void Cbuf_ExecuteCommandsFromBuffer (cmdbuf_t *buf, qboolean isPrivileged, int cmdsToExecute)
 	{
-	char	*text;
+	/*char	*text;*/
 	char	line[MAX_CMD_LINE];
-	int		i, quotes;
-	char	*comment;
+	/*int		i, quotes;
+	char	*comment;*/
+	int		i;
 
 	while (buf->cursize)
 		{
-		// [FWGS, 15.04.26]
 		if (cmd_wait > 0)
 			{
 			cmd_wait--;
@@ -198,10 +199,13 @@ static void Cbuf_ExecuteCommandsFromBuffer (cmdbuf_t *buf, qboolean isPrivileged
 			}
 
 		// find a \n or ; line break
-		text = (char *)buf->data;
+		/*text = (char *)buf->data;*/
+		char	*text = (char *)buf->data;
 
-		quotes = false;
-		comment = NULL;
+		/*quotes = false;
+		comment = NULL;*/
+		int		quotes = false;
+		char	*comment = NULL;
 
 		for (i = 0; i < buf->cursize; i++)
 			{
@@ -394,16 +398,17 @@ static void Cmd_Wait_f (void)
 
 /***
 ===============
-Cmd_Echo_f [FWGS, 01.12.24]
+Cmd_Echo_f [FWGS, 01.07.26]
 
 Just prints the rest of the line to the console
 ===============
 ***/
 static void Cmd_Echo_f (void)
 	{
-	int	i;
+	/*int	i;
 
-	for (i = 1; i < Cmd_Argc (); i++)
+	for (i = 1; i < Cmd_Argc (); i++)*/
+	for (int i = 1; i < Cmd_Argc (); i++)
 		Con_Printf ("%s ", Cmd_Argv (i));
 
 	Con_Printf ("\n");
@@ -411,7 +416,7 @@ static void Cmd_Echo_f (void)
 
 /***
 ===============
-Cmd_Alias_f
+Cmd_Alias_f [FWGS, 01.07.26]
 
 Creates a new command that executes a command string (possibly ; seperated)
 ===============
@@ -419,9 +424,9 @@ Creates a new command that executes a command string (possibly ; seperated)
 static void Cmd_Alias_f (void)
 	{
 	cmdalias_t	*a;
-	char		cmd[MAX_CMD_LINE];
-	int			i, c;
-	const char	*s;
+	char	cmd[MAX_CMD_LINE];
+	/*int			i, c;
+	const char	*s;*/
 
 	if (Cmd_Argc () == 1)
 		{
@@ -431,7 +436,8 @@ static void Cmd_Alias_f (void)
 		return;
 		}
 
-	s = Cmd_Argv (1);
+	/*s = Cmd_Argv (1);*/
+	const char *s = Cmd_Argv (1);
 
 	if (Q_strlen (s) >= MAX_ALIAS_NAME)
 		{
@@ -439,7 +445,7 @@ static void Cmd_Alias_f (void)
 		return;
 		}
 
-	// [FWGS, 01.02.25] if the alias already exists, reuse it
+	// if the alias already exists, reuse it
 	for (a = cmd_alias; a; a = a->next)
 		{
 		if (!Q_strcmp (s, a->name))
@@ -466,38 +472,40 @@ static void Cmd_Alias_f (void)
 			cmd_alias = a;
 		a->next = cur;
 
-		// [FWGS, 01.03.26]
 		BaseCmd_Insert (HM_CMDALIAS, a, a->name);
 		}
 
 	// copy the rest of the command line
-	cmd[0] = 0; // start out with a null string
-	c = Cmd_Argc ();
+	cmd[0] = 0;	// start out with a null string
+	
+	/*c = Cmd_Argc ();*/
+	int c = Cmd_Argc ();
 
-	for (i = 2; i < c; i++)
+	/*for (i = 2; i < c; i++)*/
+	for (int i = 2; i < c; i++)
 		{
 		if (i != 2)
 			Q_strncat (cmd, " ", sizeof (cmd));
+
 		Q_strncat (cmd, Cmd_Argv (i), sizeof (cmd));
 		}
 
-	// [FWGS, 01.02.25]
 	Q_strncat (cmd, "\n", sizeof (cmd));
 	a->value = copystringpool (cmd_pool, cmd);
 	}
 
 /***
 ===============
-Cmd_UnAlias_f
+Cmd_UnAlias_f [FWGS, 01.07.26]
 
 Remove existing aliases
 ===============
 ***/
 static void Cmd_UnAlias_f (void)
 	{
-	cmdalias_t	*a, *p;
+	/*cmdalias_t	*a, *p;
 	const char	*s;
-	int			i;
+	int			i;*/
 
 	if (Cmd_Argc () == 1)
 		{
@@ -505,12 +513,16 @@ static void Cmd_UnAlias_f (void)
 		return;
 		}
 
-	for (i = 1; i < Cmd_Argc (); i++)
+	/*for (i = 1; i < Cmd_Argc (); i++)*/
+	for (int i = 1; i < Cmd_Argc (); i++)
 		{
-		s = Cmd_Argv (i);
+		/*s = Cmd_Argv (i);
 		p = NULL;
 
-		// [FWGS, 01.03.26]
+		// [FWGS, 01.03.26]*/
+		const char	*s = Cmd_Argv (i);
+		cmdalias_t	*a, *p = NULL;
+
 		for (a = cmd_alias; a; p = a, a = a->next)
 			{
 			if (!Q_strcmp (s, a->name))
@@ -603,7 +615,7 @@ const char *GAME_EXPORT Cmd_GetName (cmd_t *cmd)
 
 /***
 ============
-Cmd_TokenizeString
+Cmd_TokenizeString [FWGS, 01.07.26]
 
 Parses the given string into command line tokens.
 The text is copied to a seperate buffer and 0 characters
@@ -614,10 +626,11 @@ will point into this temporary buffer
 void Cmd_TokenizeString (const char *text)
 	{
 	char	cmd_token[MAX_CMD_BUFFER];
-	int		i;
+	/*int		i;*/
 
-	// [FWGS, 01.02.25] clear the args from the last string
-	for (i = 0; i < cmd_argc; i++)
+	// clear the args from the last string
+	/*for (i = 0; i < cmd_argc; i++)*/
+	for (int i = 0; i < cmd_argc; i++)
 		Mem_Free (cmd_argv[i]);
 
 	cmd_argc = 0;	// clear previous args
@@ -637,6 +650,7 @@ void Cmd_TokenizeString (const char *text)
 			// a newline seperates commands in the buffer
 			if ((*text == '\r') && (text[1] == '\n'))
 				text++;
+
 			text++;
 			break;
 			}
@@ -644,9 +658,6 @@ void Cmd_TokenizeString (const char *text)
 		if (!*text)
 			return;
 
-		// [FWGS, 01.05.26]
-		/*if (cmd_argc == 1)
-			cmd_args = text;*/
 		switch (cmd_argc)
 			{
 			case 0:
@@ -663,7 +674,6 @@ void Cmd_TokenizeString (const char *text)
 		if (!text)
 			return;
 
-		// [FWGS, 01.02.25]
 		if (cmd_argc < MAX_CMD_TOKENS)
 			{
 			cmd_argv[cmd_argc] = copystringpool (cmd_pool, cmd_token);
@@ -750,24 +760,25 @@ int Cmd_AddCommandEx (const char *cmd_name, xcommand_t function, const char *cmd
 
 /***
 ============
-Cmd_RemoveCommand
+Cmd_RemoveCommand [FWGS, 01.07.26]
 ============
 ***/
 void GAME_EXPORT Cmd_RemoveCommand (const char *cmd_name)
 	{
-	cmd_t *cmd, **back;
+	/*cmd_t *cmd, **back;*/
 
 	if (!cmd_name || !*cmd_name)
 		return;
 
-	back = &cmd_functions;
+	/*back = &cmd_functions;*/
+	cmd_t **back = &cmd_functions;
 	while (1)
 		{
-		cmd = *back;
+		/*cmd = *back;*/
+		cmd_t *cmd = *back;
 		if (!cmd)
 			return;
 
-		// [FWGS, 01.03.26]
 		if (!Q_strcmp (cmd_name, cmd->name))
 			{
 			BaseCmd_Remove (HM_CMD, cmd->name);
@@ -786,18 +797,20 @@ void GAME_EXPORT Cmd_RemoveCommand (const char *cmd_name)
 
 /***
 ============
-Cmd_LookupCmds
+Cmd_LookupCmds [FWGS, 01.07.26]
 ============
 ***/
 void Cmd_LookupCmds (void *buffer, void *ptr, setpair_t callback)
 	{
-	cmd_t		*cmd;
-	cmdalias_t	*alias;
+	/*cmd_t		*cmd;
+	cmdalias_t	*alias;*/
 
 	// nothing to process?
-	if (!callback) return;
+	if (!callback)
+		return;
 
-	for (cmd = cmd_functions; cmd; cmd = cmd->next)
+	/*for (cmd = cmd_functions; cmd; cmd = cmd->next)*/
+	for (cmd_t *cmd = cmd_functions; cmd; cmd = cmd->next)
 		{
 		if (!buffer)
 			callback (cmd->name, (char *)cmd->function, cmd->desc, ptr);
@@ -806,7 +819,8 @@ void Cmd_LookupCmds (void *buffer, void *ptr, setpair_t callback)
 		}
 
 	// lookup an aliases too
-	for (alias = cmd_alias; alias; alias = alias->next)
+	/*for (alias = cmd_alias; alias; alias = alias->next)*/
+	for (cmdalias_t *alias = cmd_alias; alias; alias = alias->next)
 		callback (alias->name, alias->value, buffer, ptr);
 	}
 
@@ -867,7 +881,7 @@ static void Cmd_If_f (void)
 				cmd_condition |= BIT (cmd_condlevel);
 			}
 
-		if (cmd_argv[2][0] == '!') 					// !=
+		if (cmd_argv[2][0] == '!') 	// !=
 			{
 			cmd_condition ^= BIT (cmd_condlevel);
 			return;
@@ -893,18 +907,19 @@ static void Cmd_Else_f (void)
 	cmd_condition ^= BIT (cmd_condlevel);
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.07.26]
 static qboolean Cmd_ShouldAllowCommand (cmd_t *cmd, qboolean isPrivileged)
 	{
 	const char *prefixes[] = { "cl_", "gl_", "r_", "m_", "hud_", "joy_", "con_", "scr_" };
-	int i;
+	/*int i;*/
 
 	// always allow local commands
 	if (isPrivileged)
 		return true;
 
 	// never allow local only commands from remote
-	if (FBitSet (cmd->flags, CMD_PRIVILEGED))
+	/*if (FBitSet (cmd->flags, CMD_PRIVILEGED))*/
+	if (FBitSet (cmd->flags, CMD_PRIVILEGED) || (cmd->name[0] == '@'))
 		return false;
 
 	// allow engine commands if user don't mind
@@ -914,7 +929,8 @@ static qboolean Cmd_ShouldAllowCommand (cmd_t *cmd, qboolean isPrivileged)
 	if (FBitSet (cmd->flags, CMD_FILTERABLE))
 		return false;
 
-	for (i = 0; i < HLARRAYSIZE (prefixes); i++)
+	/*for (i = 0; i < HLARRAYSIZE (prefixes); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (prefixes); i++)
 		{
 		if (!Q_strnicmp (cmd->name, prefixes[i], Q_strlen (prefixes[i])))
 			return false;
@@ -990,7 +1006,7 @@ static void Cmd_ExecuteStringWithPrivilegeCheck (const char *text, qboolean isPr
 	Cmd_TokenizeString (text);
 
 	if (!Cmd_Argc ())
-		return; // no tokens
+		return;	// no tokens
 
 	// [FWGS, 01.03.26]
 	BaseCmd_FindAll (cmd_argv[0], &cmd, &a, &cvar);
@@ -1095,12 +1111,12 @@ void Cmd_ForwardToServer (void)
 
 /***
 ============
-Cmd_List_f
+Cmd_List_f [FWGS, 01.07.26]
 ============
 ***/
 static void Cmd_List_f (void)
 	{
-	cmd_t	*cmd;
+	/*cmd_t	*cmd;*/
 	int		i = 0;
 	size_t	matchlen = 0;
 	const char	*match = NULL;
@@ -1111,7 +1127,8 @@ static void Cmd_List_f (void)
 		matchlen = Q_strlen (match);
 		}
 
-	for (cmd = cmd_functions; cmd; cmd = cmd->next)
+	/*for (cmd = cmd_functions; cmd; cmd = cmd->next)*/
+	for (cmd_t *cmd = cmd_functions; cmd; cmd = cmd->next)
 		{
 		if (cmd->name[0] == '@')
 			continue;	// never show system cmds
@@ -1128,15 +1145,15 @@ static void Cmd_List_f (void)
 
 /***
 ============
-Cmd_Unlink
+Cmd_Unlink [FWGS, 01.07.26]
 
 unlink all commands with specified flag
 ============
 ***/
 void Cmd_Unlink (int group)
 	{
-	cmd_t	*cmd;
-	cmd_t	**prev;
+	/*cmd_t	*cmd;
+	cmd_t	**prev;*/
 	int		count = 0;
 
 	if (FBitSet (group, CMD_SERVERDLL) && Cvar_VariableInteger ("host_gameloaded"))
@@ -1148,11 +1165,13 @@ void Cmd_Unlink (int group)
 	if (FBitSet (group, CMD_GAMEUIDLL) && Cvar_VariableInteger ("host_gameuiloaded"))
 		return;
 
-	prev = &cmd_functions;
+	/*prev = &cmd_functions;*/
+	cmd_t **prev = &cmd_functions;
 
 	while (1)
 		{
-		cmd = *prev;
+		/*cmd = *prev;*/
+		cmd_t *cmd = *prev;
 		if (!cmd)
 			break;
 
@@ -1163,11 +1182,9 @@ void Cmd_Unlink (int group)
 			continue;
 			}
 
-		// [FWGS, 01.03.26]
 		BaseCmd_Remove (HM_CMD, cmd->name);
 		*prev = cmd->next;
 
-		// [FWGS, 01.02.25]
 		if (cmd->name)
 			Mem_Free (cmd->name);
 
@@ -1178,14 +1195,15 @@ void Cmd_Unlink (int group)
 	Con_Reportf ("unlink %i commands\n", count);
 	}
 
+// [FWGS, 01.07.26]
 static void Cmd_Apropos_f (void)
 	{
-	cmd_t		*cmd;
+	/*cmd_t		*cmd;
 	convar_t	*var;
 	cmdalias_t	*alias;
-	const char	*partial;
-	int			count = 0;
-	char		buf[MAX_VA_STRING];
+	const char	*partial;*/
+	int		count = 0;
+	char	buf[MAX_VA_STRING];
 
 	if (Cmd_Argc () < 2)
 		{
@@ -1193,14 +1211,16 @@ static void Cmd_Apropos_f (void)
 		return;
 		}
 
-	partial = Cmd_Args ();
+	/*partial = Cmd_Args ();*/
+	const char *partial = Cmd_Args ();
 	if (!Q_strpbrk (partial, "*?"))
 		{
 		Q_snprintf (buf, sizeof (buf), "*%s*", partial);
 		partial = buf;
 		}
 
-	for (var = (convar_t *)Cvar_GetList (); var; var = var->next)
+	/*for (var = (convar_t *)Cvar_GetList (); var; var = var->next)*/
+	for (convar_t *var = (convar_t *)Cvar_GetList (); var; var = var->next)
 		{
 		if (!matchpattern_with_separator (var->name, partial, true, "", false))
 			{
@@ -1220,14 +1240,14 @@ static void Cmd_Apropos_f (void)
 
 		// TODO: maybe add flags output like cvarlist, also
 		// fix inconsistencies in output from different commands
-		Msg ("cvar ^3%s^7 is \"%s\" [\"%s\"] %s\n",
-			var->name, var->string,
+		Msg ("cvar ^3%s^7 is \"%s\" [\"%s\"] %s\n", var->name, var->string,
 			(var->flags & FCVAR_EXTENDED) ? var->def_string : "",
 			(var->flags & FCVAR_EXTENDED) ? var->desc : "game cvar");
 		count++;
 		}
 
-	for (cmd = Cmd_GetFirstFunctionHandle (); cmd; cmd = Cmd_GetNextFunctionHandle (cmd))
+	/*for (cmd = Cmd_GetFirstFunctionHandle (); cmd; cmd = Cmd_GetNextFunctionHandle (cmd))*/
+	for (cmd_t *cmd = Cmd_GetFirstFunctionHandle (); cmd; cmd = Cmd_GetNextFunctionHandle (cmd))
 		{
 		if (cmd->name[0] == '@')
 			continue;	// never show system cmds
@@ -1240,7 +1260,8 @@ static void Cmd_Apropos_f (void)
 		count++;
 		}
 
-	for (alias = Cmd_AliasGetList (); alias; alias = alias->next)
+	/*for (alias = Cmd_AliasGetList (); alias; alias = alias->next)*/
+	for (cmdalias_t *alias = Cmd_AliasGetList (); alias; alias = alias->next)
 		{
 		// proceed a bit differently here as an alias value always got a final \n
 		if (!matchpattern_with_separator (alias->name, partial, true, "", false) &&
@@ -1309,15 +1330,16 @@ static void Cmd_MakePrivileged_f (void)
 
 /***
 ===============
-Cmd_ExecScript [FWGS, 15.04.26]
+Cmd_ExecScript [FWGS, 01.07.26]
 ===============
 ***/
 static void Cmd_ExecScript (const char *filename)
 	{
-	byte		*f;
+	/*byte		*f;*/
 	fs_offset_t	len;
+	byte *f = FS_LoadFile (filename, &len, false);
 
-	f = FS_LoadFile (filename, &len, false);
+	/*f = FS_LoadFile (filename, &len, false);*/
 	if (!f)
 		{
 		Con_Reportf ("couldn't exec %s\n", filename);
@@ -1347,7 +1369,7 @@ static void Cmd_ExecScript (const char *filename)
 
 /***
 ===============
-Cmd_UnprivilegedExec_f [FWGS, 15.04.26]
+Cmd_UnprivilegedExec_f [FWGS, 01.07.26]
 ===============
 ***/
 static void Cmd_UnprivilegedExec_f (void)
@@ -1374,8 +1396,8 @@ static void Cmd_UnprivilegedExec_f (void)
 			"scout.cfg", "sniper.cfg", "soldier.cfg", "spy.cfg",
 			};
 
-		char		mapcfg[MAX_VA_STRING];
-		qboolean	allow = false;
+		char	mapcfg[MAX_VA_STRING];
+		/*qboolean	allow = false;*/
 
 		Q_snprintf (mapcfg, sizeof (mapcfg), "%s.cfg", clgame.mapname);
 
@@ -1436,7 +1458,8 @@ static void Cmd_Exec_f (void)
 		if (!search || !search->numfilenames)
 			{
 			Con_Printf ("couldn't exec %s\n", Cmd_Argv (1));
-			if (search) Mem_Free (search);
+			if (search)
+				Mem_Free (search);
 			return;
 			}
 
@@ -1522,8 +1545,9 @@ Cmd_Init
 ***/
 void Cmd_Init (void)
 	{
-	// [FWGS, 01.02.25]
-	cmd_pool = Mem_AllocPool ("Console Commands");
+	// [FWGS, 01.07.26]
+	/*cmd_pool = Mem_AllocPool ("Console Commands");*/
+	cmd_pool = Mem_AllocPoolExt ("Console Commands", MEM_SMALL_ALLOC_OPT);
 
 	// [FWGS, 15.04.26]
 	cmd_functions = NULL;

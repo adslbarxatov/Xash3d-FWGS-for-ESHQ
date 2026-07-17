@@ -40,19 +40,22 @@ le_struct_end ();
 
 /***
 =============
-Image_LoadBMP
+Image_LoadBMP [FWGS, 01.07.26]
 =============
 ***/
 qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
-	byte		*buf_p, *pixbuf;
-	rgba_t		palette[256] = { 0 };
-	int			i, columns, column, rows, row, bpp = 1;
-	int			cbPalBytes = 0, padSize = 0, bps = 0;
-	uint		reflectivity[3] = { 0, 0, 0 };
+	/*byte		*buf_p, *pixbuf;*/
+	byte	*pixbuf;
+	rgba_t	palette[256] = { 0 };
+	/*int			i, columns, column, rows, row, bpp = 1;
+	int			cbPalBytes = 0, padSize = 0, bps = 0;*/
+	int		columns, column, rows, row, bpp = 1;
+	int		cbPalBytes = 0, padSize = 0;
+	uint	reflectivity[3] = { 0, 0, 0 };
 	qboolean	load_qfont = false;
 	bmp_t		bhdr;
-	fs_offset_t	estimatedSize;
+	/*fs_offset_t	estimatedSize;*/
 
 	if (filesize < sizeof (bhdr))
 		{
@@ -61,10 +64,10 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 		return false;
 		}
 
-	buf_p = (byte *)buffer;
+	/*buf_p = (byte *)buffer;*/
+	byte *buf_p = (byte *)buffer;
 	memcpy (&bhdr, buf_p, sizeof (bmp_t));
 
-	// [FWGS, 01.05.26]
 	le_struct_swap (bmp_swap, &bhdr);
 
 	buf_p += BI_FILE_HEADER_SIZE + bhdr.bitmapHeaderSize;
@@ -124,7 +127,6 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 		load_qfont = true;
 		}
 
-	// [FWGS, 01.11.25]
 	if (bhdr.bitsPerPixel <= 8)
 		{
 		// figure out how many entries are actually in the table
@@ -146,7 +148,8 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 			}
 		}
 
-	estimatedSize = (buf_p - buffer) + cbPalBytes;
+	/*estimatedSize = (buf_p - buffer) + cbPalBytes;*/
+	fs_offset_t estimatedSize = (buf_p - buffer) + cbPalBytes;
 	if (filesize < estimatedSize)
 		{
 		Con_Reportf (S_ERROR "%s: %s have incorrect file size %li should be greater than %li (palette)\n",
@@ -159,7 +162,8 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 	// setup gradient alpha for player decal
 	if (!Q_strncmp (name, "#logo", 5))
 		{
-		for (i = 0; i < bhdr.colors; i++)
+		/*for (i = 0; i < bhdr.colors; i++)*/
+		for (int i = 0; i < bhdr.colors; i++)
 			palette[i][3] = i;
 		image.flags |= IMAGE_HAS_ALPHA;
 		}
@@ -167,7 +171,8 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 	if (Image_CheckFlag (IL_OVERVIEW) && (bhdr.bitsPerPixel == 8))
 		{
 		// convert green background into alpha-layer, make opacity for all other entries
-		for (i = 0; (i < bhdr.colors) && (i < 256); i++)
+		/*for (i = 0; (i < bhdr.colors) && (i < 256); i++)*/
+		for (int i = 0; (i < bhdr.colors) && (i < 256); i++)
 			{
 			if ((palette[i][0] == 0) && (palette[i][1] == 255) && (palette[i][2] == 0))
 				{
@@ -186,7 +191,8 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 		pixbuf = image.palette = Mem_Malloc (host.imagepool, 1024);
 
 		// bmp have a reversed palette colors
-		for (i = 0; i < bhdr.colors; i++)
+		/*for (i = 0; i < bhdr.colors; i++)*/
+		for (int i = 0; i < bhdr.colors; i++)
 			{
 			*pixbuf++ = palette[i][2];
 			*pixbuf++ = palette[i][1];
@@ -203,7 +209,8 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 
 	buf_p += cbPalBytes;
-	bps = image.width * (bhdr.bitsPerPixel >> 3);
+	/*bps = image.width * (bhdr.bitsPerPixel >> 3);*/
+	int bps = image.width * (bhdr.bitsPerPixel >> 3);
 
 	switch (bhdr.bitsPerPixel)
 		{
@@ -261,7 +268,6 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 
 					for (c = 0, k = 128; c < 8; c++, k >>= 1)
 						{
-						// [FWGS, 01.03.26]
 						if (++column >= columns)
 							break;
 
@@ -330,9 +336,7 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 						}
 					break;
 
-				// [FWGS, 01.05.26]
 				case 16:
-					/*shortPixel = *(word *)buf_p, buf_p += 2;*/
 					shortPixel = buf_p[0] | (buf_p[1] << 8);
 					buf_p += 2;
 
@@ -388,18 +392,19 @@ qboolean Image_LoadBMP (const char *name, const byte *buffer, fs_offset_t filesi
 	return true;
 	}
 
-// [FWGS, 01.03.26]
+// [FWGS, 01.07.26]
 qboolean Image_SaveBMP (const char *name, rgbdata_t *pix)
 	{
-	file_t	*pfile = NULL;
+	/*file_t	*pfile = NULL;*/
 	rgba_t	rgrgbPalette[256];
-	dword	cbBmpBits;
+	/*dword	cbBmpBits;
 	byte	*pb, *pbBmpBits;
 	dword	cbPalBytes;
-	dword	biTrueWidth;
+	dword	biTrueWidth;*/
+	byte	*pb;
 	int		pixel_size;
-	int		i, x, y;
-	bmp_t	hdr;
+	/*int		i, x, y;
+	bmp_t	hdr;*/
 
 	if (FS_FileExists (name, false) && !Image_CheckFlag (IL_ALLOW_OVERWRITE))
 		return false;	// already existed
@@ -430,18 +435,24 @@ qboolean Image_SaveBMP (const char *name, rgbdata_t *pix)
 			return false;
 		}
 
-	pfile = FS_Open (name, "wb", false);
+	/*pfile = FS_Open (name, "wb", false);
+	if (!pfile)
+		return false;*/
+	file_t *pfile = FS_Open (name, "wb", false);
 	if (!pfile)
 		return false;
 
 	// NOTE: align transparency column will sucessfully removed
 	// after create sprite or lump image, it's just standard requiriments
-	biTrueWidth = ((pix->width + 3) & ~3);
+	/*biTrueWidth = ((pix->width + 3) & ~3);
 	cbBmpBits = biTrueWidth * pix->height * pixel_size;
-	cbPalBytes = (pixel_size == 1) ? 256 * sizeof (rgba_t) : 0;
+	cbPalBytes = (pixel_size == 1) ? 256 * sizeof (rgba_t) : 0;*/
+	dword biTrueWidth = ((pix->width + 3) & ~3);
+	dword cbBmpBits = biTrueWidth * pix->height * pixel_size;
+	dword cbPalBytes = (pixel_size == 1) ? 256 * sizeof (rgba_t) : 0;
 
 	// Bogus file header check
-	hdr.id[0] = 'B';
+	/*hdr.id[0] = 'B';
 	hdr.id[1] = 'M';
 	hdr.fileSize = sizeof (hdr) + cbBmpBits + cbPalBytes;
 	hdr.reserved0 = 0;
@@ -458,19 +469,36 @@ qboolean Image_SaveBMP (const char *name, rgbdata_t *pix)
 	hdr.colors = (pixel_size == 1) ? 256 : 0;
 	hdr.importantColors = 0;
 
-	// [FWGS, 01.05.26]
+	// [FWGS, 01.05.26]*/
+	bmp_t hdr =
+		{
+		.id = { 'B', 'M' },
+		.fileSize = sizeof (hdr) + cbBmpBits + cbPalBytes,
+		.bitmapDataOffset = sizeof (hdr) + cbPalBytes,
+		.bitmapHeaderSize = BI_SIZE,
+		.width = biTrueWidth,
+		.height = pix->height,
+		.planes = 1,
+		.bitsPerPixel = pixel_size * 8,
+		.compression = BI_RGB,
+		.bitmapDataSize = cbBmpBits,
+		.colors = (pixel_size == 1) ? 256 : 0,
+		};
+
 	le_struct_swap (bmp_swap, &hdr);
 	FS_Write (pfile, &hdr, sizeof (bmp_t));
 	le_struct_swap (bmp_swap, &hdr);
 
-	pbBmpBits = Mem_Malloc (host.imagepool, cbBmpBits);
+	/*pbBmpBits = Mem_Malloc (host.imagepool, cbBmpBits);*/
+	byte *pbBmpBits = Mem_Malloc (host.imagepool, cbBmpBits);
 
 	if (pixel_size == 1)
 		{
 		pb = pix->palette;
 
 		// copy over used entries
-		for (i = 0; i < (int)hdr.colors; i++)
+		/*for (i = 0; i < (int)hdr.colors; i++)*/
+		for (int i = 0; i < (int)hdr.colors; i++)
 			{
 			rgrgbPalette[i][2] = *pb++;
 			rgrgbPalette[i][1] = *pb++;
@@ -490,9 +518,11 @@ qboolean Image_SaveBMP (const char *name, rgbdata_t *pix)
 
 	pb = pix->buffer;
 
-	for (y = 0; y < hdr.height; y++)
+	/*for (y = 0; y < hdr.height; y++)*/
+	for (int y = 0; y < hdr.height; y++)
 		{
-		i = (hdr.height - 1 - y) * (hdr.width);
+		/*i = (hdr.height - 1 - y) * (hdr.width);*/
+		int i = (hdr.height - 1 - y) * (hdr.width);
 
 		if (pixel_size == 1)
 			{
@@ -500,7 +530,8 @@ qboolean Image_SaveBMP (const char *name, rgbdata_t *pix)
 			}
 		else
 			{
-			for (x = 0; x < pix->width; x++)
+			/*for (x = 0; x < pix->width; x++)*/
+			for (int x = 0; x < pix->width; x++)
 				{
 				// 24 bit
 				qboolean be = ImageBigEndian (pix->type);

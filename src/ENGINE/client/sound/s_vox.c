@@ -52,10 +52,11 @@ static qboolean S_ShouldTrimSample16 (const int16_t *buf, int channels)
 	return true;
 	}
 
-// [FWGS, 01.01.24]
+// [FWGS, 01.07.26]
 static int S_TrimStart (const wavdata_t *wav, int start)
 	{
-	size_t channels = wav->channels, width = wav->width, i;
+	/*size_t channels = wav->channels, width = wav->width, i;*/
+	size_t channels = wav->channels, width = wav->width;
 
 	if (wav->type != WF_PCMDATA)
 		return start;
@@ -64,7 +65,8 @@ static int S_TrimStart (const wavdata_t *wav, int start)
 		{
 		const int8_t *data = (const int8_t *)&wav->buffer[channels * width * start];
 
-		for (i = 0; (i < TRIM_SCAN_MAX) && (start < wav->samples); i++)
+		/*for (i = 0; (i < TRIM_SCAN_MAX) && (start < wav->samples); i++)*/
+		for (size_t i = 0; (i < TRIM_SCAN_MAX) && (start < wav->samples); i++)
 			{
 			if (!S_ShouldTrimSample8 (data, wav->channels))
 				break;
@@ -77,7 +79,8 @@ static int S_TrimStart (const wavdata_t *wav, int start)
 		{
 		const int16_t *data = (const int16_t *)&wav->buffer[channels * width * start];
 
-		for (i = 0; (i < TRIM_SCAN_MAX) && (start < wav->samples); i++)
+		/*for (i = 0; (i < TRIM_SCAN_MAX) && (start < wav->samples); i++)*/
+		for (size_t i = 0; (i < TRIM_SCAN_MAX) && (start < wav->samples); i++)
 			{
 			if (!S_ShouldTrimSample16 (data, wav->channels))
 				break;
@@ -90,10 +93,11 @@ static int S_TrimStart (const wavdata_t *wav, int start)
 	return start;
 	}
 
-// [FWGS, 01.09.24]
+// [FWGS, 01.07.26]
 static int S_TrimEnd (const wavdata_t *wav, int end)
 	{
-	size_t channels = wav->channels, width = wav->width, i;
+	/*size_t channels = wav->channels, width = wav->width, i;*/
+	size_t channels = wav->channels, width = wav->width;
 
 	if (wav->type != WF_PCMDATA)
 		return end;
@@ -102,7 +106,8 @@ static int S_TrimEnd (const wavdata_t *wav, int end)
 		{
 		const int8_t *data = (const int8_t *)&wav->buffer[channels * width * (end - 1)];
 
-		for (i = 0; (i < TRIM_SCAN_MAX) && (end > 0); i++)
+		/*for (i = 0; (i < TRIM_SCAN_MAX) && (end > 0); i++)*/
+		for (size_t i = 0; (i < TRIM_SCAN_MAX) && (end > 0); i++)
 			{
 			if (!S_ShouldTrimSample8 (data, wav->channels))
 				break;
@@ -115,7 +120,8 @@ static int S_TrimEnd (const wavdata_t *wav, int end)
 		{
 		const int16_t *data = (const int16_t *)&wav->buffer[channels * width * (end - 1)];
 
-		for (i = 0; (i < TRIM_SCAN_MAX) && (end > 0); i++)
+		/*for (i = 0; (i < TRIM_SCAN_MAX) && (end > 0); i++)*/
+		for (size_t i = 0; (i < TRIM_SCAN_MAX) && (end > 0); i++)
 			{
 			if (!S_ShouldTrimSample16 (data, wav->channels))
 				break;
@@ -227,11 +233,11 @@ float VOX_ModifyPitch (channel_t *ch, float pitch)
 	return pitch;
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.07.26]
 static const char *VOX_GetDirectory (char *szpath, const char *psz, int nsize)
 	{
-	const char	*p;
-	int			len;
+	/*const char	*p;
+	int			len;*/
 
 	// HACKHACK: some modders send strings like "/fvox/_period four"
 	// which should get parsed as "_period four" said by fvox
@@ -240,16 +246,16 @@ static const char *VOX_GetDirectory (char *szpath, const char *psz, int nsize)
 		psz++;
 
 	// search / backwards
-	p = Q_strrchr (psz, '/');
-
+	/*p = Q_strrchr (psz, '/');*/
+	const char *p = Q_strrchr (psz, '/');
 	if (!p)
 		{
 		Q_strncpy (szpath, "vox/", nsize);
 		return psz;
 		}
 
-	len = p - psz + 1;
-
+	/*len = p - psz + 1;*/
+	int len = p - psz + 1;
 	if (len > nsize)
 		{
 		Con_Printf ("%s: invalid directory in: %s\n", __func__, psz);
@@ -264,8 +270,9 @@ static const char *VOX_GetDirectory (char *szpath, const char *psz, int nsize)
 
 static const char *VOX_LookupString (const char *pszin)
 	{
-	int i = -1, len;
-	const char *c;
+	/*int i = -1, len;
+	const char *c;*/
+	int i = -1;
 
 	// check if we are an immediate sentence
 	if (*pszin == '#')
@@ -297,9 +304,12 @@ static const char *VOX_LookupString (const char *pszin)
 	if (i == cszrawsentences)
 		return NULL;
 
-	len = Q_strlen (rgpszrawsentence[i]);
+	/*len = Q_strlen (rgpszrawsentence[i]);*/
+	int len = Q_strlen (rgpszrawsentence[i]);
 
-	c = &rgpszrawsentence[i][len + 1];
+	/*c = &rgpszrawsentence[i][len + 1];*/
+	const char *c = &rgpszrawsentence[i][len + 1];
+
 	for (; (*c == ' ') || (*c == '\t'); c++);
 
 	return c;
@@ -323,7 +333,7 @@ static int VOX_ParseString (char *psz, char *rgpparseword[CVOXWORDMAX])
 			(*psz != ',') &&
 			(*psz != '('); psz++);
 
-		// skip anything in between ( and )
+		// skip anything in between (and)
 		if (*psz == '(')
 			{
 			for (; *psz && (*psz != ')'); psz++);
@@ -369,13 +379,15 @@ static void VOX_MakeDefaultWordParams (voxword_t *voxword)
 		};
 	}
 
+// [FWGS, 01.07.26]
 static qboolean VOX_ParseWordParams (char *psz, voxword_t *pvoxword, voxword_t *default_voxword)
 	{
-	int len, i;
+	/*int len, i;*/
 	char sznum[8], *pszsave = psz;
 	*pvoxword = *default_voxword;
 
-	len = Q_strlen (psz);
+	/*len = Q_strlen (psz);*/
+	int len = Q_strlen (psz);
 	if (len == 0)
 		return false;
 
@@ -394,7 +406,8 @@ static qboolean VOX_ParseWordParams (char *psz, voxword_t *pvoxword, voxword_t *
 
 	for (;; )
 		{
-		char command;
+		char	command;
+		int		i;
 
 		// find command
 		for (; *psz && (*psz != 'v') &&
@@ -407,13 +420,10 @@ static qboolean VOX_ParseWordParams (char *psz, voxword_t *pvoxword, voxword_t *
 
 		command = *psz++;
 
-		// [FWGS, 01.05.26]
-		/*if (!isdigit (*psz))*/
 		if (!isdigit ((byte)*psz))
 			break;
 
 		memset (sznum, 0, sizeof (sznum));
-		/*for (i = 0; i < sizeof (sznum) - 1 && isdigit (*psz); i++, psz++)*/
 		for (i = 0; (i < sizeof (sznum) - 1) && isdigit ((byte)*psz); i++, psz++)
 			sznum[i] = *psz;
 
@@ -452,13 +462,14 @@ static qboolean VOX_ParseWordParams (char *psz, voxword_t *pvoxword, voxword_t *
 	return true;
 	}
 
-// [FWGS, 15.04.26]
+// [FWGS, 01.07.26]
 void VOX_LoadSound (channel_t *ch, const char *pszin)
 	{
 	char	buffer[512] = { 0 }, szpath[32] = { 0 };
 	char	*rgpparseword[CVOXWORDMAX] = { 0 };
 	const char	*psz;
-	int		i, j;
+	/*int		i, j;*/
+	int		j;
 	int		num_words;
 	voxword_t	default_voxword;
 
@@ -502,7 +513,9 @@ void VOX_LoadSound (channel_t *ch, const char *pszin)
 	VOX_MakeDefaultWordParams (&default_voxword);
 	memset (words_buf, 0, sizeof (words_buf));
 
-	for (i = 0, j = 0; i < num_words; i++)
+	/*for (i = 0, j = 0; i < num_words; i++)*/
+	j = 0;
+	for (int i = 0; i < num_words; i++)
 		{
 		char pathbuffer[MAX_SYSPATH];
 
@@ -601,19 +614,23 @@ void VOX_Init (void)
 	VOX_ReadSentenceFile (DEFAULT_SOUNDPATH "sentences.txt");
 	}
 
+// [FWGS, 01.07.26]
 void VOX_Shutdown (void)
 	{
-	int i;
+	/*int i;
 
-	for (i = 0; i < cszrawsentences; i++)
+	for (i = 0; i < cszrawsentences; i++)*/
+	for (int i = 0; i < cszrawsentences; i++)
 		Mem_Free (rgpszrawsentence[i]);
 
 	cszrawsentences = 0;
 	}
 
 #if XASH_ENGINE_TESTS
+
 #include "tests.h"
 
+// [FWGS, 01.07.26]
 static void Test_VOX_GetDirectory (void)
 	{
 	const char *data[] =
@@ -623,9 +640,10 @@ static void Test_VOX_GetDirectory (void)
 		"barney/meow", "meow", "barney/",
 		"/fvox/_period", "_period", "fvox/",
 		};
-	int i;
+	/*int i;*/
 
-	for (i = 0; i < sizeof (data) / sizeof (data[0]); i += 3)
+	/*for (i = 0; i < sizeof (data) / sizeof (data[0]); i += 3)*/
+	for (int i = 0; i < sizeof (data) / sizeof (data[0]); i += 3)
 		{
 		string szpath;
 		const char *p = VOX_GetDirectory (szpath, data[i + 0], sizeof (szpath));
@@ -635,20 +653,21 @@ static void Test_VOX_GetDirectory (void)
 		}
 	}
 
+// [FWGS, 01.07.26]
 static void Test_VOX_LookupString (void)
 	{
-	int i;
+	/*int i;*/
 	const char *p, *data[] =
 		{
-			"0", "123",
-			"3", "SPAAACE",
-			"-2", NULL,
-			"404", NULL,
-			"not found", NULL,
-			"exactmatch", "123",
-			"caseinsensitive", "456",
-			"SentenceWithTabs", "789",
-			"SentenceWithSpaces", "SPAAACE",
+		"0", "123",
+		"3", "SPAAACE",
+		"-2", NULL,
+		"404", NULL,
+		"not found", NULL,
+		"exactmatch", "123",
+		"caseinsensitive", "456",
+		"SentenceWithTabs", "789",
+		"SentenceWithSpaces", "SPAAACE",
 		};
 
 	VOX_Shutdown ();
@@ -659,7 +678,8 @@ static void Test_VOX_LookupString (void)
 	rgpszrawsentence[cszrawsentences++] = (char *)"SentenceWithSpaces\0  SPAAACE";
 	rgpszrawsentence[cszrawsentences++] = (char *)"SentenceWithTabsAndSpaces\0\t \t\t MEOW";
 
-	for (i = 0; i < sizeof (data) / sizeof (data[0]); i += 2)
+	/*for (i = 0; i < sizeof (data) / sizeof (data[0]); i += 2)*/
+	for (int i = 0; i < sizeof (data) / sizeof (data[0]); i += 2)
 		{
 		p = VOX_LookupString (data[i]);
 

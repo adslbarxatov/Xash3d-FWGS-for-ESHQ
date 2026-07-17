@@ -9,30 +9,33 @@
 #endif
 #endif
 
+// [FWGS, 01.07.26]
 void IPv6IPToString (char *pszOutText, const unsigned char *ip)
 	{
 	// Find the longest run of consecutive zero quads.
-	// If there's a tie, we want the leftmost one.
-	int idxLongestRunStart = -1;
-	int nLongestRun = 1; // It must be at least 2 quads in a row, a single 0 must not be compressed
-	int nCurrentRun = 0, idxQuad;
+	// If there's a tie, we want the leftmost one
+	int	idxLongestRunStart = -1;
+	int	nLongestRun = 1;	// it must be at least 2 quads in a row, a single 0 must not be compressed
+	/*int nCurrentRun = 0, idxQuad;
 	char *p;
-	qboolean bNeedColon;
+	qboolean bNeedColon;*/
+	int	nCurrentRun = 0;
 
-	for (idxQuad = 0; idxQuad < 8; ++idxQuad)
+	/*for (idxQuad = 0; idxQuad < 8; ++idxQuad)*/
+	for (int idxQuad = 0; idxQuad < 8; ++idxQuad)
 		{
-		// Zero
+		// zero
 		if (ip[idxQuad * 2] || ip[idxQuad * 2 + 1])
 			{
-			// Terminate run
+			// terminate run
 			nCurrentRun = 0;
 			}
 		else
 			{
-			// Extend (or begin) run
+			// extend (or begin) run
 			++nCurrentRun;
 
-			// Longer than previously found run?
+			// longer than previously found run?
 			if (nCurrentRun > nLongestRun)
 				{
 				nLongestRun = nCurrentRun;
@@ -41,13 +44,17 @@ void IPv6IPToString (char *pszOutText, const unsigned char *ip)
 			}
 		}
 
-	// Print the quads
-	p = pszOutText;
+	// print the quads
+	/*p = pszOutText;
 	idxQuad = 0;
-	bNeedColon = false;
+	bNeedColon = false;*/
+	char	*p = pszOutText;
+	int		idxQuad = 0;
+	qboolean	bNeedColon = false;
+
 	while (idxQuad < 8)
 		{
-		// Run of compressed zeros?
+		// run of compressed zeros?
 		if (idxQuad == idxLongestRunStart)
 			{
 			*(p++) = ':';
@@ -57,22 +64,23 @@ void IPv6IPToString (char *pszOutText, const unsigned char *ip)
 			}
 		else
 			{
-			// Lowercase hex digits, with leading zeros omitted
+			// lowercase hex digits, with leading zeros omitted
 			static const char hexdigits[] = "0123456789abcdef";
-			unsigned quad;
+			/*unsigned quad;*/
 
 			// Colon to separate from previous, unless
 			// we are first or immediately follow compressed zero "::"
 			if (bNeedColon)
 				*(p++) = ':';
 
-			// Next quad should should print a separator
+			// next quad should should print a separator
 			bNeedColon = true;
 
-			// Assemble 16-bit quad value from the two bytes
-			quad = ((unsigned)ip[idxQuad * 2] << 8U) | ip[idxQuad * 2 + 1];
+			// assemble 16-bit quad value from the two bytes
+			/*quad = ((unsigned)ip[idxQuad * 2] << 8U) | ip[idxQuad * 2 + 1];*/
+			unsigned quad = ((unsigned)ip[idxQuad * 2] << 8U) | ip[idxQuad * 2 + 1];
 
-			// Manually do the hex number formatting.
+			// manually do the hex number formatting
 			if (quad >= 0x0010)
 				{
 				if (quad >= 0x0100)
@@ -81,18 +89,19 @@ void IPv6IPToString (char *pszOutText, const unsigned char *ip)
 						*(p++) = hexdigits[quad >> 12U];
 					*(p++) = hexdigits[(quad >> 8U) & 0xf];
 					}
+
 				*(p++) = hexdigits[(quad >> 4U) & 0xf];
 				}
 
-			// Least significant digit, which is always printed
+			// least significant digit, which is always printed
 			*(p++) = hexdigits[quad & 0xf];
 
-			// On to the next one
+			// on to the next one
 			++idxQuad;
 			}
 		}
 
-	// String terminator
+	// string terminator
 	*p = '\0';
 	}
 
@@ -100,59 +109,71 @@ void IPv6AddrToString (char *pszOutText, const unsigned char *ip, uint16_t port,
 	{
 	char *p = pszOutText;
 
-	// Open bracket
+	// open bracket
 	*(p++) = '[';
 
-	// Print in the IP
+	// print in the IP
 	IPv6IPToString (p, ip);
 
-	// Find the end of the string
+	// find the end of the string
 	while (*p)
 		++p;
 
 	if (scope)
 		{
-		// And now the scope.  Max 32-digit scope number is 10 digits
+		// and now the scope.  Max 32-digit scope number is 10 digits
 		snprintf (p, 12, "%%%d", scope);
 
-		// Find the end of the string
+		// find the end of the string
 		while (*p)
 			++p;
 		}
 
-	// And now the rest.  Max 16-digit port number is 6 digits
+	// and now the rest.  Max 16-digit port number is 6 digits
 	snprintf (p, 8, "]:%u", (unsigned int)port);
 	}
 
 static inline int ParseIPv6Addr_HexDigitVal (char c)
 	{
-	if (c >= '0' && c <= '9') return c - '0';
-	if (c >= 'a' && c <= 'f') return c - ('a' - 0xa);
-	if (c >= 'A' && c <= 'F') return c - ('A' - 0xa);
+	if ((c >= '0') && (c <= '9'))
+		return c - '0';
+	if ((c >= 'a') && (c <= 'f'))
+		return c - ('a' - 0xa);
+	if ((c >= 'A') && (c <= 'F'))
+		return c - ('A' - 0xa);
+
 	return -1;
 	}
+
 static inline int ParseIPv6Addr_DecimalDigitVal (char c)
 	{
-	if (c >= '0' && c <= '9') return c - '0';
+	if ((c >= '0') && (c <= '9'))
+		return c - '0';
+
 	return -1;
 	}
+
 static bool ParseIPv6Addr_IsSpace (char c)
 	{
-	// Newlines don't count, intentionally
-	return c == ' ' || c == '\t';
+	// newlines don't count, intentionally
+	return (c == ' ') || (c == '\t');
 	}
+
+// [FWGS, 01.07.26]
 bool ParseIPv6Addr (const char *pszText, unsigned char *pOutIP, int *pOutPort, uint32_t *pOutScope)
 	{
-	unsigned char *d, *pZeroFill, *pEndIP;
+	/*unsigned char *d, *pZeroFill, *pEndIP;
 	const char *s;
 	qboolean bQuadMustFollow;
-	int nPort;
+	int nPort;*/
 
 	while (ParseIPv6Addr_IsSpace (*pszText))
 		++pszText;
-	s = pszText;
+	/*s = pszText;*/
 
-	// Skip opening bracket, if present
+	const char *s = pszText;
+
+	// skip opening bracket, if present
 	if (*s == '[')
 		{
 		++s;
@@ -160,25 +181,30 @@ bool ParseIPv6Addr (const char *pszText, unsigned char *pOutIP, int *pOutPort, u
 			++s;
 		}
 
-	// Special case for leading "::"
-	bQuadMustFollow = true;
+	// special case for leading "::"
+	/*bQuadMustFollow = true;
 	d = pOutIP;
 	pZeroFill = NULL;
-	pEndIP = pOutIP + 16;
-	if (s[0] == ':' && s[1] == ':')
+	pEndIP = pOutIP + 16;*/
+	qboolean	bQuadMustFollow = true;
+	unsigned char	*d = pOutIP;
+	unsigned char	*pZeroFill = NULL;
+	unsigned char	*pEndIP = pOutIP + 16;
+
+	if ((s[0] == ':') && (s[1] == ':'))
 		{
 		pZeroFill = d;
 		s += 2;
 		bQuadMustFollow = false;
 		}
 
-	// Parse quads until we get to the end
+	// parse quads until we get to the end
 	for (;;)
 		{
-		// Next thing must be a quad, or end of input.  Is it a quad?
+		// next thing must be a quad, or end of input.  Is it a quad?
 		int quadDigit = ParseIPv6Addr_HexDigitVal (*s);
-		const char *pszStartQuad;	// [FWGS, 01.11.23]
-		int quad;
+		/*const char *pszStartQuad;
+		int quad;*/
 
 		if (quadDigit < 0)
 			{
@@ -187,15 +213,18 @@ bool ParseIPv6Addr (const char *pszText, unsigned char *pOutIP, int *pOutPort, u
 			break;
 			}
 
-		// No room for more quads?
+		// no room for more quads?
 		if (d >= pEndIP)
 			return false;
 
-		pszStartQuad = s;	// [FWGS, 01.11.23]
+		/*pszStartQuad = s;*/
+		const char *pszStartQuad = s;
 		++s;
-		quad = quadDigit;
 
-		// Now parse up to three additional characters
+		/*quad = quadDigit;*/
+		int quad = quadDigit;
+
+		// now parse up to three additional characters
 		quadDigit = ParseIPv6Addr_HexDigitVal (*s);
 		if (quadDigit >= 0)
 			{
@@ -217,28 +246,29 @@ bool ParseIPv6Addr (const char *pszText, unsigned char *pOutIP, int *pOutPort, u
 				}
 			}
 
-		// [FWGS, 01.11.23] Check if we hit a period, which would happen if we
+		// Check if we hit a period, which would happen if we
 		// have an IPv4 dotted decimal.  For example, "::ffff:192.168.1.210"
 		if (*s == '.')
 			{
-			// Make sure we would have room to store four more bytes
+			// make sure we would have room to store four more bytes
 			unsigned char *pEndDottedDecimal = d + 4;
 			if (pEndDottedDecimal > pEndIP)
 				return false;
 
-			// Parse 4 octets
+			// parse 4 octets
 			s = pszStartQuad;
 			for (;;)
 				{
-
-				// Parse 1-3 decimal digits
+				// parse 1-3 decimal digits
 				int octet = ParseIPv6Addr_DecimalDigitVal (*s);
-				int dig;
+				/*int dig;*/
 
 				if (octet < 0)
 					return false;
+
 				++s;
-				dig = ParseIPv6Addr_DecimalDigitVal (*s);
+				/*dig = ParseIPv6Addr_DecimalDigitVal (*s);*/
+				int dig = ParseIPv6Addr_DecimalDigitVal (*s);
 				if (dig >= 0)
 					{
 					++s;
@@ -249,22 +279,23 @@ bool ParseIPv6Addr (const char *pszText, unsigned char *pOutIP, int *pOutPort, u
 						++s;
 						octet = octet * 10 + dig;
 
-						// Make sure value is in range
+						// make sure value is in range
 						if (octet > 255)
 							return false;
 						}
 					}
+
 				*(d++) = (unsigned char)octet;
 
-				// All done?
+				// all done?
 				if (d >= pEndDottedDecimal)
 					break;
 
-				// Next thing must be dot dot separator
+				// next thing must be dot dot separator
 				if (*s != '.')
 					return false;
 
-				// Eat dot
+				// eat dot
 				++s;
 				}
 
@@ -281,21 +312,20 @@ bool ParseIPv6Addr (const char *pszText, unsigned char *pOutIP, int *pOutPort, u
 		if (*s != ':')
 			break;
 
-		// Compressed zeros?
+		// compressed zeros?
 		if (s[1] == ':')
 			{
-
-			// Eat '::'
+			// eat '::'
 			s += 2;
 
-			// Can only have one range of compressed zeros
+			// can only have one range of compressed zeros
 			if (pZeroFill)
 				return false;
 
-			// Remember where to insert the compressed zeros
+			// remember where to insert the compressed zeros
 			pZeroFill = d;
 
-			// An IP can end with '::'
+			// an IP can end with '::'
 			bQuadMustFollow = false;
 			}
 		else
@@ -305,59 +335,66 @@ bool ParseIPv6Addr (const char *pszText, unsigned char *pOutIP, int *pOutPort, u
 			// necessarily the best style, but it *is* unambiguous
 			// what it should mean, so let's allow it.  If there
 			// are compressed zeros, then this is ambiguous, and we will
-			// always interpret it as a quad.
-			if (!pZeroFill && d >= pEndIP)
-				break; // leave ':' as next character, for below
+			// always interpret it as a quad
+			if (!pZeroFill && (d >= pEndIP))
+				break;	// leave ':' as next character, for below
 
-			// Eat ':'
+			// eat ':'
 			++s;
 
-			// A single colon must be followed by another quad
+			// a single colon must be followed by another quad
 			bQuadMustFollow = true;
 			}
 		}
 
-	// End of the IP.  Do we have compressed zeros?
+	// end of the IP.  Do we have compressed zeros?
 	if (pZeroFill)
 		{
-		// How many zeros do we need to fill?
+		// how many zeros do we need to fill?
 		intptr_t nZeros = pEndIP - d;
 		if (nZeros <= 0)
 			return false;
 
-		// Shift the quads after the bytes to the end
+		// shift the quads after the bytes to the end
 		memmove (pZeroFill + nZeros, pZeroFill, d - pZeroFill);
 
-		// And now fill the zeros
+		// and now fill the zeros
 		memset (pZeroFill, 0, nZeros);
 		}
 	else
 		{
-		// No compressed zeros.  Just make sure we filled the IP exactly
+		// no compressed zeros.  Just make sure we filled the IP exactly
 		if (d != pEndIP)
 			return false;
 		}
 
 	if (*s == '%')
 		{
-		// Parse scope number
+		/*// parse scope number
 		uint32_t unScope = 0;
-		int nScopeDigit;
+		int nScopeDigit;*/
 
 		++s;
 
-		nScopeDigit = ParseIPv6Addr_DecimalDigitVal (*s);
+		/*nScopeDigit = ParseIPv6Addr_DecimalDigitVal (*s);*/
+		// parse scope number
+		int nScopeDigit = ParseIPv6Addr_DecimalDigitVal (*s);
 		if (nScopeDigit < 0)
 			return false;
-		unScope = (uint32_t)nScopeDigit;
+
+		/*unScope = (uint32_t)nScopeDigit;*/
+		uint32_t unScope = (uint32_t)nScopeDigit;
+
 		for (;;)
 			{
 			++s;
-			if (*s == '\0' || *s == ']' || ParseIPv6Addr_IsSpace (*s))
+			if ((*s == '\0') || (*s == ']') || ParseIPv6Addr_IsSpace (*s))
 				break;
+
 			nScopeDigit = ParseIPv6Addr_DecimalDigitVal (*s);
 			if (nScopeDigit < 0)
 				return false;
+
 			unScope = unScope * 10 + nScopeDigit;
 			}
 
@@ -384,7 +421,7 @@ bool ParseIPv6Addr (const char *pszText, unsigned char *pOutIP, int *pOutPort, u
 	// Now we are definitely at the end of the IP.  Do we have a port?
 	// We support all of the syntaxes mentioned in RFC5952 section 6 other
 	// than the ambiguous case
-	if (*s == ':' || *s == '#' || *s == '.' || *s == 'p' || *s == 'P')
+	if ((*s == ':') || (*s == '#') || (*s == '.') || (*s == 'p') || (*s == 'P'))
 		{
 		++s;
 		}
@@ -392,9 +429,10 @@ bool ParseIPv6Addr (const char *pszText, unsigned char *pOutIP, int *pOutPort, u
 		{
 		while (ParseIPv6Addr_IsSpace (*s))
 			++s;
+
 		if (*s == '\0')
 			{
-			// Parsed IP without port OK
+			// parsed IP without port OK
 			if (pOutPort)
 				*pOutPort = -1;
 			return true;
@@ -408,35 +446,40 @@ bool ParseIPv6Addr (const char *pszText, unsigned char *pOutIP, int *pOutPort, u
 			}
 		else
 			{
-			// Extra stuff after the IP which isn't whitespace or a port
+			// extra stuff after the IP which isn't whitespace or a port
 			return false;
 			}
 		}
 
-	// We have a port.  If they didn't ask for it, that's considered a parse failure.
+	// We have a port. If they didn't ask for it, that's considered a parse failure
 	if (!pOutPort)
 		return false;
 
-	// Parse port number
-	nPort = ParseIPv6Addr_DecimalDigitVal (*s);
+	// parse port number
+	/*nPort = ParseIPv6Addr_DecimalDigitVal (*s);*/
+	int nPort = ParseIPv6Addr_DecimalDigitVal (*s);
 	if (nPort < 0)
 		return false;
+
 	for (;;)
 		{
-		int portDigit;
+		/*int portDigit;*/
 
 		++s;
-		if (*s == '\0' || ParseIPv6Addr_IsSpace (*s))
+		if ((*s == '\0') || ParseIPv6Addr_IsSpace (*s))
 			break;
-		portDigit = ParseIPv6Addr_DecimalDigitVal (*s);
+
+		/*portDigit = ParseIPv6Addr_DecimalDigitVal (*s);*/
+		int portDigit = ParseIPv6Addr_DecimalDigitVal (*s);
 		if (portDigit < 0)
 			return false;
+
 		nPort = nPort * 10 + portDigit;
 		if (nPort > 0xffff)
 			return false;
 		}
 
-	// Consume trailing whitespace; confirm nothing else in the input
+	// consume trailing whitespace; confirm nothing else in the input
 	while (ParseIPv6Addr_IsSpace (*s))
 		++s;
 	if (*s != '\0')
@@ -445,4 +488,3 @@ bool ParseIPv6Addr (const char *pszText, unsigned char *pOutIP, int *pOutPort, u
 	*pOutPort = nPort;
 	return true;
 	}
-
