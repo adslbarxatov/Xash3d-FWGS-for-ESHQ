@@ -278,24 +278,26 @@ CVAR_DEFINE_AUTO (sv_expose_player_list, "1", FCVAR_ARCHIVE,
 
 /***
 ================
-SV_HasActivePlayers
+SV_HasActivePlayers [FWGS, 01.07.26]
 
 returns true if server have spawned players
 ================
 ***/
 static qboolean SV_HasActivePlayers (void)
 	{
-	int	i;
+	/*int	i;*/
 
 	// server inactive
 	if (!svs.clients)
 		return false;
 
-	for (i = 0; i < svs.maxclients; i++)
+	/*for (i = 0; i < svs.maxclients; i++)*/
+	for (int i = 0; i < svs.maxclients; i++)
 		{
 		if (svs.clients[i].state == cs_spawned)
 			return true;
 		}
+
 	return false;
 	}
 
@@ -369,17 +371,16 @@ void SV_UpdateMovevars (qboolean initialize)
 
 /***
 =================
-SV_CheckCmdTimes
+SV_CheckCmdTimes [FWGS, 01.07.26]
 =================
 ***/
 static void SV_CheckCmdTimes (void)
 	{
 	sv_client_t		*cl;
 	static double	lastreset = 0;
-	float	diff;
+	/*float	diff;*/
 	int		i;
 
-	// [FWGS, 01.12.24]
 	if (sv_fps.value != 0.0f)
 		{
 		if (sv_fps.value < MIN_FPS)
@@ -389,8 +390,6 @@ static void SV_CheckCmdTimes (void)
 			Cvar_SetValue ("sv_fps", MAX_FPS_HARD);
 		}
 
-	// [FWGS, 01.05.26]
-	/*if (Host_IsLocalGame ())*/
 	if (Host_IsSinglePlayerGame ())
 		return;
 
@@ -407,8 +406,8 @@ static void SV_CheckCmdTimes (void)
 		if (cl->connecttime == 0.0)
 			cl->connecttime = host.realtime;
 
-		diff = cl->connecttime + cl->cmdtime - host.realtime;
-
+		/*diff = cl->connecttime + cl->cmdtime - host.realtime;*/
+		float diff = cl->connecttime + cl->cmdtime - host.realtime;
 		if (diff > net_clockwindow.value)
 			{
 			cl->ignorecmdtime = net_clockwindow.value + host.realtime;
@@ -423,23 +422,29 @@ static void SV_CheckCmdTimes (void)
 
 /***
 =================
-SV_ProcessFile
+SV_ProcessFile [FWGS, 01.07.26]
 
 process incoming file (customization)
 =================
 ***/
 static void SV_ProcessFile (sv_client_t *cl, const char *filename)
 	{
-	customization_t	*pList;
-	resource_t		*resource;
-	resource_t		*next;
-	byte			md5[16];
-	qboolean		bFound;
-	qboolean		bError;
+	/*customization_t	*pList;*/
+	resource_t	*resource;
+	resource_t	*next;
+	byte		md5[16];
+	qboolean	bFound;
+	qboolean	bError;
 
 	if (filename[0] != '!')
 		{
 		Con_Printf ("Ignoring non-customization file upload of %s\n", filename);
+		return;
+		}
+
+	if (Q_strlen (filename) < 36)
+		{
+		Con_Printf ("%s: Malformed customization filename from %s (too short)\n", __func__, cl->name);
 		return;
 		}
 
@@ -453,7 +458,6 @@ static void SV_ProcessFile (sv_client_t *cl, const char *filename)
 			break;
 		}
 
-	// [FWGS, 01.07.24]
 	if (resource == &cl->resourcesneeded)
 		{
 		Con_Printf ("%s: Unrequested decal\n", __func__);
@@ -467,7 +471,6 @@ static void SV_ProcessFile (sv_client_t *cl, const char *filename)
 		return;
 		}
 
-	// [FWGS, 01.07.24]
 	HPAK_AddLump (true, hpk_custom_file.string, resource, cl->netchan.tempbuffer, NULL);
 	ClearBits (resource->ucFlags, RES_WASMISSING);
 	SV_MoveToOnHandList (cl, resource);
@@ -475,7 +478,8 @@ static void SV_ProcessFile (sv_client_t *cl, const char *filename)
 	bError = false;
 	bFound = false;
 
-	for (pList = cl->customdata.pNext; pList; pList = pList->pNext)
+	/*for (pList = cl->customdata.pNext; pList; pList = pList->pNext)*/
+	for (customization_t *pList = cl->customdata.pNext; pList; pList = pList->pNext)
 		{
 		if (!memcmp (pList->resource.rgucMD5_hash, resource->rgucMD5_hash, 16))
 			{
@@ -501,33 +505,33 @@ static void SV_ProcessFile (sv_client_t *cl, const char *filename)
 
 /***
 =================
-SV_ReadPackets
+SV_ReadPackets [FWGS, 01.07.26]
 =================
 ***/
 static void SV_ReadPackets (void)
 	{
 	sv_client_t	*cl;
-	int			i, qport;
-	size_t		curSize;
+	/*int			i, qport;*/
+	int		i;
+	size_t	curSize;
 
 	while (NET_GetPacket (NS_SERVER, &net_from, net_message_buffer, &curSize))
 		{
 		MSG_Init (&net_message, "ClientPacket", net_message_buffer, curSize);
 
-		// [FWGS, 01.12.24] check for connectionless packet (0xffffffff) first
+		// check for connectionless packet (0xffffffff) first
 		if ((MSG_GetMaxBytes (&net_message) >= 4) && (*(int *)net_message.pData == -1))
 			{
 			SV_ConnectionlessPacket (net_from, &net_message);
-
 			continue;
 			}
 
-		// read the qport out of the message so we can fix up
+		/*// read the qport out of the message so we can fix up
 		// stupid address translating routers
 		MSG_Clear (&net_message);
 		MSG_ReadLong (&net_message);	// sequence number
 		MSG_ReadLong (&net_message);	// sequence number
-		qport = (int)MSG_ReadShort (&net_message) & 0xffff;
+		qport = (int)MSG_ReadShort (&net_message) & 0xffff;*/
 
 		// check for packets from connected clients
 		for (i = 0, sv.current_client = svs.clients; i < svs.maxclients; i++, sv.current_client++)
@@ -540,27 +544,37 @@ static void SV_ReadPackets (void)
 			if (!NET_CompareBaseAdr (net_from, cl->netchan.remote_address))
 				continue;
 
-			if (cl->netchan.qport != qport)
+			/*if (cl->netchan.qport != qport)*/
+			if (!Netchan_Process (&cl->netchan, &net_message))
 				continue;
 
+			// authenticated; safe to adopt the (possibly NAT-rewritten) source port
 			if (cl->netchan.remote_address.port != net_from.port)
 				cl->netchan.remote_address.port = net_from.port;
 
-			if (Netchan_Process (&cl->netchan, &net_message))
+			/*if (Netchan_Process (&cl->netchan, &net_message))
 				{
 				if ((svs.maxclients == 1) && !host_limitlocal.value || (cl->state != cs_spawned))
-					SetBits (cl->flags, FCL_SEND_NET_MESSAGE);	// reply at end of frame
+					SetBits (cl->flags, FCL_SEND_NET_MESSAGE);	// reply at end of frame*/
+			if ((svs.maxclients == 1 && !host_limitlocal.value) || (cl->state != cs_spawned))
+				SetBits (cl->flags, FCL_SEND_NET_MESSAGE);	// reply at end of frame
 
-				// this is a valid, sequenced packet, so process it
-				if ((cl->frames != NULL) && (cl->state != cs_zombie))
-					{
-					SV_ExecuteClientMessage (cl, &net_message);
-					svgame.globals->frametime = sv.frametime;
-					svgame.globals->time = sv.time;
-					}
+			/*// this is a valid, sequenced packet, so process it
+			if ((cl->frames != NULL) && (cl->state != cs_zombie))
+				{
+				SV_ExecuteClientMessage (cl, &net_message);
+				svgame.globals->frametime = sv.frametime;
+				svgame.globals->time = sv.time;
+				}*/
+			// this is a valid, sequenced packet, so process it
+			if ((cl->frames != NULL) && (cl->state != cs_zombie))
+				{
+				SV_ExecuteClientMessage (cl, &net_message);
+				svgame.globals->frametime = sv.frametime;
+				svgame.globals->time = sv.time;
 				}
 
-			// fragmentation/reassembly sending takes priority over all game messages, want this in the future?
+			// fragmentation / reassembly sending takes priority over all game messages, want this in the future?
 			if (Netchan_IncomingReady (&cl->netchan))
 				{
 				if (Netchan_CopyNormalFragments (&cl->netchan, &net_message, &curSize))
@@ -601,7 +615,6 @@ static void SV_DropTimedOutClient (sv_client_t *cl, qboolean ban)
 	SV_DropClient (cl, false);
 	cl->state = cs_free;	// don't bother with zombie state
 
-	// [ESHQ: brackets]
 	// [FWGS, 01.11.25]
 	if (ban)
 		Cbuf_AddTextf ("addip %g %s\n", sv_connect_timeout_ban_time.value,
@@ -680,7 +693,7 @@ static void SV_CheckTimeouts (void)
 
 /***
 ================
-SV_PrepWorldFrame
+SV_PrepWorldFrame [FWGS, 01.07.26]
 
 This has to be done before the world logic, because
 player processing happens outside RunWorldFrame
@@ -688,13 +701,16 @@ player processing happens outside RunWorldFrame
 ***/
 static void SV_PrepWorldFrame (void)
 	{
-	edict_t	*ent;
+	/*edict_t	*ent;
 	int		i;
 
 	for (i = 1; i < svgame.numEntities; i++)
 		{
-		// [FWGS, 05.04.26]
-		ent = SV_EdictNum (i);
+		// [FWGS, 05.04.26]*/
+	for (int i = 1; i < svgame.numEntities; i++)
+		{
+		/*ent = SV_EdictNum (i);*/
+		edict_t *ent = SV_EdictNum (i);
 		if (ent->free)
 			continue;
 
@@ -925,7 +941,7 @@ void SV_AddToMaster (netadr_t from, sizebuf_t *msg)
 
 /***
 ====================
-SV_ProcessUserAgent
+SV_ProcessUserAgent [FWGS, 01.07.26]
 
 send error message and return false on wrong input devices
 ====================
@@ -935,7 +951,8 @@ qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent)
 	const char *input_devices_str = Info_ValueForKey (useragent, "d");
 	const char *id = Info_ValueForKey (useragent, "uuid");
 
-	size_t len, i;
+	/*size_t len, i;*/
+	size_t len;
 
 	len = Q_strlen (id);
 	if (len != 32)
@@ -944,12 +961,11 @@ qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent)
 		return false;
 		}
 
-	for (i = 0; i < len; i++)
+	/*for (i = 0; i < len; i++)*/
+	for (size_t i = 0; i < len; i++)
 		{
 		char c = id[i];
 
-		// [FWGS, 01.05.26]
-		/*if (!isdigit (id[i]) && !((c >= 'a') && (c <= 'f')))*/
 		if (!isdigit ((byte)id[i]) && !((c >= 'a') && (c <= 'f')))
 			{
 			SV_RejectConnection (from, "invalid authentication certificate\n");
@@ -1191,7 +1207,7 @@ SV_FinalMessage
 Used by SV_Shutdown to send a final message to all
 connected clients before the server goes down.  The messages are sent immediately,
 not just stuck on the outgoing message list, because the server is going
-to totally exit after returning from this function.
+to totally exit after returning from this function
 ==================
 ***/
 void SV_FinalMessage (const char *message, qboolean reconnect)

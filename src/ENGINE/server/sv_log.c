@@ -16,15 +16,16 @@ GNU General Public License for more details
 #include "common.h"
 #include "server.h"
 
+// [FWGS, 01.07.26]
 void Log_Open (void)
 	{
-	time_t		ltime;
-	struct tm	*today;
-	char		szFileBase[MAX_OSPATH];
-	char		szTestFile[MAX_OSPATH];
-	file_t		*fp = NULL;
-	const char	*temp;
-	int			i;
+	/*time_t		ltime;
+	struct tm	*today;*/
+	char	szFileBase[MAX_OSPATH];
+	char	szTestFile[MAX_OSPATH];
+	file_t	*fp = NULL;
+	/*const char	*temp;*/
+	int		i;
 
 	if (!svs.log.active)
 		return;
@@ -40,17 +41,19 @@ void Log_Open (void)
 
 	Log_Close ();
 
-	// Find a new log file slot
+	// find a new log file slot
+	time_t ltime;
 	time (&ltime);
-	today = localtime (&ltime);
+
+	/*today = localtime (&ltime);
 	temp = Cvar_VariableString ("logsdir");
 
-	// [FWGS, 01.03.26]
-	/*if (COM_CheckString (temp) && !Q_strchr (temp, ':') && !Q_strstr (temp, ".."))*/
+	// [FWGS, 01.03.26]*/
+	const struct tm *today = localtime (&ltime);
+	const char *temp = Cvar_VariableString ("logsdir");
+
 	if (!COM_StringEmptyOrNULL (temp) && !Q_strchr (temp, ':') && !Q_strstr (temp, ".."))
 		Q_snprintf (szFileBase, sizeof (szFileBase), "%s/L%02i%02i", temp, today->tm_mon + 1, today->tm_mday);
-	/*else 
-		Q_snprintf (szFileBase, sizeof (szFileBase), "logs/L%02i%02i", today->tm_mon + 1, today->tm_mday);*/
 	else
 		Q_snprintf (szFileBase, sizeof (szFileBase), "logs/L%02i%02i", today->tm_mon + 1, today->tm_mday);
 
@@ -95,7 +98,7 @@ void Log_Close (void)
 
 /***
 ==================
-Log_Printf
+Log_Printf [FWGS, 01.07.26]
 
 Prints a frag log message to the server's frag log file, console, and possible a UDP port
 ==================
@@ -104,22 +107,27 @@ void Log_Printf (const char *fmt, ...)
 	{
 	va_list		argptr;
 	static char	string[1024];
-	char		*p;
+	/*char		*p;
 	time_t		ltime;
 	struct tm	*today;
 	int			len;
 
-	// [FWGS, 01.11.25]
+	// [FWGS, 01.11.25]*/
 	if (!svs.log.net_log && !svs.log.active)
 		return;
 
+	time_t ltime;
 	time (&ltime);
-	today = localtime (&ltime);
 
-	len = Q_snprintf (string, sizeof (string), "%02i/%02i/%04i - %02i:%02i:%02i: ",
+	/*today = localtime (&ltime);*/
+	const struct tm *today = localtime (&ltime);
+
+	/*len = Q_snprintf (string, sizeof (string), "%02i/%02i/%04i - %02i:%02i:%02i: ",*/
+	const int len = Q_snprintf (string, sizeof (string), "%02i/%02i/%04i - %02i:%02i:%02i: ",
 		today->tm_mon + 1, today->tm_mday, 1900 + today->tm_year, today->tm_hour, today->tm_min, today->tm_sec);
 
-	p = string + len;
+	/*p = string + len;*/
+	char *p = string + len;
 
 	va_start (argptr, fmt);
 	Q_vsnprintf (p, sizeof (string) - len, fmt, argptr);
@@ -162,14 +170,14 @@ void Log_PrintServerVars (void)
 
 /***
 ====================
-SV_SetLogAddress_f
+SV_SetLogAddress_f [FWGS, 01.07.26]
 ====================
 ***/
 void SV_SetLogAddress_f (void)
 	{
-	const char	*s;
+	/*const char	*s;
 	int			port;
-	string		addr;
+	string		addr;*/
 
 	if (svs.log.net_log && (Cmd_Argc () == 2) && !Q_strcmp (Cmd_Argv (1), "off"))
 		{
@@ -177,7 +185,6 @@ void SV_SetLogAddress_f (void)
 		memset (&svs.log.net_address, 0, sizeof (netadr_t));
 
 		Con_Printf ("logaddress: disabled.\n");
-
 		return;
 		}
 
@@ -191,22 +198,24 @@ void SV_SetLogAddress_f (void)
 		return;
 		}
 
-	port = Q_atoi (Cmd_Argv (2));
+	/*port = Q_atoi (Cmd_Argv (2));*/
+	const int port = Q_atoi (Cmd_Argv (2));
 	if (!port)
 		{
 		Con_Printf ("logaddress: must specify a valid port\n");
 		return;
 		}
 
-	// [FWGS, 01.03.26]
-	s = Cmd_Argv (1);
-	/*if (!COM_CheckString (s))*/
+	/*// [FWGS, 01.03.26]
+	s = Cmd_Argv (1);*/
+	const char *s = Cmd_Argv (1);
 	if (COM_StringEmptyOrNULL (s))
 		{
 		Con_Printf ("logaddress: unparseable address\n");
 		return;
 		}
 
+	string addr;
 	Q_snprintf (addr, sizeof (addr), "%s:%i", s, port);
 	if (!NET_StringToAdr (addr, &svs.log.net_address))
 		{

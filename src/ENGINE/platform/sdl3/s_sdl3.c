@@ -29,30 +29,29 @@ so it can unlock and free the data block after it has been played
 static SDL_AudioStream *out_stream;
 static char sdl_backend_name[32];
 
+// [FWGS, 01.07.26]
 static void SDLash_OutputCallback (void *userdata, SDL_AudioStream *stream, int additional_amount, int len)
 	{
-	// [FWGS, 15.04.26]
-	/*const int size = dma.samples << 1;*/
+	/*// [FWGS, 15.04.26]
 	const int size = snd.samples << 1;
 	int pos;
-	int wrapped;
+	int wrapped;*/
 
 	(void)userdata;
 	(void)additional_amount;
 
-	// [FWGS, 15.04.26]
-	/*pos = dma.samplepos << 1;*/
-	pos = snd.samplepos << 1;
+	/*// [FWGS, 15.04.26]
+	pos = snd.samplepos << 1;*/
+	const int size = snd.samples << 1;
+	int pos = snd.samplepos << 1;
 	if (pos >= size)
-		/*pos = dma.samplepos = 0;*/
 		pos = snd.samplepos = 0;
 
-	// [FWGS, 15.04.26]
-	wrapped = pos + len - size;
+	/*// [FWGS, 15.04.26]
+	wrapped = pos + len - size;*/
+	int wrapped = pos + len - size;
 	if (wrapped < 0)
 		{
-		/*SDL_PutAudioStreamData (stream, dma.buffer + pos, len);
-		dma.samplepos += len >> 1;*/
 		SDL_PutAudioStreamData (stream, snd.buffer + pos, len);
 		snd.samplepos += len >> 1;
 		}
@@ -60,16 +59,11 @@ static void SDLash_OutputCallback (void *userdata, SDL_AudioStream *stream, int 
 		{
 		int remaining = size - pos;
 
-		/*SDL_PutAudioStreamData (stream, dma.buffer + pos, remaining);
-		SDL_PutAudioStreamData (stream, dma.buffer, wrapped);
-		dma.samplepos = wrapped >> 1;*/
 		SDL_PutAudioStreamData (stream, snd.buffer + pos, remaining);
 		SDL_PutAudioStreamData (stream, snd.buffer, wrapped);
 		snd.samplepos = wrapped >> 1;
 		}
 
-	/*if (dma.samplepos >= size)
-		dma.samplepos = 0;*/
 	if (snd.samplepos >= size)
 		snd.samplepos = 0;
 	}
@@ -105,7 +99,7 @@ qboolean SNDDMA_Init (void)
 	driver = "directsound";
 
 	if (SDL_getenv ("SDL_AUDIODRIVER"))
-		driver = NULL; // let SDL2 and user decide
+		driver = NULL;	// let SDL2 and user decide
 
 	SDL_SetHint (SDL_HINT_AUDIO_DRIVER, driver);
 #endif
@@ -138,9 +132,6 @@ qboolean SNDDMA_Init (void)
 		}
 
 	// [FWGS, 15.04.26]
-	/*dma.format.speed = SOUND_DMA_SPEED;
-	dma.format.channels = 2;
-	dma.format.width = 2;*/
 	snd.format.speed = SOUND_DMA_SPEED;
 	snd.format.channels = 2;
 	snd.format.width = 2;
@@ -149,17 +140,12 @@ qboolean SNDDMA_Init (void)
 	if (!samplecount)
 		samplecount = 0x8000;
 
-	/*dma.samples = samplecount * dma.format.channels;
-	dma.buffer = Mem_Calloc (sndpool, dma.samples * dma.format.width);
-	dma.samplepos = 0;
-	dma.initialized = true;*/
 	snd.samples = samplecount * snd.format.channels;
 	snd.buffer = Mem_Calloc (sndpool, snd.samples * snd.format.width);
 	snd.samplepos = 0;
 	snd.initialized = true;
 
 	Q_snprintf (sdl_backend_name, sizeof (sdl_backend_name), "SDL3 (%s)", SDL_GetCurrentAudioDriver ());
-	/*dma.backendName = sdl_backend_name;*/
 	snd.backend_name = sdl_backend_name;
 
 	Con_Printf ("Using audio driver: %s @ %d Hz\n", sdl_backend_name, SOUND_DMA_SPEED);
@@ -205,7 +191,6 @@ void SNDDMA_Shutdown (void)
 	{
 	// [FWGS, 15.04.26]
 	Con_Printf ("Shutting down audio.\n");
-	/*dma.initialized = false;*/
 	snd.initialized = false;
 
 	if (out_stream)
@@ -218,11 +203,8 @@ void SNDDMA_Shutdown (void)
 	SDL_QuitSubSystem (SDL_INIT_AUDIO);
 
 	// [FWGS, 15.04.26]
-	/*if (dma.buffer)*/
 	if (snd.buffer)
 		{
-		/*Mem_Free (dma.buffer);
-		dma.buffer = NULL;*/
 		Mem_Free (snd.buffer);
 		snd.buffer = NULL;
 		}
@@ -239,7 +221,6 @@ between a deactivate and an activate
 void SNDDMA_Activate (qboolean active)
 	{
 	// [FWGS, 15.04.26]
-	/*if (!dma.initialized)*/
 	if (!snd.initialized)
 		return;
 

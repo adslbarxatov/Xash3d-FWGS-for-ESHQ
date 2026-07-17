@@ -28,7 +28,7 @@ static void SV_SourceQuery_Details (netadr_t from)
 	int			bot_count, client_count;
 
 	SV_GetPlayerCount (&client_count, &bot_count);
-	client_count += bot_count; // bots are counted as players in this reply
+	client_count += bot_count;	// bots are counted as players in this reply
 
 	MSG_Init (&buf, "TSourceEngineQuery", answer, sizeof (answer));
 
@@ -68,12 +68,12 @@ static void SV_SourceQuery_Details (netadr_t from)
 
 /***
 ==================
-SV_SourceQuery_Rules
+SV_SourceQuery_Rules [FWGS, 01.07.26]
 ==================
 ***/
 static void SV_SourceQuery_Rules (netadr_t from)
 	{
-	const cvar_t	*cvar;
+	/*const cvar_t	*cvar;*/
 	sizebuf_t		buf;
 	char	answer[MAX_PRINT_MSG - 4];
 	int		pos;
@@ -86,17 +86,16 @@ static void SV_SourceQuery_Rules (netadr_t from)
 	pos = MSG_GetNumBitsWritten (&buf);
 	MSG_WriteShort (&buf, 0);
 
-	for (cvar = Cvar_GetList (); cvar; cvar = cvar->next)
+	/*for (cvar = Cvar_GetList (); cvar; cvar = cvar->next)*/
+	for (const cvar_t *cvar = Cvar_GetList (); cvar; cvar = cvar->next)
 		{
 		if (!FBitSet (cvar->flags, FCVAR_SERVER))
 			continue;
 
 		MSG_WriteString (&buf, cvar->name);
 
-		// [FWGS, 01.03.26]
 		if (FBitSet (cvar->flags, FCVAR_PROTECTED))
 			{
-			/*if (COM_CheckStringEmpty (cvar->string) && Q_stricmp (cvar->string, "none"))*/
 			if (!COM_StringEmpty (cvar->string) && Q_stricmp (cvar->string, "none"))
 				MSG_WriteString (&buf, "1");
 			else
@@ -123,15 +122,16 @@ static void SV_SourceQuery_Rules (netadr_t from)
 
 /***
 ==================
-SV_SourceQuery_Players [FWGS, 01.12.24]
+SV_SourceQuery_Players [FWGS, 01.07.26]
 ==================
 ***/
 static void SV_SourceQuery_Players (netadr_t from)
 	{
 	sizebuf_t	buf;
-	char		answer[MAX_PRINT_MSG - 4];
-	int			i, count = 0;
-	int			pos;
+	char	answer[MAX_PRINT_MSG - 4];
+	/*int			i, count = 0;*/
+	int		count = 0;
+	int		pos;
 	
 	// respect players privacy
 	if (!sv_expose_player_list.value || SV_HavePassword ())
@@ -144,7 +144,8 @@ static void SV_SourceQuery_Players (netadr_t from)
 	pos = MSG_GetNumBitsWritten (&buf);
 	MSG_WriteByte (&buf, 0);
 
-	for (i = 0; i < svs.maxclients; i++)
+	/*for (i = 0; i < svs.maxclients; i++)*/
+	for (int i = 0; i < svs.maxclients; i++)
 		{
 		const sv_client_t *cl = &svs.clients[i];
 		if (cl->state < cs_connected)

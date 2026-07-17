@@ -217,17 +217,18 @@ le_struct_end ();
 
 /***
 ====================
-Mod_InitStudioHull [FWGS, 01.02.25]
+Mod_InitStudioHull [FWGS, 01.07.26]
 ====================
 ***/
 void Mod_InitStudioHull (void)
 	{
-	int i;
+	/*int i;*/
 
 	if (studio_hull[0].planes != NULL)
 		return;	// already initailized
 
-	for (i = 0; i < MAXSTUDIOBONES; i++)
+	/*for (i = 0; i < MAXSTUDIOBONES; i++)*/
+	for (int i = 0; i < MAXSTUDIOBONES; i++)
 		{
 		studio_hull[i].clipnodes16 = (mclipnode16_t *)box_clipnodes16;
 
@@ -271,19 +272,20 @@ void Mod_ClearStudioCache (void)
 
 /***
 ====================
-AddToStudioCache
+AddToStudioCache [FWGS, 01.07.26]
 ====================
 ***/
 static void Mod_AddToStudioCache (float frame, int sequence, vec3_t angles, vec3_t origin, vec3_t size, 
 	byte *pcontroller, byte *pblending, model_t *model, hull_t *hull, int numhitboxes)
 	{
-	mstudiocache_t *pCache;
+	/*mstudiocache_t *pCache;*/
 
 	if (numhitboxes + cache_current_hull >= MAXSTUDIOBONES)
 		Mod_ClearStudioCache ();
 
 	cache_current++;
-	pCache = &cache_studio[cache_current & STUDIO_CACHEMASK];
+	/*pCache = &cache_studio[cache_current & STUDIO_CACHEMASK];*/
+	mstudiocache_t *pCache = &cache_studio[cache_current & STUDIO_CACHEMASK];
 
 	pCache->frame = frame;
 	pCache->sequence = sequence;
@@ -309,18 +311,20 @@ static void Mod_AddToStudioCache (float frame, int sequence, vec3_t angles, vec3
 
 /***
 ====================
-CheckStudioCache
+CheckStudioCache [FWGS, 01.07.26]
 ====================
 ***/
 static mstudiocache_t *Mod_CheckStudioCache (model_t *model, float frame, int sequence, vec3_t angles, vec3_t origin,
 	vec3_t size, byte *controller, byte *blending)
 	{
-	mstudiocache_t *pCached;
+	/*mstudiocache_t *pCached;
 	int		i;
 
-	for (i = 0; i < STUDIO_CACHESIZE; i++)
+	for (i = 0; i < STUDIO_CACHESIZE; i++)*/
+	for (int i = 0; i < STUDIO_CACHESIZE; i++)
 		{
-		pCached = &cache_studio[(cache_current - i) & STUDIO_CACHEMASK];
+		/*pCached = &cache_studio[(cache_current - i) & STUDIO_CACHEMASK];*/
+		mstudiocache_t *pCached = &cache_studio[(cache_current - i) & STUDIO_CACHEMASK];
 
 		if (pCached->model != model)
 			continue;
@@ -384,7 +388,7 @@ static void Mod_SetStudioHullPlane (int planenum, int bone, int axis, float offs
 
 /***
 ====================
-HullForStudio
+HullForStudio [FWGS, 01.07.26]
 
 NOTE: pEdict may be NULL
 ====================
@@ -392,18 +396,21 @@ NOTE: pEdict may be NULL
 hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t angles, vec3_t origin, 
 	vec3_t size, byte *pcontroller, byte *pblending, int *numhitboxes, edict_t *pEdict)
 	{
-	vec3_t			angles2;
+	/*vec3_t			angles2;
 	mstudiocache_t	*bonecache;
 	mstudiobbox_t	*phitbox;
 	qboolean		bSkipShield;
-	int				i, j;
+	int				i, j;*/
+	qboolean bSkipShield = false;
 
-	bSkipShield = false;
+	/*bSkipShield = false;*/
 	*numhitboxes = 0;	// assume error
 
 	if (mod_studiocache.value)
 		{
-		bonecache = Mod_CheckStudioCache (model, frame, sequence, angles, origin, size, pcontroller, pblending);
+		/*bonecache = Mod_CheckStudioCache (model, frame, sequence, angles, origin, size, pcontroller, pblending);*/
+		mstudiocache_t *bonecache = Mod_CheckStudioCache (model, frame, sequence, angles, origin, size,
+			pcontroller, pblending);
 
 		if (bonecache != NULL)
 			{
@@ -422,20 +429,25 @@ hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t ang
 	if (!mod_studiohdr)
 		return NULL;	// probably not a studiomodel
 
-	VectorCopy (angles, angles2);
+	/*VectorCopy (angles, angles2);*/
+	vec3_t angles2 = Vec3 (angles);
 
 	if (!FBitSet (host.features, ENGINE_COMPENSATE_QUAKE_BUG))
 		angles2[PITCH] = -angles2[PITCH];	// stupid quake bug
 
 	pBlendAPI->SV_StudioSetupBones (model, frame, sequence, angles2, origin, pcontroller, pblending, -1, pEdict);
-	phitbox = (mstudiobbox_t *)((byte *)mod_studiohdr + mod_studiohdr->hitboxindex);
+
+	/*phitbox = (mstudiobbox_t *)((byte *)mod_studiohdr + mod_studiohdr->hitboxindex);*/
+	mstudiobbox_t *phitbox = (mstudiobbox_t *)((byte *)mod_studiohdr + mod_studiohdr->hitboxindex);
 
 	if (SV_IsValidEdict (pEdict) && (pEdict->v.gamestate == 1))
 		bSkipShield = 1;
 
-	for (i = j = 0; i < mod_studiohdr->numhitboxes; i++, j += 6)
+	/*for (i = j = 0; i < mod_studiohdr->numhitboxes; i++, j += 6)
 		{
-		// [FWGS, 01.02.25]
+		// [FWGS, 01.02.25]*/
+	for (int i = 0, j = 0; i < mod_studiohdr->numhitboxes; i++, j += 6)
+		{
 		if (world.version == QBSP2_VERSION)
 			studio_hull[i].clipnodes32 = (mclipnode32_t *)box_clipnodes32;
 		else
@@ -613,16 +625,9 @@ StudioGetAnim [FWGS, 01.05.26]
 ***/
 void *R_StudioGetAnim (studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstudioseqdesc_t *pseqdesc)
 	{
-	/*mstudioseqgroup_t	*pseqgroup;
-	cache_user_t		*paSequences;
-	fs_offset_t			filesize;
-	byte	*buf;
-
-	pseqgroup = (mstudioseqgroup_t *)((byte *)m_pStudioHeader + m_pStudioHeader->seqgroupindex) + pseqdesc->seqgroup;*/
 	if (pseqdesc->seqgroup == 0)
 		return ((byte *)m_pStudioHeader + pseqdesc->animindex);
 
-	/*paSequences = (cache_user_t *)m_pSubModel->submodels;*/
 	cache_user_t	*paSequences = (cache_user_t *)m_pSubModel->submodels;
 	if (paSequences == NULL)
 		{
@@ -633,7 +638,6 @@ void *R_StudioGetAnim (studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstud
 	// check for already loaded
 	if (!Mod_CacheCheck ((cache_user_t *)&(paSequences[pseqdesc->seqgroup])))
 		{
-		/*string	filepath, modelname, modelpath;*/
 		string	modelname;
 		COM_FileBase (m_pSubModel->name, modelname, sizeof (modelname));
 
@@ -646,11 +650,6 @@ void *R_StudioGetAnim (studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstud
 		Q_snprintf (filepath, sizeof (filepath), "%s/%s%i%i.mdl", modelpath, modelname, 
 			pseqdesc->seqgroup / 10, pseqdesc->seqgroup % 10);
 
-		/*buf = FS_LoadFile (filepath, &filesize, false);
-		if (!buf || !filesize)
-			Host_Error ("%s: can't load %s\n", __func__, filepath);
-		if (IDSEQGRPHEADER != *(uint *)buf)
-			Host_Error ("%s: %s is corrupted\n", __func__, filepath);*/
 		fs_offset_t	filesize;
 		byte	*buf = FS_LoadFile (filepath, &filesize, false);
 
@@ -779,16 +778,16 @@ static void SV_StudioSetupBones (model_t *pModel, float frame, int sequence, con
 
 /***
 ====================
-StudioGetAttachment
+StudioGetAttachment [FWGS, 01.07.26]
 ====================
 ***/
 void Mod_StudioGetAttachment (const edict_t *e, int iAtt, float *origin, float *angles)
 	{
 	mstudioattachment_t	*pAtt;
-	vec3_t				angles2;
-	matrix3x4			localPose;
-	matrix3x4			worldPose;
-	model_t				*mod;
+	/*vec3_t				angles2;*/
+	matrix3x4	localPose;
+	matrix3x4	worldPose;
+	model_t		*mod;
 
 	mod = SV_ModelHandle (e->v.modelindex);
 	mod_studiohdr = (studiohdr_t *)Mod_StudioExtradata (mod);
@@ -810,7 +809,8 @@ void Mod_StudioGetAttachment (const edict_t *e, int iAtt, float *origin, float *
 	// calculate attachment origin and angles
 	pAtt = (mstudioattachment_t *)((byte *)mod_studiohdr + mod_studiohdr->attachmentindex) + iAtt;
 
-	VectorCopy (e->v.angles, angles2);
+	/*VectorCopy (e->v.angles, angles2);*/
+	vec3_t angles2 = Vec3 (e->v.angles);
 
 	if (!FBitSet (host.features, ENGINE_COMPENSATE_QUAKE_BUG))
 		angles2[PITCH] = -angles2[PITCH];
@@ -903,7 +903,7 @@ static void Mod_StudioAccumulateBoneVerts (vec3_t mins, vec3_t maxs, int *numver
 
 /***
 ====================
-StudioComputeBounds [FWGS, 01.05.26]
+StudioComputeBounds [FWGS, 01.07.26]
 ====================
 ***/
 static void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qboolean ignore_sequences)
@@ -912,14 +912,13 @@ static void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qbo
 	studiohdr_t		*pstudiohdr;
 	mstudiobodyparts_t	*pbodypart;
 	mstudiomodel_t	*m_pSubModel;
-	mstudioseqgroup_t	*pseqgroup;
+	/*mstudioseqgroup_t	*pseqgroup;*/
 	mstudioseqdesc_t	*pseqdesc;
 	mstudiobone_t	*pbones;
 	mstudioanim_t	*panim;
 	vec3_t		bone_mins, bone_maxs;
 	vec3_t		vert_mins, vert_maxs;
 	int			vert_count, bone_count;
-	/*int			bodyCount = 0;*/
 	vec3_t		pos, *pverts;
 
 	vert_count = bone_count = 0;
@@ -935,23 +934,13 @@ static void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qbo
 	// each body part has nummodels variations so there are as many total variations as there
 	// are in a matrix of each part by each other part
 	for (i = 0; i < pstudiohdr->numbodyparts; i++)
-		/*bodyCount += pbodypart[i].nummodels;
-
-	// The studio models we want are vec3_t mins, vec3_t maxsight after the bodyparts (still need to
-	// find a detailed breakdown of the mdl format). Move pointer there
-	m_pSubModel = (mstudiomodel_t *)(&pbodypart[pstudiohdr->numbodyparts]);
-
-	for (i = 0; i < bodyCount; i++)*/
 		{
-		/*pverts = (vec3_t *)((byte *)pstudiohdr + m_pSubModel[i].vertindex);*/
 		m_pSubModel = (mstudiomodel_t *)((byte *)pstudiohdr + pbodypart[i].modelindex);
 
 		for (j = 0; j < pbodypart[i].nummodels; j++)
 			{
 			pverts = (vec3_t *)((byte *)pstudiohdr + m_pSubModel[j].vertindex);
 
-			/*for (j = 0; j < m_pSubModel[i].numverts; j++)
-			Mod_StudioBoundVertex (bone_mins, bone_maxs, &vert_count, pverts[j]);*/
 			for (k = 0; k < m_pSubModel[j].numverts; k++)
 				Mod_StudioBoundVertex (bone_mins, bone_maxs, &vert_count, pverts[k]);
 			}
@@ -963,14 +952,13 @@ static void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qbo
 	for (i = 0; i < numseq; i++)
 		{
 		pseqdesc = (mstudioseqdesc_t *)((byte *)pstudiohdr + pstudiohdr->seqindex) + i;
-		pseqgroup = (mstudioseqgroup_t *)((byte *)pstudiohdr + pstudiohdr->seqgroupindex) + pseqdesc->seqgroup;
+		/*pseqgroup = (mstudioseqgroup_t *)((byte *)pstudiohdr + pstudiohdr->seqgroupindex) + pseqdesc->seqgroup;*/
 
 		if (pseqdesc->seqgroup == 0)
 			panim = (mstudioanim_t *)((byte *)pstudiohdr + pseqdesc->animindex);
 		else
 			continue;
 
-		// [FWGS, 01.03.25]
 		for (j = 0; j < pstudiohdr->numbones; j++)
 			{
 			for (k = 0; k < pseqdesc->numframes; k++)
@@ -1011,8 +999,8 @@ qboolean Mod_GetStudioBounds (const char *name, vec3_t mins, vec3_t maxs)
 		Mod_StudioComputeBounds (f, mins, maxs, false);
 		result = true;
 		}
-	Mem_Free (f);
 
+	Mem_Free (f);
 	return result;
 	}
 
@@ -1061,11 +1049,11 @@ static int Mod_StudioBodyVariations (model_t *mod)
 	return count;
 	}
 
-// [FWGS, 01.05.26]
+// [FWGS, 01.07.26]
 static qboolean Mod_SwapStudioModel (const char *name, void *buffer, size_t buffersize)
 	{
 	studiohdr_t	*phdr = buffer;
-	byte	*mod_base = buffer;
+	/*byte	*mod_base = buffer;*/
 
 	if (buffersize < sizeof (studiohdr_t))
 		return false;
@@ -1076,12 +1064,13 @@ static qboolean Mod_SwapStudioModel (const char *name, void *buffer, size_t buff
 		return false;
 
 #if XASH_BIG_ENDIAN
+	byte *mod_base = buffer;
 	if ((phdr->studiohdr2index > 0) && (phdr->studiohdr2index < phdr->length))
 		{
 		Con_Printf (S_ERROR "byteswapping extended studio model \"%s\" is unsupoprted\n", name);
 		return false;
 		}
-#endif
+	/*endif*/
 
 	for (int i = 0; i < phdr->numbones; i++)
 		le_struct_swap (mstudiobone_swap, (mstudiobone_t *)(mod_base + phdr->boneindex) + i);
@@ -1158,6 +1147,7 @@ static qboolean Mod_SwapStudioModel (const char *name, void *buffer, size_t buff
 	short *pskinref = (short *)(mod_base + phdr->skinindex);
 	for (int i = 0; i < phdr->numskinfamilies * phdr->numskinref; i++)
 		pskinref[i] = LittleShort (pskinref[i]);
+#endif
 
 	return true;
 	}
@@ -1167,27 +1157,15 @@ static qboolean Mod_SwapStudioModel (const char *name, void *buffer, size_t buff
 R_StudioLoadHeader [FWGS, 01.05.26]
 =================
 ***/
-/*static studiohdr_t *R_StudioLoadHeader (model_t *mod, const void *buffer)*/
 static studiohdr_t *R_StudioLoadHeader (model_t *mod, void *buffer, size_t buffersize)
 	{
-	/*byte	*pin;
-	studiohdr_t	*phdr;
-	int		i;*/
 	studiohdr_t	*phdr;
 
-	/*if (!buffer)
-		return NULL;
-
-	pin = (byte *)buffer;
-	phdr = (studiohdr_t *)pin;
-	i = phdr->version;*/
 	if (!buffer)
 		return NULL;
 
-	/*if (i != STUDIO_VERSION)*/
 	if (!Mod_SwapStudioModel (mod->name, buffer, buffersize))
 		{
-		/*Con_Printf (S_ERROR "%s has wrong version number (%i should be %i)\n", mod->name, i, STUDIO_VERSION);*/
 		phdr = (studiohdr_t *)buffer;
 		Con_Printf (S_ERROR "%s has wrong version number (%i should be %i)\n", mod->name, phdr->version, STUDIO_VERSION);
 		return NULL;
@@ -1218,7 +1196,6 @@ static studiohdr_t *Mod_MaybeTruncateStudioTextureData (model_t *mod)
 Mod_LoadStudioModel [FWGS, 01.05.26]
 =================
 ***/
-/*void Mod_LoadStudioModel (model_t *mod, const void *buffer, qboolean *loaded)*/
 void Mod_LoadStudioModel (model_t *mod, void *buffer, size_t buffersize, qboolean *loaded)
 	{
 	char		poolname[MAX_VA_STRING];
@@ -1232,7 +1209,6 @@ void Mod_LoadStudioModel (model_t *mod, void *buffer, size_t buffersize, qboolea
 	mod->mempool = Mem_AllocPool (poolname);
 	mod->type = mod_studio;
 
-	/*phdr = R_StudioLoadHeader (mod, buffer);*/
 	phdr = R_StudioLoadHeader (mod, buffer, buffersize);
 
 	// garbage value in length
@@ -1246,8 +1222,6 @@ void Mod_LoadStudioModel (model_t *mod, void *buffer, size_t buffersize, qboolea
 		void	*buffer2;
 		fs_offset_t	size2_len;
 
-		/*buffer2 = FS_LoadFile (Mod_StudioTexName (mod->name), NULL, false);
-		thdr = R_StudioLoadHeader (mod, buffer2);*/
 		buffer2 = FS_LoadFile (Mod_StudioTexName (mod->name), &size2_len, false);
 		thdr = R_StudioLoadHeader (mod, buffer2, size2_len);
 

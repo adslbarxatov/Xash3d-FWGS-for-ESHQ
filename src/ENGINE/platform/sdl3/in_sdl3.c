@@ -98,39 +98,14 @@ void GAME_EXPORT Platform_SetMousePos (int x, int y)
 // [FWGS, 01.03.26]
 void GAME_EXPORT Platform_GetMousePos (int *x, int *y)
 	{
-	/*float m_x = 0.0f, m_y = 0.0f;*/
 	SDL_FPoint p = { 0 };
-
-	/*SDL_GetMouseState (&m_x, &m_y);*/
 	SDL_GetMouseState (&p.x, &p.y);
 
 	if (x)
 		*x = p.x;
-		/*{
-		if (window_width.value && window_width.value != refState.width)
-			{
-			float factor = refState.width / window_width.value;
-			*x = m_x * factor;
-			}
-		else
-			{
-			*x = m_x;
-			}
-		}*/
 
 	if (y)
 		*y = p.y;
-		/*{
-		if (window_height.value && window_height.value != refState.height)
-			{
-			float factor = refState.height / window_height.value;
-			*y = m_y * factor;
-			}
-		else
-			{
-			*y = m_y;
-			}
-		}*/
 	}
 
 void Platform_SetCursorType (VGUI_DefaultCursor type)
@@ -177,15 +152,17 @@ void Platform_EnableTextInput (qboolean enable)
 	enable ? SDL_StartTextInput (host.hWnd) : SDL_StopTextInput (host.hWnd);
 	}
 
+// [FWGS, 01.07.26]
 int Platform_GetClipboardText (char *buffer, size_t size)
 	{
-	int len;
+	/*int len;*/
 	char *text = SDL_GetClipboardText ();
 
 	if (!text)
 		return 0;
 
-	if (buffer && size > 0)
+	int len;
+	if (buffer && (size > 0))
 		len = Q_strncpy (buffer, text, size);
 	else
 		len = Q_strlen (text);

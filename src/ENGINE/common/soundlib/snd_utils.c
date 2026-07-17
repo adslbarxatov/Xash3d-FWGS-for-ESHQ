@@ -112,17 +112,11 @@ void Sound_Shutdown (void)
 // [FWGS, 01.05.26]
 uint GAME_EXPORT Sound_GetApproxWavePlayLen (const char *filepath)
 	{
-	/*string		name;
-	file_t		*f;
-	wavehdr_t	wav;
-	size_t		filesize;
-	uint		msecs;*/
 	string	name;
 
 	Q_strncpy (name, filepath, sizeof (name));
 	COM_FixSlashes (name);
 	
-	/*f = FS_Open (name, "rb", false);*/
 	file_t	*f = FS_Open (name, "rb", false);
 	if (!f)
 		return 0;
@@ -134,23 +128,16 @@ uint GAME_EXPORT Sound_GetApproxWavePlayLen (const char *filepath)
 		return 0;
 		}
 
-	/*filesize = FS_FileLength (f);
-	filesize -= 128;	// magic number from GoldSrc, seems to be header size*/
 	// magic number from GoldSrc, seems to be header size
 	size_t filesize = FS_FileLength (f) - 128;
 
 	FS_Close (f);
 
 	// is real wav file?
-	/*if ((wav.riff_id != RIFFHEADER) || (wav.wave_id != WAVEHEADER) || (wav.fmt_id != FORMHEADER))*/
 	if ((wav.riff_id != LittleLong (RIFFHEADER)) || (wav.wave_id != LittleLong (WAVEHEADER)) ||
 		(wav.fmt_id != LittleLong (FORMHEADER)))
 		return 0;
 
-	/*if (wav.nAvgBytesPerSec >= 1000)
-		msecs = (uint)((float)filesize / ((float)wav.nAvgBytesPerSec / 1000.0f));
-	else
-		msecs = (uint)(((float)filesize / (float)wav.nAvgBytesPerSec) * 1000.0f);*/
 	int		avgBytes = LittleLong (wav.nAvgBytesPerSec);
 	uint	msecs;
 
@@ -429,7 +416,7 @@ static qboolean Sound_ConvertUpsample (wavdata_t *sc, int inwidth, int inchannel
 
 /***
 ================
-Sound_ResampleInternal
+Sound_ResampleInternal [FWGS, 01.07.26]
 ================
 ***/
 static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth, int outchannels)
@@ -439,25 +426,25 @@ static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth
 	const int	inchannels = sc->channels;
 	const int	incount = sc->samples;
 	const int	insize = sc->size;
-
 	qboolean	handled = false;
-	double		stepscale;
+	/*double		stepscale;
 	double		t1, t2;
-	int			outcount;
+	int			outcount;*/
 
 	if ((inrate == outrate) && (inwidth == outwidth) && (inchannels == outchannels))
 		return false;
 
-	// [FWGS, 01.03.26]
-	t1 = Platform_DoubleTime ();
+	/*t1 = Platform_DoubleTime ();*/
+	double t1 = Platform_DoubleTime ();
 
 	// this is usually 0.5, 1, or 2
-	stepscale = (double)inrate / outrate;
-	outcount = sc->samples / stepscale;
+	/*stepscale = (double)inrate / outrate;
+	outcount = sc->samples / stepscale;*/
+	double stepscale = (double)inrate / outrate;
+	int outcount = sc->samples / stepscale;
 	sc->size = outcount * outwidth * outchannels;
 	sc->channels = outchannels;
 
-	// [FWGS, 01.03.26]
 	sc->samples = outcount;
 	if (FBitSet (sc->flags, SOUND_LOOPED))
 		sc->loop_start = sc->loop_start / stepscale;
@@ -490,8 +477,9 @@ static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth
 		return false;
 		}
 
-	// [FWGS, 01.03.26]
-	t2 = Platform_DoubleTime ();
+	/*// [FWGS, 01.03.26]
+	t2 = Platform_DoubleTime ();*/
+	double t2 = Platform_DoubleTime ();
 	sc->rate = outrate;
 	sc->width = outwidth;
 
@@ -506,8 +494,11 @@ static qboolean Sound_ResampleInternal (wavdata_t *sc, int outrate, int outwidth
 	return true;
 	}
 
+// [FWGS, 01.07.26]
 qboolean Sound_Process (wavdata_t **wav, int rate, int width, int channels, uint flags)
 	{
+	/*wavdata_t	*snd = *wav;
+	qboolean	result = true;*/
 	wavdata_t	*snd = *wav;
 	qboolean	result = true;
 
@@ -515,7 +506,6 @@ qboolean Sound_Process (wavdata_t **wav, int rate, int width, int channels, uint
 	if (unlikely (!snd || !snd->buffer))
 		return false;
 
-	// [FWGS, 01.02.25]
 	if (likely (FBitSet (flags, SOUND_RESAMPLE) && ((width > 0) || (rate > 0) || (channels > 0))))
 		{
 		result = Sound_ResampleInternal (snd, rate, width, channels);
@@ -533,14 +523,16 @@ qboolean Sound_Process (wavdata_t **wav, int rate, int width, int channels, uint
 	return result;
 	}
 
+// [FWGS, 01.07.26]
 qboolean Sound_SupportedFileFormat (const char *fileext)
 	{
-	const loadwavfmt_t *format;
+	/*const loadwavfmt_t *format;
 
-	// [FWGS, 01.03.26]
+	// [FWGS, 01.03.26]*/
 	if (!COM_StringEmpty (fileext))
 		{
-		for (format = sound.loadformats; format && format->ext; format++)
+		/*for (format = sound.loadformats; format && format->ext; format++)*/
+		for (const loadwavfmt_t *format = sound.loadformats; format && format->ext; format++)
 			{
 			if (!Q_stricmp (format->ext, fileext))
 				return true;

@@ -138,13 +138,10 @@ static void Mod_FreeUserData (model_t *mod)
 		}
 
 	// [FWGS, 01.05.26]
-	/*if !XASH_DEDICATED*/
 	else
 		{
-		/*ref.dllFuncs.Mod_ProcessRenderData (mod, false, NULL, 0);*/
 		Mod_UnloadRenderData (mod);
 		}
-	/*endif*/
 	}
 
 /***
@@ -211,31 +208,35 @@ void Mod_Init (void)
 
 /***
 ================
-Mod_FreeAll
+Mod_FreeAll [FWGS, 01.07.26]
 ================
 ***/
 void Mod_FreeAll (void)
 	{
-	int	i;
+	/*int	i;*/
 
 #if !XASH_DEDICATED
 	Mod_ReleaseHullPolygons ();
 #endif
-	for (i = 0; i < mod_numknown; i++)
+
+	/*for (i = 0; i < mod_numknown; i++)*/
+	for (int i = 0; i < mod_numknown; i++)
 		Mod_FreeModel (&mod_known[i]);
+
 	mod_numknown = 0;
 	}
 
 /***
 ================
-Mod_ClearUserData
+Mod_ClearUserData [FWGS, 01.07.26]
 ================
 ***/
 void Mod_ClearUserData (void)
 	{
-	int	i;
+	/*int	i;
 
-	for (i = 0; i < mod_numknown; i++)
+	for (i = 0; i < mod_numknown; i++)*/
+	for (int i = 0; i < mod_numknown; i++)
 		Mod_FreeUserData (&mod_known[i]);
 	}
 
@@ -314,20 +315,20 @@ model_t *Mod_FindName (const char *filename, qboolean trackCRC)
 
 /***
 ==================
-Mod_LoadModel
+Mod_LoadModel [FWGS, 01.07.26]
 
 Loads a model into the cache
 ==================
 ***/
-model_t *Mod_LoadModel (model_t *mod, qboolean crash)
+/*model_t *Mod_LoadModel (model_t *mod, qboolean crash)*/
+static model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	{
-	char			tempname[MAX_QPATH];
-	fs_offset_t		length = 0;
-	qboolean		loaded, loaded2 = false;
-	byte			*buf;
-	model_info_t	*p;
+	char		tempname[MAX_QPATH];
+	fs_offset_t	length = 0;
+	qboolean	loaded, loaded2 = false;
+	/*byte			*buf;
+	model_info_t	*p;*/
 
-	// [FWGS, 01.03.26]
 	if (!mod)
 		{
 		Host_Error ("%s: mod == NULL\n", __func__);
@@ -341,7 +342,6 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 		return mod;
 		}
 
-	// [FWGS, 01.03.26]
 	if (mod->needload != NL_NEEDS_LOADED)
 		{
 		Host_Error ("%s: trying to load model not marked for loading (%d)\n", __func__, mod->needload);
@@ -352,7 +352,8 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	Q_strncpy (tempname, mod->name, sizeof (tempname));
 	COM_FixSlashes (tempname);
 
-	buf = FS_LoadFile (tempname, &length, false);
+	/*buf = FS_LoadFile (tempname, &length, false);*/
+	byte *buf = FS_LoadFile (tempname, &length, false);
 	if (!buf || (length < sizeof (uint)))
 		{
 		memset (mod, 0, sizeof (model_t));
@@ -372,9 +373,7 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	// call the apropriate loader
 	switch (*(uint *)buf)
 		{
-		// [FWGS, 01.05.26]
 		case LittleLong (IDSTUDIOHEADER):
-			/*Mod_LoadStudioModel (mod, buf, &loaded);*/
 			Mod_LoadStudioModel (mod, buf, length, &loaded);
 			break;
 
@@ -386,7 +385,6 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 			Mod_LoadAliasModel (mod, buf, &loaded);
 			break;
 
-		// [FWGS, 01.03.26]
 		case LittleLong (Q1BSP_VERSION):
 		case LittleLong (HLBSP_VERSION):
 		case LittleLong (QBSP2_VERSION):
@@ -449,10 +447,10 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 		return NULL;
 		}
 
-	p = &mod_crcinfo[mod - mod_known];
+	/*p = &mod_crcinfo[mod - mod_known];*/
+	model_info_t *p = &mod_crcinfo[mod - mod_known];
 	mod->needload = NL_PRESENT;
 
-	// [FWGS, 01.03.26]
 	if (FBitSet (p->flags, FCRC_SHOULD_CHECKSUM))
 		{
 		uint32_t currentCRC;
@@ -479,33 +477,34 @@ model_t *Mod_LoadModel (model_t *mod, qboolean crash)
 	
 /***
 ==================
-Mod_ForName
+Mod_ForName [FWGS, 01.07.26]
 
 Loads in a model for the given name
 ==================
 ***/
 model_t *Mod_ForName (const char *name, qboolean crash, qboolean trackCRC)
 	{
-	model_t	*mod;
+	/*model_t	*mod;
 
-	// [FWGS, 01.03.26]
+	// [FWGS, 01.03.26]*/
 	if (COM_StringEmptyOrNULL (name))
 		return NULL;
 
-	mod = Mod_FindName (name, trackCRC);
+	/*mod = Mod_FindName (name, trackCRC);*/
+	model_t *mod = Mod_FindName (name, trackCRC);
 	return Mod_LoadModel (mod, crash);
 	}
 
 /***
 ==================
-Mod_PurgeStudioCache
+Mod_PurgeStudioCache [FWGS, 01.07.26]
 
 free studio cache on change level
 ==================
 ***/
 static void Mod_PurgeStudioCache (void)
 	{
-	int	i;
+	/*int	i;*/
 
 	// refresh hull data
 	SetBits (r_showhull.flags, FCVAR_CHANGED);
@@ -518,9 +517,11 @@ static void Mod_PurgeStudioCache (void)
 
 	// we should release all the world submodels
 	// and clear studio sequences
-	for (i = 1; i < mod_numknown; i++)
+	/*for (i = 1; i < mod_numknown; i++)
 		{
-		// [FWGS, 01.03.26]
+		// [FWGS, 01.03.26]*/
+	for (int i = 1; i < mod_numknown; i++)
+		{
 		if (mod_known[i].needload == NL_UNREFERENCED)
 			continue;
 
@@ -539,14 +540,14 @@ static void Mod_PurgeStudioCache (void)
 
 /***
 ==================
-Mod_LoadWorld
+Mod_LoadWorld [FWGS, 01.07.26]
 
 Loads in the map and all submodels
 ==================
 ***/
 model_t *Mod_LoadWorld (const char *name, qboolean preload)
 	{
-	model_t *pworld;
+	/*model_t *pworld;*/
 
 	// already loaded?
 	if (!Q_stricmp (mod_known->name, name))
@@ -557,7 +558,8 @@ model_t *Mod_LoadWorld (const char *name, qboolean preload)
 
 	// load the newmap
 	world.loading = true;
-	pworld = Mod_FindName (name, false);
+	/*pworld = Mod_FindName (name, false);*/
+	model_t *pworld = Mod_FindName (name, false);
 	if (preload)
 		Mod_LoadModel (pworld, true);
 
@@ -596,17 +598,18 @@ MODEL ROUTINES
 
 /***
 ===============
-Mod_Calloc [FWGS, 01.03.26]
+Mod_Calloc [FWGS, 01.07.26]
 ===============
 ***/
 void *GAME_EXPORT Mod_Calloc (int number, size_t size)
 	{
-	cache_user_t *cu;
+	/*cache_user_t *cu;*/
 
 	if ((number <= 0) || (size <= 0))
 		return NULL;
 
-	cu = (cache_user_t *)Mem_Calloc (com_studiocache, sizeof (cache_user_t) + number * size);
+	/*cu = (cache_user_t *)Mem_Calloc (com_studiocache, sizeof (cache_user_t) + number * size);*/
+	cache_user_t *cu = (cache_user_t *)Mem_Calloc (com_studiocache, sizeof (cache_user_t) + number * size);
 	cu->data = (void *)cu;	// make sure that cu->data is not NULL
 
 	return cu;
@@ -630,14 +633,14 @@ void *GAME_EXPORT Mod_CacheCheck (cache_user_t *c)
 
 /***
 ===============
-Mod_LoadCacheFile
+Mod_LoadCacheFile [FWGS, 01.07.26]
 ===============
 ***/
 void GAME_EXPORT Mod_LoadCacheFile (const char *filename, cache_user_t *cu)
 	{
-	char		modname[MAX_QPATH];
+	char	modname[MAX_QPATH];
 	fs_offset_t	size;
-	byte		*buf;
+	/*byte		*buf;*/
 
 	Assert (cu != NULL);
 
@@ -647,7 +650,8 @@ void GAME_EXPORT Mod_LoadCacheFile (const char *filename, cache_user_t *cu)
 	Q_strncpy (modname, filename, sizeof (modname));
 	COM_FixSlashes (modname);
 
-	buf = FS_LoadFile (modname, &size, false);
+	/*buf = FS_LoadFile (modname, &size, false);*/
+	byte *buf = FS_LoadFile (modname, &size, false);
 	if (!buf || !size)
 		Host_Error ("LoadCacheFile: ^1can't load %s^7\n", filename);
 
@@ -655,7 +659,7 @@ void GAME_EXPORT Mod_LoadCacheFile (const char *filename, cache_user_t *cu)
 	memcpy (cu->data, buf, size);
 	Mem_Free (buf);
 
-	// [FWGS, 01.05.26] this handles when studio model renderer tries to load sequence files on it's own
+	// this handles when studio model renderer tries to load sequence files on it's own
 	// which is what they always do in HLSDK
 #if XASH_BIG_ENDIAN
 	if ((size >= sizeof (int)) && (LittleLong (IDSEQGRPHEADER) == *(uint *)cu->data))
@@ -685,36 +689,42 @@ void GAME_EXPORT Mod_LoadCacheFile (const char *filename, cache_user_t *cu)
 
 /***
 ==================
-Mod_ValidateCRC [FWGS, 01.03.26]
+Mod_ValidateCRC [FWGS, 01.07.26]
 ==================
 ***/
 qboolean Mod_ValidateCRC (const char *name, uint32_t crc)
 	{
-	model_info_t	*p;
+	/*model_info_t	*p;
 	model_t			*mod;
 
 	mod = Mod_FindName (name, true);
-	p = &mod_crcinfo[mod - mod_known];
+	p = &mod_crcinfo[mod - mod_known];*/
+	model_t	*mod = Mod_FindName (name, true);
+	model_info_t	*p = &mod_crcinfo[mod - mod_known];
 
 	if (!FBitSet (p->flags, FCRC_CHECKSUM_DONE))
 		return true;
+
 	if (p->initialCRC == crc)
 		return true;
+
 	return false;
 	}
 
 /***
 ==================
-Mod_NeedCRC
+Mod_NeedCRC [FWGS, 01.07.26]
 ==================
 ***/
 void Mod_NeedCRC (const char *name, qboolean needCRC)
 	{
-	model_t			*mod;
+	/*model_t			*mod;
 	model_info_t	*p;
 
 	mod = Mod_FindName (name, true);
-	p = &mod_crcinfo[mod - mod_known];
+	p = &mod_crcinfo[mod - mod_known];*/
+	model_t	*mod = Mod_FindName (name, true);
+	model_info_t	*p = &mod_crcinfo[mod - mod_known];
 
 	if (needCRC)
 		SetBits (p->flags, FCRC_SHOULD_CHECKSUM);

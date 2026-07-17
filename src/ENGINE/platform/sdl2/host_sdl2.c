@@ -60,9 +60,9 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 			}
 
 		// ignore printable keys, they are coming through SDL_TEXTINPUT
-		if (((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
-			|| ((keynum >= SDL_SCANCODE_1) && (keynum <= SDL_SCANCODE_0))
-			|| ((keynum >= SDL_SCANCODE_KP_1) && (keynum <= SDL_SCANCODE_KP_0)))
+		if (((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z)) ||
+			((keynum >= SDL_SCANCODE_1) && (keynum <= SDL_SCANCODE_0)) ||
+			((keynum >= SDL_SCANCODE_KP_1) && (keynum <= SDL_SCANCODE_KP_0)))
 			return;
 		}
 
@@ -389,15 +389,16 @@ static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
 
 /***
 =============
-SDLash_InputEvent [FWGS, 01.06.25]
+SDLash_InputEvent [FWGS, 01.07.26]
 =============
 ***/
 static void SDLash_InputEvent (SDL_TextInputEvent input)
 	{
-	const char *text;
+	/*const char *text;*/
 	VGui_ReportTextInput (input.text);
 
-	for (text = input.text; *text; text++)
+	/*for (text = input.text; *text; text++)*/
+	for (const char *text = input.text; *text; text++)
 		{
 		int ch = (byte)*text;
 
@@ -565,7 +566,7 @@ static void SDLash_EventHandler (SDL_Event *event)
 				return;
 
 			if ((host.status == HOST_SHUTDOWN) || Host_IsDedicated ())
-				break; // no need to activate
+				break;	// no need to activate
 
 			switch (event->window.event)
 				{
@@ -600,7 +601,7 @@ static void SDLash_EventHandler (SDL_Event *event)
 					SDLash_ActiveEvent (false);
 					break;
 
-					// [FWGS, 01.03.26]
+				// [FWGS, 01.03.26]
 				case SDL_WINDOWEVENT_RESIZED:
 					VID_SaveWindowSize (event->window.data1, event->window.data2);
 					break;

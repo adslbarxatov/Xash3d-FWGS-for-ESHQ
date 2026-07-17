@@ -52,7 +52,7 @@ GNU General Public License for more details
 	#include <vitasdk.h>
 #endif
 
-#include "menu_int.h" // _UPDATE_PAGE macro
+#include "menu_int.h"	// _UPDATE_PAGE macro
 
 #include "library.h"
 #include "whereami.h"
@@ -101,7 +101,6 @@ void Sys_DebugBreak (void)
 		}
 
 	// [FWGS, 01.03.26] both MSVC and MinGW support it
-	/*if _MSC_VER*/
 #if XASH_WIN32
 	__debugbreak ();
 #else
@@ -116,6 +115,7 @@ void Sys_DebugBreak (void)
 	}
 
 #if !XASH_DEDICATED
+
 /***
 ================
 Sys_GetClipboardData
@@ -164,7 +164,6 @@ const char *Sys_GetCurrentUser (void)
 #elif XASH_PSVITA
 	static string username;
 	sceAppUtilSystemParamGetString (SCE_SYSTEM_PARAM_ID_USERNAME, username, sizeof (username) - 1);
-	/*if (COM_CheckStringEmpty (username))*/
 	if (!COM_StringEmpty (username))
 		return username;
 
@@ -173,7 +172,6 @@ const char *Sys_GetCurrentUser (void)
 	struct passwd *pw = getpwuid (geteuid ());
 
 	// POSIX standard says pw _might_ point to static area, so let's make a copy
-	/*if (pw && COM_CheckString (pw->pw_name))*/
 	if (pw && !COM_StringEmptyOrNULL (pw->pw_name))
 		{
 		Q_strncpy (username, pw->pw_name, sizeof (username));
@@ -186,14 +184,13 @@ const char *Sys_GetCurrentUser (void)
 
 /***
 ==================
-Sys_ParseCommandLine [FWGS, 01.03.26]
+Sys_ParseCommandLine [FWGS, 01.07.26]
 ==================
 ***/
-/*void Sys_ParseCommandLine (int argc, char **argv)*/
 void Sys_ParseCommandLine (int argc, const char **argv)
 	{
 	const char	*blank = "censored";
-	int		i;
+	/*int		i;*/
 
 	host.argc = argc;
 	host.argv = argv;
@@ -201,35 +198,26 @@ void Sys_ParseCommandLine (int argc, const char **argv)
 	if (!host.change_game)
 		return;
 
-	for (i = 0; i < host.argc; i++)
+	/*for (i = 0; i < host.argc; i++)*/
+	for (int i = 0; i < host.argc; i++)
 		{
 		// we don't want to return to first game
-		/*if (!Q_stricmp ("-game", host.argv[i]))
-			host.argv[i] = (char *)blank;*/
 		if (!Q_stricmp ("-game", host.argv[i]))
 			host.argv[i] = blank;
 
 		// probably it's timewaster, because engine rejected second change
-		/*else if (!Q_stricmp ("+game", host.argv[i]))
-			host.argv[i] = (char *)blank;*/
 		else if (!Q_stricmp ("+game", host.argv[i]))
 			host.argv[i] = blank;
 
 		// you sure that map exists in new game?
-		/*else if (!Q_stricmp ("+map", host.argv[i]))
-			host.argv[i] = (char *)blank;*/
 		else if (!Q_stricmp ("+map", host.argv[i]))
 			host.argv[i] = blank;
 
 		// just stupid action
-		/*else if (!Q_stricmp ("+load", host.argv[i]))
-			host.argv[i] = (char *)blank;*/
 		else if (!Q_stricmp ("+load", host.argv[i]))
 			host.argv[i] = blank;
 
 		// changelevel beetwen games? wow it's great idea!
-		/*else if (!Q_stricmp ("+changelevel", host.argv[i]))
-			host.argv[i] = (char *)blank;*/
 		else if (!Q_stricmp ("+changelevel", host.argv[i]))
 			host.argv[i] = blank;
 		}
@@ -239,7 +227,7 @@ void Sys_ParseCommandLine (int argc, const char **argv)
 
 /***
 ================
-Sys_CheckParm
+Sys_CheckParm [FWGS, 01.07.26]
 
 Returns the position (1 to argc-1) in the program's argument list
 where the given parameter apears, or 0 if not present
@@ -247,9 +235,10 @@ where the given parameter apears, or 0 if not present
 ***/
 int Sys_CheckParm (const char *parm)
 	{
-	int	i;
+	/*int	i;
 
-	for (i = 1; i < host.argc; i++)
+	for (i = 1; i < host.argc; i++)*/
+	for (int i = 1; i < host.argc; i++)
 		{
 		if (!host.argv[i])
 			continue;
@@ -300,10 +289,10 @@ qboolean Sys_GetIntFromCmdLine (const char *argName, int *out)
 // DLL'S MANAGER SYSTEM
 // =======================================================================
 
-// [FWGS, 22.01.25]
+// [FWGS, 01.07.26]
 qboolean Sys_LoadLibrary (dll_info_t *dll)
 	{
-	size_t	i;
+	/*size_t	i;*/
 	string	errorstring;
 
 	// check errors
@@ -313,7 +302,7 @@ qboolean Sys_LoadLibrary (dll_info_t *dll)
 		return true;	// already loaded
 
 	if (!dll->name || !*dll->name)
-		return false; // nothing to load
+		return false;	// nothing to load
 
 	Con_Reportf ("%s: Loading %s", __func__, dll->name);
 
@@ -322,7 +311,7 @@ qboolean Sys_LoadLibrary (dll_info_t *dll)
 		ClearExports (dll->fcts, dll->num_fcts);
 
 	if (!dll->link)
-		dll->link = COM_LoadLibrary (dll->name, false, true); // environment pathes
+		dll->link = COM_LoadLibrary (dll->name, false, true);	// environment pathes
 
 	// no DLL found
 	if (!dll->link)
@@ -331,8 +320,9 @@ qboolean Sys_LoadLibrary (dll_info_t *dll)
 		goto error;
 		}
 
-	// Get the function adresses
-	for (i = 0; i < dll->num_fcts; i++)
+	// get the function adresses
+	/*for (i = 0; i < dll->num_fcts; i++)*/
+	for (size_t i = 0; i < dll->num_fcts; i++)
 		{
 		const dllfunc_t *func = &dll->fcts[i];
 
@@ -343,13 +333,13 @@ qboolean Sys_LoadLibrary (dll_info_t *dll)
 			goto error;
 			}
 		}
-	Con_Reportf (" - ok\n");
 
+	Con_Reportf (" - ok\n");
 	return true;
 
 error:
 	Con_Reportf (" - failed\n");
-	Sys_FreeLibrary (dll); // trying to free
+	Sys_FreeLibrary (dll);	// trying to free
 
 	if (dll->crash)
 		Sys_Error ("%s", errorstring);
@@ -436,7 +426,6 @@ void Sys_Warn (const char *format, ...)
 
 	// [FWGS, 01.03.26]
 	Sys_DebugBreak ();
-	/*Msg ("%s: %s\n", __func__, text);*/
 	Con_Printf ("%s: %s\n", __func__, text);
 
 	// dedicated server should not hang on messagebox
@@ -575,7 +564,7 @@ void Sys_Print (const char *pMsg)
 			}
 		else if ((msg[i] == '\35') || (msg[i] == '\36') || (msg[i] == '\37'))
 			{
-			i++; // skip console pseudo graph
+			i++;	// skip console pseudo graph
 			}
 		else
 			{
@@ -588,7 +577,7 @@ void Sys_Print (const char *pMsg)
 		i++;
 		}
 
-	*b = *c = 0; // terminator
+	*b = *c = 0;	// terminator
 
 	Wcon_WinPrint (buffer);
 	}
@@ -622,7 +611,7 @@ qboolean Sys_CanRestart (void)
 
 /***
 ==================
-Sys_NewInstance [FWGS, 01.03.26]
+Sys_NewInstance [FWGS, 01.07.26]
 
 This is a special function
 
@@ -634,14 +623,14 @@ it explicitly doesn't use internal allocation or string copy utils
 qboolean Sys_NewInstance (const char *gamedir, const char *finalmsg)
 	{
 	qboolean replaced_arg = false;
-	int i;
+	/*int i;*/
 
 #if XASH_NSWITCH
 	char newargs[4096];
-	const char *exe = host.argv[0]; // arg 0 is always the full NRO path
+	const char *exe = host.argv[0];	// arg 0 is always the full NRO path
 
-	/*Q_snprintf (newargs, sizeof (newargs), "%s -game %s", exe, gamedir);*/
-	for (i = 0; i < host.argc; i++)
+	/*for (i = 0; i < host.argc; i++)*/
+	for (int i = 0; i < host.argc; i++)
 		{
 		Q_strncat (newargs, host.argv[i], sizeof (newargs));
 		Q_strncat (newargs, " ", sizeof (newargs));
@@ -673,37 +662,28 @@ qboolean Sys_NewInstance (const char *gamedir, const char *finalmsg)
 
 #else
 
-	/*int i = 0;
-	qboolean replacedArg = false;
-	size_t exelen;*/
-	int		exelen;
-	char	*exe, **newargs;
+	/*int		exelen;
+	char	*exe, **newargs;*/
+	char	*exe = NULL;
 
 	// don't use engine allocation utils here
 	// they will be freed after Host_Shutdown
-	newargs = calloc (host.argc + 4, sizeof (*newargs));
+	/*newargs = calloc (host.argc + 4, sizeof (*newargs));*/
+	char	**newargs = calloc (host.argc + 4, sizeof (*newargs));
+	int		i;
 	
-	/*while (i < host.argc)*/	
 	for (i = 0; i < host.argc; i++)
 		{
 		newargs[i] = strdup (host.argv[i]);
 
-		/*// replace existing -game argument*/
 		if (!Q_stricmp (newargs[i], "-game"))
 			{
 			newargs[i + 1] = strdup (gamedir);
-			/*replacedArg = true;
-			i += 2;*/
 			replaced_arg = true;
 			i++;
 			}
-		/*else
-			{
-			i++;
-			}*/
 		}
 
-	/*if (!replacedArg)*/
 	if (!replaced_arg)
 		{
 		newargs[i++] = strdup ("-game");
@@ -720,38 +700,32 @@ qboolean Sys_NewInstance (const char *gamedir, const char *finalmsg)
 	// under normal circumstances it's always going to be the same path
 	exe = strdup ("app0:/eboot.bin");
 
-	/*Host_ShutdownWithReason (finalmsg);*/
 	sceAppMgrLoadExec (exe, newargs, NULL);
 
 #else
 
-	exelen = wai_getExecutablePath (NULL, 0, NULL);
-	/*exe = malloc (exelen + 1);
-	wai_getExecutablePath (exe, exelen, NULL);
-	exe[exelen] = 0;*/
+	/*exelen = wai_getExecutablePath (NULL, 0, NULL);*/
+	int exelen = wai_getExecutablePath (NULL, 0, NULL);
 	if (exelen >= 0)
 		{
 		exe = malloc (exelen + 1);
 		wai_getExecutablePath (exe, exelen, NULL);
 		exe[exelen] = 0;
 
-		/*Host_ShutdownWithReason (finalmsg);*/
 		execv (exe, newargs);
 
-		/*execv (exe, newargs);*/
 		// if execv returned, it's probably an error
 		printf ("execv failed: %s", strerror (errno));
 		}
 
 #endif
 
-	/*// if execv returned, it's probably an error
-	printf ("execv failed: %s", strerror (errno));*/
-
 	for (; i >= 0; i--)
 		free (newargs[i]);
+
 	free (newargs);
 	free (exe);
+
 #endif
 
 	return false;
@@ -759,21 +733,24 @@ qboolean Sys_NewInstance (const char *gamedir, const char *finalmsg)
 
 /***
 ==================
-Sys_GetNativeObject
+Sys_GetNativeObject [FWGS, 01.07.26]
 
 Get platform-specific native object
 ==================
 ***/
 void *Sys_GetNativeObject (const char *obj)
 	{
-	void *ptr;
+	/*void *ptr;
 
-	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (obj))*/
+	// [FWGS, 01.03.26]*/
 	if (COM_StringEmptyOrNULL (obj))
 		return NULL;
 
-	ptr = FS_GetNativeObject (obj);
+	/*ptr = FS_GetNativeObject (obj);*/
+	if (!Q_strcmp (obj, "MenuFactory"))
+		return UI_GetMenuFactory ();
+
+	void *ptr = FS_GetNativeObject (obj);
 	if (ptr)
 		return ptr;
 

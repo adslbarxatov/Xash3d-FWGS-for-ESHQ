@@ -60,7 +60,7 @@ qboolean SV_CheckBottom (edict_t *ent, int iMode)
 			}
 		}
 
-	return true; // we got out easy
+	return true;	// we got out easy
 
 realcheck:
 	// check it for real...
@@ -141,7 +141,7 @@ void SV_WaterMove (edict_t *ent)
 				ent->v.dmg += 2;
 
 				if (ent->v.dmg < 15)
-					ent->v.dmg = 10; // quake1 original code
+					ent->v.dmg = 10;	// quake1 original code
 				ent->v.pain_finished = sv.time + 1.0f;
 				}
 			}
@@ -232,35 +232,39 @@ float SV_VecToYaw (const vec3_t src)
 		if (yaw < 0)
 			yaw += 360.0f;
 		}
+
 	return yaw;
 	}
 
 // ============================================================================
 
+// [FWGS, 01.07.26]
 qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 	{
-	int		i;
+	/*int		i;*/
 	trace_t	trace;
 	vec3_t	oldorg, neworg, end;
 	qboolean	monsterClip;
-	edict_t	*enemy;
+	/*edict_t	*enemy;*/
 	float	dz;
 
 	VectorCopy (ent->v.origin, oldorg);
 	VectorAdd (ent->v.origin, move, neworg);
 	monsterClip = FBitSet (ent->v.flags, FL_MONSTERCLIP) ? true : false;
 
-	// [FWGS, 01.06.25] well, try it. Flying and swimming monsters are easiest
-	/*if (ent->v.flags & (FL_SWIM | FL_FLY))*/
+	// well, try it. Flying and swimming monsters are easiest
 	if (FBitSet (ent->v.flags, FL_SWIM | FL_FLY))
 		{
+		edict_t *enemy = NULL;
+
 		// try one move with vertical motion, then one without
-		for (i = 0; i < 2; i++)
+		/*for (i = 0; i < 2; i++)*/
+		for (int i = 0; i < 2; i++)
 			{
 			VectorAdd (ent->v.origin, move, neworg);
 
 			enemy = ent->v.enemy;
-			if (i == 0 && enemy != NULL)
+			if ((i == 0) && (enemy != NULL))
 				{
 				dz = ent->v.origin[2] - enemy->v.origin[2];
 
@@ -271,14 +275,12 @@ qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 				}
 
 			trace = SV_Move (ent->v.origin, ent->v.mins, ent->v.maxs, neworg, MOVE_NORMAL, ent, monsterClip);
-
 			if (trace.fraction == 1.0f)
 				{
 				svs.groupmask = ent->v.groupinfo;
 
-				// [FWGS, 01.06.25] that move takes us out of the water.
+				// that move takes us out of the water.
 				// apparently though, it's okay to travel into solids, lava, sky, etc :)
-				/*if ((ent->v.flags & FL_SWIM) && SV_PointContents (trace.endpos) == CONTENTS_EMPTY)*/
 				if (FBitSet (ent->v.flags, FL_SWIM) && (SV_PointContents (trace.endpos) == CONTENTS_EMPTY))
 					return 0;
 
@@ -316,17 +318,14 @@ qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 				return 0;
 			}
 
-		// [FWGS, 01.06.25]
 		if (trace.fraction == 1.0f)
 			{
-			/*if (ent->v.flags & FL_PARTIALGROUND)*/
 			if (FBitSet (ent->v.flags, FL_PARTIALGROUND))
 				{
 				VectorAdd (ent->v.origin, move, ent->v.origin);
 				if (relink)
 					SV_LinkEdict (ent, true);
 
-				/*ent->v.flags &= ~FL_ONGROUND;*/
 				ClearBits (ent->v.flags, FL_ONGROUND);
 				return 1;
 				}
@@ -339,7 +338,6 @@ qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 
 			if (SV_CheckBottom (ent, WALKMOVE_NORMAL) == 0)
 				{
-				/*if (ent->v.flags & FL_PARTIALGROUND)*/
 				if (FBitSet (ent->v.flags, FL_PARTIALGROUND))
 					{
 					if (relink)
@@ -352,7 +350,6 @@ qboolean SV_MoveStep (edict_t *ent, vec3_t move, qboolean relink)
 				}
 			else
 				{
-				/*ent->v.flags &= ~FL_PARTIALGROUND;*/
 				ClearBits (ent->v.flags, FL_PARTIALGROUND);
 				ent->v.groundentity = trace.ent;
 				if (relink)
@@ -436,15 +433,17 @@ qboolean SV_MoveTest (edict_t *ent, vec3_t move, qboolean relink)
 		}
 	}
 
+// [FWGS, 01.07.26]
 static qboolean SV_StepDirection (edict_t *ent, float yaw, float dist)
 	{
 	int		ret;
 	float	cSin, cCos;
-	vec3_t	move;
+	/*vec3_t	move;*/
 
 	yaw = yaw * M_PI2 / 360.0f;
 	SinCos (yaw, &cSin, &cCos);
-	VectorSet (move, cCos * dist, cSin * dist, 0.0f);
+	/*VectorSet (move, cCos * dist, cSin * dist, 0.0f);*/
+	vec3_t move = { cCos * dist, cSin * dist, 0.0f };
 
 	ret = SV_MoveStep (ent, move, false);
 	SV_LinkEdict (ent, true);
@@ -551,11 +550,13 @@ static void SV_NewChaseDir (edict_t *actor, vec3_t destination, float dist)
 		}
 	}
 
+// [FWGS, 01.07.26]
 void SV_MoveToOrigin (edict_t *ent, const vec3_t pflGoal, float dist, int iMoveType)
 	{
-	vec3_t	vecDist;
+	/*vec3_t	vecDist;
 
-	VectorCopy (pflGoal, vecDist);
+	VectorCopy (pflGoal, vecDist);*/
+	vec3_t vecDist = Vec3 (pflGoal);
 
 	if (ent->v.flags & (FL_FLY | FL_SWIM | FL_ONGROUND))
 		{

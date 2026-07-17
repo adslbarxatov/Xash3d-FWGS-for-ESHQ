@@ -19,9 +19,6 @@ GNU General Public License for more details
 #include "studio.h"
 
 // [FWGS, 01.05.26]
-/*if !XASH_DEDICATED
-	#include "ref_common.h"
-endif*/
 #include "mod_local.h"
 #include "swaplib.h"
 
@@ -38,9 +35,6 @@ le_struct_field (dsprite_q1_t, synctype)
 le_struct_end ();
 
 // [FWGS, 01.05.26]
-/*
-====================
-Mod_LoadSpriteModel [FWGS, 01.11.25]*/
 le_struct_begin (dsprite_hl_swap)
 le_struct_field (dsprite_hl_t, ident)
 le_struct_field (dsprite_hl_t, version)
@@ -54,10 +48,6 @@ le_struct_field (dsprite_hl_t, synctype)
 le_struct_end ();
 
 // [FWGS, 01.05.26]
-/*load sprite model
-====================
-/
-void Mod_LoadSpriteModel (model_t *mod, const void *buffer, size_t buffersize, qboolean *loaded)*/
 le_struct_begin (dspriteframe_swap)
 le_struct_array (dspriteframe_t, origin, 2)
 le_struct_field (dspriteframe_t, width)
@@ -66,26 +56,20 @@ le_struct_end ();
 
 // [FWGS, 01.05.26] removed Mod_LoadSpriteModel
 
-// [FWGS, 01.05.26]
+// [FWGS, 01.07.26]
 static byte *Mod_SwapSpriteFrame (byte *p, byte *end, int bytes)
 	{
-	/*const dsprite_t	*pin = buffer;
-	msprite_t		*psprite;
-	char			poolname[MAX_VA_STRING];*/
 	dspriteframe_t	frame;
 
-	/*if (loaded)
-		*loaded = false;*/
 	if (p + sizeof (frame) > end)
 		return NULL;
 
-	/*if (buffersize < sizeof (dsprite_t))*/
 	memcpy (&frame, p, sizeof (frame));
 	le_struct_swap (dspriteframe_swap, &frame);
 
-#if XASH_BIG_ENDIAN
+	/*if XASH_BIG_ENDIAN*/
 	memcpy (p, &frame, sizeof (frame));
-#endif
+	/*endif*/
 	p += sizeof (frame);
 
 	// skip pixel data
@@ -96,73 +80,75 @@ static byte *Mod_SwapSpriteFrame (byte *p, byte *end, int bytes)
 	return p;
 	}
 
-// [FWGS, 01.05.26]
+// [FWGS, 01.07.26]
 static byte *Mod_SwapSpriteGroup (byte *p, byte *end, int bytes)
 	{
-	dspritegroup_t	*group;
+	/*dspritegroup_t	*group;*/
+	dspritegroup_t	group;
 
-	if (p + sizeof (*group) > end)
+	/*if (p + sizeof (*group) > end)*/
+	if (p + sizeof (group) > end)
 		return NULL;
 
-	group = (dspritegroup_t *)p;
+	/*group = (dspritegroup_t *)p;
 	group->numframes = LittleLong (group->numframes);
-	p += sizeof (*group);
+	p += sizeof (*group);*/
+	memcpy (&group, p, sizeof (group));
+	group.numframes = LittleLong (group.numframes);
+	memcpy (p, &group, sizeof (group));
+	p += sizeof (group);
 
 	// swap intervals
-	int numframes = group->numframes;
+	/*int numframes = group->numframes;*/
+	int numframes = group.numframes;
 
 	if (p + numframes * sizeof (dspriteinterval_t) > end)
 		return NULL;
 
 	for (int i = 0; i < numframes; i++)
 		{
-		/*Con_DPrintf (S_ERROR "%s: %s have incorrect file size %zu should be greater than %zu (%s)\n",
-			__func__, mod->name, buffersize, sizeof (dsprite_t), "basic header");
-		return;*/
-		dspriteinterval_t *interval = (dspriteinterval_t *)p;
+		/*dspriteinterval_t *interval = (dspriteinterval_t *)p;
 		interval->interval = LittleFloat (interval->interval);
-		p += sizeof (*interval);
+		p += sizeof (*interval);*/
+		dspriteinterval_t interval;
+
+		memcpy (&interval, p, sizeof (interval));
+		interval.interval = LittleFloat (interval.interval);
+		memcpy (p, &interval, sizeof (interval));
+		p += sizeof (interval);
 		}
 
-	/*if (pin->ident != IDSPRITEHEADER)*/
 	// swap each frame in the group
 	for (int i = 0; i < numframes; i++)
 		{
-		/*Con_DPrintf (S_ERROR "%s: %s has wrong id (0x%x should be 0x%x)\n", __func__, mod->name,
-			pin->ident, IDSPRITEHEADER);
-		return;*/
 		p = Mod_SwapSpriteFrame (p, end, bytes);
 		if (!p)
 			return NULL;
 		}
 
-	/*switch (pin->version)*/
 	return p;
 	}
 
-// [FWGS, 01.05.26]
+// [FWGS, 01.07.26]
 static qboolean Mod_SwapSprite (void *buffer, size_t buffersize, int *out_version)
 	{
 	byte	*end = (byte *)buffer + buffersize;
-	int		version, numframes, bytes;
+	/*int		version, numframes, bytes;*/
+	int		numframes;
 	byte	*p;
 
 	if (buffersize < sizeof (dsprite_t))
 		return false;
 
 	// peek at ident + version before full swap
-	version = LittleLong (((dsprite_t *)buffer)->version);
+	/*version = LittleLong (((dsprite_t *)buffer)->version);*/
+	int version = LittleLong (((dsprite_t *)buffer)->version);
 
 	switch (version)
 		{
 		case SPRITE_VERSION_Q1:
 		case SPRITE_VERSION_32:
 			if (buffersize < sizeof (dsprite_q1_t))
-				/*{
-				Con_DPrintf (S_ERROR "%s: %s have incorrect file size %zu should be greater than %zu (%s)\n",
-					__func__, mod->name, buffersize, sizeof (dsprite_q1_t), "q1 header");
-				return;
-				}*/
 				return false;
 
 			le_struct_swap (dsprite_q1_swap, buffer);
@@ -173,11 +159,6 @@ static qboolean Mod_SwapSprite (void *buffer, size_t buffersize, int *out_versio
 		case SPRITE_VERSION_HL:
 			{
 			if (buffersize < sizeof (dsprite_hl_t))
-				/*{
-				Con_DPrintf (S_ERROR "%s: %s have incorrect file size %zu should be greater than %zu (%s)\n",
-					__func__, mod->name, buffersize, sizeof (dsprite_hl_t), "hl header");
-				return;
-				}*/
 				return false;
 
 			le_struct_swap (dsprite_hl_swap, buffer);
@@ -195,27 +176,33 @@ static qboolean Mod_SwapSprite (void *buffer, size_t buffersize, int *out_versio
 			}
 
 		default:
-			/*Con_DPrintf (S_ERROR "%s: %s has wrong version number (%i should be %i, %i or %i)\n",
-				__func__, mod->name, pin->version, SPRITE_VERSION_Q1, SPRITE_VERSION_32, SPRITE_VERSION_HL);*/
 			return false;
 		}
 
 	*out_version = version;
-	bytes = (version == SPRITE_VERSION_32) ? 4 : 1;
+	/*bytes = (version == SPRITE_VERSION_32) ? 4 : 1;*/
+	int bytes = (version == SPRITE_VERSION_32) ? 4 : 1;
 
 	// swap all frames
 	for (int i = 0; (i < numframes) && p && (p < end); i++)
 		{
-		dframetype_t	*frametype;
+		/*dframetype_t	*frametype;*/
+		dframetype_t	frametype;
 
-		if (p + sizeof (*frametype) > end)
+		/*if (p + sizeof (*frametype) > end)*/
+		if (p + sizeof (frametype) > end)
 			return false;
 
-		frametype = (dframetype_t *)p;
+		/*frametype = (dframetype_t *)p;
 		frametype->type = LittleLong (frametype->type);
-		p += sizeof (*frametype);
+		p += sizeof (*frametype);*/
+		memcpy (&frametype, p, sizeof (frametype));
+		frametype.type = LittleLong (frametype.type);
+		memcpy (p, &frametype, sizeof (frametype));
+		p += sizeof (frametype);
 
-		switch (frametype->type)
+		/*switch (frametype->type)*/
+		switch (frametype.type)
 			{
 			case FRAME_SINGLE:
 				p = Mod_SwapSpriteFrame (p, end, bytes);
@@ -236,7 +223,7 @@ static qboolean Mod_SwapSprite (void *buffer, size_t buffersize, int *out_versio
 
 /***
 ====================
-Mod_LoadSpriteModel [FWGS, 01.05.26]
+Mod_LoadSpriteModel [FWGS, 01.07.26]
 
 load sprite model
 ====================
@@ -244,12 +231,13 @@ load sprite model
 void Mod_LoadSpriteModel (model_t *mod, void *buffer, size_t buffersize, qboolean *loaded)
 	{
 	msprite_t	*psprite;
-	char	poolname[MAX_VA_STRING];
-	int		version;
+	/*char	poolname[MAX_VA_STRING];
+	int		version;*/
 
 	if (loaded)
 		*loaded = false;
 
+	int version;
 	if (!Mod_SwapSprite (buffer, buffersize, &version))
 		{
 		Con_DPrintf (S_ERROR "%s: %s is not a valid sprite\n", __func__, mod->name);
@@ -258,15 +246,14 @@ void Mod_LoadSpriteModel (model_t *mod, void *buffer, size_t buffersize, qboolea
 
 	mod->type = mod_sprite;
 
+	char poolname[MAX_VA_STRING];
 	Q_snprintf (poolname, sizeof (poolname), "^2%s^7", mod->name);
 	mod->mempool = Mem_AllocPool (poolname);
 
-	/*if ((pin->version == SPRITE_VERSION_Q1) || (pin->version == SPRITE_VERSION_32))*/
 	if ((version == SPRITE_VERSION_Q1) || (version == SPRITE_VERSION_32))
 		{
-		/*const dsprite_q1_t *pinq1 = buffer;*/
 		dsprite_q1_t	*pinq1 = buffer;
-		size_t	size;
+		/*size_t	size;*/
 
 		if (pinq1->numframes == 0)
 			{
@@ -274,7 +261,8 @@ void Mod_LoadSpriteModel (model_t *mod, void *buffer, size_t buffersize, qboolea
 			return;
 			}
 
-		size = sizeof (msprite_t) + (pinq1->numframes - 1) * sizeof (psprite->frames);
+		/*size = sizeof (msprite_t) + (pinq1->numframes - 1) * sizeof (psprite->frames);*/
+		size_t size = sizeof (msprite_t) + (pinq1->numframes - 1) * sizeof (psprite->frames);
 		psprite = Mem_Calloc (mod->mempool, size);
 		mod->cache.data = psprite;	// make link to extradata
 
@@ -295,12 +283,10 @@ void Mod_LoadSpriteModel (model_t *mod, void *buffer, size_t buffersize, qboolea
 		mod->mins[2] = -pinq1->bounds[1] * 0.5f;
 		mod->maxs[2] = pinq1->bounds[1] * 0.5f;
 		}
-	/*else	// if (pin->version == SPRITE_VERSION_HL)*/
 	else	// if( version == SPRITE_VERSION_HL )
 		{
-		/*const dsprite_hl_t *pinhl = buffer;*/
 		dsprite_hl_t	*pinhl = buffer;
-		size_t	size;
+		/*size_t	size;*/
 
 		if (pinhl->numframes == 0)
 			{
@@ -308,7 +294,8 @@ void Mod_LoadSpriteModel (model_t *mod, void *buffer, size_t buffersize, qboolea
 			return;
 			}
 
-		size = sizeof (msprite_t) + (pinhl->numframes - 1) * sizeof (psprite->frames);
+		/*size = sizeof (msprite_t) + (pinhl->numframes - 1) * sizeof (psprite->frames);*/
+		size_t size = sizeof (msprite_t) + (pinhl->numframes - 1) * sizeof (psprite->frames);
 		psprite = Mem_Calloc (mod->mempool, size);
 		mod->cache.data = psprite;	// make link to extradata
 

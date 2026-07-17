@@ -68,13 +68,14 @@ static BOOL WINAPI Wcon_HandleConsole (DWORD CtrlType)
 	return TRUE;
 	}
 
+// [FWGS, 01.07.26]
 static void Wcon_PrintInternal (const char *msg, int length)
 	{
-	char *pTemp;
-	DWORD cbWritten;
-	const char *pMsgString;
-	static char tmpBuf[2048];
-	static char szOutput[2048];
+	/*char *pTemp;*/
+	DWORD	cbWritten;
+	/*const char	*pMsgString;*/
+	static char	tmpBuf[2048];
+	static char	szOutput[2048];
 
 	Q_strncpy (szOutput, msg, length ? (length + 1) : (sizeof (szOutput) - 1));
 	if (length)
@@ -82,8 +83,10 @@ static void Wcon_PrintInternal (const char *msg, int length)
 	else
 		szOutput[sizeof (szOutput) - 1] = '\0';
 
-	pTemp = tmpBuf;
-	pMsgString = szOutput;
+	/*pTemp = tmpBuf;
+	pMsgString = szOutput;*/
+	char	*pTemp = tmpBuf;
+	const char	*pMsgString = szOutput;
 	while (pMsgString && *pMsgString)
 		{
 		if (IsColorString (pMsgString))
@@ -91,14 +94,14 @@ static void Wcon_PrintInternal (const char *msg, int length)
 			if ((pTemp - tmpBuf) > 0)
 				{
 				// dump accumulated text before change color
-				*pTemp = 0; // terminate string
+				*pTemp = 0;	// terminate string
 				WriteFile (s_wcd.hOutput, tmpBuf, Q_strlen (tmpBuf), &cbWritten, 0);
 				pTemp = tmpBuf;
 				}
 
 			// set new color
 			SetConsoleTextAttribute (s_wcd.hOutput, g_color_table[ColorIndex (*(pMsgString + 1))]);
-			pMsgString += 2; // skip color info
+			pMsgString += 2;	// skip color info
 			}
 		else if ((pTemp - tmpBuf) < sizeof (tmpBuf) - 1)
 			{
@@ -107,7 +110,7 @@ static void Wcon_PrintInternal (const char *msg, int length)
 		else
 			{
 			// temp buffer is full, dump it now
-			*pTemp = 0; // terminate string
+			*pTemp = 0;	// terminate string
 			WriteFile (s_wcd.hOutput, tmpBuf, Q_strlen (tmpBuf), &cbWritten, 0);
 			pTemp = tmpBuf;
 			}
@@ -117,7 +120,7 @@ static void Wcon_PrintInternal (const char *msg, int length)
 	if ((pTemp - tmpBuf) > 0)
 		{
 		// dump accumulated text
-		*pTemp = 0; // terminate string
+		*pTemp = 0;	// terminate string
 		WriteFile (s_wcd.hOutput, tmpBuf, Q_strlen (tmpBuf), &cbWritten, 0);
 		pTemp = tmpBuf;
 		}
@@ -162,28 +165,43 @@ static void Wcon_SetInputText (const char *inputText)
 	s_wcd.browseLine = s_wcd.inputLine;
 	}
 
+// [FWGS, 01.07.26]
 static void Wcon_Clear_f (void)
 	{
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	SMALL_RECT scrollRect;
+	CONSOLE_SCREEN_BUFFER_INFO	csbi;
+	/*SMALL_RECT scrollRect;
 	COORD scrollTarget;
-	CHAR_INFO fill;
+	CHAR_INFO fill;*/
 
 	if (host.type != HOST_DEDICATED)
 		return;
 
-	// [ESHQ: brackets]
 	if (!GetConsoleScreenBufferInfo (s_wcd.hOutput, &csbi))
 		return;
 
-	scrollRect.Left = 0;
+	/*scrollRect.Left = 0;
 	scrollRect.Top = 0;
 	scrollRect.Right = csbi.dwSize.X;
 	scrollRect.Bottom = csbi.dwSize.Y;
 	scrollTarget.X = 0;
 	scrollTarget.Y = (SHORT)(0 - csbi.dwSize.Y);
 	fill.Char.UnicodeChar = TEXT (' ');
-	fill.Attributes = csbi.wAttributes;
+	fill.Attributes = csbi.wAttributes;*/
+	SMALL_RECT scrollRect =
+		{
+		.Right = csbi.dwSize.X,
+		.Bottom = csbi.dwSize.Y,
+		};
+	COORD scrollTarget =
+		{
+		.Y = (SHORT)(0 - csbi.dwSize.Y),
+		};
+	CHAR_INFO fill =
+		{
+		.Char.UnicodeChar = TEXT (' '),
+		.Attributes = csbi.wAttributes,
+		};
+
 	ScrollConsoleScreenBuffer (s_wcd.hOutput, &scrollRect, NULL, scrollTarget, &fill);
 
 	csbi.dwCursorPosition.X = 0;
@@ -200,7 +218,6 @@ static void Wcon_Clear_f (void)
 	}
 
 // [FWGS, 01.03.26]
-/*static void Wcon_EventUpArrow ()*/
 static void Wcon_EventUpArrow (void)
 	{
 	int nLastCommandInHistory = s_wcd.inputLine + 1;
@@ -232,7 +249,6 @@ static void Wcon_EventUpArrow (void)
 	}
 
 // [FWGS, 01.03.26]
-/*static void Wcon_EventDownArrow ()*/
 static void Wcon_EventDownArrow (void)
 	{
 	if (s_wcd.browseLine == s_wcd.inputLine)
@@ -251,6 +267,7 @@ static void Wcon_EventDownArrow (void)
 			Q_strncpy (s_wcd.consoleText, s_wcd.savedConsoleText, s_wcd.savedConsoleTextLen);
 			Wcon_PrintInternal (s_wcd.consoleText, s_wcd.savedConsoleTextLen);
 			}
+
 		s_wcd.consoleTextLen = s_wcd.savedConsoleTextLen;
 		}
 	else
@@ -263,7 +280,6 @@ static void Wcon_EventDownArrow (void)
 	}
 
 // [FWGS, 01.03.26]
-/*static void Wcon_EventLeftArrow ()*/
 static void Wcon_EventLeftArrow (void)
 	{
 	if (s_wcd.cursorPosition == 0)
@@ -274,7 +290,6 @@ static void Wcon_EventLeftArrow (void)
 	}
 
 // [FWGS, 01.03.26]
-/*static void Wcon_EventRightArrow ()*/
 static void Wcon_EventRightArrow (void)
 	{
 	if (s_wcd.cursorPosition == s_wcd.consoleTextLen)
@@ -284,13 +299,14 @@ static void Wcon_EventRightArrow (void)
 	s_wcd.cursorPosition++;
 	}
 
-// [FWGS, 01.03.26]
-/*static int Wcon_EventNewline ()*/
+// [FWGS, 01.07.26]
 static int Wcon_EventNewline (void)
 	{
-	int nLen;
+	/*int nLen;
 
-	nLen = 0;
+	nLen = 0;*/
+	int	nLen = 0;
+
 	Wcon_PrintInternal ("\n", 0);
 	if (s_wcd.consoleTextLen)
 		{
@@ -318,11 +334,10 @@ static int Wcon_EventNewline (void)
 	return nLen;
 	}
 
-// [FWGS, 01.03.26]
-/*static void Wcon_EventBackspace ()*/
+// [FWGS, 01.07.26]
 static void Wcon_EventBackspace (void)
 	{
-	int nCount;
+	/*int nCount;*/
 
 	if (s_wcd.cursorPosition < 1)
 		return;
@@ -332,7 +347,8 @@ static void Wcon_EventBackspace (void)
 
 	Wcon_PrintInternal ("\b", 0);
 
-	for (nCount = s_wcd.cursorPosition; nCount < s_wcd.consoleTextLen; ++nCount)
+	/*for (nCount = s_wcd.cursorPosition; nCount < s_wcd.consoleTextLen; ++nCount)*/
+	for (int nCount = s_wcd.cursorPosition; nCount < s_wcd.consoleTextLen; ++nCount)
 		{
 		s_wcd.consoleText[nCount] = s_wcd.consoleText[nCount + 1];
 		Wcon_PrintInternal (s_wcd.consoleText + nCount, 1);
@@ -340,7 +356,8 @@ static void Wcon_EventBackspace (void)
 
 	Wcon_PrintInternal (" ", 0);
 
-	nCount = s_wcd.consoleTextLen;
+	/*nCount = s_wcd.consoleTextLen;*/
+	int nCount = s_wcd.consoleTextLen;
 	while (nCount >= s_wcd.cursorPosition)
 		{
 		Wcon_PrintInternal ("\b", 0);
@@ -351,7 +368,6 @@ static void Wcon_EventBackspace (void)
 	}
 
 // [FWGS, 01.03.26]
-/*static void Wcon_EventTab ()*/
 static void Wcon_EventTab (void)
 	{
 	s_wcd.consoleText[s_wcd.consoleTextLen] = '\0';
@@ -359,14 +375,16 @@ static void Wcon_EventTab (void)
 	Wcon_SetInputText (s_wcd.consoleText);
 	}
 
+// [FWGS, 01.07.26]
 static void Wcon_EventCharacter (char c)
 	{
-	int nCount;
+	/*int nCount;*/
 
 	if (s_wcd.consoleTextLen >= (sizeof (s_wcd.consoleText) - 2))
 		return;
 
-	nCount = s_wcd.consoleTextLen;
+	/*nCount = s_wcd.consoleTextLen;*/
+	int nCount = s_wcd.consoleTextLen;
 	while (nCount > s_wcd.cursorPosition)
 		{
 		s_wcd.consoleText[nCount] = s_wcd.consoleText[nCount - 1];
@@ -388,17 +406,18 @@ static void Wcon_EventCharacter (char c)
 	s_wcd.browseLine = s_wcd.inputLine;
 	}
 
-// [FWGS, 01.03.26]
-/*static void Wcon_UpdateStatusLine ()*/
+// [FWGS, 01.07.26]
 static void Wcon_UpdateStatusLine (void)
 	{
-	COORD coord;
-	WORD wAttrib;
-	DWORD dwWritten;
+	/*COORD coord;
+	WORD wAttrib;*/
+	COORD	coord = { 0 };
+	DWORD	dwWritten;
 
 	coord.X = 0;
 	coord.Y = 0;
-	wAttrib = g_color_table[5] | FOREGROUND_INTENSITY | BACKGROUND_INTENSITY;
+	/*wAttrib = g_color_table[5] | FOREGROUND_INTENSITY | BACKGROUND_INTENSITY;*/
+	WORD wAttrib = g_color_table[5] | FOREGROUND_INTENSITY | BACKGROUND_INTENSITY;
 
 	FillConsoleOutputCharacter (s_wcd.hOutput, ' ', 80, coord, &dwWritten);
 	FillConsoleOutputAttribute (s_wcd.hOutput, wAttrib, 80, coord, &dwWritten);
@@ -527,7 +546,7 @@ void Wcon_CreateConsole (qboolean con_showalways)
 	else
 		{
 		if ((host.type != HOST_DEDICATED) && (host_developer.value == DEV_NONE))
-			return; // don't initialize console in case of regular game startup, it's useless anyway
+			return;	// don't initialize console in case of regular game startup, it's useless anyway
 		else
 			AllocConsole ();
 		}
@@ -618,22 +637,23 @@ void Wcon_DestroyConsole (void)
 
 /***
 ================
-Con_Input [FWGS, 01.03.25]
+Con_Input [FWGS, 01.07.26]
 
 returned input text
 ================
 ***/
 char *Wcon_Input (void)
 	{
-	DWORD i;
-	DWORD eventsCount;
-	static INPUT_RECORD events[1024];
+	/*DWORD i;
+	DWORD eventsCount;*/
+	static INPUT_RECORD	events[1024];
 
 	if (!s_wcd.inputEnabled || !s_wcd.hWnd)
 		return NULL;
 
 	while (true)
 		{
+		DWORD eventsCount;
 		if (!GetNumberOfConsoleInputEvents (s_wcd.hInput, &eventsCount))
 			return NULL;
 
@@ -646,7 +666,8 @@ char *Wcon_Input (void)
 		if (eventsCount == 0)
 			return NULL;
 
-		for (i = 0; i < eventsCount; i++)
+		/*for (i = 0; i < eventsCount; i++)*/
+		for (DWORD i = 0; i < eventsCount; i++)
 			{
 			INPUT_RECORD *pRec = &events[i];
 			if (pRec->EventType != KEY_EVENT)

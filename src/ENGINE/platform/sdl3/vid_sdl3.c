@@ -109,6 +109,7 @@ static void VID_SaveWindowSize (SDL_Window *hWnd, int width, int height)
 	R_SaveVideoMode (width, height, render_w, render_h, maximized);
 	}
 
+// [FWGS, 01.07.26]
 static qboolean VID_CreateWindow (const int input_width, const int input_height, window_mode_t window_mode)
 	{
 	SDL_Rect rect = { SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, input_width, input_height };
@@ -121,8 +122,9 @@ static qboolean VID_CreateWindow (const int input_width, const int input_height,
 	if (window_mode == WINDOW_MODE_FULLSCREEN)
 		{
 		SDL_DisplayID display = SDL_GetPrimaryDisplay ();
-		SDL_DisplayMode dm;
+		/*SDL_DisplayMode dm;*/
 
+		SDL_DisplayMode dm;
 		if (SDL_GetClosestFullscreenDisplayMode (display, rect.w, rect.h, 0.0f, true, &dm))
 			{
 			SetBits (flags, SDL_WINDOW_FULLSCREEN);
@@ -141,10 +143,10 @@ static qboolean VID_CreateWindow (const int input_width, const int input_height,
 	if (window_mode == WINDOW_MODE_BORDERLESS)
 		{
 		SDL_DisplayID display = SDL_GetPrimaryDisplay ();
-		const SDL_DisplayMode *dm;
+		/*const SDL_DisplayMode *dm;
 
-		dm = SDL_GetDesktopDisplayMode (display);
-
+		dm = SDL_GetDesktopDisplayMode (display);*/
+		const SDL_DisplayMode *dm = SDL_GetDesktopDisplayMode (display);
 		if (dm)
 			{
 			SetBits (flags, SDL_WINDOW_FULLSCREEN);
@@ -231,7 +233,6 @@ static void R_InitVideoModes (void)
 			continue;
 
 		int j;
-
 		for (j = 0; j < vid_state.num_vidmodes; j++)
 			{
 			if (w == vid_state.vidmodes[j].width && h == vid_state.vidmodes[j].height)
@@ -509,14 +510,15 @@ struct vidmode_s *R_GetVideoMode (int num)
 	return &vid_state.vidmodes[num];
 	}
 
+// [FWGS, 01.07.26]
 qboolean VID_SetMode (void)
 	{
-	window_mode_t window_mode;
+	/*window_mode_t window_mode;*/
 	int screen_width = Cvar_VariableInteger ("width");
 	int screen_height = Cvar_VariableInteger ("height");
-	rserr_t err;
+	/*rserr_t err;*/
 
-	if (screen_width < VID_MIN_WIDTH || screen_height < VID_MIN_HEIGHT)
+	if ((screen_width < VID_MIN_WIDTH) || (screen_height < VID_MIN_HEIGHT))
 		{
 		screen_width = vid_state.prev_width;
 		screen_width = vid_state.prev_height;
@@ -530,11 +532,12 @@ qboolean VID_SetMode (void)
 		}
 #endif
 
-	window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);
+	/*window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);*/
+	window_mode_t window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);
 	SetBits (gl_vsync.flags, FCVAR_CHANGED);
 
-	err = R_ChangeDisplaySettings (screen_width, screen_height, window_mode);
-
+	/*err = R_ChangeDisplaySettings (screen_width, screen_height, window_mode);*/
+	rserr_t err = R_ChangeDisplaySettings (screen_width, screen_height, window_mode);
 	switch (err)
 		{
 		case rserr_ok:
@@ -584,7 +587,7 @@ rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mod
 		return rserr_invalid_fullscreen;
 		}
 
-	refState.desktopBitsPixel = 24; // TODO: figure this out
+	refState.desktopBitsPixel = 24;	// TODO: figure this out
 	refState.window_mode = window_mode;
 
 	return rserr_ok;

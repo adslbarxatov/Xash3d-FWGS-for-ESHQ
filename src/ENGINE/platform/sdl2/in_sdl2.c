@@ -48,19 +48,9 @@ void GAME_EXPORT Platform_GetMousePos (int *x, int *y)
 	{
 	SDL_GetMouseState (x, y);
 
-	/*if (x && window_width.value && (window_width.value != refState.width))
-		{
-		float factor = refState.width / window_width.value;
-		*x = *x * factor;
-		}*/
 	if (x)
 		*x *= refState.scale_x;
 
-	/*if (y && window_height.value && (window_height.value != refState.height))
-		{
-		float factor = refState.height / window_height.value;
-		*y = *y * factor;
-		}*/
 	if (y)
 		*y *= refState.scale_y;
 	}
@@ -90,17 +80,18 @@ void Platform_MouseMove (float *x, float *y)
 
 /***
 =============
-Platform_GetClipobardText [FWGS, 01.06.25]
+Platform_GetClipobardText [FWGS, 01.07.26]
 =============
 ***/
 int Platform_GetClipboardText (char *buffer, size_t size)
 	{
-	int textLength;
+	/*int textLength;*/
 	char *sdlbuffer = SDL_GetClipboardText ();
 
 	if (!sdlbuffer)
 		return 0;
 
+	int textLength;
 	if (buffer && (size > 0))
 		{
 		textLength = Q_strncpy (buffer, sdlbuffer, size);
@@ -109,6 +100,7 @@ int Platform_GetClipboardText (char *buffer, size_t size)
 		{
 		textLength = Q_strlen (sdlbuffer);
 		}
+
 	SDL_free (sdlbuffer);
 	return textLength;
 	}
@@ -170,14 +162,15 @@ void SDLash_InitCursors (void)
 
 /***
 ========================
-SDLash_FreeCursors [FWGS, 01.06.25]
+SDLash_FreeCursors [FWGS, 01.07.26]
 ========================
 ***/
 void SDLash_FreeCursors (void)
 	{
-	int i = 0;
+	/*int i = 0;
 
-	for (; i < HLARRAYSIZE (cursors.cursors); i++)
+	for (; i < HLARRAYSIZE (cursors.cursors); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (cursors.cursors); i++)
 		{
 		if (cursors.cursors[i])
 			SDL_FreeCursor (cursors.cursors[i]);
@@ -226,7 +219,6 @@ void Platform_SetCursorType (VGUI_DefaultCursor type)
 		// [FWGS, 01.03.26] restore the last mouse position
 		if (in_visible_cursor_pos.pushed)
 			{
-			/*SDL_WarpMouseInWindow (host.hWnd, in_visible_cursor_pos.x, in_visible_cursor_pos.y);*/
 			Platform_SetMousePos (in_visible_cursor_pos.x, in_visible_cursor_pos.y);
 			in_visible_cursor_pos.pushed = false;
 			}
@@ -237,7 +229,6 @@ void Platform_SetCursorType (VGUI_DefaultCursor type)
 		if (!in_visible_cursor_pos.pushed)
 			{
 			SDL_GetMouseState (&in_visible_cursor_pos.x, &in_visible_cursor_pos.y);
-			/*SDL_WarpMouseInWindow (host.hWnd, host.window_center_x, host.window_center_y);*/
 			Platform_SetMousePos (host.window_center_x, host.window_center_y);
 			in_visible_cursor_pos.pushed = true;
 			}
@@ -268,16 +259,19 @@ void Platform_SetMouseGrab (qboolean enable)
 
 /***
 ========================
-Platform_GetKeyModifiers [FWGS, 01.06.25]
+Platform_GetKeyModifiers [FWGS, 01.07.26]
 ========================
 ***/
 key_modifier_t Platform_GetKeyModifiers (void)
 	{
-	SDL_Keymod modFlags;
+	/*SDL_Keymod modFlags;
 	key_modifier_t resultFlags;
 
 	resultFlags = KeyModifier_None;
-	modFlags = SDL_GetModState ();
+	modFlags = SDL_GetModState ();*/
+	key_modifier_t resultFlags = KeyModifier_None;
+	SDL_Keymod modFlags = SDL_GetModState ();
+
 	if (FBitSet (modFlags, KMOD_LCTRL))
 		SetBits (resultFlags, KeyModifier_LeftCtrl);
 	if (FBitSet (modFlags, KMOD_RCTRL))

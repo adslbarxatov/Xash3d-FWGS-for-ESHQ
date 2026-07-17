@@ -102,26 +102,34 @@ vidmode_t *R_GetVideoMode (int num)
 	return vidmodes + num;
 	}
 
+// [FWGS, 01.07.26]
 static void R_InitVideoModes (void)
 	{
-	char buf[MAX_VA_STRING];
+	/*char buf[MAX_VA_STRING];
 	SDL_Rect **modes;
 	int len = 0, i = 0, j;
 
-	modes = SDL_ListModes (NULL, SDL_FULLSCREEN);
+	modes = SDL_ListModes (NULL, SDL_FULLSCREEN);*/
+	SDL_Rect **modes = SDL_ListModes (NULL, SDL_FULLSCREEN);
 
 	if (!modes || modes == (void *)-1)
 		return;
 
-	for (len = 0; modes[len]; len++);
+	/*for (len = 0; modes[len]; len++);*/
+	int len = 0;
+	for (; modes[len]; len++);
 
 	vidmodes = Mem_Malloc (host.mempool, len * sizeof (vidmode_t));
 
+	char buf[MAX_VA_STRING];
+
 	// from smallest to largest
-	for (; i < len; i++)
+	/*for (; i < len; i++)*/
+	for (int i = 0; i < len; i++)
 		{
 		SDL_Rect *mode = modes[len - i - 1];
 
+		int j;
 		for (j = 0; j < num_vidmodes; j++)
 			{
 			if (mode->w == vidmodes[j].width &&
@@ -130,6 +138,7 @@ static void R_InitVideoModes (void)
 				break;
 				}
 			}
+
 		if (j != num_vidmodes)
 			continue;
 
@@ -142,17 +151,19 @@ static void R_InitVideoModes (void)
 		}
 	}
 
+// [FWGS, 01.07.26]
 static void R_FreeVideoModes (void)
 	{
-	int i;
+	/*int i;*/
 
 	if (!vidmodes)
 		return;
 
-	for (i = 0; i < num_vidmodes; i++)
+	/*for (i = 0; i < num_vidmodes; i++)*/
+	for (int i = 0; i < num_vidmodes; i++)
 		Mem_Free ((char *)vidmodes[i].desc);
-	Mem_Free (vidmodes);
 
+	Mem_Free (vidmodes);
 	vidmodes = NULL;
 	}
 
@@ -244,9 +255,9 @@ static qboolean VID_CreateWindowWithSafeGL (const char *wndname, int xpos, int y
 		glw_state.safe++;
 
 		if (!gl_msaa_samples.value && glw_state.safe == SAFE_NOMSAA)
-			glw_state.safe++; // no need to skip msaa, if we already disabled it
+			glw_state.safe++;	// no need to skip msaa, if we already disabled it
 
-		GL_SetupAttributes (); // re-choose attributes
+		GL_SetupAttributes ();	// re-choose attributes
 
 		// try again create window
 		}
@@ -272,9 +283,9 @@ static qboolean RectFitsInAnyDisplay (const SDL_Rect *rect, const SDL_Rect *disp
 	for (int i = 0; i < num_displays; i++)
 		{
 		if (RectFitsInDisplay (rect, &display_rects[i]))
-			return true; // Rectangle fits in this display
+			return true;	// rectangle fits in this display
 		}
-	return false; // Rectangle does not fit in any display
+	return false;	// rectangle does not fit in any display
 	}
 
 /***
@@ -379,14 +390,13 @@ int GL_GetAttribute (int attr, int *val)
 
 /***
 ==================
-R_Init_Video [FWGS, 01.03.26]
+R_Init_Video [FWGS, 01.07.26]
 ==================
 ***/
-/*qboolean R_Init_Video (const int type)*/
 qboolean R_Init_Video (ref_graphic_apis_t type)
 	{
 	string safe;
-	qboolean retval;
+	/*qboolean retval;*/
 
 	refState.desktopBitsPixel = 16;
 
@@ -415,10 +425,12 @@ qboolean R_Init_Video (ref_graphic_apis_t type)
 			break;
 		}
 
-	if (!(retval = VID_SetMode ()))
-		{
+	/*if (!(retval = VID_SetMode ()))
+		{*/
+	qboolean retval = VID_SetMode ();
+	if (!retval)
 		return retval;
-		}
+	/*}*/
 
 	switch (type)
 		{
@@ -433,7 +445,6 @@ qboolean R_Init_Video (ref_graphic_apis_t type)
 		}
 
 	R_InitVideoModes ();
-
 	host.renderinfo_changed = false;
 
 	return true;
@@ -442,7 +453,8 @@ qboolean R_Init_Video (ref_graphic_apis_t type)
 rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mode)
 	{
 	refState.fullScreen = window_mode != WINDOW_MODE_WINDOWED;
-	Con_Reportf ("%s: Setting video mode to %dx%d %s\n", __func__, width, height, refState.fullScreen ? "fullscreen" : "windowed");
+	Con_Reportf ("%s: Setting video mode to %dx%d %s\n", __func__, width, height, refState.fullScreen ?
+		"fullscreen" : "windowed");
 
 	if (!host.hWnd)
 		{
@@ -465,28 +477,31 @@ rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mod
 
 /***
 ==================
-VID_SetMode
+VID_SetMode [FWGS, 01.07.26]
 
 Set the described video mode
 ==================
 ***/
 qboolean VID_SetMode (void)
 	{
-	int iScreenWidth, iScreenHeight;
+	/*int iScreenWidth, iScreenHeight;*/
 	rserr_t	err;
-	window_mode_t window_mode;
+	/*window_mode_t window_mode;*/
 
-	iScreenWidth = Cvar_VariableInteger ("width");
-	iScreenHeight = Cvar_VariableInteger ("height");
+	/*iScreenWidth = Cvar_VariableInteger ("width");
+	iScreenHeight = Cvar_VariableInteger ("height");*/
+	int iScreenWidth = Cvar_VariableInteger ("width");
+	int iScreenHeight = Cvar_VariableInteger ("height");
 
-	if (iScreenWidth < VID_MIN_WIDTH ||
-		iScreenHeight < VID_MIN_HEIGHT)	// trying to get resolution automatically by default
+	// trying to get resolution automatically by default
+	if ((iScreenWidth < VID_MIN_WIDTH) || (iScreenHeight < VID_MIN_HEIGHT))
 		{
 		iScreenWidth = 320;
 		iScreenHeight = 240;
 		}
 
-	window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);
+	/*window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);*/
+	window_mode_t window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);
 	SetBits (gl_vsync.flags, FCVAR_CHANGED);
 
 	if ((err = R_ChangeDisplaySettings (iScreenWidth, iScreenHeight, window_mode)) == rserr_ok)
@@ -496,10 +511,8 @@ qboolean VID_SetMode (void)
 		}
 	else
 		{
-		// [FWGS, 01.03.26]
 		if (err == rserr_invalid_fullscreen)
 			{
-			/*Cvar_DirectSet (&vid_fullscreen, "0");*/
 			Cvar_DirectSetValue (&vid_fullscreen, WINDOW_MODE_WINDOWED);
 			Con_Reportf (S_ERROR "%s: fullscreen unavailable in this mode\n", __func__);
 			Sys_Warn ("fullscreen unavailable in this mode!");

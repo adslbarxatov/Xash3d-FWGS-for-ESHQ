@@ -60,11 +60,13 @@ static void SoundList_Free (soundlst_t *lst)
 	memset (lst, 0, sizeof (*lst));
 	}
 
+// [FWGS, 01.07.26]
 void SoundList_Shutdown (void)
 	{
-	int i;
+	/*int i;
 
-	for (i = 0; i < SoundList_Groups; i++)
+	for (i = 0; i < SoundList_Groups; i++)*/
+	for (int i = 0; i < SoundList_Groups; i++)
 		SoundList_Free (&soundlst[i]);
 	}
 
@@ -83,6 +85,7 @@ int SoundList_Count (enum soundlst_group_e group)
 	return 0;
 	}
 
+// [FWGS, 01.07.26]
 const char *SoundList_Get (enum soundlst_group_e group, int i)
 	{
 	static string	temp;
@@ -94,7 +97,16 @@ const char *SoundList_Get (enum soundlst_group_e group, int i)
 	switch (lst->type)
 		{
 		case SoundList_Range:
+#if __GNUC__ || __clang__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
+
 			Q_snprintf (temp, sizeof (temp), lst->snd, lst->min + i);
+
+#if __GNUC__ || __clang__
+#pragma GCC diagnostic pop
+#endif
 			return temp;
 
 		case SoundList_List:
@@ -112,17 +124,20 @@ const char *SoundList_GetRandom (enum soundlst_group_e group)
 	return SoundList_Get (group, idx);
 	}
 
+// [FWGS, 01.07.26]
 static qboolean SoundList_ParseGroup (soundlst_t *lst, char **file)
 	{
 	string	token;
-	int		count = 0, slen = 0, i;
+	/*int		count = 0, slen = 0, i;
 	char	*p;
 
-	p = *file;
+	p = *file;*/
+	int		count = 0, slen = 0;
+	char	*p = *file;
 
 	while ((p = COM_ParseFile (p, token, sizeof (token))))
 		{
-		int len;
+		/*int len;*/
 
 		if (!Q_strcmp (token, "}"))
 			break;
@@ -132,23 +147,21 @@ static qboolean SoundList_ParseGroup (soundlst_t *lst, char **file)
 			Con_Printf ("%s: expected '}' but got '{' during group list parse\n", __func__);
 			return false;
 			}
-
-		// [FWGS, 01.03.26]
-		/*else if (!COM_CheckStringEmpty (token))*/
 		else if (COM_StringEmpty (token))
 			{
 			Con_Printf ("%s: expected '}' but got EOF during group list parse\n", __func__);
 			return false;
 			}
 
-		len = Q_strlen (token) + 1;
+		/*len = Q_strlen (token) + 1;*/
+		int len = Q_strlen (token) + 1;
 		if (slen < len)
 			slen = len;
 
 		count++;
 		}
 
-	if (count == 0) // deactivate group
+	if (count == 0)	// deactivate group
 		{
 		lst->type = SoundList_None;
 		lst->snd = NULL;
@@ -159,34 +172,37 @@ static qboolean SoundList_ParseGroup (soundlst_t *lst, char **file)
 	lst->type = SoundList_List;
 	lst->min = slen;
 	lst->max = count;
-	lst->snd = Mem_Malloc (host.mempool, count * slen); // allocate single buffer for the whole group
+	lst->snd = Mem_Malloc (host.mempool, count * slen);	// allocate single buffer for the whole group
 
-	for (i = 0; i < count; i++)
+	/*for (i = 0; i < count; i++)*/
+	for (int i = 0; i < count; i++)
 		{
 		*file = COM_ParseFile (*file, token, sizeof (token));
-
 		Q_strncpy (&lst->snd[i * slen], token, slen);
 		}
 
 	return true;
 	}
 
+// [FWGS, 01.07.26]
 static qboolean SoundList_ParseRange (soundlst_t *lst, char **file)
 	{
 	string	token, snd;
-	char	*p;
-	int		i = 0;
+	/*char	*p;
+	int		i = 0;*/
 
 	lst->type = SoundList_Range;
 	*file = COM_ParseFile (*file, snd, sizeof (snd));
 
 	// validate format string, count all % characters
-	p = snd;
-	i = 0;
+	/*p = snd;
+	i = 0;*/
+	char	*p = snd;
+	int		i = 0;
 	while ((p = Q_strchr (p, '%')))
 		{
 		// only decimal
-		if (p[1] != 'd' && p[1] != 'i' && p[1] != 'u')
+		if ((p[1] != 'd') && (p[1] != 'i') && (p[1] != 'u'))
 			{
 			Con_Printf ("%s: invalid range string %s, only decimal numbers are allowed", __func__, snd);
 			return false;
@@ -223,17 +239,19 @@ static qboolean SoundList_ParseRange (soundlst_t *lst, char **file)
 	return true;
 	}
 
+// [FWGS, 01.07.26]
 static qboolean SoundList_Parse (char *file)
 	{
 	string token;
-	int i;
+	/*int i;*/
 
 	while ((file = COM_ParseFile (file, token, sizeof (token))))
 		{
 		soundlst_t *lst = NULL;
-		char *p;
+		/*char *p;*/
 
-		for (i = 0; i < SoundList_Groups; i++)
+		/*for (i = 0; i < SoundList_Groups; i++)*/
+		for (int i = 0; i < SoundList_Groups; i++)
 			{
 			if (!Q_strcmp (token, soundlst_groups[i]))
 				{
@@ -248,12 +266,13 @@ static qboolean SoundList_Parse (char *file)
 			goto cleanup;
 			}
 
-		p = COM_ParseFile (file, token, sizeof (token));
+		/*p = COM_ParseFile (file, token, sizeof (token));*/
+		char *p = COM_ParseFile (file, token, sizeof (token));
 
 		// group is a range
 		if (!Q_strcmp (token, "{"))
 			{
-			file = p; // advance pointer
+			file = p;	// advance pointer
 
 			if (!SoundList_ParseGroup (lst, &file))
 				goto cleanup;
@@ -283,11 +302,13 @@ cleanup:
 	return false;
 	}
 
+// [FWGS, 01.07.26]
 static void SoundList_Print_f (void)
 	{
-	int i;
+	/*int i;
 
-	for (i = 0; i < SoundList_Groups; i++)
+	for (i = 0; i < SoundList_Groups; i++)*/
+	for (int i = 0; i < SoundList_Groups; i++)
 		{
 		soundlst_t *lst = &soundlst[i];
 
@@ -297,16 +318,21 @@ static void SoundList_Print_f (void)
 				Con_Reportf ("%-16s\t" S_CYAN "Range" S_DEFAULT " %s [%d; %d]\n",
 					soundlst_groups[i], lst->snd, lst->min, lst->max);
 				break;
+
 			case SoundList_List:
 				{
-				int j;
+				/*int j;*/
 
 				Con_Reportf ("%-16s\t" S_MAGENTA "List" S_DEFAULT " [", soundlst_groups[i]);
-				for (j = 0; j < lst->max; j++)
+
+				/*for (j = 0; j < lst->max; j++)*/
+				for (int j = 0; j < lst->max; j++)
 					Con_Reportf ("%s%s", &lst->snd[j * lst->min], j + 1 == lst->max ? "" : ", ");
+
 				Con_Reportf ("]\n");
 				break;
 				}
+
 			default:
 				Con_Reportf ("%-16s\t" S_RED "inactive" S_DEFAULT "\n", soundlst_groups[i]);
 				break;

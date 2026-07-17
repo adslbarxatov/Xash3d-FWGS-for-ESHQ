@@ -22,17 +22,21 @@ GNU General Public License for more details
 HANDLE g_waitable_timer;
 
 #if XASH_TIMER == TIMER_WIN32
+
+// [FWGS, 01.07.26]
 double Platform_DoubleTime (void)
 	{
 	static LARGE_INTEGER	g_PerformanceFrequency;
 	static LARGE_INTEGER	g_ClockStart;
-	LARGE_INTEGER		CurrentTime;
+	/*LARGE_INTEGER		CurrentTime;*/
 
 	if (!g_PerformanceFrequency.QuadPart)
 		{
 		QueryPerformanceFrequency (&g_PerformanceFrequency);
 		QueryPerformanceCounter (&g_ClockStart);
 		}
+
+	LARGE_INTEGER CurrentTime;
 	QueryPerformanceCounter (&CurrentTime);
 
 	return (double)(CurrentTime.QuadPart - g_ClockStart.QuadPart) / (double)(g_PerformanceFrequency.QuadPart);
@@ -86,14 +90,15 @@ void Win32_Shutdown (void)
 		}
 	}
 
-// [FWGS, 01.03.25]
+// [FWGS, 01.07.26]
 qboolean Win32_NanoSleep (int nsec)
 	{
-	LARGE_INTEGER ts;
+	/*LARGE_INTEGER ts;*/
 
 	if (!g_waitable_timer)
 		return false;
 
+	LARGE_INTEGER ts;
 	ts.QuadPart = -nsec / 100;
 
 	if (!SetWaitableTimer (g_waitable_timer, &ts, 0, NULL, NULL, FALSE))
@@ -118,16 +123,15 @@ qboolean Platform_DebuggerPresent (void)
 // [FWGS, 01.11.25]
 void Platform_ShellExecute (const char *path, const char *parms)
 	{
-	/*if (!Q_strcmp (path, GENERIC_UPDATE_PAGE) || !Q_strcmp (path, PLATFORM_UPDATE_PAGE))
-		path = DEFAULT_UPDATE_PAGE;*/
-
 	ShellExecuteA (NULL, "open", path, parms, NULL, SW_SHOW);
 	}
 
 // [FWGS, 01.04.25]
 #if XASH_MESSAGEBOX == MSGBOX_WIN32
+
 void Platform_MessageBox (const char *title, const char *message, qboolean parentMainWindow)
 	{
 	MessageBoxA (parentMainWindow ? host.hWnd : NULL, message, title, MB_OK | MB_SETFOREGROUND | MB_ICONSTOP);
 	}
+
 #endif

@@ -20,12 +20,12 @@ GNU General Public License for more details
 
 #if XASH_TIMER == TIMER_SDL
 
-// [FWGS, 01.02.25]
+// [FWGS, 01.07.26]
 double Platform_DoubleTime (void)
 	{
-	static Uint64 g_PerformanceFrequency;
-	static Uint64 g_ClockStart;
-	Uint64 CurrentTime;
+	static Uint64	g_PerformanceFrequency;
+	static Uint64	g_ClockStart;
+	/*Uint64 CurrentTime;*/
 
 	if (!g_PerformanceFrequency)
 		{
@@ -33,7 +33,8 @@ double Platform_DoubleTime (void)
 		g_ClockStart = SDL_GetPerformanceCounter ();
 		}
 
-	CurrentTime = SDL_GetPerformanceCounter ();
+	/*CurrentTime = SDL_GetPerformanceCounter ();*/
+	Uint64 CurrentTime = SDL_GetPerformanceCounter ();
 	return (double)(CurrentTime - g_ClockStart) / (double)(g_PerformanceFrequency);
 	}
 
@@ -110,7 +111,6 @@ static void SDLCALL SDLash_LogOutputFunction (void *userdata, int category, SDL_
 	Con_Reportf ("%s" S_BLUE "SDL" S_DEFAULT ": [%s] %s\n", str, SDLash_CategoryToString (category), message);
 	}
 
-// [FWGS, 05.04.26]
 void SDLash_Init (void)
 	{
 #if XASH_IOS
@@ -142,6 +142,15 @@ void SDLash_Init (void)
 
 	SDL_SetHint (SDL_HINT_ANDROID_BLOCK_ON_PAUSE, "0");
 	SDL_SetHint (SDL_HINT_ANDROID_BLOCK_ON_PAUSE_PAUSEAUDIO, "0");
+
+	// [FWGS, 01.07.26] when launched through Steam (notably on Steam Deck) Steam Input hides the
+	// real controller and exposes a virtual gamepad without gyro / touchpad access
+	// undo the env-var filter and ignore the virtual pad instead
+	if (Sys_CheckParm ("-nosteaminput"))
+		{
+		SDL_setenv ("SDL_GAMECONTROLLER_IGNORE_DEVICES_EXCEPT", "", 1);
+		SDL_setenv ("SDL_GAMECONTROLLER_IGNORE_DEVICES", "0x28DE/0x11FF", 1);
+		}
 
 	if (SDL_Init (SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS))
 		{

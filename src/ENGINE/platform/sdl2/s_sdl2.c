@@ -41,19 +41,22 @@ static SDL_AudioDeviceID in_dev = 0;
 static SDL_AudioFormat sdl_format;
 static char sdl_backend_name[32];
 
+// [FWGS, 01.07.26]
 static void SDL_SoundCallback (void *userdata, Uint8 *stream, int len)
 	{
-	// [FWGS, 15.04.26]
 	const int size = snd.samples << 1;
-	int pos;
+
+	/*int pos;
 	int wrapped;
 
-	pos = snd.samplepos << 1;
+	pos = snd.samplepos << 1;*/
+	int pos = snd.samplepos << 1;
 	if (pos >= size)
 		pos = snd.samplepos = 0;
 
-	// [FWGS, 15.04.26]
-	wrapped = pos + len - size;
+	/*// [FWGS, 15.04.26]
+	wrapped = pos + len - size;*/
+	int wrapped = pos + len - size;
 	if (wrapped < 0)
 		{
 		memcpy (stream, snd.buffer + pos, len);
@@ -67,14 +70,13 @@ static void SDL_SoundCallback (void *userdata, Uint8 *stream, int len)
 		snd.samplepos = wrapped >> 1;
 		}
 
-	// [FWGS, 15.04.26]
 	if (snd.samplepos >= size)
 		snd.samplepos = 0;
 	}
 
 /***
 ==================
-SNDDMA_Init
+SNDDMA_Init [FWGS, 01.07.26]
 
 Try to find a sound device to mix for.
 Returns false if nothing is found
@@ -82,9 +84,10 @@ Returns false if nothing is found
 ***/
 qboolean SNDDMA_Init (void)
 	{
-	SDL_AudioSpec	desired, obtained;
-	int			samplecount;
-	const char	*driver = NULL;
+	/*SDL_AudioSpec	desired, obtained;*/
+	SDL_AudioSpec	obtained;
+	int		samplecount;
+	/*const char	*driver = NULL;*/
 
 	// Modders often tend to use proprietary crappy solutions
 	// like FMOD to play music, sometimes even with versions outdated by a few decades!
@@ -103,7 +106,8 @@ qboolean SNDDMA_Init (void)
 	// reference SDL audio functions there. It's probably has DirectSound backend, that's
 	// why modders never stumble upon this bug
 #if XASH_WIN32
-	driver = "directsound";
+	/*driver = "directsound";*/
+	const char *driver = "directsound";
 
 	if (SDL_getenv ("SDL_AUDIODRIVER"))
 		driver = NULL;	// let SDL2 and user decide
@@ -126,14 +130,21 @@ qboolean SNDDMA_Init (void)
 		return false;
 		}
 
-	// [FWGS, 01.05.26]
+	/*// [FWGS, 01.05.26]
 	memset (&desired, 0, sizeof (desired));
 	desired.freq = SOUND_DMA_SPEED;
-	/*desired.format = AUDIO_S16LSB;*/
 	desired.format = AUDIO_S16SYS;
 	desired.samples = 1024;
 	desired.channels = 2;
-	desired.callback = SDL_SoundCallback;
+	desired.callback = SDL_SoundCallback;*/
+	SDL_AudioSpec desired =
+		{
+		.freq = SOUND_DMA_SPEED,
+		.format = AUDIO_S16SYS,
+		.samples = 1024,
+		.channels = 2,
+		.callback = SDL_SoundCallback,
+		};
 
 	sdl_dev = SDL_OpenAudioDevice (NULL, 0, &desired, &obtained, 0);
 
@@ -144,7 +155,6 @@ qboolean SNDDMA_Init (void)
 		}
 
 	// [FWGS, 01.05.26]
-	/*if (obtained.format != AUDIO_S16LSB)*/
 	if (obtained.format != AUDIO_S16SYS)
 		{
 		Con_Printf ("SDL audio format %d unsupported.\n", obtained.format);
@@ -293,7 +303,6 @@ qboolean VoiceCapture_Init (void)
 	// [FWGS, 01.05.26]
 	SDL_zero (wanted);
 	wanted.freq = voice.samplerate;
-	/*wanted.format = AUDIO_S16LSB;*/
 	wanted.format = AUDIO_S16SYS;
 	wanted.channels = VOICE_PCM_CHANNELS;
 	wanted.samples = voice.frame_size;
