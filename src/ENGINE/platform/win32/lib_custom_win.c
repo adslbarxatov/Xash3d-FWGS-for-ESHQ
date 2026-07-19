@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -19,15 +19,16 @@ GNU General Public License for more details
 #include "lib_win.h"
 
 #define NUMBER_OF_DIRECTORY_ENTRIES	16
+
 #ifndef IMAGE_SIZEOF_BASE_RELOCATION
-#define IMAGE_SIZEOF_BASE_RELOCATION	( sizeof( IMAGE_BASE_RELOCATION ))
+	#define IMAGE_SIZEOF_BASE_RELOCATION	( sizeof( IMAGE_BASE_RELOCATION ))
 #endif
 
 typedef struct
 	{
 	PIMAGE_NT_HEADERS	headers;
-	byte *codeBase;
-	void **modules;
+	byte	*codeBase;
+	void	**modules;
 	int		numModules;
 	int		initialized;
 	} MEMORYMODULE, *PMEMORYMODULE;
@@ -49,55 +50,68 @@ typedef BOOL (WINAPI *DllEntryProc)(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID 
 
 #define GET_HEADER_DICTIONARY( module, idx )	&(module)->headers->OptionalHeader.DataDirectory[idx]
 
+// [FWGS, 01.07.26]
 static void CopySections (const byte *data, PIMAGE_NT_HEADERS old_headers, PMEMORYMODULE module)
 	{
 	PIMAGE_SECTION_HEADER	section = IMAGE_FIRST_SECTION (module->headers);
-	byte *codeBase = module->codeBase;
-	int			i, size;
-	byte *dest;
+	byte	*codeBase = module->codeBase;
+	/*int			i, size;
+	byte *dest;*/
 
-	for (i = 0; i < module->headers->FileHeader.NumberOfSections; i++, section++)
+	/*for (i = 0; i < module->headers->FileHeader.NumberOfSections; i++, section++)*/
+	for (int i = 0; i < module->headers->FileHeader.NumberOfSections; i++, section++)
 		{
 		if (section->SizeOfRawData == 0)
 			{
 			// section doesn't contain data in the dll itself, but may define
 			// uninitialized data
-			size = old_headers->OptionalHeader.SectionAlignment;
+			/*size = old_headers->OptionalHeader.SectionAlignment;*/
+			int size = old_headers->OptionalHeader.SectionAlignment;
 
 			if (size > 0)
 				{
-				dest = (byte *)VirtualAlloc ((byte *)CALCULATE_ADDRESS (codeBase, section->VirtualAddress), size, MEM_COMMIT, PAGE_READWRITE);
+				/*dest = (byte *)VirtualAlloc ((byte *)CALCULATE_ADDRESS (codeBase, section->VirtualAddress),
+				size, MEM_COMMIT, PAGE_READWRITE);*/
+				byte *dest = (byte *)VirtualAlloc ((byte *)CALCULATE_ADDRESS (codeBase, section->VirtualAddress),
+					size, MEM_COMMIT, PAGE_READWRITE);
 				section->Misc.PhysicalAddress = (DWORD)dest;
 				memset (dest, 0, size);
 				}
+
 			// section is empty
 			continue;
 			}
 
 		// commit memory block and copy data from dll
-		dest = (byte *)VirtualAlloc ((byte *)CALCULATE_ADDRESS (codeBase, section->VirtualAddress),
+		/*dest = (byte *)VirtualAlloc ((byte *)CALCULATE_ADDRESS (codeBase, section->VirtualAddress),
+			section->SizeOfRawData, MEM_COMMIT, PAGE_READWRITE);*/
+		byte	*dest = (byte *)VirtualAlloc ((byte *)CALCULATE_ADDRESS (codeBase, section->VirtualAddress),
 			section->SizeOfRawData, MEM_COMMIT, PAGE_READWRITE);
 		memcpy (dest, (byte *)CALCULATE_ADDRESS (data, section->PointerToRawData), section->SizeOfRawData);
 		section->Misc.PhysicalAddress = (DWORD)dest;
 		}
 	}
 
+// [FWGS, 01.07.26]
 static void FreeSections (PIMAGE_NT_HEADERS old_headers, PMEMORYMODULE module)
 	{
 	PIMAGE_SECTION_HEADER	section = IMAGE_FIRST_SECTION (module->headers);
-	byte *codeBase = module->codeBase;
-	int			i, size;
+	byte	*codeBase = module->codeBase;
+	/*int		i, size;*/
 
-	for (i = 0; i < module->headers->FileHeader.NumberOfSections; i++, section++)
+	/*for (i = 0; i < module->headers->FileHeader.NumberOfSections; i++, section++)*/
+	for (int i = 0; i < module->headers->FileHeader.NumberOfSections; i++, section++)
 		{
 		if (section->SizeOfRawData == 0)
 			{
-			size = old_headers->OptionalHeader.SectionAlignment;
+			/*size = old_headers->OptionalHeader.SectionAlignment;*/
+			int size = old_headers->OptionalHeader.SectionAlignment;
 			if (size > 0)
 				{
 				VirtualFree ((byte *)CALCULATE_ADDRESS (codeBase, section->VirtualAddress), size, MEM_DECOMMIT);
 				section->Misc.PhysicalAddress = 0;
 				}
+
 			continue;
 			}
 
@@ -107,15 +121,17 @@ static void FreeSections (PIMAGE_NT_HEADERS old_headers, PMEMORYMODULE module)
 		}
 	}
 
+// [FWGS, 01.07.26]
 static void FinalizeSections (MEMORYMODULE *module)
 	{
-	PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION (module->headers);
-	int	i;
+	PIMAGE_SECTION_HEADER	section = IMAGE_FIRST_SECTION (module->headers);
+	/*int	i;*/
 
 	// loop through all sections and change access flags
-	for (i = 0; i < module->headers->FileHeader.NumberOfSections; i++, section++)
+	/*for (i = 0; i < module->headers->FileHeader.NumberOfSections; i++, section++)*/
+	for (int i = 0; i < module->headers->FileHeader.NumberOfSections; i++, section++)
 		{
-		DWORD	protect, oldProtect, size;
+		/*DWORD	protect, oldProtect, size;*/
 		int	executable = (section->Characteristics & IMAGE_SCN_MEM_EXECUTE) != 0;
 		int	readable = (section->Characteristics & IMAGE_SCN_MEM_READ) != 0;
 		int	writeable = (section->Characteristics & IMAGE_SCN_MEM_WRITE) != 0;
@@ -128,13 +144,14 @@ static void FinalizeSections (MEMORYMODULE *module)
 			}
 
 		// determine protection flags based on characteristics
-		protect = ProtectionFlags[executable][readable][writeable];
+		/*protect = ProtectionFlags[executable][readable][writeable];*/
+		DWORD	protect = ProtectionFlags[executable][readable][writeable];
 		if (section->Characteristics & IMAGE_SCN_MEM_NOT_CACHED)
 			protect |= PAGE_NOCACHE;
 
 		// determine size of region
-		size = section->SizeOfRawData;
-
+		/*size = section->SizeOfRawData;*/
+		DWORD	size = section->SizeOfRawData;
 		if (size == 0)
 			{
 			if (section->Characteristics & IMAGE_SCN_CNT_INITIALIZED_DATA)
@@ -145,6 +162,8 @@ static void FinalizeSections (MEMORYMODULE *module)
 
 		if (size > 0)
 			{
+			DWORD	oldProtect;
+
 			// change memory access flags
 			if (!VirtualProtect ((LPVOID)section->Misc.PhysicalAddress, size, protect, &oldProtect))
 				Sys_Error ("error protecting memory page\n");
@@ -152,41 +171,49 @@ static void FinalizeSections (MEMORYMODULE *module)
 		}
 	}
 
+// [FWGS, 01.07.26]
 static void PerformBaseRelocation (MEMORYMODULE *module, DWORD delta)
 	{
 	PIMAGE_DATA_DIRECTORY	directory = GET_HEADER_DICTIONARY (module, IMAGE_DIRECTORY_ENTRY_BASERELOC);
-	byte *codeBase = module->codeBase;
-	DWORD			i;
+	byte	*codeBase = module->codeBase;
+	/*DWORD			i;*/
 
 	if (directory->Size > 0)
 		{
-		PIMAGE_BASE_RELOCATION relocation = (PIMAGE_BASE_RELOCATION)CALCULATE_ADDRESS (codeBase,
+		PIMAGE_BASE_RELOCATION	relocation = (PIMAGE_BASE_RELOCATION)CALCULATE_ADDRESS (codeBase,
 			directory->VirtualAddress);
+
 		for (; relocation->VirtualAddress > 0; )
 			{
 			byte *dest = (byte *)CALCULATE_ADDRESS (codeBase, relocation->VirtualAddress);
 			word *relInfo = (word *)((byte *)relocation + IMAGE_SIZEOF_BASE_RELOCATION);
 
-			for (i = 0; i < ((relocation->SizeOfBlock - IMAGE_SIZEOF_BASE_RELOCATION) / 2); i++, relInfo++)
+			/*for (i = 0; i < ((relocation->SizeOfBlock - IMAGE_SIZEOF_BASE_RELOCATION) / 2); i++, relInfo++)*/
+			for (DWORD i = 0; i < ((relocation->SizeOfBlock - IMAGE_SIZEOF_BASE_RELOCATION) / 2); i++, relInfo++)
 				{
-				DWORD *patchAddrHL;
-				int	type, offset;
+				DWORD	*patchAddrHL;
+				/*int		type, offset;*/
 
 				// the upper 4 bits define the type of relocation
-				type = *relInfo >> 12;
+				/*type = *relInfo >> 12;*/
+				int	type = *relInfo >> 12;
+
 				// the lower 12 bits define the offset
-				offset = *relInfo & 0xfff;
+				/*offset = *relInfo & 0xfff;*/
+				int	offset = *relInfo & 0xfff;
 
 				switch (type)
 					{
 					case IMAGE_REL_BASED_ABSOLUTE:
 						// skip relocation
 						break;
+
 					case IMAGE_REL_BASED_HIGHLOW:
 						// change complete 32 bit address
 						patchAddrHL = (DWORD *)CALCULATE_ADDRESS (dest, offset);
 						*patchAddrHL += delta;
 						break;
+
 					default:
 						Con_Reportf (S_ERROR "PerformBaseRelocation: unknown relocation: %d\n", type);
 						break;
@@ -199,34 +226,35 @@ static void PerformBaseRelocation (MEMORYMODULE *module, DWORD delta)
 		}
 	}
 
+// [FWGS, 01.07.26]
 FARPROC MemoryGetProcAddress (void *module, const char *name)
 	{
 	PIMAGE_DATA_DIRECTORY	directory = GET_HEADER_DICTIONARY ((MEMORYMODULE *)module, IMAGE_DIRECTORY_ENTRY_EXPORT);
-	byte *codeBase = ((PMEMORYMODULE)module)->codeBase;
-	PIMAGE_EXPORT_DIRECTORY	exports;
-	int			idx = -1;
-	DWORD			i, *nameRef;
-	WORD *ordinal;
+	byte	*codeBase = ((PMEMORYMODULE)module)->codeBase;
+	/*PIMAGE_EXPORT_DIRECTORY	exports;*/
+	int		idx = -1;
+	/*DWORD	i, *nameRef;
+	WORD	*ordinal;*/
 
+	// no export table found
 	if (directory->Size == 0)
-		{
-		// no export table found
 		return NULL;
-		}
 
-	exports = (PIMAGE_EXPORT_DIRECTORY)CALCULATE_ADDRESS (codeBase, directory->VirtualAddress);
+	/*exports = (PIMAGE_EXPORT_DIRECTORY)CALCULATE_ADDRESS (codeBase, directory->VirtualAddress);*/
+	PIMAGE_EXPORT_DIRECTORY	exports = (PIMAGE_EXPORT_DIRECTORY)CALCULATE_ADDRESS (codeBase, directory->VirtualAddress);
 
+	// DLL doesn't export anything
 	if ((exports->NumberOfNames == 0) || (exports->NumberOfFunctions == 0))
-		{
-		// DLL doesn't export anything
 		return NULL;
-		}
 
 	// search function name in list of exported names
-	nameRef = (DWORD *)CALCULATE_ADDRESS (codeBase, exports->AddressOfNames);
-	ordinal = (WORD *)CALCULATE_ADDRESS (codeBase, exports->AddressOfNameOrdinals);
+	/*nameRef = (DWORD *)CALCULATE_ADDRESS (codeBase, exports->AddressOfNames);
+	ordinal = (WORD *)CALCULATE_ADDRESS (codeBase, exports->AddressOfNameOrdinals);*/
+	DWORD	*nameRef = (DWORD *)CALCULATE_ADDRESS (codeBase, exports->AddressOfNames);
+	WORD	*ordinal = (WORD *)CALCULATE_ADDRESS (codeBase, exports->AddressOfNameOrdinals);
 
-	for (i = 0; i < exports->NumberOfNames; i++, nameRef++, ordinal++)
+	/*for (i = 0; i < exports->NumberOfNames; i++, nameRef++, ordinal++)*/
+	for (DWORD i = 0; i < exports->NumberOfNames; i++, nameRef++, ordinal++)
 		{
 		// GetProcAddress case insensative?
 		if (!Q_stricmp (name, (const char *)CALCULATE_ADDRESS (codeBase, *nameRef)))
@@ -236,17 +264,13 @@ FARPROC MemoryGetProcAddress (void *module, const char *name)
 			}
 		}
 
+	// exported symbol not found
 	if (idx == -1)
-		{
-		// exported symbol not found
 		return NULL;
-		}
 
+	// name <-> ordinal number don't match
 	if ((DWORD)idx > exports->NumberOfFunctions)
-		{
-		// name <-> ordinal number don't match
 		return NULL;
-		}
 
 	// addressOfFunctions contains the RVAs to the "real" functions
 	return (FARPROC)CALCULATE_ADDRESS (codeBase, *(DWORD *)CALCULATE_ADDRESS (codeBase,
@@ -256,22 +280,25 @@ FARPROC MemoryGetProcAddress (void *module, const char *name)
 static int BuildImportTable (MEMORYMODULE *module)
 	{
 	PIMAGE_DATA_DIRECTORY	directory = GET_HEADER_DICTIONARY (module, IMAGE_DIRECTORY_ENTRY_IMPORT);
-	byte *codeBase = module->codeBase;
-	int			result = 1;
+	byte	*codeBase = module->codeBase;
+	int		result = 1;
 
 	if (directory->Size > 0)
 		{
 		PIMAGE_IMPORT_DESCRIPTOR importDesc = (PIMAGE_IMPORT_DESCRIPTOR)CALCULATE_ADDRESS (codeBase,
 			directory->VirtualAddress);
 
+		// [FWGS, 01.07.26]
 		for (; !IsBadReadPtr (importDesc, sizeof (IMAGE_IMPORT_DESCRIPTOR)) && importDesc->Name; importDesc++)
 			{
-			DWORD *thunkRef, *funcRef;
-			LPCSTR	libname;
-			void *handle;
+			DWORD	*thunkRef, *funcRef;
+			/*LPCSTR	libname;
+			void *handle;*/
 
-			libname = (LPCSTR)CALCULATE_ADDRESS (codeBase, importDesc->Name);
-			handle = COM_LoadLibrary (libname, false, true);
+			/*libname = (LPCSTR)CALCULATE_ADDRESS (codeBase, importDesc->Name);
+			handle = COM_LoadLibrary (libname, false, true);*/
+			LPCSTR	libname = (LPCSTR)CALCULATE_ADDRESS (codeBase, importDesc->Name);
+			void	*handle = COM_LoadLibrary (libname, false, true);
 
 			if (handle == NULL)
 				{
@@ -319,25 +346,30 @@ static int BuildImportTable (MEMORYMODULE *module)
 					break;
 					}
 				}
-			if (!result) break;
+
+			if (!result)
+				break;
 			}
 		}
+
 	return result;
 	}
 
+// [FWGS, 01.07.26]
 void MemoryFreeLibrary (void *hInstance)
 	{
-	MEMORYMODULE *module = (MEMORYMODULE *)hInstance;
+	MEMORYMODULE	*module = (MEMORYMODULE *)hInstance;
 
 	if (module != NULL)
 		{
-		int	i;
+		/*int	i;*/
 
 		if (module->initialized != 0)
 			{
 			// notify library about detaching from process
 			DllEntryProc DllEntry = (DllEntryProc)CALCULATE_ADDRESS (module->codeBase,
 				module->headers->OptionalHeader.AddressOfEntryPoint);
+
 			(*DllEntry)((HINSTANCE)module->codeBase, DLL_PROCESS_DETACH, 0);
 			module->initialized = 0;
 			}
@@ -345,12 +377,14 @@ void MemoryFreeLibrary (void *hInstance)
 		if (module->modules != NULL)
 			{
 			// free previously opened libraries
-			for (i = 0; i < module->numModules; i++)
+			/*for (i = 0; i < module->numModules; i++)*/
+			for (int i = 0; i < module->numModules; i++)
 				{
 				if (module->modules[i] != NULL)
 					COM_FreeLibrary (module->modules[i]);
 				}
-			Mem_Free (module->modules); // Mem_Realloc end
+
+			Mem_Free (module->modules);	// Mem_Realloc end
 			}
 
 		FreeSections (module->headers, module);
@@ -367,18 +401,17 @@ void MemoryFreeLibrary (void *hInstance)
 
 void *MemoryLoadLibrary (const char *name)
 	{
-	MEMORYMODULE *result = NULL;
+	MEMORYMODULE	*result = NULL;
 	PIMAGE_DOS_HEADER	dos_header;
 	PIMAGE_NT_HEADERS	old_header;
-	byte *code, *headers;
-	DWORD		locationDelta;
+	byte	*code, *headers;
+	DWORD	locationDelta;
 	DllEntryProc	DllEntry;
 	string		errorstring;
-	qboolean		successfull;
-	void *data = NULL;
+	qboolean	successfull;
+	void	*data = NULL;
 
 	data = FS_LoadFile (name, NULL, false);
-
 	if (!data)
 		{
 		Q_snprintf (errorstring, sizeof (errorstring), "couldn't load %s", name);
@@ -470,11 +503,13 @@ void *MemoryLoadLibrary (const char *name)
 			Q_snprintf (errorstring, sizeof (errorstring), "can't attach library %s", name);
 			goto library_error;
 			}
+
 		result->initialized = 1;
 		}
 
-	Mem_Free (data); // release memory
+	Mem_Free (data);	// release memory
 	return (void *)result;
+
 library_error:
 	// cleanup
 	if (data) Mem_Free (data);

@@ -314,13 +314,14 @@ const char *const svc_quake_strings[svc_lastmsg + 1] =
 // [FWGS, 01.02.24] removed MSG_SeekToByte
 // [FWGS, 01.12.24] removed MSG_WriteOneBit
 
+// [FWGS, 01.07.26]
 void MSG_WriteUBitLong (sizebuf_t *sb, uint curData, int numbits)
 	{
 	int		nBitsLeft = numbits;
 	int		iCurBit = sb->iCurBit;
-	uint	iDWord = iCurBit >> 5;	// Mask in a dword
-	uint32_t	iCurBitMasked;
-	int		nBitsWritten;
+	uint	iDWord = iCurBit >> 5;	// mask in a dword
+	/*uint32_t	iCurBitMasked;
+	int		nBitsWritten;*/
 
 	Assert (numbits >= 1 && numbits <= 32);
 
@@ -331,17 +332,18 @@ void MSG_WriteUBitLong (sizebuf_t *sb, uint curData, int numbits)
 		return;
 		}
 
-	// [FWGS, 01.05.26]
-	iCurBitMasked = iCurBit & 31;
-	/*((uint32_t *)sb->pData)[iDWord] &= BitWriteMasks[iCurBitMasked][nBitsLeft - 1];
-	((uint32_t *)sb->pData)[iDWord] |= curData << iCurBitMasked;*/
-	uint32_t dword = LittleLong (((uint32_t *)sb->pData)[iDWord]);
+	/*// [FWGS, 01.05.26]
+	iCurBitMasked = iCurBit & 31;*/
+	uint32_t	iCurBitMasked = iCurBit & 31;
+	uint32_t	dword = LittleLong (((uint32_t *)sb->pData)[iDWord]);
+
 	dword &= BitWriteMasks[iCurBitMasked][nBitsLeft - 1];
 	dword |= curData << iCurBitMasked;
 	((uint32_t *)sb->pData)[iDWord] = LittleLong (dword);
 
 	// did it span a dword?
-	nBitsWritten = 32 - iCurBitMasked;
+	/*nBitsWritten = 32 - iCurBitMasked;*/
+	int nBitsWritten = 32 - iCurBitMasked;
 
 	if (nBitsWritten < nBitsLeft)
 		{
@@ -349,11 +351,9 @@ void MSG_WriteUBitLong (sizebuf_t *sb, uint curData, int numbits)
 		iCurBit += nBitsWritten;
 		curData >>= nBitsWritten;
 
-		// [FWGS, 01.05.26]
 		iCurBitMasked = iCurBit & 31;
-		/*((uint32_t *)sb->pData)[iDWord + 1] &= BitWriteMasks[iCurBitMasked][nBitsLeft - 1];
-		((uint32_t *)sb->pData)[iDWord + 1] |= curData << iCurBitMasked;*/
 		uint32_t dword2 = LittleLong (((uint32_t *)sb->pData)[iDWord + 1]);
+
 		dword2 &= BitWriteMasks[iCurBitMasked][nBitsLeft - 1];
 		dword2 |= curData << iCurBitMasked;
 		((uint32_t *)sb->pData)[iDWord + 1] = LittleLong (dword2);
@@ -419,7 +419,6 @@ qboolean MSG_WriteBits (sizebuf_t *sb, const void *pData, int nBits)
 	// [FWGS, 01.05.26] read dwords
 	while (nBitsLeft >= 32)
 		{
-		/*MSG_WriteUBitLong (sb, *((uint32_t *)pOut), 32);*/
 		uint32_t dword = *((uint32_t *)pOut);
 		MSG_WriteUBitLong (sb, LittleLong (dword), 32);
 
@@ -445,19 +444,20 @@ qboolean MSG_WriteBits (sizebuf_t *sb, const void *pData, int nBits)
 	return !sb->bOverflow;
 	}
 
-// [FWGS, 01.02.25]
+// [FWGS, 01.07.26]
 void MSG_WriteBitAngle (sizebuf_t *sb, float fAngle, int numbits)
 	{
 	const uint	shift = (1 << numbits);
 	const uint	mask = shift - 1;
-	int		d;
+	/*int		d;*/
 
 	// clamp the angle before receiving
 	fAngle = fmod (fAngle, 360.0f);
 	if (fAngle < 0)
 		fAngle += 360.0f;
 
-	d = (int)((fAngle * shift) / 360.0f);
+	/*d = (int)((fAngle * shift) / 360.0f);*/
+	int d = (int)((fAngle * shift) / 360.0f);
 	d &= mask;
 
 	MSG_WriteUBitLong (sb, (uint)d, numbits);
@@ -549,7 +549,6 @@ void MSG_WriteDword (sizebuf_t *sb, uint val)
 // [FWGS, 01.05.26]
 void MSG_WriteFloat (sizebuf_t *sb, float val)
 	{
-	/*MSG_WriteBits (sb, &val, sizeof (val) << 3);*/
 	MSG_WriteUBitLong (sb, FloatAsUint (val), sizeof (val) << 3);
 	}
 
@@ -571,15 +570,16 @@ qboolean MSG_WriteString (sizebuf_t *sb, const char *pStr)
 	return !sb->bOverflow;
 	}
 
-// [FWGS, 01.09.24]
+// [FWGS, 01.07.26]
 qboolean MSG_WriteStringf (sizebuf_t *sb, const char *format, ...)
 	{
 	va_list	va;
-	int		len;
+	/*int		len;*/
 	char	buf[MAX_VA_STRING];
 
 	va_start (va, format);
-	len = Q_vsnprintf (buf, sizeof (buf), format, va);
+	/*len = Q_vsnprintf (buf, sizeof (buf), format, va);*/
+	int len = Q_vsnprintf (buf, sizeof (buf), format, va);
 	va_end (va);
 
 	if (len < 0)
@@ -604,10 +604,11 @@ int MSG_ReadOneBit (sizebuf_t *sb)
 	return 0;
 	}
 
+// [FWGS, 01.07.26]
 uint MSG_ReadUBitLong (sizebuf_t *sb, int numbits)
 	{
-	int		idword1;
-	uint	dword1, ret;
+	/*int		idword1;
+	uint	dword1, ret;*/
 
 	if (numbits == 8)
 		{
@@ -617,7 +618,6 @@ uint MSG_ReadUBitLong (sizebuf_t *sb, int numbits)
 			return 0;	// end of message
 		}
 
-	// [FWGS, 01.02.25]
 	if (MSG_Overflow (sb, numbits))
 		{
 		sb->iCurBit = sb->nDataBits;
@@ -626,16 +626,18 @@ uint MSG_ReadUBitLong (sizebuf_t *sb, int numbits)
 
 	Assert ((numbits > 0) && (numbits <= 32));
 
-	// [FWGS, 01.05.26] read the current dword
-	idword1 = sb->iCurBit >> 5;
-	/*dword1 = ((uint *)sb->pData)[idword1];*/
-	dword1 = LittleLong (((uint *)sb->pData)[idword1]);
+	// read the current dword
+	/*idword1 = sb->iCurBit >> 5;
+	dword1 = LittleLong (((uint *)sb->pData)[idword1]);*/
+	int		idword1 = sb->iCurBit >> 5;
+	uint	dword1 = LittleLong (((uint *)sb->pData)[idword1]);
 	dword1 >>= (sb->iCurBit & 31);	// get the bits we're interested in
 
 	sb->iCurBit += numbits;
-	ret = dword1;
+	/*ret = dword1;*/
+	uint ret = dword1;
 
-	// Does it span this dword?
+	// does it span this dword?
 	if ((sb->iCurBit - 1) >> 5 == idword1)
 		{
 		if (numbits != 32)
@@ -643,9 +645,7 @@ uint MSG_ReadUBitLong (sizebuf_t *sb, int numbits)
 		}
 	else
 		{
-		// [FWGS, 01.05.26]
 		int		nExtraBits = sb->iCurBit & 31;
-		/*uint	dword2 = ((uint *)sb->pData)[idword1 + 1] & ExtraMasks[nExtraBits];*/
 		uint	dword2 = LittleLong (((uint *)sb->pData)[idword1 + 1]) & ExtraMasks[nExtraBits];
 
 		// no need to mask since we hit the end of the dword.
@@ -656,43 +656,64 @@ uint MSG_ReadUBitLong (sizebuf_t *sb, int numbits)
 	return ret;
 	}
 
-qboolean MSG_ReadBits (sizebuf_t *sb, void *pOutData, int nBits)
+// [FWGS, 01.07.26]
+/*qboolean MSG_ReadBits (sizebuf_t *sb, void *pOutData, int nBits)*/
+qboolean MSG_ReadBits (sizebuf_t *sb, void *out, size_t maxBytes, int bits)
 	{
-	byte	*pOut = (byte *)pOutData;
-	int		nBitsLeft = nBits;
+	/*byte	*pOut = (byte *)pOutData;
+	int		nBitsLeft = nBits;*/
+	byte	*p = (byte *)out;
+	int		left = bits;
 
-	// [FWGS, 01.05.25] get output dword-aligned
-	while ((((uintptr_t)pOut & 3) != 0) && (nBitsLeft >= 8))
+	if ((size_t)bits > (maxBytes << 3))
+		return false;
+
+	// get output dword-aligned
+	/*while ((((uintptr_t)pOut & 3) != 0) && (nBitsLeft >= 8))*/
+	while ((((uintptr_t)p & 3) != 0) && (left >= 8))
 		{
-		*pOut = (byte)MSG_ReadUBitLong (sb, 8);
+		/**pOut = (byte)MSG_ReadUBitLong (sb, 8);
 		++pOut;
-		nBitsLeft -= 8;
+		nBitsLeft -= 8;*/
+		*p = (byte)MSG_ReadUBitLong (sb, 8);
+		++p;
+		left -= 8;
 		}
 
-	// [FWGS, 01.05.26] read dwords
-	while (nBitsLeft >= 32)
+	// read dwords
+	/*while (nBitsLeft >= 32)*/
+	while (left >= 32)
 		{
-		/**((uint32_t *)pOut) = MSG_ReadUBitLong (sb, 32);*/
-		uint32_t dword = MSG_ReadUBitLong (sb, 32);
-		*((uint32_t *)pOut) = LittleLong (dword);
+		uint32_t	dword = MSG_ReadUBitLong (sb, 32);
+		/**((uint32_t *)pOut) = LittleLong (dword);
 
 		pOut += sizeof (uint32_t);
-		nBitsLeft -= 32;
+		nBitsLeft -= 32;*/
+		dword = LittleLong (dword);
+		memcpy (p, &dword, sizeof (dword));
+		p += sizeof (dword);
+		left -= 32;
 		}
 
 	// read the remaining bytes
-	while (nBitsLeft >= 8)
+	/*while (nBitsLeft >= 8)*/
+	while (left >= 8)
 		{
-		*pOut = MSG_ReadUBitLong (sb, 8);
+		/**pOut = MSG_ReadUBitLong (sb, 8);
 		++pOut;
-		nBitsLeft -= 8;
+		nBitsLeft -= 8;*/
+		*p = MSG_ReadUBitLong (sb, 8);
+		++p;
+		left -= 8;
 		}
 
 	// read the remaining bits
-	if (nBitsLeft)
+	/*if (nBitsLeft)
 		{
 		*pOut = MSG_ReadUBitLong (sb, nBitsLeft);
-		}
+		}*/
+	if (left)
+		*p = MSG_ReadUBitLong (sb, left);
 
 	return !sb->bOverflow;
 	}
@@ -765,13 +786,16 @@ int MSG_ReadCmd (sizebuf_t *sb, netsrc_t type)
 	return cmd;
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.07.26]
 int MSG_ReadChar (sizebuf_t *sb)
 	{
-	int alt = sb->iAlternateSign, ret;
+	/*int alt = sb->iAlternateSign, ret;*/
+	int	alt = sb->iAlternateSign;
 
 	sb->iAlternateSign = 0;
-	ret = MSG_ReadSBitLong (sb, sizeof (int8_t) << 3);
+
+	/*ret = MSG_ReadSBitLong (sb, sizeof (int8_t) << 3);*/
+	int	ret = MSG_ReadSBitLong (sb, sizeof (int8_t) << 3);
 	sb->iAlternateSign = alt;
 
 	return ret;
@@ -782,13 +806,16 @@ int MSG_ReadByte (sizebuf_t *sb)
 	return MSG_ReadUBitLong (sb, sizeof (uint8_t) << 3);
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.07.26]
 int MSG_ReadShort (sizebuf_t *sb)
 	{
-	int alt = sb->iAlternateSign, ret;
+	/*int alt = sb->iAlternateSign, ret;*/
+	int	alt = sb->iAlternateSign;
 
 	sb->iAlternateSign = 0;
-	ret = MSG_ReadSBitLong (sb, sizeof (int16_t) << 3);
+
+	/*ret = MSG_ReadSBitLong (sb, sizeof (int16_t) << 3);*/
+	int	ret = MSG_ReadSBitLong (sb, sizeof (int16_t) << 3);
 	sb->iAlternateSign = alt;
 
 	return ret;
@@ -822,13 +849,16 @@ void MSG_ReadVec3Angles (sizebuf_t *sb, vec3_t fa)
 	fa[2] = MSG_ReadBitAngle (sb, 16);
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.07.26]
 int MSG_ReadLong (sizebuf_t *sb)
 	{
-	int alt = sb->iAlternateSign, ret;
+	/*int alt = sb->iAlternateSign, ret;*/
+	int	alt = sb->iAlternateSign;
 
 	sb->iAlternateSign = 0;
-	ret = MSG_ReadSBitLong (sb, sizeof (int32_t) << 3);
+
+	/*ret = MSG_ReadSBitLong (sb, sizeof (int32_t) << 3);*/
+	int	ret = MSG_ReadSBitLong (sb, sizeof (int32_t) << 3);
 	sb->iAlternateSign = alt;
 
 	return ret;
@@ -842,16 +872,15 @@ uint32_t MSG_ReadDword (sizebuf_t *sb)
 // [FWGS, 01.05.26]
 float MSG_ReadFloat (sizebuf_t *sb)
 	{
-	/*float	ret;
-
-	MSG_ReadBits (sb, &ret, sizeof (ret) << 3);
-	return ret;*/
 	return UintAsFloat (MSG_ReadUBitLong (sb, sizeof (float) << 3));
 	}
 
-qboolean MSG_ReadBytes (sizebuf_t *sb, void *pOut, int nBytes)
+// [FWGS, 01.07.26]
+/*qboolean MSG_ReadBytes (sizebuf_t *sb, void *pOut, int nBytes)*/
+qboolean MSG_ReadBytes (sizebuf_t *sb, void *out, size_t maxBytes, int bytes)
 	{
-	return MSG_ReadBits (sb, pOut, nBytes << 3);
+	/*return MSG_ReadBits (sb, pOut, nBytes << 3);*/
+	return MSG_ReadBits (sb, out, maxBytes, bytes << 3);
 	}
 
 // [FWGS, 01.02.25]
@@ -895,16 +924,19 @@ char *MSG_ReadStringLine (sizebuf_t *sb)
 	return MSG_ReadStringExt (sb, true);
 	}
 
+// [FWGS, 01.07.26]
 void MSG_ExciseBits (sizebuf_t *sb, int startbit, int bitstoremove)
 	{
-	int	i, endbit = startbit + bitstoremove;
+	/*int	i, endbit = startbit + bitstoremove;*/
+	int	endbit = startbit + bitstoremove;
 	int	remaining_to_end = sb->nDataBits - endbit;
 	sizebuf_t	temp;
 
 	MSG_StartWriting (&temp, sb->pData, MSG_GetMaxBytes (sb), startbit, -1);
 	MSG_SeekToBit (sb, endbit, SEEK_SET);
 
-	for (i = 0; i < remaining_to_end; i++)
+	/*for (i = 0; i < remaining_to_end; i++)*/
+	for (int i = 0; i < remaining_to_end; i++)
 		{
 		MSG_WriteOneBit (&temp, MSG_ReadOneBit (sb));
 		}
@@ -914,6 +946,7 @@ void MSG_ExciseBits (sizebuf_t *sb, int startbit, int bitstoremove)
 	}
 
 #ifdef XASH_ENGINE_TESTS
+
 #include "tests.h"
 
 static const void *g_testbuf = "asdf\xba\xa1\xba\xa1\xed\xc8\x15\x7a";
@@ -983,6 +1016,7 @@ static void Test_Buffer_Write (void)
 	TASSERT_EQi (MSG_ReadUBitLong (&sb, 4), 0xa);
 	}
 
+// [FWGS, 01.07.26]
 static void Test_Buffer_Read (void)
 	{
 	sizebuf_t sb;
@@ -994,7 +1028,8 @@ static void Test_Buffer_Read (void)
 	TASSERT_EQp (sb.pData, (void *)g_testbuf);
 	TASSERT_EQi (sb.bOverflow, false);
 
-	MSG_ReadBytes (&sb, buf, 4);
+	/*MSG_ReadBytes (&sb, buf, 4);*/
+	MSG_ReadBytes (&sb, buf, sizeof (buf), 4);
 	TASSERT (!memcmp (buf, "asdf", 4));
 	TASSERT_EQi (sb.iCurBit, 32);
 	TASSERT_EQi (sb.bOverflow, false);

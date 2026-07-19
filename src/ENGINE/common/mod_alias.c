@@ -10,7 +10,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -27,23 +27,26 @@ GNU General Public License for more details
 static int g_posenum = 0;
 static const trivertex_t *g_poseverts[MAXALIASFRAMES];
 
+// [FWGS, 01.07.26]
 static const void *Mod_LoadAliasFrame (const daliasframe_t *pdaliasframe, maliasframedesc_t *frame,
 	const aliashdr_t *aliashdr)
 	{
-	const trivertex_t *pinframe;
-	int i;
+	/*const trivertex_t *pinframe;
+	int i;*/
 
 	Q_strncpy (frame->name, pdaliasframe->name, sizeof (frame->name));
 	frame->firstpose = g_posenum;
 	frame->numposes = 1;
 
-	for (i = 0; i < 3; i++)
+	/*for (i = 0; i < 3; i++)*/
+	for (int i = 0; i < 3; i++)
 		{
 		frame->bboxmin.v[i] = pdaliasframe->bboxmin.v[i];
 		frame->bboxmax.v[i] = pdaliasframe->bboxmax.v[i];
 		}
 
-	pinframe = (const trivertex_t *)(pdaliasframe + 1);
+	/*pinframe = (const trivertex_t *)(pdaliasframe + 1);*/
+	const trivertex_t *pinframe = (const trivertex_t *)(pdaliasframe + 1);
 
 	g_poseverts[g_posenum] = pinframe;
 	g_posenum++;
@@ -53,30 +56,37 @@ static const void *Mod_LoadAliasFrame (const daliasframe_t *pdaliasframe, malias
 	return (void *)pinframe;
 	}
 
+// [FWGS, 01.07.26]
 static const void *Mod_LoadAliasGroup (const daliasgroup_t *pingroup, maliasframedesc_t *frame,
 	const aliashdr_t *aliashdr)
 	{
-	const daliasinterval_t *pin_intervals;
+	/*const daliasinterval_t *pin_intervals;
 	const void *ptemp;
-	int i, numframes;
+	int i, numframes;*/
+	int	numframes;
 
 	frame->firstpose = g_posenum;
 	frame->numposes = numframes = pingroup->numframes;
 
-	for (i = 0; i < 3; i++)
+	/*for (i = 0; i < 3; i++)*/
+	for (int i = 0; i < 3; i++)
 		{
 		frame->bboxmin.v[i] = pingroup->bboxmin.v[i];
 		frame->bboxmax.v[i] = pingroup->bboxmax.v[i];
 		}
 
-	pin_intervals = (const daliasinterval_t *)(pingroup + 1);
+	/*pin_intervals = (const daliasinterval_t *)(pingroup + 1);*/
+	const daliasinterval_t *pin_intervals = (const daliasinterval_t *)(pingroup + 1);
 
 	// all the intervals are always equal 0.1 so we don't care about them
 	frame->interval = pin_intervals->interval;
 	pin_intervals += numframes;
-	ptemp = (void *)pin_intervals;
 
-	for (i = 0; i < numframes; i++)
+	/*ptemp = (void *)pin_intervals;*/
+	const void *ptemp = (void *)pin_intervals;
+
+	/*for (i = 0; i < numframes; i++)*/
+	for (int i = 0; i < numframes; i++)
 		{
 		g_poseverts[g_posenum] = (const trivertex_t *)((const daliasframe_t *)ptemp + 1);
 		ptemp = g_poseverts[g_posenum] + aliashdr->numverts;
@@ -86,27 +96,35 @@ static const void *Mod_LoadAliasGroup (const daliasgroup_t *pingroup, maliasfram
 	return ptemp;
 	}
 
+// [FWGS, 01.07.26]
 static void Mod_CalcAliasBounds (model_t *mod, const aliashdr_t *aliashdr)
 	{
-	int		i, j, k;
+	/*int		i, j, k;
 	float	radius;
 	float	dist;
-	vec3_t	v;
+	vec3_t	v;*/
 
 	ClearBounds (mod->mins, mod->maxs);
-	radius = 0.0f;
+
+	/*radius = 0.0f;*/
+	float	radius = 0.0f;
 
 	// process verts
-	for (i = 0; i < aliashdr->numposes; i++)
+	/*for (i = 0; i < aliashdr->numposes; i++)*/
+	for (int i = 0; i < aliashdr->numposes; i++)
 		{
-		for (j = 0; j < aliashdr->numverts; j++)
+		/*for (j = 0; j < aliashdr->numverts; j++)*/
+		for (int j = 0; j < aliashdr->numverts; j++)
 			{
-			for (k = 0; k < 3; k++)
+			/*for (k = 0; k < 3; k++)*/
+			vec3_t	v;
+			for (int k = 0; k < 3; k++)
 				v[k] = g_poseverts[i][j].v[k] * aliashdr->scale[k] + aliashdr->scale_origin[k];
 
 			AddPointToBounds (v, mod->mins, mod->maxs);
-			dist = DotProduct (v, v);
 
+			/*dist = DotProduct (v, v);*/
+			float	dist = DotProduct (v, v);
 			if (radius < dist)
 				radius = dist;
 			}
@@ -115,18 +133,21 @@ static void Mod_CalcAliasBounds (model_t *mod, const aliashdr_t *aliashdr)
 	mod->radius = sqrt (radius);
 	}
 
+// [FWGS, 01.07.26]
 static const void *Mod_LoadAllSkins (model_t *mod, int numskins, const daliasskintype_t *pskintype,
 	const aliashdr_t *aliashdr)
 	{
-	int	i, size;
+	/*int	i, size;*/
 
 	if ((numskins < 1) || (numskins > MAX_SKINS))
 		Host_Error ("%s: Invalid # of skins: %d\n", __func__, numskins);
 
-	size = aliashdr->skinwidth * aliashdr->skinheight;
+	/*size = aliashdr->skinwidth * aliashdr->skinheight;*/
+	int size = aliashdr->skinwidth * aliashdr->skinheight;
 
 	// just skipping textures, renderer will take care of them later
-	for (i = 0; i < numskins; i++)
+	/*for (i = 0; i < numskins; i++)*/
+	for (int i = 0; i < numskins; i++)
 		{
 		if (pskintype->type == ALIAS_SKIN_SINGLE)
 			{
@@ -149,14 +170,14 @@ static const void *Mod_LoadAllSkins (model_t *mod, int numskins, const daliasski
 
 /***
 ====================
-Mod_LoadAliasModel
+Mod_LoadAliasModel [FWGS, 01.07.26]
 
 load alias model
 ====================
 ***/
 void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 	{
-	const daliasframetype_t	*pframetype;
+	/*const daliasframetype_t	*pframetype;
 	const daliasskintype_t	*pskintype;
 	const dtriangle_t		*pintriangles;
 	const daliashdr_t		*pinmodel;
@@ -164,16 +185,21 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 	aliashdr_t		*m_pAliasHeader;
 	size_t			size;
 	char	poolname[MAX_VA_STRING];
-	int		i;
+	int		i;*/
 
 	if (loaded)
 		*loaded = false;
-	pinmodel = (const daliashdr_t *)buffer;
-	i = pinmodel->version;
 
-	if (i != ALIAS_VERSION)
+	/*pinmodel = (const daliashdr_t *)buffer;
+	i = pinmodel->version;*/
+	const daliashdr_t	*pinmodel = (const daliashdr_t *)buffer;
+
+	/*if (i != ALIAS_VERSION)*/
+	if (pinmodel->version != ALIAS_VERSION)
 		{
-		Con_DPrintf (S_ERROR "%s has wrong version number (%i should be %i)\n", mod->name, i, ALIAS_VERSION);
+		/*Con_DPrintf (S_ERROR "%s has wrong version number (%i should be %i)\n", mod->name, i, ALIAS_VERSION);*/
+		Con_DPrintf (S_ERROR "%s has wrong version number (%i should be %i)\n", mod->name,
+			pinmodel->version, ALIAS_VERSION);
 		return;
 		}
 
@@ -181,10 +207,13 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 	if ((pinmodel->numverts <= 0) || (pinmodel->numtris <= 0) || (pinmodel->numframes <= 0))
 		return;
 
+	char poolname[MAX_VA_STRING];
 	Q_snprintf (poolname, sizeof (poolname), "^2%s^7", mod->name);
 	mod->mempool = Mem_AllocPool (poolname);
 
-	size = sizeof (aliashdr_t) + (pinmodel->numframes - 1) * sizeof (maliasframedesc_t);
+	/*size = sizeof (aliashdr_t) + (pinmodel->numframes - 1) * sizeof (maliasframedesc_t);*/
+	size_t size = sizeof (aliashdr_t) + (pinmodel->numframes - 1) * sizeof (maliasframedesc_t);
+	aliashdr_t *m_pAliasHeader;
 	mod->cache.data = m_pAliasHeader = Mem_Calloc (mod->mempool, size);
 
 	// endian-adjust and copy the data, starting with the alias model header
@@ -196,7 +225,7 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 		return;
 		}
 
-	mod->flags = pinmodel->flags; // share effects flags
+	mod->flags = pinmodel->flags;	// share effects flags
 	m_pAliasHeader->boundingradius = pinmodel->boundingradius;
 	m_pAliasHeader->numskins = pinmodel->numskins;
 	m_pAliasHeader->skinwidth = pinmodel->skinwidth;
@@ -205,7 +234,8 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 	mod->numframes = m_pAliasHeader->numframes = pinmodel->numframes;
 	m_pAliasHeader->size = pinmodel->size;
 
-	for (i = 0; i < 3; i++)
+	/*for (i = 0; i < 3; i++)*/
+	for (int i = 0; i < 3; i++)
 		{
 		m_pAliasHeader->scale[i] = pinmodel->scale[i];
 		m_pAliasHeader->scale_origin[i] = pinmodel->scale_origin[i];
@@ -213,24 +243,29 @@ void Mod_LoadAliasModel (model_t *mod, const void *buffer, qboolean *loaded)
 		}
 
 	// load the skins
-	pskintype = (const daliasskintype_t *)&pinmodel[1];
+	/*pskintype = (const daliasskintype_t *)&pinmodel[1];*/
+	const daliasskintype_t *pskintype = (const daliasskintype_t *)&pinmodel[1];
 	pskintype = Mod_LoadAllSkins (mod, m_pAliasHeader->numskins, pskintype, m_pAliasHeader);
 	// will be done at renderer side...
 
 	// load base s and t vertices
-	pinstverts = (const stvert_t *)pskintype;
+	/*pinstverts = (const stvert_t *)pskintype;*/
+	const stvert_t *pinstverts = (const stvert_t *)pskintype;
 	// will be done at renderer side...
 
 	// load triangle lists
-	pintriangles = (const dtriangle_t *)&pinstverts[m_pAliasHeader->numverts];
+	/*pintriangles = (const dtriangle_t *)&pinstverts[m_pAliasHeader->numverts];*/
+	const dtriangle_t *pintriangles = (const dtriangle_t *)&pinstverts[m_pAliasHeader->numverts];
 	// will be done at renderer side
 
 	// load the frames
-	pframetype = (const daliasframetype_t *)&pintriangles[m_pAliasHeader->numtris];
-	m_pAliasHeader->pposeverts = g_poseverts; // store the pointer to be accessed by renderer
+	/*pframetype = (const daliasframetype_t *)&pintriangles[m_pAliasHeader->numtris];*/
+	const daliasframetype_t *pframetype = (const daliasframetype_t *)&pintriangles[m_pAliasHeader->numtris];
+	m_pAliasHeader->pposeverts = g_poseverts;	// store the pointer to be accessed by renderer
 	g_posenum = 0;
 
-	for (i = 0; i < m_pAliasHeader->numframes; i++)
+	/*for (i = 0; i < m_pAliasHeader->numframes; i++)*/
+	for (int i = 0; i < m_pAliasHeader->numframes; i++)
 		{
 		aliasframetype_t frametype = pframetype->type;
 

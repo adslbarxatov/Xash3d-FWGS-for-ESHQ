@@ -18,19 +18,12 @@ GNU General Public License for more details
 // [FWGS, 01.09.25]
 #define palettesize	256
 #define netsize		255		// number of colours used
-
-/*define netsize		256		// number of colours used
-define prime1		499
-define prime2		491
-define prime3		487
-define prime4		503*/
 #define prime1		499
 #define prime2		491
 #define prime3		487
 #define prime4		503
 
 #define minpicturebytes	(3*prime4)		// minimum size for input image
-
 #define maxnetpos		(netsize-1)
 #define netbiasshift	4				// bias for colour values
 #define ncycles			100				// no. of learning cycles
@@ -54,7 +47,8 @@ define prime4		503*/
 // defs for decreasing alpha factor
 #define alphabiasshift	10			// alpha starts at 1.0
 #define initalpha		(1<<alphabiasshift)
-int						alphadec;	// biased by 10 bits
+
+int		alphadec;	// biased by 10 bits
 
 // radbias and alpharadbias used for radpower calculation
 #define radbiasshift	8
@@ -72,61 +66,77 @@ static int		bias[netsize];			// bias and freq arrays for learning
 static int		freq[netsize];
 static int		radpower[initrad];		// radpower for precomputation
 
+// [FWGS, 01.07.26]
 static void initnet (byte *thepic, int len, int sample)
 	{
-	register int	i, *p;
+	/*register int	i, *p;*/
 
 	thepicture = thepic;
 	lengthcount = len;
 	samplefac = sample;
 
-	for (i = 0; i < netsize; i++)
+	/*for (i = 0; i < netsize; i++)*/
+	for (register int i = 0; i < netsize; i++)
 		{
-		p = network[i];
+		/*p = network[i];*/
+		register int	*p = network[i];
 		p[0] = p[1] = p[2] = (i << (netbiasshift + 8)) / netsize;
 		freq[i] = intbias / netsize;	// 1 / netsize
 		bias[i] = 0;
 		}
 	}
 
-// Unbias network to give byte values 0..255 and record position i to prepare for sort
+// [FWGS, 01.07.26] unbias network to give byte values 0..255 and record position i to prepare for sort
 static void unbiasnet (void)
 	{
-	int	i, j, temp;
+	/*int	i, j, temp;
 
-	for (i = 0; i < netsize; i++)
+	for (i = 0; i < netsize; i++)*/
+	for (int i = 0; i < netsize; i++)
 		{
-		for (j = 0; j < 3; j++)
+		/*for (j = 0; j < 3; j++)*/
+		for (int j = 0; j < 3; j++)
 			{
 			// OLD CODE: network[i][j] >>= netbiasshift;
 			// Fix based on bug report by Juergen Weigert jw@suse.de
-			temp = (network[i][j] + (1 << (netbiasshift - 1))) >> netbiasshift;
-			if (temp > 255) temp = 255;
+			/*temp = (network[i][j] + (1 << (netbiasshift - 1))) >> netbiasshift;*/
+			int temp = (network[i][j] + (1 << (netbiasshift - 1))) >> netbiasshift;
+			if (temp > 255)
+				temp = 255;
+
 			network[i][j] = temp;
 			}
 
-		network[i][3] = i; // record colour num
+		network[i][3] = i;	// record colour num
 		}
 	}
 
-// Insertion sort of network and building of netindex[0..255] (to do after unbias)
+// [FWGS, 01.07.26] insertion sort of network and building of netindex[0..255] (to do after unbias)
 static void inxbuild (void)
 	{
-	register int	*p, *q;
+	/*register int	*p, *q;
 	register int	i, j, smallpos, smallval;
 	int		previouscol, startpos;
 
 	previouscol = 0;
-	startpos = 0;
+	startpos = 0;*/
+	int	previouscol = 0;
+	int	startpos = 0;
 
-	for (i = 0; i < netsize; i++)
+	/*for (i = 0; i < netsize; i++)*/
+	for (register int i = 0; i < netsize; i++)
 		{
-		p = network[i];
+		/*p = network[i];
 		smallpos = i;
-		smallval = p[1];			// index on g
+		smallval = p[1];	// index on g*/
+		register int	*p = network[i];
+		register int	smallpos = i;
+		register int	smallval = p[1]; // index on g
 
 		// find smallest in i..netsize-1
-		for (j = i + 1; j < netsize; j++)
+		/*for (j = i + 1; j < netsize; j++)*/
+		register int	*q;
+		for (register int j = i + 1; j < netsize; j++)
 			{
 			q = network[j];
 			if (q[1] < smallval)
@@ -142,6 +152,7 @@ static void inxbuild (void)
 		// swap p (i) and q (smallpos) entries
 		if (i != smallpos)
 			{
+			register int j;
 			j = q[0];   q[0] = p[0];   p[0] = j;
 			j = q[1];   q[1] = p[1];   p[1] = j;
 			j = q[2];   q[2] = p[2];   p[2] = j;
@@ -153,7 +164,8 @@ static void inxbuild (void)
 			{
 			netindex[previouscol] = (startpos + i) >> 1;
 
-			for (j = previouscol + 1; j < smallval; j++)
+			/*for (j = previouscol + 1; j < smallval; j++)*/
+			for (register int j = previouscol + 1; j < smallval; j++)
 				netindex[j] = i;
 
 			previouscol = smallval;
@@ -163,21 +175,27 @@ static void inxbuild (void)
 
 	netindex[previouscol] = (startpos + maxnetpos) >> 1;
 
-	for (j = previouscol + 1; j < 256; j++)
-		netindex[j] = maxnetpos; // really 256
+	/*for (j = previouscol + 1; j < 256; j++)*/
+	for (int j = previouscol + 1; j < 256; j++)
+		netindex[j] = maxnetpos;	// really 256
 	}
 
-// Search for BGR values 0..255 (after net is unbiased) and return colour index
+// [FWGS, 01.07.26] search for BGR values 0..255 (after net is unbiased) and return colour index
 static int inxsearch (int r, int g, int b)
 	{
-	register int	i, j, dist, a, bestd;
+	/*register int	i, j, dist, a, bestd;*/
+	register int	dist, a;
 	register int	*p;
-	int		best;
+	/*int		best;*/
 
-	bestd = 1000;	// biggest possible dist is 256 * 3
+	/*bestd = 1000;	// biggest possible dist is 256 * 3
 	best = -1;
 	i = netindex[g];	// index on g
-	j = i - 1;	// start at netindex[g] and work outwards
+	j = i - 1;	// start at netindex[g] and work outwards*/
+	register int	bestd = 1000;		// biggest possible dist is 256 * 3
+	int		best = -1;
+	register int	i = netindex[g];	// index on g
+	register int	j = i - 1;			// start at netindex[g] and work outwards
 
 	while ((i < netsize) || (j >= 0))
 		{
@@ -193,15 +211,19 @@ static int inxsearch (int r, int g, int b)
 			else
 				{
 				i++;
-				if (dist < 0) dist = -dist;
+				if (dist < 0)
+					dist = -dist;
+
 				a = p[2] - b;
-				if (a < 0) a = -a;
+				if (a < 0)
+					a = -a;
 				dist += a;
 
 				if (dist < bestd)
 					{
 					a = p[0] - r;
-					if (a < 0) a = -a;
+					if (a < 0)
+						a = -a;
 					dist += a;
 
 					if (dist < bestd)
@@ -216,25 +238,30 @@ static int inxsearch (int r, int g, int b)
 		if (j >= 0)
 			{
 			p = network[j];
-			dist = g - p[1]; // inx key - reverse dif
+			dist = g - p[1];	// inx key - reverse dif
 
 			if (dist >= bestd)
 				{
-				j = -1; // stop iter
+				j = -1;	// stop iter
 				}
 			else
 				{
 				j--;
-				if (dist < 0) dist = -dist;
+				if (dist < 0)
+					dist = -dist;
+
 				a = p[2] - b;
-				if (a < 0) a = -a;
+				if (a < 0)
+					a = -a;
 				dist += a;
 
 				if (dist < bestd)
 					{
 					a = p[0] - r;
-					if (a < 0) a = -a;
+					if (a < 0)
+						a = -a;
 					dist += a;
+
 					if (dist < bestd)
 						{
 						bestd = dist;
@@ -248,34 +275,51 @@ static int inxsearch (int r, int g, int b)
 	return best;
 	}
 
-// Search for biased BGR values
+// [FWGS, 01.07.26] search for biased BGR values
 static int contest (int r, int g, int b)
 	{
-	register int	*p, *f, *n;
+	/*register int	*p, *f, *n;
 	register int	i, dist, a, biasdist, betafreq;
-	int		bestpos, bestbiaspos, bestd, bestbiasd;
+	int		bestpos, bestbiaspos, bestd, bestbiasd;*/
 
 	// finds closest neuron (min dist) and updates freq
 	// finds best neuron (min dist-bias) and returns position
 	// for frequently chosen neurons, freq[i] is high and bias[i] is negative
 	// bias[i] = gamma * ((1 / netsize) - freq[i])
-	bestd = INT_MAX;
+	/*bestd = INT_MAX;
 	bestbiasd = bestd;
 	bestpos = -1;
 	bestbiaspos = bestpos;
 	p = bias;
 	f = freq;
 
-	for (i = 0; i < netsize; i++)
+	for (i = 0; i < netsize; i++)*/
+	int		bestd = INT_MAX;
+	int		bestbiasd = bestd;
+	int		bestpos = -1;
+	int		bestbiaspos = bestpos;
+	register int	*p = bias;
+	register int	*f = freq;
+
+	for (register int i = 0; i < netsize; i++)
 		{
-		n = network[i];
-		dist = n[2] - b;
-		if (dist < 0) dist = -dist;
+		/*n = network[i];
+		dist = n[2] - b;*/
+		register int	*n = network[i];
+		register int	dist = n[2] - b;
+		register int	a;
+
+		if (dist < 0)
+			dist = -dist;
+
 		a = n[1] - g;
-		if (a < 0) a = -a;
+		if (a < 0)
+			a = -a;
 		dist += a;
 		a = n[0] - r;
-		if (a < 0) a = -a;
+
+		if (a < 0)
+			a = -a;
 		dist += a;
 
 		if (dist < bestd)
@@ -284,7 +328,8 @@ static int contest (int r, int g, int b)
 			bestpos = i;
 			}
 
-		biasdist = dist - ((*p) >> (intbiasshift - netbiasshift));
+		/*biasdist = dist - ((*p) >> (intbiasshift - netbiasshift));*/
+		register int biasdist = dist - ((*p) >> (intbiasshift - netbiasshift));
 
 		if (biasdist < bestbiasd)
 			{
@@ -292,7 +337,8 @@ static int contest (int r, int g, int b)
 			bestbiaspos = i;
 			}
 
-		betafreq = (*f >> betashift);
+		/*betafreq = (*f >> betashift);*/
+		register int betafreq = (*f >> betashift);
 		*f++ -= betafreq;
 		*p++ += (betafreq << gammashift);
 		}
@@ -303,12 +349,14 @@ static int contest (int r, int g, int b)
 	return bestbiaspos;
 	}
 
-// Move neuron i towards biased (b,g,r) by factor alpha
+// [FWGS, 01.07.26] move neuron i towards biased (b,g,r) by factor alpha
 static void altersingle (int alpha, int i, int r, int g, int b)
 	{
-	register int *n;
+	/*register int *n;
 
-	n = network[i];	// alter hit neuron
+	n = network[i];	// alter hit neuron*/
+	register int	*n = network[i];	// alter hit neuron
+
 	*n -= (alpha * (*n - r)) / initalpha;
 	n++;
 	*n -= (alpha * (*n - g)) / initalpha;
@@ -316,24 +364,34 @@ static void altersingle (int alpha, int i, int r, int g, int b)
 	*n -= (alpha * (*n - b)) / initalpha;
 	}
 
-// Move adjacent neurons by precomputed alpha*(1-((i-j)^2/[r]^2)) in radpower[|i-j|]
+// [FWGS, 01.07.26] move adjacent neurons by precomputed alpha*(1-((i-j)^2/[r]^2)) in radpower[|i-j|]
 static void alterneigh (int rad, int i, int r, int g, int b)
 	{
-	register int	j, k, lo, hi, a;
+	/*register int	j, k, lo, hi, a;
 	register int	*p, *q;
 
-	lo = i - rad;
-	if (lo < -1) lo = -1;
-	hi = i + rad;
-	if (hi > netsize) hi = netsize;
+	lo = i - rad;*/
+	register int	lo = i - rad;
+	if (lo < -1)
+		lo = -1;
 
-	j = i + 1;
+	/*hi = i + rad;*/
+	register int	hi = i + rad;
+	if (hi > netsize)
+		hi = netsize;
+
+	/*j = i + 1;
 	k = i - 1;
-	q = radpower;
+	q = radpower;*/
+	register int	j = i + 1;
+	register int	k = i - 1;
+	register int	*q = radpower;
 
 	while ((j < hi) || (k > lo))
 		{
-		a = (*(++q));
+		/*a = (*(++q));*/
+		register int	a = (*(++q));
+		register int	*p;
 
 		if (j < hi)
 			{
@@ -359,30 +417,44 @@ static void alterneigh (int rad, int i, int r, int g, int b)
 		}
 	}
 
-// Main Learning Loop
+// [FWGS, 01.07.26] main Learning Loop
 static void learn (void)
 	{
-	register byte	*p;
+	/*register byte	*p;
 	register int	i, j, r, g, b;
 	int		radius, rad, alpha, step;
 	int		delta, samplepixels;
-	byte	*lim;
+	byte	*lim;*/
+	int		step;
 
 	alphadec = 30 + ((samplefac - 1) / 3);
-	p = thepicture;
+	/*p = thepicture;
 	lim = thepicture + lengthcount;
 	samplepixels = lengthcount / (image.bpp * samplefac);
 	delta = samplepixels / ncycles;
 	alpha = initalpha;
 	radius = initradius;
 
-	rad = radius >> radiusbiasshift;
-	if (rad <= 1) rad = 0;
+	rad = radius >> radiusbiasshift;*/
 
-	for (i = 0; i < rad; i++)
-		radpower[i] = alpha * (((rad * rad - i * i) * radbias) / (rad * rad));
+	register byte	*p = thepicture;
+	byte	*lim = thepicture + lengthcount;
+	int		samplepixels = lengthcount / (image.bpp * samplefac);
+	int		delta = samplepixels / ncycles;
+	int		alpha = initalpha;
+	int		radius = initradius;
 
-	if (delta <= 0) return;
+	int		rad = radius >> radiusbiasshift;
+	if (rad <= 1)
+		rad = 0;
+
+	// ESHQ: в обновлении от 1.07.26 int i и register int i пересекаются в этом месте
+	/*for (i = 0; i < rad; i++)*/
+	for (int ij = 0; ij < rad; ij++)
+		radpower[ij] = alpha * (((rad * rad - ij * ij) * radbias) / (rad * rad));
+
+	if (delta <= 0)
+		return;
 
 	if ((lengthcount % prime1) != 0)
 		{
@@ -401,33 +473,40 @@ static void learn (void)
 		step = prime4 * image.bpp;
 		}
 
-	i = 0;
-
+	/*i = 0;*/
+	register int	i = 0;
 	while (i < samplepixels)
 		{
-		r = p[0] << netbiasshift;
+		/*r = p[0] << netbiasshift;
 		g = p[1] << netbiasshift;
 		b = p[2] << netbiasshift;
-		j = contest (r, g, b);
+		j = contest (r, g, b);*/
+		register int	r = p[0] << netbiasshift;
+		register int	g = p[1] << netbiasshift;
+		register int	b = p[2] << netbiasshift;
+		register int	j = contest (r, g, b);
 
 		altersingle (alpha, j, r, g, b);
-		if (rad) alterneigh (rad, j, r, g, b);   // alter neighbours
+		if (rad)
+			alterneigh (rad, j, r, g, b);   // alter neighbours
 
 		p += step;
 		while (p >= lim) 
 			p -= lengthcount;
 
 		i++;
-
 		if (i % delta == 0)
 			{
 			alpha -= alpha / alphadec;
 			radius -= radius / radiusdec;
 			rad = radius >> radiusbiasshift;
-			if (rad <= 1) rad = 0;
+			if (rad <= 1)
+				rad = 0;
 
-			for (j = 0; j < rad; j++)
-				radpower[j] = alpha * (((rad * rad - j * j) * radbias) / (rad * rad));
+			// ESHQ: в обновлении от 1.07.26 int j и register int j пересекаются в этом месте
+			/*for (j = 0; j < rad; j++)*/
+			for (int ji = 0; ji < rad; ji++)
+				radpower[ji] = alpha * (((rad * rad - ji * ji) * radbias) / (rad * rad));
 			}
 		}
 	}
@@ -454,7 +533,6 @@ rgbdata_t *Image_Quantize (rgbdata_t *pic)
 	unbiasnet ();
 
 	// [FWGS, 01.09.25]
-	/*pic->palette = Mem_Malloc (host.imagepool, netsize * 3);*/
 	pic->palette = Mem_Malloc (host.imagepool, palettesize * 3);
 
 	for (i = 0; i < netsize; i++)
@@ -476,7 +554,8 @@ rgbdata_t *Image_Quantize (rgbdata_t *pic)
 
 	for (i = 0; i < image.width * image.height; i++)
 		{
-		image.tempbuffer[i] = inxsearch (pic->buffer[i * image.bpp + 0], pic->buffer[i * image.bpp + 1], pic->buffer[i * image.bpp + 2]);
+		image.tempbuffer[i] = inxsearch (pic->buffer[i * image.bpp + 0], pic->buffer[i * image.bpp + 1],
+			pic->buffer[i * image.bpp + 2]);
 		}
 
 	pic->buffer = Mem_Realloc (host.imagepool, pic->buffer, image.size);

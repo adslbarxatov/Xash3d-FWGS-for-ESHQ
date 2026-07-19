@@ -43,12 +43,12 @@ GNU General Public License for more details
 // [FWGS, 01.03.25]
 static struct logdata_s
 	{
-	char title[64];
-	qboolean log_active;
-	qboolean log_time;
-	char log_path[MAX_SYSPATH];
-	FILE *logfile;
-	int logfileno;
+	char	title[64];
+	qboolean	log_active;
+	qboolean	log_time;
+	char	log_path[MAX_SYSPATH];
+	FILE	*logfile;
+	int		logfileno;
 	} s_ld;
 
 // [FWGS, 22.01.25] removed Sys_Input
@@ -92,14 +92,13 @@ static void Sys_FlushLogfile (void)
 		fflush (s_ld.logfile);
 	}
 
+// [FWGS, 01.07.26]
 void Sys_InitLog (void)
 	{
-	const char *mode;
+	/*const char *mode;*/
 
 	if (Sys_CheckParm ("-log"))
 		{
-		// [FWGS, 01.05.26]
-		/*if (!Sys_GetParmFromCmdLine ("-log", s_ld.log_path) || !isalnum (s_ld.log_path[0]))*/
 		if (!Sys_GetParmFromCmdLine ("-log", s_ld.log_path) || !isalnum ((byte)s_ld.log_path[0]))
 			Q_strncpy (s_ld.log_path, "engine.log", sizeof (s_ld.log_path));
 
@@ -110,20 +109,23 @@ void Sys_InitLog (void)
 
 	s_ld.log_time = Sys_CheckParm ("-logtime");
 
+	const char	*mode;
 	if (host.change_game && (host.type != HOST_DEDICATED))
-		mode = "a";
+	/*	mode = "a";
 	else
-		mode = "w";
+		mode = "w";*/
+		mode = "a+";
+	else
+		mode = "w+";
 
 	if (Host_IsDedicated ())
 		Q_strncpy (s_ld.title, XASH_DEDICATED_SERVER_NAME " " XASH_VERSION, sizeof (s_ld.title));
 	else
 		Q_strncpy (s_ld.title, XASH_ENGINE_NAME " " XASH_VERSION, sizeof (s_ld.title));
 
-	// [FWGS, 01.05.26] create log if needed
+	// create log if needed
 	if (s_ld.log_active)
 		{
-		/*s_ld.logfile = fopen (s_ld.log_path, mode);*/
 		const char *basedir = getenv ("XASH3D_BASEDIR");
 
 		if (!COM_StringEmptyOrNULL (basedir) && (s_ld.log_path[0] != '/'))
@@ -194,8 +196,10 @@ void Sys_CloseLog (const char *finalmsg)
 	s_ld.logfile = NULL;
 	}
 
-// [FWGS, 22.01.25]
-#if XASH_COLORIZE_CONSOLE
+// [FWGS, 01.07.26]
+/*// [FWGS, 22.01.25]
+if XASH_COLORIZE_CONSOLE*/
+
 static qboolean Sys_WriteEscapeSequenceForColorcode (int fd, int c)
 	{
 	static const char *q3ToAnsi[8] =
@@ -209,12 +213,14 @@ static qboolean Sys_WriteEscapeSequenceForColorcode (int fd, int c)
 		"\033[1;35m",	// COLOR_MAGENTA
 		"\033[0m",		// COLOR_WHITE
 		};
+
 	const char *esc = q3ToAnsi[c];
 
 	return write (fd, esc, c == 7 ? 4 : 7) < 0 ? false : true;
 	}
 
-#else
+// [FWGS, 01.07.26]
+/*else
 
 // [FWGS, 22.01.25]
 static qboolean Sys_WriteEscapeSequenceForColorcode (int fd, int c)
@@ -222,10 +228,11 @@ static qboolean Sys_WriteEscapeSequenceForColorcode (int fd, int c)
 	return true;
 	}
 
-#endif
+endif*/
 
-// [FWGS, 22.01.25]
-static void Sys_PrintLogfile (const int fd, const char *logtime, size_t logtime_len, const char *msg, const int colorize)
+// [FWGS, 01.07.26]
+/*static void Sys_PrintLogfile (const int fd, const char *logtime, size_t logtime_len, const char *msg, const int colorize)*/
+static void Sys_PrintLogfile (const int fd, const char *logtime, size_t logtime_len, const char *msg, qboolean colorize)
 	{
 	const char *p = msg;
 
@@ -235,6 +242,17 @@ static void Sys_PrintLogfile (const int fd, const char *logtime, size_t logtime_
 			{
 			// not critical for us
 			}
+		}
+
+	if (!colorize)
+		{
+		if (write (fd, msg, Q_strlen (msg)) < 0)
+			{
+			// don't call engine Msg, might cause recursion
+			fprintf (stderr, "%s: write failed: %s\n", __func__, strerror (errno));
+			}
+
+		return;
 		}
 
 	while (p && *p)
@@ -250,7 +268,6 @@ static void Sys_PrintLogfile (const int fd, const char *logtime, size_t logtime_
 
 			break;
 			}
-
 		else if (IsColorString (p))
 			{
 			if (p != msg)
@@ -261,10 +278,10 @@ static void Sys_PrintLogfile (const int fd, const char *logtime, size_t logtime_
 
 			msg = p + 2;
 
-			if (colorize)
-				Sys_WriteEscapeSequenceForColorcode (fd, ColorIndex (p[1]));
+			/*if (colorize)
+				Sys_WriteEscapeSequenceForColorcode (fd, ColorIndex (p[1]));*/
+			Sys_WriteEscapeSequenceForColorcode (fd, ColorIndex (p[1]));
 			}
-
 		else
 			{
 			if (write (fd, msg, p - msg + 1) < 0)
@@ -275,73 +292,122 @@ static void Sys_PrintLogfile (const int fd, const char *logtime, size_t logtime_
 		}
 
 	// flush the color
-	if (colorize)
-		Sys_WriteEscapeSequenceForColorcode (fd, 7);
+	/*if (colorize)
+		Sys_WriteEscapeSequenceForColorcode (fd, 7);*/
+	Sys_WriteEscapeSequenceForColorcode (fd, 7);
 	}
 
-static void Sys_PrintStdout (const char *logtime, size_t logtime_len, const char *msg)
+// [FWGS, 01.07.26]
+/*static void Sys_PrintStdout (const char *logtime, size_t logtime_len, const char *msg)*/
+static void Sys_WriteLogfile (int fd, const char *logtime, size_t logtime_len, const char *msg)
 	{
-#if XASH_MOBILE_PLATFORM
-	static char buf[MAX_PRINT_MSG];
+	/*if XASH_MOBILE_PLATFORM
+	static char buf[MAX_PRINT_MSG];*/
+	if (logtime_len != 0)
+		{
+		if (write (fd, logtime, logtime_len) < 0)
+			{
+			// not critical for us
+			}
+		}
 
-	// strip color codes
-	COM_StripColors (msg, buf);
+	/*// strip color codes
+	COM_StripColors (msg, buf);*/
+	if (write (fd, msg, Q_strlen (msg)) < 0)
+		{
+		// not critical for us
+		}
+	}
 
-	// [FWGS, 01.09.25] platform-specific output
+/*// [FWGS, 01.09.25] platform-specific output*/
+
+// [FWGS, 01.07.26]
+static void Sys_PrintStdout (const char *logtime, size_t logtime_len, const char *msg, const char *stripped)
+	{
 #if XASH_ANDROID && !XASH_DEDICATED
-	__android_log_write (ANDROID_LOG_INFO, "Xash", buf);
+	/*__android_log_write (ANDROID_LOG_INFO, "Xash", buf);*/
+	__android_log_write (ANDROID_LOG_INFO, "Xash", stripped);
 #endif
 
 #if TARGET_OS_IOS
 	void IOS_Log (const char *);
-	IOS_Log (buf);
+	/*IOS_Log (buf);*/
+	IOS_Log (stripped);
 #endif
 
 #if XASH_NSWITCH && NSWITCH_DEBUG
 	// just spew it to stderr normally in debug mode
-	fprintf (stderr, "%s %s", logtime, buf);
+	/*fprintf (stderr, "%s %s", logtime, buf);*/
+	fprintf (stderr, "%s %s", logtime, stripped);
 #endif
 
 #if XASH_PSVITA
 	// spew to stderr only in developer mode
 	if (host_developer.value)
-		fprintf (stderr, "%s %s", logtime, buf);
+		fprintf (stderr, "%s %s", logtime, stripped);
+		/*fprintf (stderr, "%s %s", logtime, buf);*/
 #endif
 
-#elif !XASH_WIN32	// Wcon does the job
-	Sys_PrintLogfile (STDOUT_FILENO, logtime, logtime_len, msg, XASH_COLORIZE_CONSOLE);
+	/*elif !XASH_WIN32	// Wcon does the job
+	Sys_PrintLogfile (STDOUT_FILENO, logtime, logtime_len, msg, XASH_COLORIZE_CONSOLE);*/
+#if !XASH_MOBILE_PLATFORM && !XASH_WIN32	// Wcon does the job
+	Sys_PrintLogfile (STDOUT_FILENO, logtime, logtime_len, XASH_COLORIZE_CONSOLE ? msg : stripped, XASH_COLORIZE_CONSOLE);
 	Sys_FlushStdout ();
 #endif
+
+	XRcon_Print (stripped);
 	}
 
-// [FWGS, 01.04.25]
+// [FWGS, 01.07.26]
 void Sys_PrintLog (const char *pMsg)
 	{
-	time_t		crt_time;
+	/*time_t		crt_time;
 	const struct tm	*crt_tm;
-	char		logtime[32] = "";
+	char		logtime[32] = "";*/
 	static char	lastchar;
-	qboolean	print_time = false;
-	size_t		len, logtime_len = 0;
+	/*qboolean	print_time = false;
+	size_t		len, logtime_len = 0;*/
 
+	const struct tm	*crt_tm = NULL;
 	if (!lastchar || (lastchar == '\n'))
 		{
+		time_t	crt_time;
 		if (time (&crt_time) >= 0)
-			{
+			/*{*/
 			crt_tm = localtime (&crt_time);
-			print_time = (crt_tm != NULL);
-			}
+			/*print_time = (crt_tm != NULL);
+			}*/
 		}
 
-	if (print_time)
+	/*if (print_time)*/
+	char	logtime[32] = "";
+	size_t	logtime_len = 0;
+	if (crt_tm != NULL)
 		{
 		logtime_len = strftime (logtime, sizeof (logtime), "[%H:%M:%S] ", crt_tm);	// short time
 		logtime_len = Q_min (logtime_len, sizeof (logtime) - 1);	// just in case
 		}
 
+#if !XASH_WIN32 && !XASH_COLORIZE_CONSOLE
+	qboolean need_strip = true;		// stdout sink can't render ^N, must strip first
+#else
+	qboolean need_strip = (s_ld.logfile != NULL) || XRcon_IsActive ();
+#endif
+
+	const char *log_msg = pMsg;
+	if (need_strip)
+		{
+		static char stripped[MAX_PRINT_MSG];
+		COM_StripColors (pMsg, stripped);
+		log_msg = stripped;
+		}
+
 	// spew to stdout
-	Sys_PrintStdout (logtime, logtime_len, pMsg);
-	len = Q_strlen (pMsg);
+	/*Sys_PrintStdout (logtime, logtime_len, pMsg);*/
+	Sys_PrintStdout (logtime, logtime_len, pMsg, log_msg);
+	
+	/*len = Q_strlen (pMsg);*/
+	size_t len = Q_strlen (pMsg);
 
 	// save last char to detect when line was not ended
 	lastchar = len > 0 ? pMsg[len - 1] : 0;
@@ -349,7 +415,8 @@ void Sys_PrintLog (const char *pMsg)
 	// spew to engine.log
 	if (s_ld.logfile)
 		{
-		if (s_ld.log_time && print_time)
+		/*if (s_ld.log_time && print_time)*/
+		if (s_ld.log_time && (crt_tm != NULL))
 			{
 			logtime_len = strftime (logtime, sizeof (logtime), "[%Y:%m:%d|%H:%M:%S] ", crt_tm);	// full time
 			logtime_len = Q_min (logtime_len, sizeof (logtime) - 1);	// just in case
@@ -360,7 +427,8 @@ void Sys_PrintLog (const char *pMsg)
 			logtime_len = 0;
 			}
 
-		Sys_PrintLogfile (s_ld.logfileno, logtime, logtime_len, pMsg, false);
+		/*Sys_PrintLogfile (s_ld.logfileno, logtime, logtime_len, pMsg, false);*/
+		Sys_WriteLogfile (s_ld.logfileno, logtime, logtime_len, log_msg);
 		Sys_FlushLogfile ();
 		}
 	}
@@ -371,13 +439,14 @@ CONSOLE PRINT
 =============================================================================
 ***/
 
-// [FWGS, 01.09.24]
+// [FWGS, 01.07.26]
 static void Con_Printfv (qboolean debug, const char *szFmt, va_list args)
 	{
 	static char buffer[MAX_PRINT_MSG];
-	qboolean add_newline;
+	/*qboolean add_newline;
 
-	add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;
+	add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;*/
+	qboolean add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;
 
 	// hlrally spam
 	if (debug && !Q_strcmp (buffer, "0\n"))

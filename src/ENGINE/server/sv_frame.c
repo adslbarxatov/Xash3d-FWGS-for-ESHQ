@@ -26,20 +26,22 @@ typedef struct
 	} sv_ents_t;
 
 // [FWGS, 01.12.24]
-static int c_fullsend; // just a debug counter
+static int c_fullsend;	// just a debug counter
 static int c_notsend;
 
 /***
 =======================
-SV_EntityNumbers
+SV_EntityNumbers [FWGS, 01.07.26]
 =======================
 ***/
 static int SV_EntityNumbers (const void *a, const void *b)
 	{
-	int	ent1, ent2;
+	/*int	ent1, ent2;
 
 	ent1 = ((entity_state_t *)a)->number;
-	ent2 = ((entity_state_t *)b)->number;
+	ent2 = ((entity_state_t *)b)->number;*/
+	int	ent1 = ((entity_state_t *)a)->number;
+	int	ent2 = ((entity_state_t *)b)->number;
 
 	// watcom libc compares ents with itself
 	if (ent1 == ent2)
@@ -52,21 +54,21 @@ static int SV_EntityNumbers (const void *a, const void *b)
 
 /***
 =============
-SV_AddEntitiesToPacket
+SV_AddEntitiesToPacket [FWGS, 01.07.26]
 =============
 ***/
 static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_frame_t *frame,
 	sv_ents_t *ents, qboolean from_client)
 	{
-	// [FWGS, 01.11.25]
-	edict_t		*ent;
+	/*// [FWGS, 01.11.25]
+	edict_t		*ent;*/
 	byte		*clientpvs = NULL;
 	byte		*clientphs = NULL;
 	qboolean	fullvis = false;
 	sv_client_t	*cl = NULL;
-	qboolean	player;
+	/*qboolean	player;
 	entity_state_t	*state;
-	int			e;
+	int			e;*/
 
 	// during an error shutdown message we may need to transmit
 	// the shutdown message after the server has shutdown, so
@@ -94,12 +96,15 @@ static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_
 	svgame.dllFuncs.pfnSetupVisibility (pViewEnt, pClient, &clientpvs, &clientphs);
 	if (!clientpvs) fullvis = true;
 
-	// [FWGS, 05.04.26] g-cont: of course we can send world but not want to do it :-)
-	for (e = 1; e < svgame.numEntities; e++)
+	// g-cont: of course we can send world but not want to do it :-)
+	/*for (e = 1; e < svgame.numEntities; e++)*/
+	for (int e = 1; e < svgame.numEntities; e++)
 		{
-		byte *pset;
-		/*ent = EDICT_NUM (e);*/
-		ent = SV_EdictNum (e);
+		byte	*pset;
+		/*ent = SV_EdictNum (e);*/
+		edict_t	*ent = SV_EdictNum (e);
+		qboolean	player;
+		entity_state_t	*state;
 
 		// don't double add an entity through portals (in case this already added)
 		if (CHECKVISBIT (ents->sended, e))
@@ -147,7 +152,7 @@ static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_
 			if (ents->num_entities < (MAX_VISIBLE_PACKET - 1))
 				{
 				ents->num_entities++;	// entity accepted
-				c_fullsend++;		// debug counter
+				c_fullsend++;	// debug counter
 
 				}
 			else
@@ -160,7 +165,7 @@ static void SV_AddEntitiesToPacket (edict_t *pViewEnt, edict_t *pClient, client_
 			}
 
 		if (fullvis)
-			continue; // portal ents will be added anyway, ignore recursion
+			continue;	// portal ents will be added anyway, ignore recursion
 
 		// if it's a portal entity, add everything visible from its camera position
 		if (from_client && FBitSet (ent->v.effects, EF_MERGE_VISIBILITY))
@@ -182,7 +187,7 @@ Encode a client frame onto the network channel
 
 /***
 =============
-SV_FindBestBaseline [FWGS, 25.12.24]
+SV_FindBestBaseline [FWGS, 01.07.26]
 
 trying to deltas with previous entities
 set frame to NULL to check for static entities
@@ -191,14 +196,15 @@ set frame to NULL to check for static entities
 int SV_FindBestBaseline (int index, entity_state_t **baseline, entity_state_t *to, client_frame_t *frame, qboolean player)
 	{
 	int	bestBitCount;
-	int	i, bitCount;
+	/*int	i, bitCount;*/
 	int	bestfound, j;
 
 	bestBitCount = j = Delta_TestBaseline (*baseline, to, player, sv.time);
 	bestfound = index;
 
 	// lookup backward for previous 64 states and try to interpret current delta as baseline
-	for (i = index - 1; (bestBitCount > 0) && (i >= 0) && (index - i) < (MAX_CUSTOM_BASELINES - 1); i--)
+	/*for (i = index - 1; (bestBitCount > 0) && (i >= 0) && (index - i) < (MAX_CUSTOM_BASELINES - 1); i--)*/
+	for (int i = index - 1; (bestBitCount > 0) && (i >= 0) && ((index - i) < (MAX_CUSTOM_BASELINES - 1)); i--)
 		{
 		// don't worry about underflow in circular buffer
 		entity_state_t *test;
@@ -211,8 +217,8 @@ int SV_FindBestBaseline (int index, entity_state_t **baseline, entity_state_t *t
 
 		if (to->entityType == test->entityType)
 			{
-			bitCount = Delta_TestBaseline (test, to, player, sv.time);
-
+			/*bitCount = Delta_TestBaseline (test, to, player, sv.time);*/
+			int	bitCount = Delta_TestBaseline (test, to, player, sv.time);
 			if (bitCount < bestBitCount)
 				{
 				bestBitCount = bitCount;
@@ -235,7 +241,7 @@ int SV_FindBestBaseline (int index, entity_state_t **baseline, entity_state_t *t
 
 /***
 =============
-SV_EmitPacketEntities
+SV_EmitPacketEntities [FWGS, 01.07.26]
 
 Writes a delta update of an entity_state_t list to the message->
 =============
@@ -243,10 +249,11 @@ Writes a delta update of an entity_state_t list to the message->
 static void SV_EmitPacketEntities (sv_client_t *cl, client_frame_t *to, sizebuf_t *msg)
 	{
 	entity_state_t	*oldent, *newent;
-	int			oldindex, newindex;
-	int			i, oldnum, newnum;
+	int		oldindex, newindex;
+	/*int			i, oldnum, newnum;*/
+	int		oldnum, newnum;
 	qboolean	player;
-	int			oldmax;
+	int		oldmax;
 	client_frame_t	*from;
 
 	// this is the frame that we are going to delta update from
@@ -323,25 +330,24 @@ static void SV_EmitPacketEntities (sv_client_t *cl, client_frame_t *to, sizebuf_
 
 		if (newnum < oldnum)
 			{
-			// [FWGS, 05.04.26]
 			entity_state_t *baseline = &svs.baselines[newnum];
-			/*const char *classname = SV_ClassName (EDICT_NUM (newnum));*/
 			const char *classname = SV_ClassName (SV_EdictNum (newnum));
 			int		offset = 0;
 
-			// [FWGS, 25.12.24] trying to reduce message by select optimal baseline
+			// trying to reduce message by select optimal baseline
 			if (!sv_instancedbaseline.value || !sv.num_instanced || sv.last_valid_baseline > newnum)
 				{
 				offset = SV_FindBestBaseline (newindex, &baseline, newent, to, player);
 				}
 			else
 				{
-				for (i = 0; i < sv.num_instanced; i++)
+				/*for (i = 0; i < sv.num_instanced; i++)*/
+				for (int i = 0; i < sv.num_instanced; i++)
 					{
 					if (!Q_strcmp (classname, sv.instanced[i].classname))
 						{
 						baseline = &sv.instanced[i].baseline;
-						offset = -i - 1; // to avoid zero offset
+						offset = -i - 1;	// to avoid zero offset
 						break;
 						}
 					}
@@ -355,8 +361,6 @@ static void SV_EmitPacketEntities (sv_client_t *cl, client_frame_t *to, sizebuf_
 
 		if (newnum > oldnum)
 			{
-			// [FWGS, 05.04.26]
-			/*edict_t *ed = EDICT_NUM (oldent->number);*/
 			edict_t		*ed = SV_EdictNum (oldent->number);
 			qboolean	force = false;
 
@@ -371,36 +375,39 @@ static void SV_EmitPacketEntities (sv_client_t *cl, client_frame_t *to, sizebuf_
 			}
 		}
 
-	MSG_WriteUBitLong (msg, LAST_EDICT, MAX_ENTITY_BITS); // end of packetentities
+	MSG_WriteUBitLong (msg, LAST_EDICT, MAX_ENTITY_BITS);	// end of packetentities
 	}
 
 /***
 =============
-SV_EmitEvents
+SV_EmitEvents [FWGS, 01.07.26]
 =============
 ***/
 static void SV_EmitEvents (sv_client_t *cl, client_frame_t *to, sizebuf_t *msg)
 	{
-	event_state_t *es;
-	event_info_t *info;
-	entity_state_t *state;
+	event_state_t	*es;
+	event_info_t	*info;
+	/*entity_state_t *state;*/
 	event_args_t	nullargs;
 	int		ev_count = 0;
 	int		count, ent_index;
-	int		i, j, ev;
+	/*int		i, j, ev;*/
+	int		i, j;
 
 	memset (&nullargs, 0, sizeof (nullargs));
 	es = &cl->events;
 
 	// count events
-	for (ev = 0; ev < MAX_EVENT_QUEUE; ev++)
+	/*for (ev = 0; ev < MAX_EVENT_QUEUE; ev++)*/
+	for (int ev = 0; ev < MAX_EVENT_QUEUE; ev++)
 		{
 		if (es->ei[ev].index)
 			ev_count++;
 		}
 
 	// nothing to send
-	if (!ev_count) return; // nothing to send
+	if (!ev_count)
+		return;	// nothing to send
 
 	if (ev_count >= MAX_EVENT_QUEUE / 2)
 		ev_count = (MAX_EVENT_QUEUE / 2) - 1;
@@ -415,7 +422,8 @@ static void SV_EmitEvents (sv_client_t *cl, client_frame_t *to, sizebuf_t *msg)
 
 		for (j = 0; j < to->num_entities; j++)
 			{
-			state = &svs.packet_entities[(to->first_entity + j) % svs.num_client_entities];
+			/*state = &svs.packet_entities[(to->first_entity + j) % svs.num_client_entities];*/
+			entity_state_t	*state = &svs.packet_entities[(to->first_entity + j) % svs.num_client_entities];
 			if (state->number == ent_index)
 				break;
 			}
@@ -458,7 +466,7 @@ static void SV_EmitEvents (sv_client_t *cl, client_frame_t *to, sizebuf_t *msg)
 		// only send if there's room
 		if (count < ev_count)
 			{
-			MSG_WriteUBitLong (msg, info->index, MAX_EVENT_BITS); // 1024 events
+			MSG_WriteUBitLong (msg, info->index, MAX_EVENT_BITS);	// 1024 events
 
 			if (info->packet_index == -1)
 				{
@@ -505,7 +513,7 @@ SV_EmitPings [FWGS, 01.02.25]
 ***/
 static void SV_EmitPings (sizebuf_t *msg)
 	{
-	sv_client_t		*cl;
+	sv_client_t	*cl;
 	int		i;
 
 	MSG_BeginServerCmd (msg, svc_pings);
@@ -532,7 +540,7 @@ static void SV_EmitPings (sizebuf_t *msg)
 
 /***
 ==================
-SV_WriteClientdataToMessage
+SV_WriteClientdataToMessage [FWGS, 01.07.26]
 ==================
 ***/
 static void SV_WriteClientdataToMessage (sv_client_t *cl, sizebuf_t *msg)
@@ -543,7 +551,7 @@ static void SV_WriteClientdataToMessage (sv_client_t *cl, sizebuf_t *msg)
 	weapon_data_t	*from_wd, *to_wd;
 	client_frame_t	*frame;
 	edict_t			*clent;
-	int				i;
+	/*int				i;*/
 
 	memset (&nullcd, 0, sizeof (nullcd));
 	frame = &cl->frames[cl->netchan.outgoing_sequence & SV_UPDATE_MASK];
@@ -572,7 +580,7 @@ static void SV_WriteClientdataToMessage (sv_client_t *cl, sizebuf_t *msg)
 			break;
 		}
 
-	clent->v.fixangle = 0; // reset fixangle
+	clent->v.fixangle = 0;	// reset fixangle
 	memset (&frame->clientdata, 0, sizeof (frame->clientdata));
 
 	// update clientdata_t
@@ -604,7 +612,8 @@ static void SV_WriteClientdataToMessage (sv_client_t *cl, sizebuf_t *msg)
 		{
 		memset (&nullwd, 0, sizeof (nullwd));
 
-		for (i = 0; i < MAX_LOCAL_WEAPONS; i++)
+		/*for (i = 0; i < MAX_LOCAL_WEAPONS; i++)*/
+		for (int i = 0; i < MAX_LOCAL_WEAPONS; i++)
 			{
 			if (cl->delta_sequence == -1)
 				from_wd = &nullwd;
@@ -622,15 +631,16 @@ static void SV_WriteClientdataToMessage (sv_client_t *cl, sizebuf_t *msg)
 
 /***
 ==================
-SV_WriteEntitiesToClient
+SV_WriteEntitiesToClient [FWGS, 01.07.26]
 ==================
 ***/
 static void SV_WriteEntitiesToClient (sv_client_t *cl, sizebuf_t *msg)
 	{
 	client_frame_t		*frame;
-	entity_state_t		*state;
+	/*entity_state_t		*state;*/
 	static sv_ents_t	frame_ents;
-	int		i, send_pings;
+	/*int		i, send_pings;*/
+	int		send_pings;
 
 	frame = &cl->frames[cl->netchan.outgoing_sequence & SV_UPDATE_MASK];
 	send_pings = SV_ShouldUpdatePing (cl);
@@ -648,7 +658,8 @@ static void SV_WriteEntitiesToClient (sv_client_t *cl, sizebuf_t *msg)
 	if (c_notsend != cl->ignored_ents)
 		{
 		if (c_notsend > 0)
-			Con_Printf (S_ERROR "Too many entities in visible packet list. Ignored %d entities\n", c_notsend);
+			Con_Printf (S_ERROR "Too many entities in visible packet list. Ignored %d entities\n",
+				c_notsend);
 		cl->ignored_ents = c_notsend;
 		}
 
@@ -671,10 +682,13 @@ static void SV_WriteEntitiesToClient (sv_client_t *cl, sizebuf_t *msg)
 	frame->first_entity = svs.next_client_entities;
 	frame->num_entities = 0;
 
-	for (i = 0; i < frame_ents.num_entities; i++)
+	/*for (i = 0; i < frame_ents.num_entities; i++)*/
+	for (int i = 0; i < frame_ents.num_entities; i++)
 		{
 		// add it to the circular packet_entities array
-		state = &svs.packet_entities[svs.next_client_entities % svs.num_client_entities];
+		/*state = &svs.packet_entities[svs.next_client_entities % svs.num_client_entities];*/
+		entity_state_t	*state = &svs.packet_entities[svs.next_client_entities % svs.num_client_entities];
+
 		*state = frame_ents.entities[i];
 		svs.next_client_entities++;
 		frame->num_entities++;
@@ -682,7 +696,8 @@ static void SV_WriteEntitiesToClient (sv_client_t *cl, sizebuf_t *msg)
 
 	SV_EmitPacketEntities (cl, frame, msg);
 	SV_EmitEvents (cl, frame, msg);
-	if (send_pings) SV_EmitPings (msg);
+	if (send_pings)
+		SV_EmitPings (msg);
 	}
 
 /***
@@ -758,7 +773,7 @@ static void SV_UpdateUserInfo (sv_client_t *cl)
 
 /***
 =======================
-SV_UpdateToReliableMessages [FWGS, 01.05.24]
+SV_UpdateToReliableMessages
 =======================
 ***/
 static void SV_UpdateToReliableMessages (void)
@@ -801,7 +816,7 @@ static void SV_UpdateToReliableMessages (void)
 		MSG_Clear (&sv.spec_datagram);
 		}
 
-	// now send the reliable and server datagrams to all clients
+	// [FWGS, 01.07.26] now send the reliable and server datagrams to all clients
 	for (i = 0, cl = svs.clients; i < svs.maxclients; i++, cl++)
 		{
 		if ((cl->state < cs_connected) || FBitSet (cl->flags, FCL_FAKECLIENT))
@@ -815,16 +830,20 @@ static void SV_UpdateToReliableMessages (void)
 
 		if (MSG_GetNumBytesWritten (&sv.datagram) < MSG_GetNumBytesLeft (&cl->datagram))
 			MSG_WriteBits (&cl->datagram, MSG_GetData (&sv.datagram), MSG_GetNumBitsWritten (&sv.datagram));
+		/*else
+			Con_DPrintf (S_WARN "Ignoring unreliable datagram for %s, would overflow\n", cl->name);*/
 		else
-			Con_DPrintf (S_WARN "Ignoring unreliable datagram for %s, would overflow\n", cl->name);
+			Con_Reportf (S_WARN "Ignoring unreliable datagram for %s, would overflow\n", cl->name);
 
 		if (FBitSet (cl->flags, FCL_HLTV_PROXY))
 			{
 			if (MSG_GetNumBytesWritten (&sv.spec_datagram) < MSG_GetNumBytesLeft (&cl->datagram))
 				MSG_WriteBits (&cl->datagram, MSG_GetData (&sv.spec_datagram),
 					MSG_GetNumBitsWritten (&sv.spec_datagram));
+			/*else
+				Con_DPrintf (S_WARN "Ignoring spectator datagram for %s, would overflow\n", cl->name);*/
 			else
-				Con_DPrintf (S_WARN "Ignoring spectator datagram for %s, would overflow\n", cl->name);
+				Con_Reportf (S_WARN "Ignoring spectator datagram for %s, would overflow\n", cl->name);
 			}
 		}
 
@@ -836,15 +855,14 @@ static void SV_UpdateToReliableMessages (void)
 
 /***
 =======================
-SV_SendClientMessages [FWGS, 01.03.26]
+SV_SendClientMessages [FWGS, 01.07.26]
 =======================
 ***/
 void SV_SendClientMessages (void)
 	{
-	sv_client_t *cl;
-	int          i;
-	/*double       updaterate_time;*/
-	double       time_until_next_message;
+	sv_client_t	*cl;
+	int		i;
+	/*double		time_until_next_message;*/
 
 	if (sv.state == ss_dead)
 		return;
@@ -874,10 +892,12 @@ void SV_SendClientMessages (void)
 			// If the target time for sending is within the next frame interval (based on last frame),
 			// trigger the send now. Note that in single player,
 			// FCL_SEND_NET_MESSAGE flag is also set any time a packet arrives from the client
-			time_until_next_message = cl->next_messagetime - (host.realtime + sv.frametime);
+			/*time_until_next_message = cl->next_messagetime - (host.realtime + sv.frametime);*/
+			double	time_until_next_message = cl->next_messagetime - (host.realtime + sv.frametime);
+
 			if (time_until_next_message <= 0.0)
 				SetBits (cl->flags, FCL_SEND_NET_MESSAGE);
-			else if (time_until_next_message > 2.0) // something got hosed
+			else if (time_until_next_message > 2.0)		// something got hosed
 				SetBits (cl->flags, FCL_SEND_NET_MESSAGE);
 			}
 
@@ -914,8 +934,6 @@ void SV_SendClientMessages (void)
 
 			// now that we were able to send, reset timer to point to next possible send time.
 			// check here also because sv_max/minupdaterate could been changed in runtime
-			/*updaterate_time = bound (1.0 / sv_maxupdaterate.value, cl->cl_updaterate, 1.0 / sv_minupdaterate.value);
-			cl->next_messagetime = host.realtime + sv.frametime + updaterate_time;*/
 			cl->next_messagetime = host.realtime + sv.frametime + cl->next_messageinterval;
 			ClearBits (cl->flags, FCL_SEND_NET_MESSAGE);
 
@@ -923,7 +941,7 @@ void SV_SendClientMessages (void)
 			if (cl->state == cs_spawned)
 				SV_SendClientDatagram (cl);
 			else
-				Netchan_TransmitBits (&cl->netchan, 0, NULL); // just update reliable
+				Netchan_TransmitBits (&cl->netchan, 0, NULL);	// just update reliable
 			}
 		}
 
@@ -940,7 +958,7 @@ used before changing level
 ***/
 void SV_SkipUpdates (void)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 	int		i;
 
 	if (sv.state == ss_dead)
@@ -965,7 +983,7 @@ Purpose: Prepare for level transition, etc.
 void SV_InactivateClients (void)
 	{
 	int		i;
-	sv_client_t *cl;
+	sv_client_t	*cl;
 
 	if (sv.state == ss_dead)
 		return;
@@ -994,7 +1012,6 @@ void SV_InactivateClients (void)
 
 		// [FWGS, 01.03.26]
 		COM_ClearCustomizationList (&cl->customdata, false);
-		/*memset (cl->physinfo, 0, MAX_PHYSINFO_STRING);*/
 		memset (cl->physinfo, 0, sizeof (cl->physinfo));
 
 		// NOTE: many mods sending messages that must be applied on a next level
