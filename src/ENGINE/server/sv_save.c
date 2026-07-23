@@ -30,18 +30,18 @@ half-life implementation of saverestore system
 ***/
 #define SAVEFILE_HEADER		(('V'<<24)+('L'<<16)+('A'<<8)+'V')	// little-endian "VALV"
 #define SAVEGAME_HEADER		(('V'<<24)+('A'<<16)+('S'<<8)+'J')	// little-endian "JSAV"
-#define SAVEGAME_VERSION		0x0071				// Version 0.71 GoldSrc compatible
-#define CLIENT_SAVEGAME_VERSION	0x0067				// Version 0.67
+#define SAVEGAME_VERSION		0x0071		// Version 0.71 GoldSrc compatible
+#define CLIENT_SAVEGAME_VERSION	0x0067		// Version 0.67
 
-#define SAVE_HEAPSIZE			0x400000			// reserve 4Mb for now
-#define SAVE_HASHSTRINGS		0xFFF				// 4095 unique strings
+#define SAVE_HEAPSIZE			0x400000	// reserve 4Mb for now
+#define SAVE_HASHSTRINGS		0xFFF		// 4095 unique strings
 
 // savedata headers
 typedef struct
 	{
 	char	mapName[32];
 	char	comment[80];
-	int	mapCount;
+	int		mapCount;
 	} GAME_HEADER;
 
 typedef struct
@@ -172,7 +172,7 @@ static TYPEDESCRIPTION gDecalEntry[] =
 // Can use any FIELD type here because only Xash3D games will spawn static entities
 static TYPEDESCRIPTION gStaticEntry[] =
 	{
-	DEFINE_FIELD (entity_state_t, messagenum, FIELD_MODELNAME), // HACKHACK: store model into messagenum
+	DEFINE_FIELD (entity_state_t, messagenum, FIELD_MODELNAME),	// HACKHACK: store model into messagenum
 	DEFINE_FIELD (entity_state_t, origin, FIELD_VECTOR),
 	DEFINE_FIELD (entity_state_t, angles, FIELD_VECTOR),
 	DEFINE_FIELD (entity_state_t, sequence, FIELD_INTEGER),
@@ -325,7 +325,7 @@ static void SaveBuildComment (char *text, int maxlength)
 	string		comment;
 	const char	*pName = NULL;
 
-	text[0] = '\0'; // clear
+	text[0] = '\0';	// clear
 
 	if (pfnSaveGameComment != NULL)
 		{
@@ -336,9 +336,8 @@ static void SaveBuildComment (char *text, int maxlength)
 	else
 		{
 		// [FWGS, 05.04.26]
-		size_t i;
-		/*const char *mapname = STRING (svgame.globals->mapname);*/
-		const char *mapname = SV_GetString (svgame.globals->mapname);
+		size_t	i;
+		const char	*mapname = SV_GetString (svgame.globals->mapname);
 
 		for (i = 0; i < HLARRAYSIZE (gTitleComments); i++)
 			{
@@ -356,13 +355,11 @@ static void SaveBuildComment (char *text, int maxlength)
 			if (svgame.edicts->v.message != 0)
 				{
 				// [FWGS, 05.04.26] trying to extract message from the world
-				/*pName = STRING (svgame.edicts->v.message);*/
 				pName = SV_GetString (svgame.edicts->v.message);
 				}
 			else
 				{
 				// [FWGS, 05.04.26] or use mapname
-				/*pName = STRING (svgame.globals->mapname);*/
 				pName = SV_GetString (svgame.globals->mapname);
 				}
 			}
@@ -386,7 +383,7 @@ static int DirectoryCount (const char *pPath)
 
 	t = FS_Search (pPath, true, true);	// lookup only in gamedir
 	if (!t)
-		return 0; // empty
+		return 0;	// empty
 
 	count = t->numfilenames;
 	Mem_Free (t);
@@ -396,24 +393,26 @@ static int DirectoryCount (const char *pPath)
 
 /***
 =============
-InitEntityTable
+InitEntityTable [FWGS, 01.07.26]
 
 reserve space for ETABLE's
 =============
 ***/
 static void InitEntityTable (SAVERESTOREDATA *pSaveData, int entityCount)
 	{
-	ENTITYTABLE	*pTable;
-	int			i;
+	/*ENTITYTABLE	*pTable;
+	int			i;*/
 
 	pSaveData->pTable = Mem_Calloc (host.mempool, sizeof (ENTITYTABLE) * entityCount);
 	pSaveData->tableCount = entityCount;
 
-	// [FWGS, 05.04.26] setup entitytable
-	for (i = 0; i < entityCount; i++)
+	// setup entitytable
+	/*for (i = 0; i < entityCount; i++)*/
+	for (int i = 0; i < entityCount; i++)
 		{
-		pTable = &pSaveData->pTable[i];
-		/*pTable->pent = EDICT_NUM (i);*/
+		/*pTable = &pSaveData->pTable[i];*/
+		ENTITYTABLE	*pTable = &pSaveData->pTable[i];
+
 		pTable->pent = SV_EdictNum (i);
 		pTable->id = i;
 		}
@@ -421,16 +420,17 @@ static void InitEntityTable (SAVERESTOREDATA *pSaveData, int entityCount)
 
 /***
 =============
-EntryInTable
+EntryInTable [FWGS, 01.07.26]
 
 check level in transition list
 =============
 ***/
 static int EntryInTable (SAVERESTOREDATA *pSaveData, const char *pMapName, int index)
 	{
-	int	i;
+	/*int	i;
 
-	for (i = index + 1; i < pSaveData->connectionCount; i++)
+	for (i = index + 1; i < pSaveData->connectionCount; i++)*/
+	for (int i = index + 1; i < pSaveData->connectionCount; i++)
 		{
 		if (!Q_stricmp (pSaveData->levelList[i].mapName, pMapName))
 			return i;
@@ -459,16 +459,17 @@ static edict_t *EdictFromTable (SAVERESTOREDATA *pSaveData, int entityIndex)
 
 /***
 =============
-LandmarkOrigin
+LandmarkOrigin [FWGS, 01.07.26]
 
 find global offset for a given landmark
 =============
 ***/
 static void LandmarkOrigin (SAVERESTOREDATA *pSaveData, vec3_t output, const char *pLandmarkName)
 	{
-	int	i;
+	/*int	i;
 
-	for (i = 0; i < pSaveData->connectionCount; i++)
+	for (i = 0; i < pSaveData->connectionCount; i++)*/
+	for (int i = 0; i < pSaveData->connectionCount; i++)
 		{
 		if (!Q_strcmp (pSaveData->levelList[i].landmarkName, pLandmarkName))
 			{
@@ -505,7 +506,7 @@ static int EntityInSolid (edict_t *pent)
 
 /***
 =============
-ClearSaveDir
+ClearSaveDir [FWGS, 01.07.26]
 
 remove all the temp files xv1 - xv3
 (it will be extracted again from another save file)
@@ -514,14 +515,15 @@ remove all the temp files xv1 - xv3
 static void ClearSaveDir (void)
 	{
 	search_t	*t;
-	int			i;
+	/*int			i;*/
 
 	// just delete all xv? files
 	t = FS_Search (DEFAULT_SAVE_DIRECTORY "*." EXTENDED_SAVE_EXTENSION "?", true, true);
 	if (!t)
-		return; // already empty
+		return;	// already empty
 
-	for (i = 0; i < t->numfilenames; i++)
+	/*for (i = 0; i < t->numfilenames; i++)*/
+	for (int i = 0; i < t->numfilenames; i++)
 		FS_Delete (t->filenames[i]);
 
 	Mem_Free (t);
@@ -575,8 +577,7 @@ static int IsValidSave (void)
 
 	if (svs.clients && (svs.clients[0].state == cs_spawned))
 		{
-		edict_t *pl = svs.clients[0].edict;
-
+		edict_t	*pl = svs.clients[0].edict;
 		if (!pl)
 			{
 			Con_Printf ("Can't savegame without a player!\n");
@@ -589,7 +590,7 @@ static int IsValidSave (void)
 			return 0;
 			}
 
-		// Passed all checks, it's ok to save
+		// passed all checks, it's ok to save
 		return 1;
 		}
 
@@ -658,26 +659,30 @@ static void AgeSaveList (const char *pName, int count)
 
 /***
 =============
-DirectoryCopy [FWGS, 09.05.24]
+DirectoryCopy [FWGS, 01.07.26]
 
 put the xv1 - xv3 files into save file
 =============
 ***/
 static void DirectoryCopy (const char *pPath, file_t *pFile)
 	{
-	char		szName[MAX_OSPATH];
+	/*char		szName[MAX_OSPATH];
 	int			i, fileSize;
-	file_t		*pCopy;
+	file_t		*pCopy;*/
 	search_t	*t;
 
 	t = FS_Search (pPath, true, true);
 	if (!t)
-		return; // nothing to copy ?
+		return;	// nothing to copy ?
 
-	for (i = 0; i < t->numfilenames; i++)
+	/*for (i = 0; i < t->numfilenames; i++)*/
+	for (int i = 0; i < t->numfilenames; i++)
 		{
-		pCopy = FS_Open (t->filenames[i], "rb", true);
-		fileSize = FS_FileLength (pCopy);
+		/*pCopy = FS_Open (t->filenames[i], "rb", true);
+		fileSize = FS_FileLength (pCopy);*/
+		char	szName[MAX_OSPATH];
+		file_t	*pCopy = FS_Open (t->filenames[i], "rb", true);
+		int		fileSize = FS_FileLength (pCopy);
 
 		// clearing the string to prevent garbage in output file
 		memset (szName, 0, sizeof (szName));
@@ -694,21 +699,26 @@ static void DirectoryCopy (const char *pPath, file_t *pFile)
 
 /***
 =============
-DirectoryExtract [FWGS, 01.03.26]
+DirectoryExtract [FWGS, 01.07.26]
 
 extract the xv1 - xv3 files from the save file
 =============
 ***/
-/*static void DirectoryExtract (file_t *pFile, int fileCount)*/
 static qboolean DirectoryExtract (file_t *pFile, int fileCount)
 	{
-	char	szName[MAX_OSPATH];
+	/*char	szName[MAX_OSPATH];
 	char	fileName[MAX_OSPATH];
 	int		i, fileSize;
 	file_t	*pCopy;
 
-	for (i = 0; i < fileCount; i++)
+	for (i = 0; i < fileCount; i++)*/
+	for (int i = 0; i < fileCount; i++)
 		{
+		char	szName[MAX_OSPATH];
+		char	fileName[MAX_OSPATH];
+		int		fileSize;
+		file_t	*pCopy;
+
 		// filename can only be as long as a map name + extension
 		FS_Read (pFile, szName, MAX_OSPATH);
 		FS_Read (pFile, &fileSize, sizeof (int));
@@ -738,14 +748,14 @@ initialize global save-restore buffer
 ***/
 static SAVERESTOREDATA *SaveInit (int size, int tokenCount)
 	{
-	SAVERESTOREDATA *pSaveData;
+	SAVERESTOREDATA	*pSaveData;
 
 	pSaveData = Mem_Calloc (host.mempool, sizeof (SAVERESTOREDATA) + size);
 	pSaveData->pTokens = (char **)Mem_Calloc (host.mempool, tokenCount * sizeof (char *));
 	pSaveData->tokenCount = tokenCount;
 
-	pSaveData->pBaseData = (char *)(pSaveData + 1); // skip the save structure);
-	pSaveData->pCurrentData = pSaveData->pBaseData; // reset the pointer
+	pSaveData->pBaseData = (char *)(pSaveData + 1);	// skip the save structure);
+	pSaveData->pCurrentData = pSaveData->pBaseData;	// reset the pointer
 	pSaveData->bufferSize = size;
 
 	pSaveData->time = svgame.globals->time;	// Use DLL time
@@ -767,8 +777,8 @@ static void SaveClear (SAVERESTOREDATA *pSaveData)
 	{
 	memset (pSaveData->pTokens, 0, pSaveData->tokenCount * sizeof (char *));
 
-	pSaveData->pBaseData = (char *)(pSaveData + 1); // skip the save structure);
-	pSaveData->pCurrentData = pSaveData->pBaseData; // reset the pointer
+	pSaveData->pBaseData = (char *)(pSaveData + 1);	// skip the save structure);
+	pSaveData->pCurrentData = pSaveData->pBaseData;	// reset the pointer
 	pSaveData->time = svgame.globals->time;	// Use DLL time
 	pSaveData->tokenSize = 0;	// reset the hashtable
 	pSaveData->size = 0;	// reset the pointer
@@ -811,7 +821,7 @@ static void SaveFinish (SAVERESTOREDATA *pSaveData)
 
 /***
 =============
-StoreHashTable
+StoreHashTable [FWGS, 01.07.26]
 
 write the stringtable into file
 =============
@@ -819,30 +829,30 @@ write the stringtable into file
 static char *StoreHashTable (SAVERESTOREDATA *pSaveData)
 	{
 	char	*pTokenData = pSaveData->pCurrentData;
-	int		i;
+	/*int		i;*/
 
-	// Write entity string token table
+	// write entity string token table
 	if (pSaveData->pTokens)
 		{
-		for (i = 0; i < pSaveData->tokenCount; i++)
+		/*for (i = 0; i < pSaveData->tokenCount; i++)*/
+		for (int i = 0; i < pSaveData->tokenCount; i++)
 			{
 			const char *pszToken = pSaveData->pTokens[i] ? pSaveData->pTokens[i] : "";
 
 			// just copy the token byte-by-byte
 			while (*pszToken)
 				*pSaveData->pCurrentData++ = *pszToken++;
-			*pSaveData->pCurrentData++ = 0; // Write the term
+			*pSaveData->pCurrentData++ = 0;	// Write the term
 			}
 		}
 
 	pSaveData->tokenSize = pSaveData->pCurrentData - pTokenData;
-
 	return pTokenData;
 	}
 
 /***
 =============
-BuildHashTable
+BuildHashTable [FWGS, 01.07.26]
 
 build the stringtable from buffer
 =============
@@ -850,18 +860,19 @@ build the stringtable from buffer
 static void BuildHashTable (SAVERESTOREDATA *pSaveData, file_t *pFile)
 	{
 	char	*pszTokenList = pSaveData->pBaseData;
-	int		i;
+	/*int		i;*/
 
 	// Parse the symbol table
 	if (pSaveData->tokenSize > 0)
 		{
 		FS_Read (pFile, pszTokenList, pSaveData->tokenSize);
 
-		// make sure the token strings pointed to by the pToken hashtable.
-		for (i = 0; i < pSaveData->tokenCount; i++)
+		// make sure the token strings pointed to by the pToken hashtable
+		/*for (i = 0; i < pSaveData->tokenCount; i++)*/
+		for (int i = 0; i < pSaveData->tokenCount; i++)
 			{
 			pSaveData->pTokens[i] = *pszTokenList ? pszTokenList : NULL;
-			while (*pszTokenList++);	// Find next token (after next null)
+			while (*pszTokenList++);	// find next token (after next null)
 			}
 		}
 
@@ -979,7 +990,7 @@ static SAVERESTOREDATA *LoadSaveData (const char *level)
 
 	// now reading all the rest of data
 	FS_Read (pFile, pSaveData->pBaseData, size);
-	FS_Close (pFile); // data is sucessfully moved into SaveRestore buffer (ETABLE will be init later)
+	FS_Close (pFile);	// data is sucessfully moved into SaveRestore buffer (ETABLE will be init later)
 
 	return pSaveData;
 	}
@@ -1041,7 +1052,6 @@ write out the list of entities that are no longer in the save file for this leve
 (they've been moved to another level)
 =============
 ***/
-/*static void EntityPatchWrite (SAVERESTOREDATA *pSaveData, const char *level)*/
 static qboolean EntityPatchWrite (SAVERESTOREDATA *pSaveData, const char *level)
 	{
 	char	name[MAX_QPATH];
@@ -1055,7 +1065,6 @@ static qboolean EntityPatchWrite (SAVERESTOREDATA *pSaveData, const char *level)
 		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, name);
 		return false;
 		}
-	/*return;*/
 
 	for (i = 0; i < pSaveData->tableCount; i++)
 		{
@@ -1078,7 +1087,7 @@ static qboolean EntityPatchWrite (SAVERESTOREDATA *pSaveData, const char *level)
 
 /***
 =============
-EntityPatchRead
+EntityPatchRead [FWGS, 01.07.26]
 
 read the list of entities that are no longer in the save file for this level
 (they've been moved to another level)
@@ -1087,7 +1096,8 @@ read the list of entities that are no longer in the save file for this level
 static void EntityPatchRead (SAVERESTOREDATA *pSaveData, const char *level)
 	{
 	char	name[MAX_QPATH];
-	int		i, size, entityId;
+	/*int		i, size, entityId;*/
+	int		size;
 	file_t	*pFile;
 
 	Q_snprintf (name, sizeof (name), DEFAULT_SAVE_DIRECTORY "%s." EXTENDED_SAVE_EXTENSION "3", level);
@@ -1098,8 +1108,10 @@ static void EntityPatchRead (SAVERESTOREDATA *pSaveData, const char *level)
 	// patch count
 	FS_Read (pFile, &size, sizeof (int));
 
-	for (i = 0; i < size; i++)
+	/*for (i = 0; i < size; i++)*/
+	for (int i = 0; i < size; i++)
 		{
+		int	entityId;
 		FS_Read (pFile, &entityId, sizeof (int));
 		pSaveData->pTable[entityId].flags = FENTTABLE_REMOVED;
 		}
@@ -1129,7 +1141,7 @@ static void RestoreDecal (SAVERESTOREDATA *pSaveData, decallist_t *entry, qboole
 	pEdict = EdictFromTable (pSaveData, entry->entityIndex);
 
 	if (SV_RestoreCustomDecal (entry, pEdict, adjacent))
-		return; // decal was sucessfully restored at the game-side
+		return;	// decal was sucessfully restored at the game-side
 
 	// studio decals are handled at game-side
 	if (FBitSet (flags, FDECAL_STUDIO))
@@ -1143,28 +1155,29 @@ static void RestoreDecal (SAVERESTOREDATA *pSaveData, decallist_t *entry, qboole
 
 	decalIndex = pfnDecalIndex (entry->name);
 
-	// this can happens if brush entity from previous level was turned into world geometry
+	// [FWGS, 01.07.26] this can happens if brush entity from previous level was turned into world geometry
 	if (adjacent && (entry->entityIndex != 0) && !SV_IsValidEdict (pEdict))
 		{
-		vec3_t	testspot, testend;
+		/*vec3_t	testspot, testend;*/
 		trace_t	tr;
 
 		Con_Printf (S_ERROR "RestoreDecal: couldn't restore entity index %i\n", entry->entityIndex);
 
-		VectorCopy (entry->position, testspot);
+		/*VectorCopy (entry->position, testspot);*/
+		vec3_t	testspot = Vec3 (entry->position);
 		VectorMA (testspot, 5.0f, entry->impactPlaneNormal, testspot);
 
-		VectorCopy (entry->position, testend);
+		/*VectorCopy (entry->position, testend);*/
+		vec3_t	testend = Vec3 (entry->position);
 		VectorMA (testend, -5.0f, entry->impactPlaneNormal, testend);
 
 		tr = SV_Move (testspot, vec3_origin, vec3_origin, testend, MOVE_NOMONSTERS, NULL, false);
 
 		// NOTE: this code may does wrong result on moving brushes e.g. func_tracktrain
-		if (tr.fraction != 1.0f && !tr.allsolid)
+		if ((tr.fraction != 1.0f) && !tr.allsolid)
 			{
 			// check impact plane normal
 			float	dot = DotProduct (entry->impactPlaneNormal, tr.plane.normal);
-
 			if (dot >= 0.95f)
 				{
 				entityIndex = pfnIndexOfEdict (tr.ent);
@@ -1211,22 +1224,22 @@ static void RestoreSound (SAVERESTOREDATA *pSaveData, soundlist_t *snd)
 
 /***
 =============
-SaveClientState [FWGS, 01.03.26]
+SaveClientState [FWGS, 01.07.26]
 
 write out the list of premanent decals for this level
 =============
 ***/
-/*static void SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int changelevel)*/
 static qboolean SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, int changelevel)
 	{
 	soundlist_t	soundInfo[MAX_CHANNELS];
 	sv_client_t	*cl = svs.clients;
-	char		name[MAX_QPATH];
-	int			i, id, version;
-	char		*pTokenData;
+	char	name[MAX_QPATH];
+	/*int			i, id, version;*/
+	int		i;
+	char	*pTokenData;
 	decallist_t	*decalList = NULL;
 	SAVE_CLIENT	header = { 0 };
-	file_t		*pFile;
+	file_t	*pFile;
 
 	// clearing the saving buffer to reuse
 	SaveClear (pSaveData);
@@ -1241,7 +1254,7 @@ static qboolean SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, 
 		decalList = (decallist_t *)Mem_Calloc (host.mempool, sizeof (decallist_t) * MAX_RENDER_DECALS * 2);
 		header.decalCount = ref.dllFuncs.R_CreateDecalList (decalList);
 
-		if (!changelevel) // sounds won't going across transition
+		if (!changelevel)	// sounds won't going across transition
 			{
 			header.soundCount = S_GetCurrentDynamicSounds (soundInfo, MAX_CHANNELS);
 
@@ -1271,7 +1284,6 @@ static qboolean SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, 
 		if (pSaveData->fUseLandmark && FBitSet (decalList[i].flags, FDECAL_USE_LANDMARK))
 			VectorSubtract (decalList[i].position, pSaveData->vecLandmarkOffset, decalList[i].position);
 
-		// [FWGS, 01.03.26]
 		svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "DECALLIST", &decalList[i], gDecalEntry,
 			HLARRAYSIZE (gDecalEntry));
 		}
@@ -1284,7 +1296,7 @@ static qboolean SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, 
 		svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "STATICENTITY", &svs.static_entities[i],
 			gStaticEntry, HLARRAYSIZE (gStaticEntry));
 
-	// [FWGS, 01.03.26] write sounds
+	// write sounds
 	for (i = 0; i < header.soundCount; i++)
 		svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "SOUNDLIST", &soundInfo[i], gSoundEntry,
 			HLARRAYSIZE (gSoundEntry));
@@ -1300,21 +1312,21 @@ static qboolean SaveClientState (SAVERESTOREDATA *pSaveData, const char *level, 
 		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, name);
 		return false;
 		}
-	/*// something bad is happens
-		return;*/
 
-	version = CLIENT_SAVEGAME_VERSION;
-	id = SAVEGAME_HEADER;
+	/*version = CLIENT_SAVEGAME_VERSION;
+	id = SAVEGAME_HEADER;*/
+	int	version = CLIENT_SAVEGAME_VERSION;
+	int	id = SAVEGAME_HEADER;
 
 	FS_Write (pFile, &id, sizeof (id));
 	FS_Write (pFile, &version, sizeof (version));
-	FS_Write (pFile, &pSaveData->size, sizeof (int)); // does not include token table
+	FS_Write (pFile, &pSaveData->size, sizeof (int));	// does not include token table
 
 	// write out the tokens first so we can load them before we load the entities
 	FS_Write (pFile, &pSaveData->tokenCount, sizeof (int));
 	FS_Write (pFile, &pSaveData->tokenSize, sizeof (int));
 	FS_Write (pFile, pTokenData, pSaveData->tokenSize);
-	FS_Write (pFile, pSaveData->pBaseData, pSaveData->size); // header and globals
+	FS_Write (pFile, pSaveData->pBaseData, pSaveData->size);	// header and globals
 
 	// ESHQ: параметры тумана
 	FS_Write (pFile, &svgame.movevars.fog_settings, sizeof (int));
@@ -1419,7 +1431,7 @@ static void LoadClientState (SAVERESTOREDATA *pSaveData, const char *level, qboo
 	for (i = 0; i < header.soundCount; i++)
 		{
 		svgame.dllFuncs.pfnSaveReadFields (pSaveData, "SOUNDLIST", &soundEntry, gSoundEntry, HLARRAYSIZE (gSoundEntry));
-		if (adjacent) continue; // sounds don't going across the levels
+		if (adjacent) continue;	// sounds don't going across the levels
 
 		RestoreSound (pSaveData, &soundEntry);
 		}
@@ -1430,7 +1442,6 @@ static void LoadClientState (SAVERESTOREDATA *pSaveData, const char *level, qboo
 		edict_t *pent = pSaveData->pTable[bound (0, (word)header.viewentity, pSaveData->tableCount)].pent;
 
 		// [FWGS, 01.03.26]
-		/*if (COM_CheckStringEmpty (header.introTrack))*/
 		if (!COM_StringEmpty (header.introTrack))
 			{
 			// NOTE: music is automatically goes across transition, never restore it on changelevel
@@ -1482,10 +1493,9 @@ static void CreateEntitiesInRestoreList (SAVERESTOREDATA *pSaveData, int levelMa
 				else
 					active = 1;
 
-				if ((pTable->id == 0) && create_world) // worldspawn
+				if ((pTable->id == 0) && create_world)	// worldspawn
 					{
 					// [FWGS, 05.04.26]
-					/*pent = EDICT_NUM (0);*/
 					pent = SV_EdictNum (0);
 					SV_InitEdict (pent);
 					pent = SV_CreateNamedEntity (pent, pTable->classname);
@@ -1493,8 +1503,7 @@ static void CreateEntitiesInRestoreList (SAVERESTOREDATA *pSaveData, int levelMa
 				else if ((pTable->id > 0) && (pTable->id < svs.maxclients + 1))
 					{
 					// [FWGS, 05.04.26]
-					/*edict_t *ed = EDICT_NUM (pTable->id);*/
-					edict_t *ed = SV_EdictNum (pTable->id);
+					edict_t	*ed = SV_EdictNum (pTable->id);
 
 					if (!FBitSet (pTable->flags, FENTTABLE_PLAYER))
 						Con_Printf (S_ERROR "ENTITY IS NOT A PLAYER: %d\n", i);
@@ -1572,7 +1581,7 @@ static SAVERESTOREDATA *SaveGameState (int changelevel)
 		}
 
 	// Write the main header
-	pSaveData->time = 0.0f; // prohibits rebase of header.time (keep compatibility with old saves)
+	pSaveData->time = 0.0f;	// prohibits rebase of header.time (keep compatibility with old saves)
 	svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "Save Header", &header, gSaveHeader, HLARRAYSIZE (gSaveHeader));
 	pSaveData->time = header.time;
 
@@ -1591,7 +1600,8 @@ static SAVERESTOREDATA *SaveGameState (int changelevel)
 		light.time = sv.lightstyles[i].time;
 		light.index = i;
 
-		svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "LIGHTSTYLE", &light, gLightStyle, HLARRAYSIZE (gLightStyle));
+		svgame.dllFuncs.pfnSaveWriteFields (pSaveData, "LIGHTSTYLE", &light, gLightStyle,
+			HLARRAYSIZE (gLightStyle));
 		}
 
 	// build the table of entities
@@ -1637,7 +1647,6 @@ static SAVERESTOREDATA *SaveGameState (int changelevel)
 	// [FWGS, 01.03.26] output to disk
 	if ((pFile = FS_Open (name, "wb", true)) == NULL)
 		{
-		/*// something bad is happens*/
 		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, name);
 		SaveFinish (pSaveData);
 		return NULL;
@@ -1663,14 +1672,12 @@ static SAVERESTOREDATA *SaveGameState (int changelevel)
 	FS_Close (pFile);
 
 	// [FWGS, 01.03.26]
-	/*EntityPatchWrite (pSaveData, sv.name);*/
 	if (!EntityPatchWrite (pSaveData, sv.name))
 		{
 		SaveFinish (pSaveData);
 		return NULL;
 		}
 
-	/*SaveClientState (pSaveData, sv.name, changelevel);*/
 	if (!SaveClientState (pSaveData, sv.name, changelevel))
 		{
 		SaveFinish (pSaveData);
@@ -1682,7 +1689,7 @@ static SAVERESTOREDATA *SaveGameState (int changelevel)
 
 /***
 =============
-LoadGameState
+LoadGameState [FWGS, 01.07.26]
 
 load current game state
 =============
@@ -1690,10 +1697,10 @@ load current game state
 static int LoadGameState (char const *level, qboolean changelevel)
 	{
 	SAVERESTOREDATA	*pSaveData;
-	ENTITYTABLE		*pTable;
+	/*ENTITYTABLE		*pTable;*/
 	SAVE_HEADER		header;
-	edict_t		*pent;
-	int			i;
+	/*edict_t		*pent;
+	int			i;*/
 
 	pSaveData = LoadSaveData (level);
 
@@ -1701,9 +1708,8 @@ static int LoadGameState (char const *level, qboolean changelevel)
 	if (!pSaveData)
 		return 0;
 
-	// [FWGS, 05.04.26] must set mapname before calling into DLL
+	// must set mapname before calling into DLL
 	Q_strncpy (sv.name, level, sizeof (sv.name));
-	/*svgame.globals->mapname = MAKE_STRING (sv.name);*/
 	svgame.globals->mapname = SV_MakeString (sv.name);
 
 	ParseSaveTables (pSaveData, &header, true);
@@ -1712,7 +1718,6 @@ static int LoadGameState (char const *level, qboolean changelevel)
 	// pause until all clients connect
 	sv.loadgame = sv.paused = true;
 
-	// [FWGS, 22.01.25]
 	Cvar_SetValue ("skill", header.skillLevel);
 	Cvar_Set ("sv_skyname", header.skyName);
 
@@ -1728,9 +1733,13 @@ static int LoadGameState (char const *level, qboolean changelevel)
 	CreateEntitiesInRestoreList (pSaveData, 0, true);
 
 	// now spawn entities
-	for (i = 0; i < pSaveData->tableCount; i++)
+	/*for (i = 0; i < pSaveData->tableCount; i++)*/
+	for (int i = 0; i < pSaveData->tableCount; i++)
 		{
-		pTable = &pSaveData->pTable[i];
+		/*pTable = &pSaveData->pTable[i];*/
+		ENTITYTABLE	*pTable = &pSaveData->pTable[i];
+		edict_t		*pent;
+
 		pSaveData->pCurrentData = pSaveData->pBaseData + pTable->location;
 		pSaveData->size = pTable->location;
 		pSaveData->currentIndex = i;
@@ -1758,7 +1767,7 @@ static int LoadGameState (char const *level, qboolean changelevel)
 
 /***
 =============
-SaveGameSlot
+SaveGameSlot [FWGS, 01.07.26]
 
 do a save game
 =============
@@ -1767,16 +1776,13 @@ static qboolean SaveGameSlot (const char *pSaveName, const char *pSaveComment)
 	{
 	char	hlPath[MAX_QPATH];
 	char	name[MAX_QPATH];
-	int		id, version;
+	/*int		id, version;*/
 	char	*pTokenData;
 	SAVERESTOREDATA	*pSaveData;
 	GAME_HEADER		gameHeader;
 	file_t	*pFile;
 
-	// [FWGS, 01.03.26]
 	pSaveData = SaveGameState (false);
-	/*if (!pSaveData)
-		return false;*/
 	if (!pSaveData)
 		return false;
 
@@ -1809,10 +1815,9 @@ static qboolean SaveGameSlot (const char *pSaveName, const char *pSaveComment)
 	else if (!Q_stricmp (pSaveName, "autosave"))
 		AgeSaveList (pSaveName, GI->autosave_aged_count);
 
-	// [FWGS, 01.03.26] output to disk
+	// output to disk
 	if ((pFile = FS_Open (name, "wb", true)) == NULL)
 		{
-		/*// something bad is happens*/
 		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, name);
 		SaveFinish (pSaveData);
 		return false;
@@ -1822,8 +1827,10 @@ static qboolean SaveGameSlot (const char *pSaveName, const char *pSaveComment)
 	Cbuf_AddTextf ("saveshot \"%s\"\n", pSaveName);
 	Con_Printf ("Saving game to %s...\n", name);
 
-	version = SAVEGAME_VERSION;
-	id = SAVEGAME_HEADER;
+	/*version = SAVEGAME_VERSION;
+	id = SAVEGAME_HEADER;*/
+	int	version = SAVEGAME_VERSION;
+	int	id = SAVEGAME_HEADER;
 
 	FS_Write (pFile, &id, sizeof (id));
 	FS_Write (pFile, &version, sizeof (version));
@@ -1853,7 +1860,7 @@ static int SaveReadHeader (file_t *pFile, GAME_HEADER *pHeader)
 	{
 	int		tokenCount, tokenSize;
 	int		size, id, version;
-	SAVERESTOREDATA *pSaveData;
+	SAVERESTOREDATA	*pSaveData;
 
 	FS_Read (pFile, &id, sizeof (id));
 	if (id != SAVEGAME_HEADER)
@@ -1887,47 +1894,49 @@ static int SaveReadHeader (file_t *pFile, GAME_HEADER *pHeader)
 	FS_Read (pFile, pSaveData->pBaseData, size);
 
 	svgame.dllFuncs.pfnSaveReadFields (pSaveData, "GameHeader", pHeader, gGameHeader, HLARRAYSIZE (gGameHeader));
-
 	svgame.dllFuncs.pfnRestoreGlobalState (pSaveData);
 
 	SaveFinish (pSaveData);
-
 	return 1;
 	}
 
 /***
 =============
-CreateEntityTransitionList
+CreateEntityTransitionList [FWGS, 01.07.26]
 
 moving edicts to another level
 =============
 ***/
 static int CreateEntityTransitionList (SAVERESTOREDATA *pSaveData, int levelMask)
 	{
-	int		i, movedCount;
+	/*int		i, movedCount;
 	ENTITYTABLE	*pTable;
-	edict_t		*pent;
-
+	edict_t		*pent;*/
+	int	movedCount;
 	movedCount = 0;
 
 	// create entity list
 	CreateEntitiesInRestoreList (pSaveData, levelMask, false);
 
 	// now spawn entities
-	for (i = 0; i < pSaveData->tableCount; i++)
+	/*for (i = 0; i < pSaveData->tableCount; i++)*/
+	for (int i = 0; i < pSaveData->tableCount; i++)
 		{
-		pTable = &pSaveData->pTable[i];
+		/*pTable = &pSaveData->pTable[i];*/
+		ENTITYTABLE	*pTable = &pSaveData->pTable[i];
+		edict_t		*pent;
+
 		pSaveData->pCurrentData = pSaveData->pBaseData + pTable->location;
 		pSaveData->size = pTable->location;
 		pSaveData->currentIndex = i;
 		pent = pTable->pent;
 
-		if (SV_IsValidEdict (pent) && FBitSet (pTable->flags, levelMask)) // screen out the player if he's not to be spawned
+		if (SV_IsValidEdict (pent) && FBitSet (pTable->flags, levelMask))	// screen out the player if he's not to be spawned
 			{
 			if (FBitSet (pTable->flags, FENTTABLE_GLOBAL))
 				{
 				entvars_t	tmpVars;
-				edict_t *pNewEnt;
+				edict_t		*pNewEnt;
 
 				// NOTE: we need to update table pointer so decals on the global entities with brush models can be
 				// correctly moved. found the classname and the globalname for our globalentity
@@ -1941,8 +1950,6 @@ static int CreateEntityTransitionList (SAVERESTOREDATA *pSaveData, int levelMask
 				// IMPORTANT: we should find the already spawned or local restored global entity
 				pNewEnt = SV_FindGlobalEntity (tmpVars.classname, tmpVars.globalname);
 
-				// [FWGS, 05.04.26]
-				/*Con_DPrintf ("Merging changes for global: %s\n", STRING (pTable->classname));*/
 				Con_DPrintf ("Merging changes for global: %s\n", SV_GetString (pTable->classname));
 
 				// -------------------------------------------------------------------------
@@ -1954,15 +1961,13 @@ static int CreateEntityTransitionList (SAVERESTOREDATA *pSaveData, int levelMask
 					}
 				else
 					{
-					if (SV_IsValidEdict (pNewEnt)) // update the table so decals can find parent entity
+					if (SV_IsValidEdict (pNewEnt))	// update the table so decals can find parent entity
 						pTable->pent = pNewEnt;
 					SetBits (pent->v.flags, FL_KILLME);
 					}
 				}
 			else
 				{
-				// [FWGS, 05.04.26]
-				/*Con_Reportf ("Transferring %s (%d)\n", STRING (pTable->classname), NUM_FOR_EDICT (pent));*/
 				Con_Reportf ("Transferring %s (%d)\n", SV_GetString (pTable->classname), NUM_FOR_EDICT (pent));
 
 				if (svgame.dllFuncs.pfnRestore (pent, pSaveData, 0) < 0)
@@ -1973,9 +1978,8 @@ static int CreateEntityTransitionList (SAVERESTOREDATA *pSaveData, int levelMask
 					{
 					if (!FBitSet (pTable->flags, FENTTABLE_PLAYER) && EntityInSolid (pent))
 						{
-						// [FWGS, 05.04.26] this can happen during normal processing - PVS is just a guess,
+						// this can happen during normal processing - PVS is just a guess,
 						// some map areas won't exist in the new map
-						/*Con_Reportf ("Suppressing %s\n", STRING (pTable->classname));*/
 						Con_Reportf ("Suppressing %s\n", SV_GetString (pTable->classname));
 						SetBits (pent->v.flags, FL_KILLME);
 						}
@@ -2008,7 +2012,7 @@ static void LoadAdjacentEnts (const char *pOldLevel, const char *pLandmarkName)
 	SAVE_HEADER	header;
 	SAVERESTOREDATA	currentLevelData, *pSaveData;
 	int		i, test, flags, index, movedCount = 0;
-	qboolean		foundprevious = false;
+	qboolean	foundprevious = false;
 	vec3_t		landmarkOrigin;
 
 	memset (&currentLevelData, 0, sizeof (SAVERESTOREDATA));
@@ -2043,7 +2047,7 @@ static void LoadAdjacentEnts (const char *pOldLevel, const char *pLandmarkName)
 			ParseSaveTables (pSaveData, &header, false);
 			EntityPatchRead (pSaveData, currentLevelData.levelList[i].mapName);
 
-			pSaveData->time = sv.time; // - header.time;
+			pSaveData->time = sv.time;	// - header.time;
 			pSaveData->fUseLandmark = true;
 			flags = movedCount = 0;
 			index = -1;
@@ -2059,14 +2063,15 @@ static void LoadAdjacentEnts (const char *pOldLevel, const char *pLandmarkName)
 			while (1)
 				{
 				index = EntryInTable (pSaveData, sv.name, index);
-				if (index < 0) break;
+				if (index < 0)
+					break;
 				SetBits (flags, BIT (index));
 				}
 
-			if (flags) movedCount = CreateEntityTransitionList (pSaveData, flags);
+			if (flags)
+				movedCount = CreateEntityTransitionList (pSaveData, flags);
 
 			// [FWGS, 01.03.26] if ents were moved, rewrite entity table to save file
-			/*if (movedCount) EntityPatchWrite (pSaveData, currentLevelData.levelList[i].mapName);*/
 			if (movedCount)
 				{
 				if (!EntityPatchWrite (pSaveData, currentLevelData.levelList[i].mapName))
@@ -2213,7 +2218,6 @@ qboolean SV_LoadGame (const char *pPath)
 		return false;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (pPath))*/
 	if (COM_StringEmptyOrNULL (pPath))
 		return false;
 
@@ -2222,7 +2226,6 @@ qboolean SV_LoadGame (const char *pPath)
 		return false;
 
 	// [FWGS, 05.04.26] initialize game if needs
-	/*if (!SV_InitGame ())*/
 	if (!SV_InitGame (false))
 		return false;
 
@@ -2235,10 +2238,6 @@ qboolean SV_LoadGame (const char *pPath)
 		// [FWGS, 01.03.26]
 		if (SaveReadHeader (pFile, &gameHeader))
 			validload = DirectoryExtract (pFile, gameHeader.mapCount);
-			/*{
-			DirectoryExtract (pFile, gameHeader.mapCount);
-			validload = true;
-			}*/
 
 		FS_Close (pFile);
 
@@ -2287,7 +2286,6 @@ qboolean SV_SaveGame (const char *pName)
 	string	savename;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (pName))*/
 	if (COM_StringEmptyOrNULL (pName))
 		return false;
 
@@ -2297,7 +2295,7 @@ qboolean SV_SaveGame (const char *pName)
 
 	if (!Q_stricmp (pName, "new"))
 		{
-		int n;
+		int	n;
 
 		// scan for a free filename
 		for (n = 0; n < 1000; n++)
@@ -2341,7 +2339,7 @@ static int SV_CompareFileTime (int ft1, int ft2)
 
 /***
 ==================
-SV_GetLatestSave
+SV_GetLatestSave [FWGS, 01.07.26]
 
 used for reload game after player death
 ==================
@@ -2349,21 +2347,25 @@ used for reload game after player death
 const char *SV_GetLatestSave (void)
 	{
 	static char	savename[MAX_QPATH];
-	int			newest = 0, ft;
-	int			i, found = 0;
+	/*int			newest = 0, ft;
+	int			i, found = 0;*/
+	int		newest = 0;
+	int		found = 0;
 	search_t	*t;
 
 	if ((t = FS_Search (DEFAULT_SAVE_DIRECTORY "*." DEFAULT_SAVE_EXTENSION, true, true)) == NULL)
 		return NULL;
 
-	for (i = 0; i < t->numfilenames; i++)
+	/*for (i = 0; i < t->numfilenames; i++)*/
+	for (int i = 0; i < t->numfilenames; i++)
 		{
-		ft = FS_FileTime (t->filenames[i], true);
+		/*ft = FS_FileTime (t->filenames[i], true);*/
+		int	ft = FS_FileTime (t->filenames[i], true);
 
 		// found a match?
 		if (ft > 0)
 			{
-			// [FWGS, 01.12.24] should we use the matched?
+			// should we use the matched?
 			if (!found || (SV_CompareFileTime (newest, ft) < 0))
 				{
 				Q_strncpy (savename, t->filenames[i], sizeof (savename));
@@ -2373,7 +2375,7 @@ const char *SV_GetLatestSave (void)
 			}
 		}
 
-	Mem_Free (t); // release search
+	Mem_Free (t);	// release search
 
 	if (found)
 		return savename;
@@ -2444,7 +2446,7 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 	FS_Read (f, &tokenSize, sizeof (int));
 	size += tokenSize;
 
-	// sanity check.
+	// sanity check
 	if ((tokenCount < 0) || (tokenCount > SAVE_HASHSTRINGS))
 		{
 		Q_strncpy (comment, "<corrupted hashtable>", MAX_STRING);
@@ -2468,11 +2470,11 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 		{
 		pTokenList = Mem_Calloc (host.mempool, tokenCount * sizeof (char *));
 
-		// make sure the token strings pointed to by the pToken hashtable.
+		// make sure the token strings pointed to by the pToken hashtable
 		for (i = 0; i < tokenCount; i++)
 			{
 			pTokenList[i] = *pData ? pData : NULL;	// point to each string in the pToken table
-			while (*pData++);			// find next token (after next null)
+			while (*pData++);		// find next token (after next null)
 			}
 		}
 	else
@@ -2539,11 +2541,10 @@ int GAME_EXPORT SV_GetSaveComment (const char *savename, char *comment)
 	FS_Close (f);
 
 	// [FWGS, 01.03.26] at least mapname should be filled
-	/*if (COM_CheckStringEmpty (mapName))*/
 	if (!COM_StringEmpty (mapName))
 		{
 		time_t		fileTime;
-		const struct tm *file_tm;
+		const struct tm	*file_tm;
 		string		timestring;
 		uint		flags;
 

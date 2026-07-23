@@ -80,11 +80,13 @@ static inline void HPAK_ResourceFromCompat (resource_t *dest, dresource_t *src)
 	dest->pNext = dest->pPrev = (void *)0xDEADBEEF;
 	}
 
+// [FWGS, 01.07.26]
 static void HPAK_AddToQueue (const char *name, resource_t *pResource, void *data, file_t *f)
 	{
-	hash_pack_queue_t *p;
+	/*hash_pack_queue_t *p;*/
 
-	p = Z_Malloc (sizeof (hash_pack_queue_t));
+	/*p = Z_Malloc (sizeof (hash_pack_queue_t));*/
+	hash_pack_queue_t	*p = Z_Malloc (sizeof (hash_pack_queue_t));
 	p->name = copystring (name);
 	p->resource = *pResource;
 	p->size = pResource->nDownloadSize;
@@ -95,17 +97,19 @@ static void HPAK_AddToQueue (const char *name, resource_t *pResource, void *data
 	else if (f != NULL)
 		FS_Read (f, p->data, p->size);
 	else
-		Host_Error ("%s: data == NULL.\n", __func__);	// [FWGS, 01.07.24]
+		Host_Error ("%s: data == NULL.\n", __func__);
 
 	p->next = gp_hpak_queue;
 	gp_hpak_queue = p;
 	}
 
+// [FWGS, 01.07.26]
 void HPAK_FlushHostQueue (void)
 	{
-	hash_pack_queue_t *p;
+	/*hash_pack_queue_t *p;
 
-	for (p = gp_hpak_queue; p != NULL; p = gp_hpak_queue)
+	for (p = gp_hpak_queue; p != NULL; p = gp_hpak_queue)*/
+	for (hash_pack_queue_t *p = gp_hpak_queue; p != NULL; p = gp_hpak_queue)
 		{
 		gp_hpak_queue = p->next;
 		HPAK_AddLump (false, p->name, &p->resource, p->data, NULL);
@@ -117,16 +121,15 @@ void HPAK_FlushHostQueue (void)
 	gp_hpak_queue = NULL;
 	}
 
+// [FWGS, 01.07.26]
 static void HPAK_CreatePak (const char *filename, resource_t *pResource, byte *pData, file_t *fin)
 	{
-	int			filelocation;
+	/*int			filelocation;*/
 	string		pakname;
 	byte		md5[16];
-	file_t		*fout;
+	/*file_t		*fout;*/
 	MD5Context_t	ctx = { 0 };
 
-	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (filename))*/
 	if (COM_StringEmptyOrNULL (filename))
 		return;
 
@@ -138,7 +141,8 @@ static void HPAK_CreatePak (const char *filename, resource_t *pResource, byte *p
 
 	Con_Printf ("creating HPAK %s.\n", pakname);
 
-	fout = FS_Open (pakname, "wb", true);
+	/*fout = FS_Open (pakname, "wb", true);*/
+	file_t	*fout = FS_Open (pakname, "wb", true);
 	if (!fout)
 		{
 		Con_DPrintf (S_ERROR "%s: can't write %s.\n", __func__, pakname);
@@ -150,11 +154,13 @@ static void HPAK_CreatePak (const char *filename, resource_t *pResource, byte *p
 
 	if (pData == NULL)
 		{
-		byte *temp;
+		/*byte *temp;*/
+		int		filelocation = FS_Tell (fin);
+		byte	*temp = Z_Malloc (pResource->nDownloadSize);
 
-		// there are better ways
+		/*// there are better ways
 		filelocation = FS_Tell (fin);
-		temp = Z_Malloc (pResource->nDownloadSize);
+		temp = Z_Malloc (pResource->nDownloadSize);*/
 		FS_Read (fin, temp, pResource->nDownloadSize);
 		FS_Seek (fin, filelocation, SEEK_SET);
 		MD5Update (&ctx, temp, pResource->nDownloadSize);
@@ -194,7 +200,8 @@ static void HPAK_CreatePak (const char *filename, resource_t *pResource, byte *p
 		FS_Write (fout, pData, hash_pack_info.entries[0].disksize);
 		}
 
-	filelocation = FS_Tell (fout);
+	/*filelocation = FS_Tell (fout);*/
+	int	filelocation = FS_Tell (fout);
 	FS_Write (fout, &hash_pack_info.count, sizeof (hash_pack_info.count));
 	FS_Write (fout, &hash_pack_info.entries[0], sizeof (hpak_lump_t));
 
@@ -208,11 +215,13 @@ static void HPAK_CreatePak (const char *filename, resource_t *pResource, byte *p
 	FS_Close (fout);
 	}
 
+// [FWGS, 01.07.26]
 static qboolean HPAK_FindResource (hpak_info_t *hpk, byte *hash, resource_t *pResource)
 	{
-	int	i;
+	/*int	i;
 
-	for (i = 0; i < hpk->count; i++)
+	for (i = 0; i < hpk->count; i++)*/
+	for (int i = 0; i < hpk->count; i++)
 		{
 		if (!memcmp (hpk->entries[i].resource.rgucMD5_hash, hash, 16))
 			{
@@ -225,15 +234,15 @@ static qboolean HPAK_FindResource (hpak_info_t *hpk, byte *hash, resource_t *pRe
 	return false;
 	}
 
-// [FWGS, 01.04.25]
+// [FWGS, 01.07.26]
 void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, byte *pData, file_t *pFile)
 	{
-	int				i, j, position, length;
+	/*int				i, j, position, length;*/
 	hpak_lump_t		*pCurrentEntry = NULL;
 	string			srcname, dstname;
 	hpak_info_t		srcpak, dstpak;
-	file_t			*file_src;
-	file_t			*file_dst;
+	/*file_t			*file_src;
+	file_t			*file_dst;*/
 	byte			md5[16];
 	MD5Context_t	ctx = { 0 };
 
@@ -251,11 +260,13 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 
 	if (!pData)
 		{
-		byte *temp;
+		/*byte *temp;*/
+		int		position = FS_Tell (pFile);
+		byte	*temp = Z_Malloc (pResource->nDownloadSize);
 
-		// there are better ways
+		/*// there are better ways
 		position = FS_Tell (pFile);
-		temp = Z_Malloc (pResource->nDownloadSize);
+		temp = Z_Malloc (pResource->nDownloadSize);*/
 
 		FS_Read (pFile, temp, pResource->nDownloadSize);
 		FS_Seek (pFile, position, SEEK_SET);
@@ -285,7 +296,8 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	Q_strncpy (srcname, name, sizeof (srcname));
 	COM_ReplaceExtension (srcname, ".hpk", sizeof (srcname));
 
-	file_src = FS_Open (srcname, "rb", true);
+	/*file_src = FS_Open (srcname, "rb", true);*/
+	file_t	*file_src = FS_Open (srcname, "rb", true);
 	if (!file_src)
 		{
 		// just create new pack
@@ -296,7 +308,8 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	Q_strncpy (dstname, srcname, sizeof (dstname));
 	COM_ReplaceExtension (dstname, ".hp2", sizeof (dstname));
 
-	file_dst = FS_Open (dstname, "wb", true);
+	/*file_dst = FS_Open (dstname, "wb", true);*/
+	file_t	*file_dst = FS_Open (dstname, "wb", true);
 	if (!file_dst)
 		{
 		Con_DPrintf (S_ERROR "%s: couldn't open %s.\n", __func__, srcname);
@@ -316,8 +329,9 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 		return;
 		}
 
-	length = FS_FileLength (file_src);
-	FS_Seek (file_src, 0, SEEK_SET); // rewind to start of file
+	/*length = FS_FileLength (file_src);*/
+	int	length = FS_FileLength (file_src);
+	FS_Seek (file_src, 0, SEEK_SET);	// rewind to start of file
 	FS_FileCopy (file_dst, file_src, length);
 
 	FS_Seek (file_src, hash_pack_header.infotableofs, SEEK_SET);
@@ -352,13 +366,15 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	memcpy (dstpak.entries, srcpak.entries, sizeof (hpak_lump_t) *srcpak.count);
 
 	// check is there are entry with same hash
-	for (i = 0; i < srcpak.count; i++)
+	/*for (i = 0; i < srcpak.count; i++)*/
+	for (int i = 0; i < srcpak.count; i++)
 		{
 		if (memcmp (md5, srcpak.entries[i].resource.rgucMD5_hash, 16) == 0)
 			{
 			pCurrentEntry = &dstpak.entries[i];
 
-			for (j = i; j < srcpak.count; j++)
+			/*for (j = i; j < srcpak.count; j++)*/
+			for (int j = i; j < srcpak.count; j++)
 				dstpak.entries[j + 1] = srcpak.entries[j];
 			}
 		}
@@ -380,7 +396,8 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	hash_pack_header.infotableofs = FS_Tell (file_dst);
 	FS_Write (file_dst, &dstpak.count, sizeof (dstpak.count));
 
-	for (i = 0; i < dstpak.count; i++)
+	/*for (i = 0; i < dstpak.count; i++)*/
+	for (int i = 0; i < dstpak.count; i++)
 		FS_Write (file_dst, &dstpak.entries[i], sizeof (hpak_lump_t));
 
 	// finalize
@@ -399,30 +416,31 @@ void HPAK_AddLump (qboolean bUseQueue, const char *name, resource_t *pResource, 
 	FS_Rename (dstname, srcname);
 	}
 
+// [FWGS, 01.07.26]
 static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean delete)
 	{
-	file_t		*f;
-	hpak_lump_t	*dataDir;
+	/*file_t		*f;
+	hpak_lump_t	*dataDir;*/
 	hpak_header_t	hdr;
-	byte		*dataPak;
-	int			i, num_lumps;
+	/*byte		*dataPak;
+	int			i, num_lumps;*/
 	MD5Context_t	MD5_Hash;
 	string		pakname;
-	dresource_t	*pRes;
+	/*dresource_t	*pRes;*/
 	byte		md5[16];
 
 	if (quiet) 
 		HPAK_FlushHostQueue ();
 
-	// [FWGS, 01.03.26] not an error - just flush queue
-	/*if (!COM_CheckString (filename))*/
+	// not an error - just flush queue
 	if (COM_StringEmptyOrNULL (filename))
 		return true;
 
 	Q_strncpy (pakname, filename, sizeof (pakname));
 	COM_ReplaceExtension (pakname, ".hpk", sizeof (pakname));
 
-	f = FS_Open (pakname, "rb", true);
+	/*f = FS_Open (pakname, "rb", true);*/
+	file_t	*f = FS_Open (pakname, "rb", true);
 	if (!f)
 		{
 		if (!quiet)
@@ -436,7 +454,6 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 	FS_Read (f, &hdr, sizeof (hdr));
 	if ((hdr.ident != IDHPAKHEADER) || (hdr.version != IDHPAK_VERSION))
 		{
-		// [FWGS, 01.07.24]
 		Con_DPrintf (S_ERROR "%s: %s does not have a valid HPAK header.\n", __func__, pakname);
 		FS_Close (f);
 
@@ -446,11 +463,12 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 		}
 
 	FS_Seek (f, hdr.infotableofs, SEEK_SET);
+
+	int	num_lumps;
 	FS_Read (f, &num_lumps, sizeof (num_lumps));
 
 	if ((num_lumps < 1) || (num_lumps > HPAK_MAX_ENTRIES))
 		{
-		// [FWGS, 01.07.24]
 		Con_DPrintf (S_ERROR "%s: %s has too many lumps %u.\n", __func__, pakname, num_lumps);
 		FS_Close (f);
 
@@ -462,17 +480,19 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 	if (!quiet)
 		Con_Printf ("# of Entries:  %i\n", num_lumps);
 
-	dataDir = Z_Malloc (sizeof (hpak_lump_t) * num_lumps);
+	/*dataDir = Z_Malloc (sizeof (hpak_lump_t) * num_lumps);*/
+	hpak_lump_t	*dataDir = Z_Malloc (sizeof (hpak_lump_t) * num_lumps);
 	FS_Read (f, dataDir, sizeof (hpak_lump_t) * num_lumps);
 
 	if (!quiet)
 		Con_Printf ("# Type Size FileName : MD5 Hash\n");
 
-	for (i = 0; i < num_lumps; i++)
+	/*for (i = 0; i < num_lumps; i++)*/
+	for (int i = 0; i < num_lumps; i++)
 		{
 		if ((dataDir[i].disksize < HPAK_ENTRY_MIN_SIZE) || (dataDir[i].disksize > HPAK_ENTRY_MAX_SIZE))
 			{
-			// [FWGS, 01.04.25] odd max size
+			// odd max size
 			Con_DPrintf (S_ERROR "%s: lump %i has invalid size %s\n", __func__, i, Q_memprint (dataDir[i].disksize));
 			Mem_Free (dataDir);
 			FS_Close (f);
@@ -483,7 +503,8 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 			return false;
 			}
 
-		dataPak = Z_Malloc (dataDir[i].disksize);
+		/*dataPak = Z_Malloc (dataDir[i].disksize);*/
+		byte	*dataPak = Z_Malloc (dataDir[i].disksize);
 		FS_Seek (f, dataDir[i].filepos, SEEK_SET);
 		FS_Read (f, dataPak, dataDir[i].disksize);
 
@@ -492,9 +513,11 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 		MD5Update (&MD5_Hash, dataPak, dataDir[i].disksize);
 		MD5Final (md5, &MD5_Hash);
 
-		pRes = &dataDir[i].resource;
+		/*pRes = &dataDir[i].resource;
 
-		// [FWGS, 01.04.25]
+		// [FWGS, 01.04.25]*/
+		dresource_t	*pRes = &dataDir[i].resource;
+
 		if (!quiet)
 			{
 			Con_Printf   ("%i:      %s %s %s:   ", i, COM_ResourceTypeFromIndex (pRes->type),
@@ -505,7 +528,6 @@ static qboolean HPAK_Validate (const char *filename, qboolean quiet, qboolean de
 			{
 			if (quiet)
 				{
-				// [FWGS, 01.07.24]
 				Con_DPrintf (S_ERROR "%s: %s has invalid checksum.\n", __func__, pakname);
 				Mem_Free (dataPak);
 				Mem_Free (dataDir);
@@ -540,7 +562,6 @@ void HPAK_CheckIntegrity (const char *filename)
 	string	pakname;
 
 	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (filename))*/
 	if (COM_StringEmptyOrNULL (filename))
 		return;
 
@@ -550,17 +571,17 @@ void HPAK_CheckIntegrity (const char *filename)
 	HPAK_Validate (pakname, true, true);
 	}
 
+// [FWGS, 01.07.26]
 void HPAK_CheckSize (const char *filename)
 	{
 	string	pakname;
-	int	maxsize;
+	/*int	maxsize;*/
+	int		maxsize = hpk_maxsize.value;
 
-	maxsize = hpk_maxsize.value;
+	/*maxsize = hpk_maxsize.value;*/
 	if (maxsize <= 0)
 		return;
 
-	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (filename))*/
 	if (COM_StringEmptyOrNULL (filename))
 		return;
 
@@ -575,21 +596,23 @@ void HPAK_CheckSize (const char *filename)
 		}
 	}
 
+// [FWGS, 01.07.26]
 qboolean HPAK_ResourceForHash (const char *filename, byte *hash, resource_t *pResource)
 	{
 	hpak_info_t		directory;
 	hpak_header_t	header;
 	string			pakname;
-	qboolean		bFound;
+	/*qboolean		bFound;
 	file_t			*f;
 	hash_pack_queue_t	*p;
 
-	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (filename))*/
+	// [FWGS, 01.03.26]*/
+	
 	if (COM_StringEmptyOrNULL (filename))
 		return false;
 
-	for (p = gp_hpak_queue; p != NULL; p = p->next)
+	/*for (p = gp_hpak_queue; p != NULL; p = p->next)*/
+	for (hash_pack_queue_t *p = gp_hpak_queue; p != NULL; p = p->next)
 		{
 		if (!Q_stricmp (p->name, filename) && !memcmp (p->resource.rgucMD5_hash, hash, 16))
 			{
@@ -602,7 +625,8 @@ qboolean HPAK_ResourceForHash (const char *filename, byte *hash, resource_t *pRe
 	Q_strncpy (pakname, filename, sizeof (pakname));
 	COM_ReplaceExtension (pakname, ".hpk", sizeof (pakname));
 
-	f = FS_Open (pakname, "rb", true);
+	/*f = FS_Open (pakname, "rb", true);*/
+	file_t	*f = FS_Open (pakname, "rb", true);
 	if (!f) 
 		return false;
 
@@ -631,29 +655,33 @@ qboolean HPAK_ResourceForHash (const char *filename, byte *hash, resource_t *pRe
 
 	directory.entries = Z_Malloc (sizeof (hpak_lump_t) * directory.count);
 	FS_Read (f, directory.entries, sizeof (hpak_lump_t) * directory.count);
-	bFound = HPAK_FindResource (&directory, hash, pResource);
+
+	/*bFound = HPAK_FindResource (&directory, hash, pResource);*/
+	qboolean	bFound = HPAK_FindResource (&directory, hash, pResource);
 	Mem_Free (directory.entries);
 	FS_Close (f);
 
 	return bFound;
 	}
 
+// [FWGS, 01.07.26]
 static qboolean HPAK_ResourceForIndex (const char *filename, int index, resource_t *pResource)
 	{
 	hpak_header_t	header;
 	hpak_info_t	directory;
 	string		pakname;
-	file_t		*f;
+	/*file_t		*f;
 
-	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (filename))*/
+	// [FWGS, 01.03.26]*/
+
 	if (COM_StringEmptyOrNULL (filename))
 		return false;
 
 	Q_strncpy (pakname, filename, sizeof (pakname));
 	COM_ReplaceExtension (pakname, ".hpk", sizeof (pakname));
 
-	f = FS_Open (pakname, "rb", true);
+	/*f = FS_Open (pakname, "rb", true);*/
+	file_t	*f = FS_Open (pakname, "rb", true);
 	if (!f)
 		{
 		Con_DPrintf (S_ERROR "couldn't open %s.\n", pakname);
@@ -701,19 +729,20 @@ static qboolean HPAK_ResourceForIndex (const char *filename, int index, resource
 	return true;
 	}
 
+// [FWGS, 01.07.26]
 qboolean HPAK_GetDataPointer (const char *filename, resource_t *pResource, byte **buffer, int *bufsize)
 	{
-	byte		*tmpbuf;
+	/*byte		*tmpbuf;*/
 	string		pakname;
 	hpak_header_t	header;
 	hpak_info_t	directory;
-	hpak_lump_t	*entry;
+	/*hpak_lump_t	*entry;
 	hash_pack_queue_t	*p;
 	file_t		*f;
 	int			i;
 
-	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (filename))*/
+	// [FWGS, 01.03.26]*/
+
 	if (COM_StringEmptyOrNULL (filename))
 		return false;
 
@@ -722,13 +751,15 @@ qboolean HPAK_GetDataPointer (const char *filename, resource_t *pResource, byte 
 	if (bufsize)
 		*bufsize = 0;
 
-	for (p = gp_hpak_queue; p != NULL; p = p->next)
+	/*for (p = gp_hpak_queue; p != NULL; p = p->next)*/
+	for (hash_pack_queue_t *p = gp_hpak_queue; p != NULL; p = p->next)
 		{
 		if (!Q_stricmp (p->name, filename) && !memcmp (p->resource.rgucMD5_hash, pResource->rgucMD5_hash, 16))
 			{
 			if (buffer)
 				{
-				tmpbuf = Z_Malloc (p->size);
+				/*tmpbuf = Z_Malloc (p->size);*/
+				byte	*tmpbuf = Z_Malloc (p->size);
 				memcpy (tmpbuf, p->data, p->size);
 				*buffer = tmpbuf;
 				}
@@ -743,7 +774,8 @@ qboolean HPAK_GetDataPointer (const char *filename, resource_t *pResource, byte 
 	Q_strncpy (pakname, filename, sizeof (pakname));
 	COM_ReplaceExtension (pakname, ".hpk", sizeof (pakname));
 
-	f = FS_Open (pakname, "rb", true);
+	/*f = FS_Open (pakname, "rb", true);*/
+	file_t	*f = FS_Open (pakname, "rb", true);
 	if (!f) 
 		return false;
 
@@ -765,7 +797,6 @@ qboolean HPAK_GetDataPointer (const char *filename, resource_t *pResource, byte 
 	FS_Seek (f, header.infotableofs, SEEK_SET);
 	FS_Read (f, &directory.count, sizeof (directory.count));
 
-	// [FWGS, 01.07.24]
 	if ((directory.count < 1) || (directory.count > HPAK_MAX_ENTRIES))
 		{
 		Con_DPrintf (S_ERROR "%s: %s has too many lumps %u.\n", __func__, filename, directory.count);
@@ -776,9 +807,11 @@ qboolean HPAK_GetDataPointer (const char *filename, resource_t *pResource, byte 
 	directory.entries = Z_Malloc (sizeof (hpak_lump_t) * directory.count);
 	FS_Read (f, directory.entries, sizeof (hpak_lump_t) * directory.count);
 
-	for (i = 0; i < directory.count; i++)
+	/*for (i = 0; i < directory.count; i++)*/
+	for (int i = 0; i < directory.count; i++)
 		{
-		entry = &directory.entries[i];
+		/*entry = &directory.entries[i];*/
+		hpak_lump_t	*entry = &directory.entries[i];
 
 		if ((entry->filepos > 0) && (entry->disksize > 0) &&
 			!memcmp (entry->resource.rgucMD5_hash, pResource->rgucMD5_hash, 16))
@@ -787,7 +820,8 @@ qboolean HPAK_GetDataPointer (const char *filename, resource_t *pResource, byte 
 
 			if (buffer)
 				{
-				tmpbuf = Z_Malloc (entry->disksize);
+				/*tmpbuf = Z_Malloc (entry->disksize);*/
+				byte	*tmpbuf = Z_Malloc (entry->disksize);
 				FS_Read (f, tmpbuf, entry->disksize);
 				*buffer = tmpbuf;
 				}
@@ -808,18 +842,19 @@ qboolean HPAK_GetDataPointer (const char *filename, resource_t *pResource, byte 
 	return false;
 	}
 
+// [FWGS, 01.07.26]
 void HPAK_RemoveLump (const char *name, resource_t *pResource)
 	{
 	string	read_path;
 	string	save_path;
-	file_t	*file_src;
-	file_t	*file_dst;
+	/*file_t	*file_src;
+	file_t	*file_dst;*/
 	hpak_info_t	hpak_read;
 	hpak_info_t	hpak_save;
-	int		i, j;
+	/*int		i, j;
 
-	// [FWGS, 01.03.26]
-	/*if (!COM_CheckString (name) || !pResource)*/
+	// [FWGS, 01.03.26]*/
+
 	if (COM_StringEmptyOrNULL (name) || !pResource)
 		return;
 
@@ -828,7 +863,8 @@ void HPAK_RemoveLump (const char *name, resource_t *pResource)
 	Q_strncpy (read_path, name, sizeof (read_path));
 	COM_ReplaceExtension (read_path, ".hpk", sizeof (read_path));
 
-	file_src = FS_Open (read_path, "rb", true);
+	/*file_src = FS_Open (read_path, "rb", true);*/
+	file_t	*file_src = FS_Open (read_path, "rb", true);
 	if (!file_src)
 		{
 		Con_DPrintf (S_ERROR "%s couldn't open.\n", read_path);
@@ -838,7 +874,8 @@ void HPAK_RemoveLump (const char *name, resource_t *pResource)
 	Q_strncpy (save_path, read_path, sizeof (save_path));
 	COM_ReplaceExtension (save_path, ".hp2", sizeof (save_path));
 	
-	file_dst = FS_Open (save_path, "wb", true);
+	/*file_dst = FS_Open (save_path, "wb", true);*/
+	file_t	*file_dst = FS_Open (save_path, "wb", true);
 	if (!file_dst)
 		{
 		Con_DPrintf (S_ERROR "%s couldn't open.\n", save_path);
@@ -858,7 +895,7 @@ void HPAK_RemoveLump (const char *name, resource_t *pResource)
 		Con_DPrintf (S_ERROR "%s has invalid header.\n", read_path);
 		FS_Close (file_src);
 		FS_Close (file_dst);
-		FS_Delete (save_path); // delete temp file
+		FS_Delete (save_path);	// delete temp file
 		return;
 		}
 
@@ -870,7 +907,7 @@ void HPAK_RemoveLump (const char *name, resource_t *pResource)
 		Con_DPrintf (S_ERROR "%s has invalid number of lumps.\n", read_path);
 		FS_Close (file_src);
 		FS_Close (file_dst);
-		FS_Delete (save_path); // delete temp file
+		FS_Delete (save_path);	// delete temp file
 		return;
 		}
 
@@ -904,7 +941,8 @@ void HPAK_RemoveLump (const char *name, resource_t *pResource)
 	Con_Printf ("Removing %s from HPAK %s.\n", pResource->szFileName, read_path);
 
 	// If there's a collision, we've just corrupted this hpak
-	for (i = 0, j = 0; i < hpak_read.count; i++)
+	/*for (i = 0, j = 0; i < hpak_read.count; i++)*/
+	for (int i = 0, j = 0; i < hpak_read.count; i++)
 		{
 		if (!memcmp (hpak_read.entries[i].resource.rgucMD5_hash, pResource->rgucMD5_hash, 16))
 			continue;
@@ -919,7 +957,8 @@ void HPAK_RemoveLump (const char *name, resource_t *pResource)
 	hash_pack_header.infotableofs = FS_Tell (file_dst);
 	FS_Write (file_dst, &hpak_save.count, sizeof (hpak_save.count));
 
-	for (i = 0; i < hpak_save.count; i++)
+	/*for (i = 0; i < hpak_save.count; i++)*/
+	for (int i = 0; i < hpak_save.count; i++)
 		FS_Write (file_dst, &hpak_save.entries[i], sizeof (hpak_lump_t));
 
 	FS_Seek (file_dst, 0, SEEK_SET);
@@ -934,17 +973,18 @@ void HPAK_RemoveLump (const char *name, resource_t *pResource)
 	FS_Rename (save_path, read_path);
 	}
 
+// [FWGS, 01.07.26]
 static void HPAK_List_f (void)
 	{
-	int				nCurrent;
+	/*int				nCurrent;*/
 	hpak_header_t	header;
 	hpak_info_t		directory;
-	hpak_lump_t		*entry;
-	string			lumpname;
-	string			pakname;
-	const char		*type;
+	/*hpak_lump_t		*entry;*/
+	string		lumpname;
+	string		pakname;
+	/*const char		*type;
 	const char		*size;
-	file_t			*f;
+	file_t			*f;*/
 
 	if (Cmd_Argc () != 2)
 		{
@@ -958,7 +998,8 @@ static void HPAK_List_f (void)
 	COM_ReplaceExtension (pakname, ".hpk", sizeof (pakname));
 	Con_Printf ("Contents for %s.\n", pakname);
 
-	f = FS_Open (pakname, "rb", true);
+	/*f = FS_Open (pakname, "rb", true);*/
+	file_t	*f = FS_Open (pakname, "rb", true);
 	if (!f)
 		{
 		Con_DPrintf (S_ERROR "couldn't open %s.\n", pakname);
@@ -997,13 +1038,18 @@ static void HPAK_List_f (void)
 	directory.entries = Z_Malloc (directory.count * sizeof (hpak_lump_t));
 	FS_Read (f, directory.entries, directory.count * sizeof (hpak_lump_t));
 
-	// [FWGS, 01.02.25]
-	for (nCurrent = 0; nCurrent < directory.count; nCurrent++)
+	/*// [FWGS, 01.02.25]
+	for (nCurrent = 0; nCurrent < directory.count; nCurrent++)*/
+	for (int nCurrent = 0; nCurrent < directory.count; nCurrent++)
 		{
-		entry = &directory.entries[nCurrent];
+		/*entry = &directory.entries[nCurrent];*/
+		hpak_lump_t	*entry = &directory.entries[nCurrent];
+		const char	*type = COM_ResourceTypeFromIndex (entry->resource.type);
+		const char	*size = Q_memprint (entry->resource.nDownloadSize);
 		COM_FileBase (entry->resource.szFileName, lumpname, sizeof (lumpname));
-		type = COM_ResourceTypeFromIndex (entry->resource.type);
-		size = Q_memprint (entry->resource.nDownloadSize);
+
+		/*type = COM_ResourceTypeFromIndex (entry->resource.type);
+		size = Q_memprint (entry->resource.nDownloadSize);*/
 
 		Con_Printf ("%i: %10s %s %s\n  :  %s\n", nCurrent + 1, type, size, lumpname,
 			MD5_Print (entry->resource.rgucMD5_hash));
@@ -1014,21 +1060,22 @@ static void HPAK_List_f (void)
 	FS_Close (f);
 	}
 
+// [FWGS, 01.07.26]
 static void HPAK_Extract_f (void)
 	{
-	int				nCurrent;
+	/*int				nCurrent;*/
 	hpak_header_t	header;
 	hpak_info_t		directory;
-	hpak_lump_t		*entry;
+	/*hpak_lump_t		*entry;*/
 	string			lumpname;
 	string			pakname;
 	string			szFileOut;
 	int				nIndex;
-	byte			*pData;
+	/*byte			*pData;
 	int				nDataSize;
 	const char		*type;
 	const char		*size;
-	file_t			*f;
+	file_t			*f;*/
 
 	if (Cmd_Argc () != 3)
 		{
@@ -1047,7 +1094,8 @@ static void HPAK_Extract_f (void)
 	COM_ReplaceExtension (pakname, ".hpk", sizeof (pakname));
 	Con_Printf ("Contents for %s.\n", pakname);
 
-	f = FS_Open (pakname, "rb", true);
+	/*f = FS_Open (pakname, "rb", true);*/
+	file_t	*f = FS_Open (pakname, "rb", true);
 	if (!f)
 		{
 		Con_DPrintf (S_ERROR "couldn't open %s.\n", pakname);
@@ -1088,17 +1136,21 @@ static void HPAK_Extract_f (void)
 	directory.entries = Z_Malloc (directory.count * sizeof (hpak_lump_t));
 	FS_Read (f, directory.entries, directory.count * sizeof (hpak_lump_t));
 
-	for (nCurrent = 0; nCurrent < directory.count; nCurrent++)
+	/*for (nCurrent = 0; nCurrent < directory.count; nCurrent++)*/
+	for (int nCurrent = 0; nCurrent < directory.count; nCurrent++)
 		{
-		entry = &directory.entries[nCurrent];
+		/*entry = &directory.entries[nCurrent];*/
+		hpak_lump_t	*entry = &directory.entries[nCurrent];
 
 		if ((nIndex != -1) && (nIndex != nCurrent))
 			continue;
 
-		// [FWGS, 01.02.25]
+		const char	*type = COM_ResourceTypeFromIndex (entry->resource.type);
+		const char	*size = Q_memprint (entry->resource.nDownloadSize);
+
 		COM_FileBase (entry->resource.szFileName, lumpname, sizeof (lumpname));
-		type = COM_ResourceTypeFromIndex (entry->resource.type);
-		size = Q_memprint (entry->resource.nDownloadSize);
+		/*type = COM_ResourceTypeFromIndex (entry->resource.type);
+		size = Q_memprint (entry->resource.nDownloadSize);*/
 
 		Con_Printf ("Extracting %i: %10s %s %s\n", nCurrent + 1, type, size, lumpname);
 
@@ -1108,12 +1160,13 @@ static void HPAK_Extract_f (void)
 			continue;
 			}
 
-		nDataSize = entry->disksize;
-		pData = Z_Malloc (nDataSize + 1);
+		/*nDataSize = entry->disksize;
+		pData = Z_Malloc (nDataSize + 1);*/
+		int		nDataSize = entry->disksize;
+		byte	*pData = Z_Malloc (nDataSize + 1);
 		FS_Seek (f, entry->filepos, SEEK_SET);
 		FS_Read (f, pData, nDataSize);
 
-		// [FWGS, 01.12.24]
 		Q_snprintf (szFileOut, sizeof (szFileOut), "hpklmps/lmp%04i.bmp", nCurrent);
 		FS_WriteFile (szFileOut, pData, nDataSize);
 		if (pData)

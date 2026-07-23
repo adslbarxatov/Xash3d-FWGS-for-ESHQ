@@ -14,12 +14,14 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
+// [FWGS, 01.07.26]
 #include "common.h"
 #include "client.h"	// ConnectionProgress
 #include "netchan.h"
 #include "xash3d_mathlib.h"
-#include "ipv6text.h"
+/*include "ipv6text.h"*/
 #include "net_ws_private.h"
+#include "net_http_tls.h"
 #include "miniz.h"
 
 /***
@@ -28,19 +30,29 @@ HTTP downloader
 =================================================
 ***/
 
-#define MAX_HTTP_BUFFER_SIZE (BIT( 16 ))
+// [FWGS, 01.07.26]
+#define MAX_HTTP_BUFFER_SIZE		(BIT( 16 ))
+#define MAX_HTTP_DECOMPRESSED_SIZE	( 64 * 1024 * 1024 )
+#define MAX_HTTP_MEMORY_SIZE		( 4 * 1024 * 1024 )
 
+// [FWGS, 01.07.26]
 typedef struct httpserver_s
 	{
 	char	host[256];
 	int		port;
 	char	path[MAX_SYSPATH];
+
+	qboolean	secure;
+	qboolean	resolved;
+	struct sockaddr_storage	addr;
+
 	struct httpserver_s	*next;
 	} httpserver_t;
 
 typedef struct httpfile_s httpfile_t;
 typedef int (*http_process_fn_t)(httpfile_t *file);
 
+// [FWGS, 01.07.26]
 typedef struct httpfile_s
 	{
 	struct httpfile_s	*next;
@@ -49,7 +61,7 @@ typedef struct httpfile_s
 	file_t	*file;
 	int		socket;
 	int		size;
-	int		reported_size;	// [FWGS, 01.07.25]
+	int		reported_size;
 	int		downloaded;
 	int		lastchecksize;
 	float	checktime;
@@ -65,12 +77,31 @@ typedef struct httpfile_s
 	http_process_fn_t	pfn_process;
 	struct sockaddr_storage		addr;
 
+	int		redirects_followed;
+	qboolean	url_in_server;
+	tlsctx_t	*tls;
+
+	// in-memory response mode (set by HTTP_GetToMemory)
+	qboolean	to_memory;
+	qboolean	own_server;
+	byte	*mem_data;
+	size_t	mem_size;
+	size_t	mem_cap;
+	http_memory_cb_t	mem_cb;
+	void	*mem_user;
+	char	url[1024];
+
 	char	query_backup[1024];
 
-	// query or response
-	char	buf[MAX_HTTP_BUFFER_SIZE + 1];
+	/*// query or response
+	char	buf[MAX_HTTP_BUFFER_SIZE + 1];*/
+	// query or response, allocated when socket is created, freed in HTTP_FreeFile
+	char	*buf;
 	int		header_size, query_length, bytes_sent;
 	} httpfile_t;
+
+// [FWGS, 01.07.26]
+poolhandle_t	http_mempool;
 
 static struct http_static_s
 	{
@@ -90,10 +121,16 @@ static CVAR_DEFINE_AUTO (http_autoremove, "1", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 	"remove broken files");
 static CVAR_DEFINE_AUTO (http_timeout, "45", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 	"timeout for http downloader");
-static CVAR_DEFINE_AUTO (http_maxconnections, "2", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
+
+// [FWGS, 01.07.26]
+/*static CVAR_DEFINE_AUTO (http_maxconnections, "2", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
+	"maximum http connection number");*/
+static CVAR_DEFINE_AUTO (http_maxconnections, "5", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 	"maximum http connection number");
 static CVAR_DEFINE_AUTO (http_show_headers, "0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 	"show HTTP headers (request and response)");
+static CVAR_DEFINE_AUTO (http_max_redirects, "5", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
+	"maximum HTTP redirects to follow per request");
 
 static int HTTP_FileFree (httpfile_t *file);
 static int HTTP_FileConnect (httpfile_t *file);
@@ -102,7 +139,12 @@ static int HTTP_FileProcessStream (httpfile_t *file);
 static int HTTP_FileQueue (httpfile_t *file);
 static int HTTP_FileResolveNS (httpfile_t *file);
 static int HTTP_FileSendRequest (httpfile_t *file);
+
+// [FWGS, 01.07.26]
+static int HTTP_FileTlsHandshake (httpfile_t *file);
 static int HTTP_FileDecompress (httpfile_t *file);
+static httpserver_t *HTTP_ParseURL (const char *url_, qboolean full_path);
+static qboolean HTTP_FileRedirect (httpfile_t *file, const char *location);
 
 // [FWGS, 01.05.26]
 static const char *HTTP_DownloadPath (char *buf, size_t buflen, const char *path, qboolean incomplete)
@@ -122,7 +164,6 @@ Skip to next server/file
 static void HTTP_FreeFile (httpfile_t *file, qboolean error)
 	{
 	// [FWGS, 01.05.26]
-	/*char incname[MAX_SYSPATH + 64];	// plus downloaded/ plus .incomplete*/
 	char incname[MAX_SYSPATH + 64];	// plus ../{gamedir}_downloads/ plus .incomplete
 	qboolean was_open = false;
 
@@ -137,6 +178,13 @@ static void HTTP_FreeFile (httpfile_t *file, qboolean error)
 
 	file->file = NULL;
 
+	// [FWGS, 01.07.26]
+	if (file->tls)
+		{
+		HTTP_TlsFree (file->tls);
+		file->tls = NULL;
+		}
+
 	if (file->socket != -1)
 		{
 		closesocket (file->socket);
@@ -145,16 +193,53 @@ static void HTTP_FreeFile (httpfile_t *file, qboolean error)
 
 	file->socket = -1;
 
+	// [FWGS, 01.07.26]
+	if (file->buf)
+		{
+		Mem_Free (file->buf);
+		file->buf = NULL;
+		}
+
+	if (file->to_memory)
+		{
+		if (file->mem_cb)
+			file->mem_cb (file->url, !error, error ? NULL : file->mem_data, error ? 0 : file->mem_size, file->mem_user);
+
+		if (file->mem_data)
+			{
+			Mem_Free (file->mem_data);
+			file->mem_data = NULL;
+			}
+
+		if (file->own_server && file->server)
+			{
+			Mem_Free (file->server);
+			file->server = NULL;
+			}
+
+		file->pfn_process = HTTP_FileFree;
+		file->success = !error;
+		return;
+		}
+
 	// [FWGS, 01.05.26]
-	/*Q_snprintf (incname, sizeof (incname), DEFAULT_DOWNLOADED_DIRECTORY "%s.incomplete", file->path);*/
 	HTTP_DownloadPath (incname, sizeof (incname), file->path, true);
 
 	if (error)
 		{
-		// switch to next fastdl server if present
+		// [FWGS, 01.07.26] switch to next fastdl server if present
 		if (file->server && was_open)
 			{
-			file->server = file->server->next;
+			/*file->server = file->server->next;*/
+			httpserver_t	*next = file->server->next;
+
+			if (file->own_server)
+				{
+				Mem_Free (file->server);
+				file->own_server = false;
+				}
+
+			file->server = next;
 
 			file->pfn_process = HTTP_FileQueue;	// Reset download state, HTTP_Run() will open file again
 			return;
@@ -193,7 +278,6 @@ static void HTTP_FreeFile (httpfile_t *file, qboolean error)
 			char name[MAX_SYSPATH];
 
 			// [FWGS, 01.05.26]
-			/*Q_snprintf (name, sizeof (name), DEFAULT_DOWNLOADED_DIRECTORY "%s", file->path);*/
 			HTTP_DownloadPath (name, sizeof (name), file->path, false);
 			FS_AllowDirectPaths (true);
 			FS_Rename (incname, name);
@@ -210,12 +294,13 @@ static int HTTP_FileFree (httpfile_t *file)
 	return 0;	// do nothing, wait for memory clean up
 	}
 
+// [FWGS, 01.07.26]
 static int HTTP_FileQueue (httpfile_t *file)
 	{
-	char name[MAX_SYSPATH];
+	/*char name[MAX_SYSPATH];
 
 	if (http.active_count > http_maxconnections.value)
-		return 0;
+		return 0;*/
 
 	if (!file->server)
 		{
@@ -223,14 +308,12 @@ static int HTTP_FileQueue (httpfile_t *file)
 		return 0;
 		}
 
-	Con_Reportf ("HTTP: Starting download %s from %s:%d\n", file->path, file->server->host, file->server->port);
+	/*Con_Reportf ("HTTP: Starting download %s from %s:%d\n", file->path, file->server->host, file->server->port);
 	
 	// [FWGS, 01.05.26]
-	/*Q_snprintf (name, sizeof (name), DEFAULT_DOWNLOADED_DIRECTORY "%s.incomplete", file->path);*/
 	HTTP_DownloadPath (name, sizeof (name), file->path, true);
 
 	// [FWGS, 01.05.26]
-	/*if (!(file->file = FS_Open (name, "wb+", true)))*/
 	FS_AllowDirectPaths (true);
 	file->file = FS_Open (name, "wb+", true);
 	FS_AllowDirectPaths (false);
@@ -240,23 +323,31 @@ static int HTTP_FileQueue (httpfile_t *file)
 		Con_Printf (S_ERROR "HTTP: cannot open %s!\n", name);
 		HTTP_FreeFile (file, true);
 		return 0;
-		}
+		}*/
 
 	file->pfn_process = HTTP_FileResolveNS;
 	file->blocktime = file->downloaded = file->lastchecksize = file->checktime = 0;
 	return 1;
 	}
 
+// [FWGS, 01.07.26]
 static int HTTP_FileResolveNS (httpfile_t *file)
 	{
-	net_gai_state_t res;
+	/*net_gai_state_t	res;*/
+	if (file->server->resolved)
+		{
+		file->addr = file->server->addr;
+		file->pfn_process = HTTP_FileCreateSocket;
+		return 1;
+		}
 
 	if (http.resolving)
 		return 0;
 
 	memset (&file->addr, 0, sizeof (file->addr));
 
-	res = NET_StringToSockaddr (file->server->host, &file->addr, true, AF_UNSPEC);
+	/*res = NET_StringToSockaddr (file->server->host, &file->addr, true, AF_UNSPEC);*/
+	net_gai_state_t	res = NET_StringToSockaddr (file->server->host, &file->addr, true, AF_UNSPEC);
 
 	switch (file->addr.ss_family)
 		{
@@ -282,18 +373,26 @@ static int HTTP_FileResolveNS (httpfile_t *file)
 		return 0;
 		}
 
+	file->server->addr = file->addr;
+	file->server->resolved = true;
+
 	file->pfn_process = HTTP_FileCreateSocket;
 	return 1;
 	}
 
-// [FWGS, 01.05.26]
+// [FWGS, 01.07.26]
 static int HTTP_FileCreateSocket (httpfile_t *file)
 	{
-	/*uint	mode = 1;
-	int		res;*/
+	if (http.active_count >= http_maxconnections.value)
+		return 0;
+
+	if (file->to_memory)
+		Con_Reportf ("HTTP: Starting in-memory GET %s\n", file->url);
+	else
+		Con_Reportf ("HTTP: Starting download %s from %s:%d\n", file->path, file->server->host,
+			file->server->port);
 
 	file->socket = socket (file->addr.ss_family, SOCK_STREAM, IPPROTO_TCP);
-
 	if (file->socket < 0)
 		{
 		Con_Printf (S_ERROR "%s: socket() returned %s\n", __func__, NET_ErrorString ());
@@ -301,35 +400,16 @@ static int HTTP_FileCreateSocket (httpfile_t *file)
 		return 0;
 		}
 
-	/*if (ioctlsocket (file->socket, FIONBIO, (void *)&mode) < 0)
-		{
-		Con_Printf (S_ERROR "%s: ioctl() returned %s\n", __func__, NET_ErrorString ());
-		HTTP_FreeFile (file, true);
-		return 0;
-		}
-
-if XASH_LINUX
-
-	res = fcntl (file->socket, F_GETFL, 0);
-
-	if (res < 0)
-		{
-		Con_Printf (S_ERROR "%s: fcntl( F_GETFL ) returned %s\n", __func__, NET_ErrorString ());
-		HTTP_FreeFile (file, true);
-		return 0;
-		}
-
-	// SOCK_NONBLOCK is not portable, so use fcntl
-	if (fcntl (file->socket, F_SETFL, res | O_NONBLOCK) < 0)*/
 	if (!NET_MakeSocketNonBlocking (file->socket))
 		{
-		/*Con_Printf (S_ERROR "%s: fcntl( F_SETFL ) returned %s\n", __func__, NET_ErrorString ());*/
 		Con_Printf (S_ERROR "%s: failed to make socket non-blocking, error %s\n", __func__, NET_ErrorString ());
 
 		HTTP_FreeFile (file, true);
 		return 0;
 		}
-	/*endif*/
+
+	if (!file->buf)
+		file->buf = Mem_Calloc (http_mempool, MAX_HTTP_BUFFER_SIZE + 1);
 
 	http.active_count++;
 	file->pfn_process = HTTP_FileConnect;
@@ -380,27 +460,101 @@ static int HTTP_FileConnect (httpfile_t *file)
 		Q_strncpy (useragent, http_useragent.string, sizeof (useragent));
 		}
 
-	file->query_length = Q_snprintf (file->buf, sizeof (file->buf),
+	/*file->query_length = Q_snprintf (file->buf, sizeof (file->buf),
 		"GET %s%s HTTP/1.1\r\n"
 		"Host: %s:%d\r\n"
 		"User-Agent: %s\r\n"
 		"Accept-Encoding: gzip, deflate\r\n"
-		"Accept: */*\r\n\r\n",
+		"Accept: * /*\r\n\r\n",
 		file->server->path, file->path,
 		file->server->host, file->server->port,
-		useragent);
+		useragent);*/
+
+	// [FWGS, 01.07.26]
+	const char *path_suffix = file->url_in_server ? "" : file->path;
+
+	if (file->to_memory)
+		{
+		file->query_length = Q_snprintf (file->buf, MAX_HTTP_BUFFER_SIZE + 1,
+			"GET %s%s HTTP/1.1\r\n"
+			"Host: %s:%d\r\n"
+			"User-Agent: %s\r\n"
+			"Accept: */*\r\n\r\n",
+			file->server->path, path_suffix,
+			file->server->host, file->server->port,
+			useragent);
+		}
+	else
+		{
+		file->query_length = Q_snprintf (file->buf, MAX_HTTP_BUFFER_SIZE + 1,
+			"GET %s%s HTTP/1.1\r\n"
+			"Host: %s:%d\r\n"
+			"User-Agent: %s\r\n"
+			"Accept-Encoding: gzip, deflate\r\n"
+			"Accept: */*\r\n\r\n",
+			file->server->path, path_suffix,
+			file->server->host, file->server->port,
+			useragent);
+		}
 
 	Q_strncpy (file->query_backup, file->buf, sizeof (file->query_backup));
 	file->bytes_sent = 0;
 	file->header_size = 0;
-	file->pfn_process = HTTP_FileSendRequest;
+
+	// [FWGS, 01.07.26]
+	/*file->pfn_process = HTTP_FileSendRequest;*/
+	if (file->server->secure)
+		{
+		file->tls = HTTP_TlsNew (file->socket, file->server->host);
+		if (!file->tls)
+			{
+			Con_Printf (S_ERROR "TLS context allocation failed for %s\n", file->server->host);
+			HTTP_FreeFile (file, true);
+			return 0;
+			}
+
+		file->pfn_process = HTTP_FileTlsHandshake;
+		}
+	else
+		{
+		file->pfn_process = HTTP_FileSendRequest;
+		}
+
 	return 1;
 	}
 
+// [FWGS, 01.07.26]
+static int HTTP_FileTlsHandshake (httpfile_t *file)
+	{
+	int ret = HTTP_TlsHandshake (file->tls);
+	if (ret == HTTP_TLS_OK)
+		{
+		file->blocktime = 0;
+		file->pfn_process = HTTP_FileSendRequest;
+		return 1;
+		}
+
+	if (ret == HTTP_TLS_WANT)
+		{
+		file->blocktime += host.frametime;
+		file->blockreason = "TLS handshake";
+		return 0;
+		}
+
+	HTTP_FreeFile (file, true);
+	return 0;
+	}
+
+// [FWGS, 01.07.26]
 static int HTTP_FileSendRequest (httpfile_t *file)
 	{
-	int res = -1;
-	res = send (file->socket, file->buf + file->bytes_sent, file->query_length - file->bytes_sent, 0);
+	/*int res = -1;*/
+	int	res;
+	/*res = send (file->socket, file->buf + file->bytes_sent, file->query_length - file->bytes_sent, 0);*/
+	if (file->tls)
+		res = HTTP_TlsSend (file->tls, file->buf + file->bytes_sent, file->query_length - file->bytes_sent);
+	else
+		res = send (file->socket, file->buf + file->bytes_sent, file->query_length - file->bytes_sent, 0);
 
 	if (res >= 0)
 		{
@@ -414,14 +568,26 @@ static int HTTP_FileSendRequest (httpfile_t *file)
 			else
 				Con_Reportf ("HTTP: Request sent!\n");
 
-			memset (file->buf, 0, sizeof (file->buf));
+			/*memset (file->buf, 0, sizeof (file->buf));*/
+			memset (file->buf, 0, MAX_HTTP_BUFFER_SIZE + 1);
 			file->pfn_process = HTTP_FileProcessStream;
 			return 1;
 			}
 		}
+	else if (file->tls)
+		{
+		if (res != HTTP_TLS_WANT)
+			{
+			HTTP_FreeFile (file, true);
+			return 0;
+			}
+
+		file->blocktime += host.frametime;
+		file->blockreason = "request send";
+		}
 	else
 		{
-		int err = WSAGetLastError ();
+		int	err = WSAGetLastError ();
 		if ((err != WSAEWOULDBLOCK) && (err != WSAENOTCONN))
 			{
 			Con_Printf (S_ERROR "failed to send request: %s\n", NET_ErrorString ());
@@ -436,9 +602,10 @@ static int HTTP_FileSendRequest (httpfile_t *file)
 	return 0;
 	}
 
+// [FWGS, 01.07.26]
 static int HTTP_FileDecompress (httpfile_t *file)
 	{
-	fs_offset_t len;
+	/*fs_offset_t len;*/
 #pragma pack( push, 1 )
 	struct
 		{
@@ -460,15 +627,17 @@ static int HTTP_FileDecompress (httpfile_t *file)
 		GZFLG_FCOMMENT =	BIT (4)
 		};
 
-	z_stream decompress_stream;
+	/*z_stream decompress_stream;*/
 	char name[MAX_SYSPATH];
-	fs_offset_t deflate_pos;
+	/*fs_offset_t deflate_pos;
 	size_t compressed_len, decompressed_len;
 	byte *data_in, *data_out;
-	int zlib_result;
+	int zlib_result;*/
 
 	g_fsapi.Seek (file->file, 0, SEEK_END);
-	len = g_fsapi.Tell (file->file);
+	
+	/*len = g_fsapi.Tell (file->file);*/
+	fs_offset_t	len = g_fsapi.Tell (file->file);
 
 	g_fsapi.Seek (file->file, 0, SEEK_SET);
 	if (g_fsapi.Read (file->file, &hdr, sizeof (hdr)) != sizeof (hdr))
@@ -485,17 +654,19 @@ static int HTTP_FileDecompress (httpfile_t *file)
 
 	if (FBitSet (hdr.flags, GZFLG_FEXTRA))
 		{
-		byte res[2];
-		uint16_t xlen;
+		byte	res[2];
+		/*uint16_t xlen;*/
 
 		g_fsapi.Read (file->file, res, sizeof (res));
-		xlen = res[0] | res[1] << 16;
+		
+		/*xlen = res[0] | res[1] << 16;*/
+		uint16_t	xlen = res[0] | res[1] << 16;
 		g_fsapi.Seek (file->file, xlen, SEEK_CUR);
 		}
 
 	if (FBitSet (hdr.flags, GZFLG_FNAME))
 		{
-		byte ch;
+		byte	ch;
 		do
 			{
 			g_fsapi.Read (file->file, &ch, sizeof (ch));
@@ -504,7 +675,7 @@ static int HTTP_FileDecompress (httpfile_t *file)
 
 	if (FBitSet (hdr.flags, GZFLG_FCOMMENT))
 		{
-		byte ch;
+		byte	ch;
 		do
 			{
 			g_fsapi.Read (file->file, &ch, sizeof (ch));
@@ -514,8 +685,11 @@ static int HTTP_FileDecompress (httpfile_t *file)
 	if (FBitSet (hdr.flags, GZFLG_FHCRC))
 		g_fsapi.Seek (file->file, 2, SEEK_CUR);
 
-	deflate_pos = g_fsapi.Tell (file->file);
-	compressed_len = len - deflate_pos;
+	/*deflate_pos = g_fsapi.Tell (file->file);
+	compressed_len = len - deflate_pos;*/
+	fs_offset_t	deflate_pos = g_fsapi.Tell (file->file);
+	size_t	compressed_len = len - deflate_pos;
+	size_t	decompressed_len;
 
 	{
 	byte data[4];
@@ -528,18 +702,36 @@ static int HTTP_FileDecompress (httpfile_t *file)
 	decompressed_len = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
 	}
 
-	data_in = Mem_Malloc (host.mempool, compressed_len + 1);
+	/*data_in = Mem_Malloc (host.mempool, compressed_len + 1);
 	data_out = Mem_Malloc (host.mempool, decompressed_len + 1);
 
-	// [FWGS, 01.05.26]
-	/*Q_snprintf (name, sizeof (name), DEFAULT_DOWNLOADED_DIRECTORY "%s", file->path);*/
+	// [FWGS, 01.05.26]*/
+	if ((decompressed_len == 0) || (decompressed_len > MAX_HTTP_DECOMPRESSED_SIZE))
+		{
+		Con_Printf (S_ERROR "%s: refusing to decompress %s, claimed size out of range (%zu)\n", __func__, file->path, decompressed_len);
+		HTTP_FreeFile (file, true);
+		return 0;
+		}
+
+	byte	*data_in = Mem_Malloc (http_mempool, compressed_len + 1);
+	byte	*data_out = Mem_Malloc (http_mempool, decompressed_len + 1);
+
 	HTTP_DownloadPath (name, sizeof (name), file->path, false);
 
-	memset (&decompress_stream, 0, sizeof (decompress_stream));
+	/*memset (&decompress_stream, 0, sizeof (decompress_stream));
 	decompress_stream.total_in = decompress_stream.avail_in = compressed_len;
 	decompress_stream.next_in = data_in;
 	decompress_stream.total_out = decompress_stream.avail_out = decompressed_len;
-	decompress_stream.next_out = data_out;
+	decompress_stream.next_out = data_out;*/
+	z_stream	decompress_stream =
+		{
+		.total_in = compressed_len,
+		.avail_in = compressed_len,
+		.next_in = data_in,
+		.total_out = decompressed_len,
+		.avail_out = decompressed_len,
+		.next_out = data_out,
+		};
 
 	g_fsapi.Seek (file->file, deflate_pos, SEEK_SET);
 	g_fsapi.Read (file->file, data_in, compressed_len);
@@ -553,14 +745,15 @@ static int HTTP_FileDecompress (httpfile_t *file)
 		return 0;
 		}
 
-	zlib_result = inflate (&decompress_stream, Z_NO_FLUSH);
+	/*zlib_result = inflate (&decompress_stream, Z_NO_FLUSH);*/
+	int	zlib_result = inflate (&decompress_stream, Z_NO_FLUSH);
 	inflateEnd (&decompress_stream);
 
-	// [FWGS, 01.05.26]
 	if ((zlib_result == Z_OK) || (zlib_result == Z_STREAM_END))
 		{
 		FS_AllowDirectPaths (true);
-		g_fsapi.WriteFile (name, data_out, decompressed_len);
+		/*g_fsapi.WriteFile (name, data_out, decompressed_len);*/
+		g_fsapi.WriteFile (name, data_out, decompress_stream.total_out);
 		FS_AllowDirectPaths (false);
 
 		HTTP_FreeFile (file, false);
@@ -597,23 +790,25 @@ void HTTP_ClearCustomServers (void)
 
 /***
 ===================
-HTTP_AutoClean
+HTTP_AutoClean [FWGS, 01.07.26]
 
 remove files with HTTP_FREE state from list
 ===================
 ***/
 static void HTTP_AutoClean (void)
 	{
-	char buf[1024];
-	httpfile_t *cur, **prev = &http.first_file;
-	sizebuf_t msg;
+	char	buf[1024];
+	/*httpfile_t *cur, **prev = &http.first_file;*/
+	httpfile_t	**prev = &http.first_file;
+	sizebuf_t	msg;
 
 	MSG_Init (&msg, "DlFile", buf, sizeof (buf));
 
 	// clean all files marked to free
 	while (1)
 		{
-		cur = *prev;
+		/*cur = *prev;*/
+		httpfile_t	*cur = *prev;
 		if (!cur)
 			break;
 
@@ -622,6 +817,10 @@ static void HTTP_AutoClean (void)
 			prev = &cur->next;
 			continue;
 			}
+
+		// unlink before running callbacks (in-memory cb may queue another GET,
+		// which prepends to first_file)
+		*prev = cur->next;
 
 #if !XASH_DEDICATED
 		if (cur->process)
@@ -643,7 +842,7 @@ static void HTTP_AutoClean (void)
 				Con_Printf ("successfully downloaded %s!\n", cur->path);
 			}
 
-		*prev = cur->next;
+		/**prev = cur->next;*/
 		Mem_Free (cur);
 		}
 
@@ -657,24 +856,26 @@ static void HTTP_AutoClean (void)
 #endif
 	}
 
+// [FWGS, 01.07.26]
 static int HTTP_FileSaveReceivedData (httpfile_t *file, int pos, int length)
 	{
 	while (length > 0)
 		{
-		int oldpos = pos;
-		int ret;
-		int len_to_write;
+		int	oldpos = pos;
+		/*int ret;*/
+		int	len_to_write;
 
 		if (file->chunked && (file->chunksize <= 0))
 			{
 			char *begin = &file->buf[pos];
 
-			if ((begin[0] == '\r') && (begin[1] == '\r'))
+			/*if ((begin[0] == '\r') && (begin[1] == '\r'))*/
+			if ((begin[0] == '\r') && (begin[1] == '\n'))
 				begin += 2;
 
 			file->chunksize = Q_atoi_hex (1, begin);
 
-			// [FWGS, 01.07.25] actually an end, not Q_atoi being stupid
+			// actually an end, not Q_atoi being stupid
 			if (!file->chunksize && (begin[0] == '0'))
 				{
 				if (file->compressed)
@@ -683,9 +884,14 @@ static int HTTP_FileSaveReceivedData (httpfile_t *file, int pos, int length)
 					file->pfn_process = HTTP_FileDecompress;
 					return 1;
 					}
+				else if (file->to_memory)
+					{
+					HTTP_FreeFile (file, false);
+					return 1;
+					}
 				else
 					{
-					fs_offset_t filelen = FS_FileLength (file->file);
+					fs_offset_t	filelen = FS_FileLength (file->file);
 
 					if (filelen != file->reported_size)
 						{
@@ -728,15 +934,51 @@ static int HTTP_FileSaveReceivedData (httpfile_t *file, int pos, int length)
 
 		if (file->chunked)
 			len_to_write = Q_min (length, file->chunksize);
-		else len_to_write = length;
+		else
+			len_to_write = length;
 
-		ret = FS_Write (file->file, &file->buf[pos], len_to_write);
-		if (ret != len_to_write)
+		/*ret = FS_Write (file->file, &file->buf[pos], len_to_write);
+		if (ret != len_to_write)*/
+		int	ret;
+
+		if (file->to_memory)
 			{
-			// close it and go to next
+			/*// close it and go to next
 			Con_Printf (S_ERROR "write failed for %s!\n", file->path);
 			HTTP_FreeFile (file, true);
-			return 0;
+			return 0;*/
+			if (file->mem_size + len_to_write > MAX_HTTP_MEMORY_SIZE)
+				{
+				Con_Printf (S_ERROR "%s: response too large (>%d bytes)\n", file->url, MAX_HTTP_MEMORY_SIZE);
+				HTTP_FreeFile (file, true);
+				return 0;
+				}
+
+			if (file->mem_size + len_to_write > file->mem_cap)
+				{
+				size_t newcap = file->mem_cap ? file->mem_cap * 2 : 4096;
+
+				while (newcap < file->mem_size + len_to_write)
+					newcap *= 2;
+
+				file->mem_data = Mem_Realloc (http_mempool, file->mem_data, newcap);
+				file->mem_cap = newcap;
+				}
+
+			memcpy (file->mem_data + file->mem_size, &file->buf[pos], len_to_write);
+			file->mem_size += len_to_write;
+			ret = len_to_write;
+			}
+		else
+			{
+			ret = FS_Write (file->file, &file->buf[pos], len_to_write);
+			if (ret != len_to_write)
+				{
+				// close it and go to next
+				Con_Printf (S_ERROR "write failed for %s!\n", file->path);
+				HTTP_FreeFile (file, true);
+				return 0;
+				}
 			}
 
 		length -= len_to_write;
@@ -752,23 +994,35 @@ static int HTTP_FileSaveReceivedData (httpfile_t *file, int pos, int length)
 
 /***
 ===================
-HTTP_ProcessStream
+HTTP_ProcessStream [FWGS, 01.07.26]
 
 process incoming data
 ===================
 ***/
 static int HTTP_FileProcessStream (httpfile_t *curfile)
 	{
-	char	buf[sizeof (curfile->buf)];
+	/*char	buf[sizeof (curfile->buf)];*/
+	char	buf[MAX_HTTP_BUFFER_SIZE + 1];
 	char	*begin = 0;
 	int		res;
 
 	// if we got there, we are receiving data
-	while ((res = recv (curfile->socket, buf, sizeof (buf) - curfile->header_size - 1, 0)) > 0)
+	/*while ((res = recv (curfile->socket, buf, sizeof (buf) - curfile->header_size - 1, 0)) > 0)*/
+	while (1)
 		{
+		int rlen = sizeof (buf) - curfile->header_size - 1;
+		
+		if (curfile->tls)
+			res = HTTP_TlsRecv (curfile->tls, buf, rlen);
+		else
+			res = recv (curfile->socket, buf, rlen, 0);
+
+		if (res <= 0)
+			break;
+
 		curfile->blocktime = 0;
 
-		if (!curfile->got_response)	// Response still not received
+		if (!curfile->got_response)	// response still not received
 			{
 			if (curfile->header_size + res + 1 > sizeof (buf))
 				{
@@ -781,36 +1035,68 @@ static int HTTP_FileProcessStream (httpfile_t *curfile)
 			curfile->buf[curfile->header_size + res] = 0;
 			begin = Q_strstr (curfile->buf, "\r\n\r\n");
 
-			if (begin)	// Got full header
+			if (begin)	// got full header
 				{
-				char *content_length;
-				char *content_encoding;
-				char *transfer_encoding;
+				char	*content_length;
+				/*char *content_encoding;*/
+				char	*transfer_encoding;
 
 				*begin = 0;	// cut string to print out response
 
-				if (!Q_strstr (curfile->buf, "200 OK"))
+				/*if (!Q_strstr (curfile->buf, "200 OK"))
 					{
-					char	*p;
-					int		num = -1;
+					char	*p;*/
+				int	num = -1;
+				/*int		num = -1;*/
+				// don't assume the response is valid HTTP
+				if (!Q_strncmp (curfile->buf, "HTTP/1.", 7))
+					{
+					char	tmp[4];
 
-					p = Q_strchr (curfile->buf, '\r');
+					/*p = Q_strchr (curfile->buf, '\r');
 					if (!p) p = Q_strchr (curfile->buf, '\n');
-					if (p) *p = 0;
+					if (p) *p = 0;*/
+					Q_strncpy (tmp, curfile->buf + 9, sizeof (tmp));
+					if (Q_isdigit (tmp))
+						num = Q_atoi (tmp);
+					}
 
-					// extract the error code, don't assume the response is valid HTTP
-					if (!Q_strncmp (curfile->buf, "HTTP/1.", 7))
+				/*// extract the error code, don't assume the response is valid HTTP
+				if (!Q_strncmp (curfile->buf, "HTTP/1.", 7))*/
+				if (num != 200)
+					{
+					if ((num == 301) || (num == 302) || (num == 303) || (num == 307) || (num == 308))
 						{
-						char tmp[4];
+						/*char tmp[4];*/
+						char	*loc = Q_stristr (curfile->buf, "Location:");
+						if (loc)
+							{
+							loc += sizeof ("Location:") - 1;
+							while ((*loc == ' ') || (*loc == '\t'))
+								loc++;
 
-						Q_strncpy (tmp, curfile->buf + 9, sizeof (tmp));
+							char	*eol = Q_strchr (loc, '\r');
+							if (!eol)
+								eol = Q_strchr (loc, '\n');
+							if (eol)
+								*eol = 0;
+
+							/*Q_strncpy (tmp, curfile->buf + 9, sizeof (tmp));
 						if (Q_isdigit (tmp))
-							num = Q_atoi (tmp);
+							num = Q_atoi (tmp);*/
+							if (HTTP_FileRedirect (curfile, loc))
+								return 1;
+							}
 						}
+
+					char	*p = Q_strchr (curfile->buf, '\r');
+					if (!p)
+						p = Q_strchr (curfile->buf, '\n');
+					if (p)
+						*p = 0;
 
 					switch (num)
 						{
-						// TODO: handle redirects
 						case 404:
 							Con_Printf (S_ERROR "%s: file not found\n", curfile->path);
 							break;
@@ -826,12 +1112,23 @@ static int HTTP_FileProcessStream (httpfile_t *curfile)
 					return 0;
 					}
 
-				content_encoding = Q_stristr (curfile->buf, "Content-Encoding");
+				/*content_encoding = Q_stristr (curfile->buf, "Content-Encoding");*/
+				char	*content_encoding = Q_stristr (curfile->buf, "Content-Encoding");
 				if (content_encoding)	// fetch compressed status
 					{
 					content_encoding += sizeof ("Content-Encoding: ") - 1;
 
-					if (!Q_strnicmp (content_encoding, "gzip", 4) && ((content_encoding[4] == '\0') ||
+					/*if (!Q_strnicmp (content_encoding, "gzip", 4) && ((content_encoding[4] == '\0') ||
+						(content_encoding[4] == '\n') || (content_encoding[4] == '\r')))*/
+					if (curfile->to_memory)
+						{
+						// in-memory mode never advertises gzip and has no decompressor
+						Con_Printf (S_ERROR "%s: server sent Content-Encoding for an in-memory request\n",
+							curfile->url);
+						HTTP_FreeFile (curfile, true);
+						return 0;
+						}
+					else if (!Q_strnicmp (content_encoding, "gzip", 4) && ((content_encoding[4] == '\0') ||
 						(content_encoding[4] == '\n') || (content_encoding[4] == '\r')))
 						{
 						curfile->compressed = true;
@@ -856,13 +1153,16 @@ static int HTTP_FileProcessStream (httpfile_t *curfile)
 					}
 				else if ((content_length = Q_stristr (curfile->buf, "Content-Length: ")))
 					{
-					int size;
+					/*int size;*/
 
 					content_length += sizeof ("Content-Length: ") - 1;
-					size = Q_atoi (content_length);
 
-					Con_Reportf ("HTTP: Got 200 OK! File size is %d%s\n", curfile->size, curfile->compressed ?
-						", compressed" : "");
+					/*size = Q_atoi (content_length);*/
+					int	size = Q_atoi (content_length);
+
+					/*Con_Reportf ("HTTP: Got 200 OK! File size is %d%s\n", curfile->size, curfile->compressed ?
+						", compressed" : "");*/
+					Con_Reportf ("HTTP: Got 200 OK! File size is %d%s\n", size, curfile->compressed ? ", compressed" : "");
 
 					if (!curfile->compressed)
 						{
@@ -876,7 +1176,7 @@ static int HTTP_FileProcessStream (httpfile_t *curfile)
 
 				if ((curfile->size == -1) && !curfile->chunked)
 					{
-					// Usually fastdl's reports file size if link is correct
+					// usually fastdl's reports file size if link is correct
 					Con_Printf (S_ERROR "file size is unknown, refusing download!\n");
 					HTTP_FreeFile (curfile, true);
 					return 0;
@@ -886,8 +1186,25 @@ static int HTTP_FileProcessStream (httpfile_t *curfile)
 					Con_Reportf ("Response headers: %s\n", curfile->buf);
 
 				curfile->got_response = true;	// got response, let's start download
-				begin += 4;
+				if (!curfile->to_memory && !curfile->file)
+					{
+					char	name[MAX_SYSPATH];
 
+					HTTP_DownloadPath (name, sizeof (name), curfile->path, true);
+
+					FS_AllowDirectPaths (true);
+					curfile->file = FS_Open (name, "wb+", true);
+					FS_AllowDirectPaths (false);
+
+					if (!curfile->file)
+						{
+						Con_Printf (S_ERROR "HTTP: cannot open %s!\n", name);
+						HTTP_FreeFile (curfile, true);
+						return 0;
+						}
+					}
+
+				begin += 4;
 				if (res - (begin - curfile->buf) > 0)
 					{
 					if (!HTTP_FileSaveReceivedData (curfile, begin - curfile->buf, res - (begin - curfile->buf)))
@@ -910,7 +1227,7 @@ static int HTTP_FileProcessStream (httpfile_t *curfile)
 			// as after it will run in same frame
 			if (curfile->checktime > 5)
 				{
-				float speed = (float)curfile->lastchecksize / (5.0f * 1024);
+				float	speed = (float)curfile->lastchecksize / (5.0f * 1024);
 
 				curfile->checktime = 0;
 				Con_Reportf ("download speed %f KB/s\n", speed);
@@ -924,7 +1241,6 @@ static int HTTP_FileProcessStream (httpfile_t *curfile)
 		http.progress += (float)curfile->downloaded / curfile->size;
 		http.progress_count++;
 
-		// [FWGS, 01.04.25]
 		if (curfile->downloaded >= curfile->size)
 			{
 			// chunked files are finalized in FileSaveReceivedData
@@ -944,19 +1260,39 @@ static int HTTP_FileProcessStream (httpfile_t *curfile)
 
 	if (res == 0)
 		{
-		curfile->blocktime += host.frametime;
-		curfile->blockreason = "waiting for data";
+		/*curfile->blocktime += host.frametime;
+		curfile->blockreason = "waiting for data";*/
+		Con_Printf (S_ERROR "connection closed prematurely for %s\n", curfile->to_memory ?
+			curfile->url : curfile->path);
+		HTTP_FreeFile (curfile, true);
+		return 0;
 		}
 
 	if (res < 0)
 		{
-		int err = WSAGetLastError ();
+		/*int err = WSAGetLastError ();
 
-		if ((err != WSAEWOULDBLOCK) && (err != WSAEINPROGRESS))
+		if ((err != WSAEWOULDBLOCK) && (err != WSAEINPROGRESS))*/
+		if (curfile->tls)
 			{
-			Con_Reportf ("problem downloading %s: %s\n", curfile->path, NET_ErrorString ());
+			/*Con_Reportf ("problem downloading %s: %s\n", curfile->path, NET_ErrorString ());
 			HTTP_FreeFile (curfile, true);
-			return 0;
+			return 0;*/
+			if (res != HTTP_TLS_WANT)
+				{
+				HTTP_FreeFile (curfile, true);
+				return 0;
+				}
+			}
+		else
+			{
+			int	err = WSAGetLastError ();
+			if ((err != WSAEWOULDBLOCK) && (err != WSAEINPROGRESS))
+				{
+				Con_Reportf ("problem downloading %s: %s\n", curfile->path, NET_ErrorString ());
+				HTTP_FreeFile (curfile, true);
+				return 0;
+				}
 			}
 
 		curfile->blocktime += host.frametime;
@@ -974,7 +1310,7 @@ static int HTTP_FileProcessStream (httpfile_t *curfile)
 
 /***
 ==============
-HTTP_Run
+HTTP_Run [FWGS, 01.07.26]
 
 Download next file block of each active file
 Call every frame
@@ -982,22 +1318,25 @@ Call every frame
 ***/
 void HTTP_Run (void)
 	{
-	httpfile_t *curfile;
+	/*httpfile_t *curfile;*/
 
 	http.resolving = false;
 	http.progress_count = 0;
 	http.progress = 0;
 
-	for (curfile = http.first_file; curfile; curfile = curfile->next)
+	/*for (curfile = http.first_file; curfile; curfile = curfile->next)*/
+	for (httpfile_t *curfile = http.first_file; curfile; curfile = curfile->next)
 		{
-		int move_next = 1;
+		int	move_next = 1;
 
 		while (move_next > 0)
 			move_next = curfile->pfn_process (curfile);
 
 		if (curfile->blocktime > http_timeout.value)
 			{
-			Con_Printf (S_ERROR "timeout on %s (file: %s)\n", curfile->blockreason, curfile->path);
+			/*Con_Printf (S_ERROR "timeout on %s (file: %s)\n", curfile->blockreason, curfile->path);*/
+			Con_Printf (S_ERROR "timeout on %s (file: %s)\n", curfile->blockreason,
+				curfile->to_memory ? curfile->url : curfile->path);
 			HTTP_FreeFile (curfile, true);
 			}
 		}
@@ -1011,14 +1350,25 @@ void HTTP_Run (void)
 
 /***
 ===================
-HTTP_AddDownload
+HTTP_AddDownload [FWGS, 01.07.26]
 
 Add new download to end of queue
 ===================
 ***/
 void HTTP_AddDownload (const char *path, int size, qboolean process, resource_t *res)
 	{
-	httpfile_t *httpfile;
+	/*httpfile_t *httpfile;*/
+	if (COM_CheckNastyPath (path))
+		{
+		Con_Printf (S_ERROR "%s: refused to download %s, nasty path\n", __func__, path);
+		return;
+		}
+
+	if (Q_strpbrk (path, "\r\n"))
+		{
+		Con_Printf (S_ERROR "%s: refused to download, path contains CRLF\n", __func__);
+		return;
+		}
 
 	if (!http.first_server)
 		{
@@ -1026,11 +1376,11 @@ void HTTP_AddDownload (const char *path, int size, qboolean process, resource_t 
 		return;
 		}
 
-	httpfile = Z_Calloc (sizeof (*httpfile));
+	/*httpfile = Z_Calloc (sizeof (*httpfile));*/
+	httpfile_t	*httpfile = Mem_Calloc (http_mempool, sizeof (*httpfile));
 
 	Con_Reportf ("File %s queued to download\n", path);
 
-	// [FWGS, 01.07.25]
 	httpfile->resource = res;
 	httpfile->size = size;
 	httpfile->reported_size = size;
@@ -1043,6 +1393,49 @@ void HTTP_AddDownload (const char *path, int size, qboolean process, resource_t 
 
 	httpfile->next = http.first_file;
 	http.first_file = httpfile;
+	}
+
+/***
+===================
+HTTP_GetToMemory [FWGS, 01.07.26]
+
+One-shot async GET. The full response body is collected into a heap buffer
+and handed to the callback when the request completes (success or failure)
+===================
+***/
+qboolean HTTP_GetToMemory (const char *url, http_memory_cb_t cb, void *userdata)
+	{
+	if (Q_strpbrk (url, "\r\n"))
+		{
+		Con_Printf (S_ERROR "%s: refused, URL contains CRLF\n", __func__);
+		return false;
+		}
+
+	httpserver_t	*server = HTTP_ParseURL (url, true);
+	if (!server)
+		{
+		Con_Printf (S_ERROR "%s: \"%s\" is not a valid URL\n", __func__, url);
+		return false;
+		}
+
+	httpfile_t *httpfile = Mem_Calloc (http_mempool, sizeof (*httpfile));
+
+	httpfile->size = -1;
+	httpfile->reported_size = -1;
+	httpfile->socket = -1;
+	httpfile->server = server;
+	httpfile->own_server = true;
+	httpfile->to_memory = true;
+	httpfile->mem_cb = cb;
+	httpfile->mem_user = userdata;
+	httpfile->pfn_process = HTTP_FileQueue;
+	Q_strncpy (httpfile->url, url, sizeof (httpfile->url));
+	// file->path is empty; the full path lives in server->path
+
+	httpfile->next = http.first_file;
+	http.first_file = httpfile;
+
+	return true;
 	}
 
 /***
@@ -1065,37 +1458,60 @@ static void HTTP_Download_f (void)
 
 /***
 ==============
-HTTP_ParseURL [FWGS, 01.03.26]
+HTTP_ParseURL [FWGS, 01.07.26]
 ==============
 ***/
-static httpserver_t *HTTP_ParseURL (const char *url_)
+/*static httpserver_t *HTTP_ParseURL (const char *url_)*/
+static httpserver_t *HTTP_ParseURL (const char *url_, qboolean full_path)
 	{
-	httpserver_t	*server;
-	int		i;
-	const char		*url = NULL;
+	/*httpserver_t	*server;
+	int		i;*/
+	qboolean	secure = false;
+	const char	*url = NULL;
 
-	url = Q_strstr (url_, "http://");
+	/*url = Q_strstr (url_, "http://");
 	if (url)
 		{
 		url += 7;
 		}
-	else
+	else*/
+	if (!Q_strnicmp (url_, "https://", 8))
 		{
-		url = Q_strstr (url_, "https://");
+		url = url_ + 8;
+		secure = true;
+		}
+	else if (!Q_strnicmp (url_, "http://", 7))
+		{
+		/*url = Q_strstr (url_, "https://");
 		if (url)
-			url += 8;
+			url += 8;*/
+		url = url_ + 7;
 		}
 
 	if (!url)
 		return NULL;
 
-	server = Z_Calloc (sizeof (httpserver_t));
-	i = 0;
+	/*server = Z_Calloc (sizeof (httpserver_t));
+	i = 0;*/
+	if (secure && !HTTP_TlsAvailable ())
+		{
+		Con_Printf (S_ERROR "HTTPS not available, can't fetch %s\n", url_);
+		return NULL;
+		}
+
+	httpserver_t	*server = Mem_Calloc (http_mempool, sizeof (httpserver_t));
+	int		i = 0;
+
+	server->secure = secure;
 
 	while (*url && (*url != ':') && (*url != '/') && (*url != '\r') && (*url != '\n'))
 		{
-		if (i > sizeof (server->host))
+		/*if (i > sizeof (server->host))*/
+		if (i >= sizeof (server->host) - 1)
+			{
+			Mem_Free (server);
 			return NULL;
+			}
 
 		server->host[i++] = *url++;
 		}
@@ -1111,36 +1527,136 @@ static httpserver_t *HTTP_ParseURL (const char *url_)
 		}
 	else
 		{
-		server->port = 80;
+		/*server->port = 80;*/
+		server->port = secure ? 443 : 80;
 		}
 
 	i = 0;
 
+	// leave room for the optional trailing '/' and the '\0'
 	while (*url && (*url != '\r') && (*url != '\n'))
 		{
-		if (i > sizeof (server->path) - 1)
+		/*if (i > sizeof (server->path) - 1)*/
+		if (i >= sizeof (server->path) - 2)
+			{
+			Mem_Free (server);
 			return NULL;
+			}
 
 		server->path[i++] = *url++;
 		}
 
-	if ((i == 0) || (server->path[i - 1] != '/'))
+	/*if ((i == 0) || (server->path[i - 1] != '/'))*/
+	// fastdl base URLs are appended to per-file paths and must end with a slash;
+	// full URLs (one-shot GETs) are used as-is
+	if (!full_path && ((i == 0) || (server->path[i - 1] != '/')))
 		server->path[i++] = '/';
+
 	server->path[i] = 0;
 	server->next = NULL;
 
 	return server;
 	}
 
+// [FWGS, 01.07.26]
+static qboolean HTTP_FileRedirect (httpfile_t *file, const char *location)
+	{
+	if (!location || !*location)
+		return false;
+
+	if (file->redirects_followed >= http_max_redirects.value)
+		{
+		Con_Printf (S_ERROR "too many redirects for %s\n", file->to_memory ? file->url : file->path);
+		return false;
+		}
+
+	// silent http -> https upgrade is OK; reject downgrade
+	qboolean	target_secure = !Q_strnicmp (location, "https://", 8);
+	qboolean	target_plain = !Q_strnicmp (location, "http://", 7);
+
+	if (!target_secure && !target_plain)
+		{
+		Con_Printf (S_ERROR "redirect to non-absolute URL not supported: %s\n", location);
+		return false;
+		}
+
+	if (file->server->secure && !target_secure)
+		{
+		Con_Printf (S_ERROR "refusing https -> http redirect: %s\n", location);
+		return false;
+		}
+
+	httpserver_t	*newserver = HTTP_ParseURL (location, true);
+	if (!newserver)
+		{
+		Con_Printf (S_ERROR "redirect target %s is not a valid URL\n", location);
+		return false;
+		}
+
+	Con_Reportf ("HTTP: redirect %s -> %s\n", file->to_memory ? file->url : file->path, location);
+
+	// tear down current connection but keep file/mem buffers
+	if (file->tls)
+		{
+		HTTP_TlsFree (file->tls);
+		file->tls = NULL;
+		}
+
+	if (file->socket != -1)
+		{
+		closesocket (file->socket);
+		http.active_count--;
+		file->socket = -1;
+		}
+
+	if (file->own_server && file->server)
+		Mem_Free (file->server);
+	file->server = newserver;
+	file->own_server = true;
+
+	// truncate the partial download; we'll restart from the new server
+	if (file->file)
+		{
+		g_fsapi.Seek (file->file, 0, SEEK_SET);
+		}
+
+	file->mem_size = 0;
+	file->downloaded = 0;
+	file->lastchecksize = 0;
+	file->header_size = 0;
+	file->bytes_sent = 0;
+	file->got_response = false;
+	file->compressed = false;
+	file->chunked = false;
+	file->chunksize = 0;
+	file->size = file->reported_size;
+
+	file->url_in_server = true;
+	if (file->to_memory)
+		Q_strncpy (file->url, location, sizeof (file->url));
+
+	file->redirects_followed++;
+	file->blocktime = 0;
+	file->pfn_process = HTTP_FileResolveNS;
+
+	return true;
+	}
+
 /***
 =======================
-HTTP_AddCustomServer
+HTTP_AddCustomServer [FWGS, 01.07.26]
 =======================
 ***/
 void HTTP_AddCustomServer (const char *url)
 	{
-	httpserver_t *server = HTTP_ParseURL (url);
+	/*httpserver_t	*server = HTTP_ParseURL (url);*/
+	if (Q_strpbrk (url, "\r\n"))
+		{
+		Con_Printf (S_ERROR "%s: refused, URL contains CRLF\n", __func__);
+		return;
+		}
 
+	httpserver_t	*server = HTTP_ParseURL (url, false);
 	if (!server)
 		{
 		Con_Printf (S_ERROR "\"%s\" is not valid url!\n", url);
@@ -1179,15 +1695,34 @@ static void HTTP_Clear_f (void)
 	{
 	while (http.first_file)
 		{
-		httpfile_t *file = http.first_file;
+		httpfile_t	*file = http.first_file;
 
 		http.first_file = http.first_file->next;
 
 		if (file->file)
 			FS_Close (file->file);
 
+		// [FWGS, 01.07.26]
+		if (file->tls)
+			HTTP_TlsFree (file->tls);
+
 		if (file->socket != -1)
 			closesocket (file->socket);
+
+		// [FWGS, 01.07.26]
+		if (file->buf)
+			Mem_Free (file->buf);
+
+		// [FWGS, 01.07.26]
+		if (file->to_memory)
+			{
+			if (file->mem_cb)
+				file->mem_cb (file->url, false, NULL, 0, file->mem_user);
+			if (file->mem_data)
+				Mem_Free (file->mem_data);
+			if (file->own_server && file->server)
+				Mem_Free (file->server);
+			}
 
 		Mem_Free (file);
 		}
@@ -1224,30 +1759,33 @@ static void HTTP_Skip_f (void)
 
 /***
 =============
-HTTP_List_f
+HTTP_List_f [FWGS, 01.07.26]
 
 Print all pending downloads to console
 =============
 ***/
 static void HTTP_List_f (void)
 	{
-	int i = 0;
-	httpfile_t *file;
+	int	i = 0;
+	/*httpfile_t *file;*/
 
 	if (!http.first_file)
 		Con_Printf ("no downloads queued\n");
 
-	for (file = http.first_file; file; file = file->next)
+	/*for (file = http.first_file; file; file = file->next)*/
+	for (httpfile_t *file = http.first_file; file; file = file->next)
 		{
 		Con_Printf ("%d. %s (%d of %d)\n", i++, file->path, file->downloaded, file->size);
 
 		if (file->server)
 			{
-			httpserver_t *server;
-			for (server = file->server; server; server = server->next)
+			/*httpserver_t	*server;
+			for (server = file->server; server; server = server->next)*/
+			for (httpserver_t *server = file->server; server; server = server->next)
 				{
-				Con_Printf ("\thttp://%s:%d/%s%s\n", file->server->host, file->server->port,
-					file->server->path, file->path);
+				/*Con_Printf ("\thttp://%s:%d/%s%s\n", file->server->host, file->server->port,*/
+				Con_Printf ("\t%s://%s:%d/%s%s\n", file->server->secure ? "https" : "http",
+					file->server->host, file->server->port, file->server->path, file->path);
 				}
 			}
 		}
@@ -1255,27 +1793,31 @@ static void HTTP_List_f (void)
 
 /***
 ================
-HTTP_ResetProcessState
+HTTP_ResetProcessState [FWGS, 01.07.26]
 
 When connected to new server, all old files should not increase counter
 ================
 ***/
 void HTTP_ResetProcessState (void)
 	{
-	httpfile_t *file;
+	/*httpfile_t	*file;
 
-	for (file = http.first_file; file; file = file->next)
+	for (file = http.first_file; file; file = file->next)*/
+	for (httpfile_t *file = http.first_file; file; file = file->next)
 		file->process = false;
 	}
 
 /***
 =============
-HTTP_Init
+HTTP_Init [FWGS, 01.07.26]
 =============
 ***/
 void HTTP_Init (void)
 	{
 	http.first_file = NULL;
+	http_mempool = Mem_AllocPool ("HTTP");
+
+	HTTP_TlsInit ();
 
 	Cmd_AddRestrictedCommand ("http_download", HTTP_Download_f,
 		"add file to download queue");
@@ -1295,11 +1837,13 @@ void HTTP_Init (void)
 	Cvar_RegisterVariable (&http_timeout);
 	Cvar_RegisterVariable (&http_maxconnections);
 	Cvar_RegisterVariable (&http_show_headers);
+
+	Cvar_RegisterVariable (&http_max_redirects);
 	}
 
 /***
 ====================
-HTTP_Shutdown
+HTTP_Shutdown [FWGS, 01.07.26]
 ====================
 ***/
 void HTTP_Shutdown (void)
@@ -1313,4 +1857,9 @@ void HTTP_Shutdown (void)
 		http.first_server = http.first_server->next;
 		Mem_Free (tmp);
 		}
+
+
+	HTTP_TlsShutdown ();
+
+	Mem_FreePool (&http_mempool);
 	}
