@@ -128,7 +128,7 @@ void CL_AddClientResources (void)
 
 	// check sprites first
 	/*for (i = 0; i < HLARRAYSIZE (cl_default_sprites); i++)*/
-	for (int i = 0; i < ÐÄARRAYSIZE (cl_default_sprites); i++)
+	for (int i = 0; i < HLARRAYSIZE (cl_default_sprites); i++)
 		{
 		if (!FS_FileExists (cl_default_sprites[i], false))
 			CL_AddClientResource (cl_default_sprites[i], t_model);

@@ -225,8 +225,9 @@ const fs_api_t g_api =
 	FS_FindFile_f,
 	};
 
-int EXPORT GetFSAPI (int version, fs_api_t *api, fs_globals_t **globals, fs_interface_t *engfuncs);
-int EXPORT GetFSAPI (int version, fs_api_t *api, fs_globals_t **globals, fs_interface_t *engfuncs)
+int HLEXPORT GetFSAPI (int version, fs_api_t *api, fs_globals_t **globals, fs_interface_t *engfuncs);
+
+int HLEXPORT GetFSAPI (int version, fs_api_t *api, fs_globals_t **globals, fs_interface_t *engfuncs)
 	{
 	if (engfuncs && !FS_InitInterface (version, engfuncs))
 		return 0;

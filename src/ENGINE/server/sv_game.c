@@ -165,19 +165,20 @@ static float SV_AngleMod (float ideal, float current, float speed)
 
 /***
 =============
-SV_SetMinMaxSize
+SV_SetMinMaxSize [FWGS, 01.07.26]
 
 update entity bounds, relink into world
 =============
 ***/
 void SV_SetMinMaxSize (edict_t *e, const float *mins, const float *maxs, qboolean relink)
 	{
-	int	i;
+	/*int	i;*/
 
 	if (!SV_IsValidEdict (e))
 		return;
 
-	for (i = 0; i < 3; i++)
+	/*for (i = 0; i < 3; i++)*/
+	for (int i = 0; i < 3; i++)
 		{
 		if (mins[i] > maxs[i])
 			{
@@ -308,21 +309,21 @@ static void SV_ConvertTrace (TraceResult *dst, trace_t *src)
 
 /***
 =============
-SV_CheckClientVisiblity
+SV_CheckClientVisiblity [FWGS, 01.07.26]
 
 Check visibility through client camera, portal camera, etc
 =============
 ***/
 static qboolean SV_CheckClientVisiblity (sv_client_t *cl, const byte *mask)
 	{
-	int		i, clientnum;
+	/*int		i, clientnum;*/
 	vec3_t	vieworg;
 	mleaf_t	*leaf;
 
 	if (!mask)
 		return true;	// GoldSrc rules
 
-	clientnum = cl - svs.clients;
+	/*clientnum = cl - svs.clients;*/
 
 	// Invasion issues: wrong camera position received in ENGINE_SET_PVS
 	if (cl->pViewEntity)
@@ -330,21 +331,20 @@ static qboolean SV_CheckClientVisiblity (sv_client_t *cl, const byte *mask)
 	else
 		VectorCopy (cl->edict->v.origin, vieworg);
 
-	// [FWGS, 01.02.25]
 	leaf = Mod_PointInLeaf (vieworg, sv.worldmodel->nodes, sv.worldmodel);
 
 	if (CHECKVISBIT (mask, leaf->cluster))
 		return true;	// visible from player view or camera view
 
 	// now check all the portal cameras
-	for (i = 0; i < cl->num_viewents; i++)
+	/*for (i = 0; i < cl->num_viewents; i++)*/
+	for (int i = 0; i < cl->num_viewents; i++)
 		{
-		edict_t *view = cl->viewentity[i];
+		edict_t	*view = cl->viewentity[i];
 
 		if (!SV_IsValidEdict (view))
 			continue;
 
-		// [FWGS, 01.02.25]
 		VectorAdd (view->v.origin, view->v.view_ofs, vieworg);
 		leaf = Mod_PointInLeaf (vieworg, sv.worldmodel->nodes, sv.worldmodel);
 
@@ -501,7 +501,6 @@ static int SV_Multicast (int dest, const vec3_t origin, const edict_t *ent, qboo
 		}
 
 	MSG_Clear (&sv.multicast);
-
 	return numsends;	// just for debug
 	}
 
@@ -573,7 +572,7 @@ void SV_CreateDecal (sizebuf_t *msg, const float *origin, int decalIndex, int en
 
 /***
 =======================
-SV_CreateStaticEntity
+SV_CreateStaticEntity [FWGS, 01.07.26]
 
 NOTE: static entities only accepted when game is loading
 =======================
@@ -582,7 +581,7 @@ qboolean SV_CreateStaticEntity (sizebuf_t *msg, int index)
 	{
 	entity_state_t	nullstate, *baseline;
 	entity_state_t	*state;
-	int		offset;
+	/*int		offset;*/
 
 	if (index >= (MAX_STATIC_ENTITIES - 1))
 		{
@@ -607,13 +606,14 @@ qboolean SV_CreateStaticEntity (sizebuf_t *msg, int index)
 	memset (&nullstate, 0, sizeof (nullstate));
 	baseline = &nullstate;
 
-	// [FWGS, 05.04.26] restore modelindex from modelname (already precached)
+	// restore modelindex from modelname (already precached)
 	state->modelindex = pfnModelIndex (SV_GetString (state->messagenum));
 	state->entityType = ENTITY_NORMAL;	// select delta-encode
 	state->number = 0;
 
-	// [FWGS, 25.12.24] trying to compress with previous delta's
-	offset = SV_FindBestBaseline (index, &baseline, state, NULL, false);
+	// trying to compress with previous delta's
+	/*offset = SV_FindBestBaseline (index, &baseline, state, NULL, false);*/
+	int	offset = SV_FindBestBaseline (index, &baseline, state, NULL, false);
 
 	MSG_BeginServerCmd (msg, svc_spawnstatic);
 	MSG_WriteDeltaEntity (baseline, state, msg, true, DELTA_STATIC, sv.time, offset);
@@ -623,20 +623,21 @@ qboolean SV_CreateStaticEntity (sizebuf_t *msg, int index)
 
 /***
 =================
-SV_RestartStaticEnts
+SV_RestartStaticEnts [FWGS, 01.07.26]
 
 Write all the static ents into demo
 =================
 ***/
 void SV_RestartStaticEnts (void)
 	{
-	int	i;
+	/*int	i;*/
 
 	// remove all the static entities on the client
 	CL_ClearStaticEntities ();
 
 	// resend them again
-	for (i = 0; i < sv.num_static_entities; i++)
+	/*for (i = 0; i < sv.num_static_entities; i++)*/
+	for (int i = 0; i < sv.num_static_entities; i++)
 		SV_CreateStaticEntity (&sv.reliable_datagram, i);
 	}
 
@@ -654,7 +655,7 @@ static void SV_StartMusic (const char *curtrack, const char *looptrack, int posi
 
 /***
 =================
-SV_RestartAmbientSounds [FWGS, 01.12.24]
+SV_RestartAmbientSounds [FWGS, 01.07.26]
 
 Write ambient sounds into demo
 =================
@@ -667,17 +668,19 @@ void SV_RestartAmbientSounds (void)
 
 	soundlist_t	soundInfo[256];
 	string		curtrack, looptrack;
-	int			i, nSounds;
-	int			position;
+	/*int			i, nSounds;*/
+	int		nSounds;
+	int		position;
 
 	if (!SV_Active () || Host_IsDedicated ())
 		return;
 
 	nSounds = S_GetCurrentStaticSounds (soundInfo, 256);
 
-	for (i = 0; i < nSounds; i++)
+	/*for (i = 0; i < nSounds; i++)*/
+	for (int i = 0; i < nSounds; i++)
 		{
-		soundlist_t *si = &soundInfo[i];
+		soundlist_t	*si = &soundInfo[i];
 
 		if (!si->looping || (si->entnum == -1))
 			continue;
@@ -697,7 +700,7 @@ void SV_RestartAmbientSounds (void)
 
 /***
 =================
-SV_RestartDecals [FWGS, 01.12.24]
+SV_RestartDecals [FWGS, 01.07.26]
 
 Write all the decals into demo
 =================
@@ -709,10 +712,11 @@ void SV_RestartDecals (void)
 #if !XASH_DEDICATED
 
 	decallist_t	*list;
-	int			decalIndex;
-	int			modelIndex;
+	/*int			decalIndex;
+	int			modelIndex;*/
 	sizebuf_t	*msg;
-	int			i, numdecals;
+	/*int		i, numdecals;*/
+	int		numdecals;
 
 	if (!SV_Active () || Host_IsDedicated ())
 		return;
@@ -728,16 +732,19 @@ void SV_RestartDecals (void)
 	msg = SV_GetReliableDatagram ();
 
 	// restore decals and write them into network message
-	for (i = 0; i < numdecals; i++)
+	/*for (i = 0; i < numdecals; i++)*/
+	for (int i = 0; i < numdecals; i++)
 		{
-		decallist_t *entry = &list[i];
-		modelIndex = SV_PEntityOfEntIndex (entry->entityIndex, true)->v.modelindex;
+		decallist_t	*entry = &list[i];
+		/*modelIndex = SV_PEntityOfEntIndex (entry->entityIndex, true)->v.modelindex;*/
+		int	modelIndex = SV_PEntityOfEntIndex (entry->entityIndex, true)->v.modelindex;
 
 		// game override
 		if (SV_RestoreCustomDecal (entry, SV_PEntityOfEntIndex (entry->entityIndex, true), false))
 			continue;
 
-		decalIndex = pfnDecalIndex (entry->name);
+		/*decalIndex = pfnDecalIndex (entry->name);*/
+		int	decalIndex = pfnDecalIndex (entry->name);
 
 		// studiodecals will be restored at game-side
 		if (!FBitSet (entry->flags, FDECAL_STUDIO))
@@ -1208,23 +1215,26 @@ edict_t *SV_CreateNamedEntity (edict_t *ent, string_t className)
 
 /***
 ==============
-SV_FreeEdicts
+SV_FreeEdicts [FWGS, 01.07.26]
 
 release all the edicts from server
 ==============
 ***/
 void SV_FreeEdicts (void)
 	{
-	int		i = 0;
+	/*int		i = 0;
 	edict_t	*ent;
 
 	for (i = 0; i < svgame.numEntities; i++)
 		{
-		// [FWGS, 05.04.26]
-		ent = SV_EdictNum (i);
-
+		// [FWGS, 05.04.26]*/
+	for (int i = 0; i < svgame.numEntities; i++)
+		{
+		/*ent = SV_EdictNum (i);*/
+		edict_t	*ent = SV_EdictNum (i);
 		if (ent->free)
 			continue;
+
 		SV_FreeEdict (ent);
 		}
 	}
@@ -1238,7 +1248,7 @@ reliable event is must be delivered always
 ***/
 static void SV_PlaybackReliableEvent (sizebuf_t *msg, word eventindex, float delay, event_args_t *args)
 	{
-	event_args_t nullargs;
+	event_args_t	nullargs;
 
 	memset (&nullargs, 0, sizeof (nullargs));
 	MSG_BeginServerCmd (msg, svc_event_reliable);
@@ -1344,7 +1354,6 @@ static int GAME_EXPORT pfnPrecacheModel (const char *s)
 	// [FWGS, 01.05.26]
 	if (COM_StringEmptyOrNULL (s))
 		{
-		/*Host_Error ("%s: NULL pointer or empty string as model name\n", __func__);*/
 		// GoldSrc does Host_Error here, we are returning world as that's safe and doesn't break existing Xash games
 		Con_Printf (S_WARN "%s: NULL pointer or empty string as model name, returning world...\n", __func__);
 		return 0;
@@ -1369,15 +1378,16 @@ static int GAME_EXPORT pfnPrecacheModel (const char *s)
 
 /***
 =================
-pfnModelIndex
+pfnModelIndex [FWGS, 01.07.26]
 =================
 ***/
 static int GAME_EXPORT pfnModelIndex (const char *m)
 	{
 	char	name[MAX_QPATH];
-	int		i;
+	/*int		i;
 
-	// [FWGS, 01.03.26]
+	// [FWGS, 01.03.26]*/
+
 	if (COM_StringEmptyOrNULL (m))
 		return 0;
 
@@ -1387,7 +1397,8 @@ static int GAME_EXPORT pfnModelIndex (const char *m)
 	Q_strncpy (name, m, sizeof (name));
 	COM_FixSlashes (name);
 
-	for (i = 1; (i < MAX_MODELS) && sv.model_precache[i][0]; i++)
+	/*for (i = 1; (i < MAX_MODELS) && sv.model_precache[i][0]; i++)*/
+	for (int i = 1; (i < MAX_MODELS) && sv.model_precache[i][0]; i++)
 		{
 		if (!Q_stricmp (sv.model_precache[i], name))
 			return i;
@@ -1404,10 +1415,10 @@ pfnModelFrames
 ***/
 static int GAME_EXPORT pfnModelFrames (int modelIndex)
 	{
-	model_t *pmodel = SV_ModelHandle (modelIndex);
-
+	model_t	*pmodel = SV_ModelHandle (modelIndex);
 	if (pmodel != NULL)
 		return pmodel->numframes;
+
 	return 1;
 	}
 
@@ -1432,8 +1443,8 @@ pfnChangeLevel
 static void GAME_EXPORT pfnChangeLevel (const char *level, const char *landmark)
 	{
 	static uint	last_spawncount = 0;
-	char		landname[MAX_QPATH];
-	char		*text;
+	char	landname[MAX_QPATH];
+	char	*text;
 
 	// [FWGS, 01.03.26]
 	if (COM_StringEmptyOrNULL (level) || (sv.state != ss_active))
@@ -1442,6 +1453,7 @@ static void GAME_EXPORT pfnChangeLevel (const char *level, const char *landmark)
 	// make sure we don't issue two changelevels
 	if (svs.spawncount == last_spawncount)
 		return;
+
 	last_spawncount = svs.spawncount;
 	landname[0] = '\0';
 
@@ -1536,24 +1548,27 @@ static void GAME_EXPORT pfnChangePitch (edict_t *ent)
 
 /***
 =========
-SV_FindEntityByString
+SV_FindEntityByString [FWGS, 01.07.26]
 =========
 ***/
 static edict_t *SV_FindEntityByString (edict_t *pStartEdict, const char *pszField, const char *pszValue)
 	{
-	int			i = 0, e = 0;
+	/*int			i = 0, e = 0;*/
+	int		e = 0;
 	const TYPEDESCRIPTION	*desc = NULL;
-	edict_t		*ed;
+	/*edict_t		*ed;
 	const char	*t;
 
-	// [FWGS, 01.03.26]
+	// [FWGS, 01.03.26]*/
+
 	if (COM_StringEmptyOrNULL (pszValue))
 		return svgame.edicts;
 
 	if (pStartEdict)
 		e = NUM_FOR_EDICT (pStartEdict);
 
-	for (i = 0; i < HLARRAYSIZE (gEntvarsDescription); i++)
+	/*for (i = 0; i < HLARRAYSIZE (gEntvarsDescription); i++)*/
+	for (int i = 0; i < HLARRAYSIZE (gEntvarsDescription); i++)
 		{
 		if (!Q_strcmp (pszField, gEntvarsDescription[i].fieldName))
 			{
@@ -1570,8 +1585,10 @@ static edict_t *SV_FindEntityByString (edict_t *pStartEdict, const char *pszFiel
 
 	for (e++; e < svgame.numEntities; e++)
 		{
-		// [FWGS, 05.04.26]
-		ed = SV_EdictNum (e);
+		/*// [FWGS, 05.04.26]
+		ed = SV_EdictNum (e);*/
+		edict_t		*ed = SV_EdictNum (e);
+		const char	*t;
 		if (!SV_IsValidEdict (ed))
 			continue;
 
@@ -1583,7 +1600,6 @@ static edict_t *SV_FindEntityByString (edict_t *pStartEdict, const char *pszFiel
 			case FIELD_STRING:
 			case FIELD_MODELNAME:
 			case FIELD_SOUNDNAME:
-				// [FWGS, 05.04.26]
 				t = SV_GetString (*(string_t *)&((byte *)&ed->v)[desc->fieldOffset]);
 				if (t != NULL && t != svgame.globals->pStringBase)
 					{
@@ -1627,17 +1643,18 @@ edict_t *SV_FindGlobalEntity (string_t classname, string_t globalname)
 
 /***
 =================
-pfnFindEntityInSphere
+pfnFindEntityInSphere [FWGS, 01.07.26]
 
 find the entity in sphere
 =================
 ***/
 static edict_t *pfnFindEntityInSphere (edict_t *pStartEdict, const float *org, float flRadius)
 	{
-	float	distSquared;
+	/*float	distSquared;
 	int		j, e = 0;
 	float	eorg;
-	edict_t	*ent;
+	edict_t	*ent;*/
+	int	e = 0;
 
 	flRadius *= flRadius;
 
@@ -1646,8 +1663,10 @@ static edict_t *pfnFindEntityInSphere (edict_t *pStartEdict, const float *org, f
 
 	for (e++; e < svgame.numEntities; e++)
 		{
-		// [FWGS, 05.04.26]
-		ent = SV_EdictNum (e);
+		/*// [FWGS, 05.04.26]
+		ent = SV_EdictNum (e);*/
+		edict_t	*ent = SV_EdictNum (e);
+		float	distSquared = 0.0f;
 
 		if (!SV_IsValidEdict (ent))
 			continue;
@@ -1656,10 +1675,13 @@ static edict_t *pfnFindEntityInSphere (edict_t *pStartEdict, const float *org, f
 		if ((e <= svs.maxclients) && !SV_ClientFromEdict (ent, true))
 			continue;
 
-		distSquared = 0.0f;
+		/*distSquared = 0.0f;
 
-		for (j = 0; (j < 3) && (distSquared <= flRadius); j++)
+		for (j = 0; (j < 3) && (distSquared <= flRadius); j++)*/
+		for (int j = 0; (j < 3) && (distSquared <= flRadius); j++)
 			{
+			float	eorg;
+
 			if (org[j] < ent->v.absmin[j])
 				eorg = org[j] - ent->v.absmin[j];
 			else if (org[j] > ent->v.absmax[j])
@@ -1679,7 +1701,7 @@ static edict_t *pfnFindEntityInSphere (edict_t *pStartEdict, const float *org, f
 
 /***
 =================
-SV_CheckClientPVS
+SV_CheckClientPVS [FWGS, 01.07.26]
 
 build the new client PVS
 =================
@@ -1689,7 +1711,8 @@ static int SV_CheckClientPVS (int check, qboolean bMergePVS)
 	byte		*pvs;
 	vec3_t		vieworg;
 	sv_client_t	*cl;
-	int			i, j, k;
+	/*int			i, j, k;*/
+	int			i;
 	edict_t		*ent = NULL;
 
 	// cycle to the next one
@@ -1705,7 +1728,6 @@ static int SV_CheckClientPVS (int check, qboolean bMergePVS)
 		if (i == (svs.maxclients + 1))
 			i = 1;
 
-		// [FWGS, 05.04.26]
 		ent = SV_EdictNum (i);
 		if (i == check)
 			break;	// didn't find anything else
@@ -1731,9 +1753,10 @@ static int SV_CheckClientPVS (int check, qboolean bMergePVS)
 		return i;
 
 	// now merge PVS with all the portal cameras
-	for (k = 0; k < cl->num_viewents && bMergePVS; k++)
+	/*for (k = 0; k < cl->num_viewents && bMergePVS; k++)*/
+	for (int k = 0; k < cl->num_viewents && bMergePVS; k++)
 		{
-		edict_t *view = cl->viewentity[k];
+		edict_t	*view = cl->viewentity[k];
 
 		if (!SV_IsValidEdict (view))
 			continue;
@@ -1741,7 +1764,8 @@ static int SV_CheckClientPVS (int check, qboolean bMergePVS)
 		VectorAdd (view->v.origin, view->v.view_ofs, vieworg);
 		pvs = Mod_GetPVSForPoint (vieworg);
 
-		for (j = 0; j < world.visbytes && pvs; j++)
+		/*for (j = 0; j < world.visbytes && pvs; j++)*/
+		for (int j = 0; j < world.visbytes && pvs; j++)
 			SetBits (clientpvs[j], pvs[j]);
 		}
 
@@ -1789,8 +1813,7 @@ static edict_t *GAME_EXPORT pfnFindClientInPVS (edict_t *pEdict)
 	// NOTE: this specific break "radiaton tick" in normal half-life. use only as feature
 	// ESHQ: восстановлено в пользу счётчика Гейгера
 	//       отменённое определение: FBitSet (host.features, ENGINE_PHYSICS_PUSHER_EXT)
-	if (false && mod && (mod->type == mod_brush) &&
-		!FBitSet (mod->flags, MODEL_HAS_ORIGIN))
+	if (false && mod && (mod->type == mod_brush) && !FBitSet (mod->flags, MODEL_HAS_ORIGIN))
 		{
 		// handle PVS origin for bmodels
 		VectorAverage (pEdict->v.mins, pEdict->v.maxs, view);
@@ -1812,27 +1835,32 @@ static edict_t *GAME_EXPORT pfnFindClientInPVS (edict_t *pEdict)
 
 /***
 =================
-pfnEntitiesInPVS
+pfnEntitiesInPVS [FWGS, 01.07.26]
 =================
 ***/
 static edict_t *pfnEntitiesInPVS (edict_t *pview)
 	{
-	edict_t	*pchain, *ptest;
+	/*edict_t	*pchain, *ptest;*/
+	edict_t	*pchain;
 	vec3_t	viewpoint;
-	edict_t	*pent;
-	int		i;
+	/*edict_t	*pent;
+	int		i;*/
 
 	if (!SV_IsValidEdict (pview))
 		return NULL;
 
-	// [FWGS, 05.04.26]
 	VectorAdd (pview->v.origin, pview->v.view_ofs, viewpoint);
 	pchain = SV_EdictNum (0);
 
-	for (i = 1; i < svgame.numEntities; i++)
+	/*for (i = 1; i < svgame.numEntities; i++)
 		{
-		// [FWGS, 05.04.26]
-		pent = SV_EdictNum (i);
+		// [FWGS, 05.04.26]*/
+	for (int i = 1; i < svgame.numEntities; i++)
+		{
+		/*pent = SV_EdictNum (i);*/
+		edict_t	*pent = SV_EdictNum (i);
+		edict_t	*ptest;
+
 		if (!SV_IsValidEdict (pent))
 			continue;
 
@@ -1902,7 +1930,7 @@ move entity to client
 ***/
 static void GAME_EXPORT pfnMakeStatic (edict_t *ent)
 	{
-	entity_state_t *state;
+	entity_state_t	*state;
 
 	if (!SV_IsValidEdict (ent))
 		return;
@@ -1936,20 +1964,22 @@ static int GAME_EXPORT pfnEntIsOnFloor (edict_t *e)
 
 /***
 ===============
-pfnDropToFloor
+pfnDropToFloor [FWGS, 01.07.26]
 ===============
 ***/
 int GAME_EXPORT pfnDropToFloor (edict_t *e)
 	{
 	qboolean	monsterClip;
 	trace_t		trace;
-	vec3_t		end;
+	/*vec3_t		end;*/
 
 	if (!SV_IsValidEdict (e))
 		return 0;
 
 	monsterClip = FBitSet (e->v.flags, FL_MONSTERCLIP) ? true : false;
-	VectorCopy (e->v.origin, end);
+	/*VectorCopy (e->v.origin, end);*/
+	
+	vec3_t	end = Vec3 (e->v.origin);
 	end[2] -= 256.0f;
 
 	trace = SV_Move (e->v.origin, e->v.mins, e->v.maxs, end, MOVE_NORMAL, e, monsterClip);
@@ -1970,12 +2000,12 @@ int GAME_EXPORT pfnDropToFloor (edict_t *e)
 
 /***
 ===============
-pfnWalkMove
+pfnWalkMove [FWGS, 01.07.26]
 ===============
 ***/
 static int GAME_EXPORT pfnWalkMove (edict_t *ent, float yaw, float dist, int iMode)
 	{
-	vec3_t	move;
+	/*vec3_t	move;*/
 
 	if (!SV_IsValidEdict (ent))
 		return 0;
@@ -1984,9 +2014,11 @@ static int GAME_EXPORT pfnWalkMove (edict_t *ent, float yaw, float dist, int iMo
 		return 0;
 
 	yaw = DEG2RAD (yaw);
-	VectorSet (move, cos (yaw) * dist, sin (yaw) * dist, 0.0f);
+	/*VectorSet (move, cos (yaw) * dist, sin (yaw) * dist, 0.0f);
 
-	// [FWGS, 01.03.26]
+	// [FWGS, 01.03.26]*/
+	vec3_t	move = { cos (yaw) * dist, sin (yaw) * dist, 0.0f };
+
 	switch (iMode)
 		{
 		case WALKMOVE_NORMAL:
@@ -2001,6 +2033,7 @@ static int GAME_EXPORT pfnWalkMove (edict_t *ent, float yaw, float dist, int iMo
 		default:
 			Host_Error ("%s: unknown mode %d\n", __func__, iMode);
 		}
+
 	return 0;
 	}
 
@@ -2200,7 +2233,8 @@ static void GAME_EXPORT pfnEmitAmbientSound (edict_t *ent, float *pos, const cha
 
 	if (FBitSet (flags, SND_SPAWNING))
 		msg_dest = MSG_INIT;
-	else msg_dest = MSG_ALL;
+	else
+		msg_dest = MSG_ALL;
 
 	// always sending stop sound command
 	if (FBitSet (flags, SND_STOP))
@@ -2314,8 +2348,9 @@ static void GAME_EXPORT pfnTraceModel (const float *v1, const float *v2, int hul
 
 	else if (model && (model->type == mod_brush))
 		{
-		int oldmovetype = pent->v.movetype;
-		int oldsolid = pent->v.solid;
+		int	oldmovetype = pent->v.movetype;
+		int	oldsolid = pent->v.solid;
+
 		pent->v.movetype = MOVETYPE_PUSH;
 		pent->v.solid = SOLID_BSP;
 
@@ -2362,7 +2397,7 @@ static void GAME_EXPORT pfnTraceSphere (const float *v1, const float *v2, int fN
 
 /***
 =============
-pfnGetAimVector
+pfnGetAimVector [FWGS, 01.07.26]
 
 NOTE: speed is unused
 =============
@@ -2371,8 +2406,9 @@ static void GAME_EXPORT pfnGetAimVector (edict_t *ent, float speed, float *rgflR
 	{
 	edict_t	*check;
 	vec3_t	start, dir, end, bestdir;
-	float	dist, bestdist;
-	int		i, j;
+	/*float	dist, bestdist;
+	int		i, j;*/
+	float	bestdist;
 	trace_t	tr;
 
 	VectorCopy (svgame.globals->v_forward, rgflReturn);	// assume failure if it returns early
@@ -2399,11 +2435,13 @@ static void GAME_EXPORT pfnGetAimVector (edict_t *ent, float speed, float *rgflR
 	else
 		bestdist = 0;
 
-	// [FWGS, 05.04.26]
 	check = SV_EdictNum (1);	// start at first client
 
-	for (i = 1; i < svgame.numEntities; i++, check++)
+	/*for (i = 1; i < svgame.numEntities; i++, check++)*/
+	for (int i = 1; i < svgame.numEntities; i++, check++)
 		{
+		float	dist;
+
 		if (check->v.takedamage != DAMAGE_AIM)
 			continue;
 
@@ -2416,7 +2454,8 @@ static void GAME_EXPORT pfnGetAimVector (edict_t *ent, float speed, float *rgflR
 		if (check == ent)
 			continue;
 
-		for (j = 0; j < 3; j++)
+		/*for (j = 0; j < 3; j++)*/
+		for (int j = 0; j < 3; j++)
 			end[j] = check->v.origin[j] + 0.5f * (check->v.mins[j] + check->v.maxs[j]);
 
 		VectorSubtract (end, start, dir);
@@ -2470,7 +2509,7 @@ void GAME_EXPORT pfnClientCommand (edict_t *pEdict, char *szFmt, ...) FORMAT_CHE
 
 void GAME_EXPORT pfnClientCommand (edict_t *pEdict, char *szFmt, ...)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 	string		buffer;
 	va_list		args;
 
@@ -2554,20 +2593,21 @@ static void GAME_EXPORT pfnLightStyle (int style, const char *val)
 
 /***
 =================
-pfnDecalIndex
+pfnDecalIndex [FWGS, 01.07.26]
 
 register decal name on client
 =================
 ***/
 int GAME_EXPORT pfnDecalIndex (const char *m)
 	{
-	int	i;
+	/*int	i;
 
-	// [FWGS, 01.03.26]
+	// [FWGS, 01.03.26]*/
 	if (COM_StringEmptyOrNULL (m))
 		return -1;
 
-	for (i = 1; i < MAX_DECALS && host.draw_decals[i][0]; i++)
+	/*for (i = 1; i < MAX_DECALS && host.draw_decals[i][0]; i++)*/
+	for (int i = 1; (i < MAX_DECALS) && host.draw_decals[i][0]; i++)
 		{
 		if (!Q_stricmp (host.draw_decals[i], m))
 			return i;
@@ -2638,12 +2678,13 @@ static qboolean SV_RewriteMessage (void)
 
 /***
 =============
-pfnMessageBegin [FWGS, 01.07.24]
+pfnMessageBegin [FWGS, 01.07.26]
 =============
 ***/
 static void GAME_EXPORT pfnMessageBegin (int msg_dest, int msg_num, const float *pOrigin, edict_t *ed)
 	{
-	int	i, iSize;
+	/*int	i, iSize;*/
+	int	iSize;
 
 	if (svgame.msg_started)
 		Host_Error ("%s: New message started when msg '%s' has not been sent yet\n", __func__, svgame.msg_name);
@@ -2677,6 +2718,8 @@ static void GAME_EXPORT pfnMessageBegin (int msg_dest, int msg_num, const float 
 		}
 	else
 		{
+		int	i;
+
 		// check for existing
 		for (i = 1; (i < MAX_USER_MESSAGES) && svgame.msg[i].name[0]; i++)
 			{
@@ -2735,8 +2778,8 @@ pfnMessageEnd [FWGS, 01.07.24]
 static void GAME_EXPORT pfnMessageEnd (void)
 	{
 	const char	*name = "Unknown";
-	float		*org = NULL;
-	word		realsize;
+	float	*org = NULL;
+	word	realsize;
 
 	if (svgame.msg_name)
 		name = svgame.msg_name;
@@ -2792,7 +2835,6 @@ static void GAME_EXPORT pfnMessageEnd (void)
 				}
 
 			// [FWGS, 01.05.26]
-			/*realsize = svgame.msg_realsize;*/
 			realsize = LittleShort (svgame.msg_realsize);
 			memcpy (&sv.multicast.pData[svgame.msg_size_index], &realsize, sizeof (realsize));
 			}
@@ -2829,7 +2871,6 @@ static void GAME_EXPORT pfnMessageEnd (void)
 			}
 
 		// [FWGS, 01.05.26]
-		/*realsize = svgame.msg_realsize;*/
 		realsize = LittleShort (svgame.msg_realsize);
 		memcpy (&sv.multicast.pData[svgame.msg_size_index], &realsize, sizeof (realsize));
 		}
@@ -3119,7 +3160,7 @@ static void *GAME_EXPORT pfnPvEntPrivateData (edict_t *pEdict)
 	return NULL;
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.07.26]
 static struct str64_s
 	{
 	size_t		maxstringarray;
@@ -3135,7 +3176,8 @@ static struct str64_s
 	size_t		numdups;
 	size_t		numoverflows;
 	size_t		totalalloc;
-	} str64;
+	/*} str64;*/
+	} str64 MAYBE_UNUSED;
 
 /***
 ==================
@@ -3326,8 +3368,8 @@ pass NULL pointer to dst to get required length incl. null terminator
 ***/
 static uint SV_ProcessString (char *dst, const char *src)
 	{
-	const char *p;
-	uint i = 0;
+	const char	*p;
+	uint	i = 0;
 
 	p = src;
 	while (*p)
@@ -3545,19 +3587,21 @@ static int GAME_EXPORT pfnEntOffsetOfPEntity (const edict_t *pEdict)
 
 /***
 =============
-pfnIndexOfEdict
+pfnIndexOfEdict [FWGS, 01.07.26]
 =============
 ***/
 int GAME_EXPORT pfnIndexOfEdict (const edict_t *pEdict)
 	{
-	int	number;
+	/*int	number;*/
 
 	if (!pEdict)
 		return 0;	// world ?
 
-	number = NUM_FOR_EDICT (pEdict);
+	/*number = NUM_FOR_EDICT (pEdict);*/
+	int	number = NUM_FOR_EDICT (pEdict);
 	if ((number < 0) || (number > GI->max_edicts))
 		Host_Error ("bad entity number %d\n", number);
+
 	return number;
 	}
 
@@ -3584,24 +3628,26 @@ static edict_t *GAME_EXPORT pfnPEntityOfEntIndexAllEntities (int iEntIndex)
 
 /***
 =============
-pfnFindEntityByVars
+pfnFindEntityByVars [FWGS, 01.07.26]
 
 debug thing
 =============
 ***/
 static edict_t *GAME_EXPORT pfnFindEntityByVars (entvars_t *pvars)
 	{
-	edict_t	*pEdict;
-	int		i;
+	/*edict_t	*pEdict;
+	int		i;*/
 
 	// don't pass invalid arguments
 	if (!pvars)
 		return NULL;
 
-	for (i = 0; i < GI->max_edicts; i++)
+	/*for (i = 0; i < GI->max_edicts; i++)*/
+	for (int i = 0; i < GI->max_edicts; i++)
 		{
-		// [FWGS, 05.04.26]
-		pEdict = SV_EdictNum (i);
+		/*// [FWGS, 05.04.26]
+		pEdict = SV_EdictNum (i);*/
+		edict_t	*pEdict = SV_EdictNum (i);
 
 		// g-cont: we should compare pointers
 		if (&pEdict->v == pvars)
@@ -3620,7 +3666,7 @@ returns pointer to a studiomodel
 ***/
 static void *pfnGetModelPtr (edict_t *pEdict)
 	{
-	model_t *mod;
+	model_t	*mod;
 
 	if (!SV_IsValidEdict (pEdict))
 		return NULL;
@@ -3726,6 +3772,7 @@ static void GAME_EXPORT pfnGetBonePosition (const edict_t *pEdict, int iBone, fl
 	{
 	if (!SV_IsValidEdict (pEdict))
 		return;
+
 	Mod_GetBonePosition (pEdict, iBone, rgflOrigin, rgflAngles);
 	}
 
@@ -3756,7 +3803,7 @@ pfnClientPrintf
 ***/
 static void GAME_EXPORT pfnClientPrintf (edict_t *pEdict, PRINT_TYPE ptype, const char *szMsg)
 	{
-	sv_client_t *client;
+	sv_client_t	*client;
 
 	if ((client = SV_ClientFromEdict (pEdict, false)) == NULL)
 		{
@@ -3805,6 +3852,7 @@ static void GAME_EXPORT pfnGetAttachment (const edict_t *pEdict, int iAttachment
 	{
 	if (!SV_IsValidEdict (pEdict))
 		return;
+
 	Mod_StudioGetAttachment (pEdict, iAttachment, rgflOrigin, rgflAngles);
 	}
 
@@ -3815,7 +3863,7 @@ pfnCrosshairAngle
 ***/
 static void GAME_EXPORT pfnCrosshairAngle (const edict_t *pClient, float pitch, float yaw)
 	{
-	sv_client_t *client;
+	sv_client_t	*client;
 
 	if ((client = SV_ClientFromEdict (pClient, true)) == NULL)
 		return;
@@ -3824,10 +3872,14 @@ static void GAME_EXPORT pfnCrosshairAngle (const edict_t *pClient, float pitch, 
 	if (FBitSet (client->flags, FCL_FAKECLIENT))
 		return;
 
-	if (pitch > 180.0f) pitch -= 360;
-	if (pitch < -180.0f) pitch += 360;
-	if (yaw > 180.0f) yaw -= 360;
-	if (yaw < -180.0f) yaw += 360;
+	if (pitch > 180.0f)
+		pitch -= 360;
+	if (pitch < -180.0f)
+		pitch += 360;
+	if (yaw > 180.0f)
+		yaw -= 360;
+	if (yaw < -180.0f)
+		yaw += 360;
 
 	MSG_BeginServerCmd (&client->netchan.message, svc_crosshairangle);
 	MSG_WriteChar (&client->netchan.message, pitch * 5);
@@ -3841,7 +3893,7 @@ pfnSetView
 ***/
 static void GAME_EXPORT pfnSetView (const edict_t *pClient, const edict_t *pViewent)
 	{
-	sv_client_t *client;
+	sv_client_t	*client;
 	int		viewEnt;
 
 	if (!SV_IsValidEdict (pClient))
@@ -3913,7 +3965,8 @@ vaild map must contain one info_player_deatchmatch
 ***/
 int GAME_EXPORT pfnIsMapValid (char *filename)
 	{
-	uint flags = SV_MapIsValid (filename, NULL);
+	uint	flags = SV_MapIsValid (filename, NULL);
+
 	if (FBitSet (flags, MAP_IS_EXIST))
 		return true;
 
@@ -3941,7 +3994,7 @@ pfnFadeClientVolume
 static void GAME_EXPORT pfnFadeClientVolume (const edict_t *pEdict, int fadePercent, int fadeOutSeconds,
 	int holdTime, int fadeInSeconds)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 
 	if ((cl = SV_ClientFromEdict (pEdict, true)) == NULL)
 		return;
@@ -3965,7 +4018,7 @@ fakeclients can be changed speed to
 ***/
 static void GAME_EXPORT pfnSetClientMaxspeed (const edict_t *pEdict, float fNewMaxspeed)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 
 	// not spawned clients allowed
 	if ((cl = SV_ClientFromEdict (pEdict, false)) == NULL)
@@ -3981,15 +4034,15 @@ static void GAME_EXPORT pfnSetClientMaxspeed (const edict_t *pEdict, float fNewM
 
 /***
 =============
-pfnRunPlayerMove
+pfnRunPlayerMove [FWGS, 01.07.26]
 =============
 ***/
 static void GAME_EXPORT pfnRunPlayerMove (edict_t *pClient, const float *viewangles, float fmove, float smove,
 	float upmove, word buttons, byte impulse, byte msec)
 	{
 	sv_client_t	*cl, *oldcl;
-	usercmd_t	cmd;
-	uint		seed;
+	/*usercmd_t	cmd;*/
+	uint	seed;
 
 	if ((cl = SV_ClientFromEdict (pClient, true)) == NULL)
 		return;
@@ -4002,14 +4055,24 @@ static void GAME_EXPORT pfnRunPlayerMove (edict_t *pClient, const float *viewang
 	sv.current_client = SV_ClientFromEdict (pClient, true);
 	sv.current_client->timebase = (sv.time + sv.frametime) - ((double)msec / 1000.0);
 
-	memset (&cmd, 0, sizeof (cmd));
+	/*memset (&cmd, 0, sizeof (cmd));
 	VectorCopy (viewangles, cmd.viewangles);
 	cmd.forwardmove = fmove;
 	cmd.sidemove = smove;
 	cmd.upmove = upmove;
 	cmd.buttons = buttons;
 	cmd.impulse = impulse;
-	cmd.msec = msec;
+	cmd.msec = msec;*/
+	usercmd_t cmd =
+		{
+		.viewangles = Vec3 (viewangles),
+		.forwardmove = fmove,
+		.sidemove = smove,
+		.upmove = upmove,
+		.buttons = buttons,
+		.impulse = impulse,
+		.msec = msec,
+		};
 
 	seed = COM_RandomLong (0, 0x7fffffff);	// full range
 
@@ -4021,19 +4084,22 @@ static void GAME_EXPORT pfnRunPlayerMove (edict_t *pClient, const float *viewang
 
 /***
 =============
-pfnNumberOfEntities
+pfnNumberOfEntities [FWGS, 01.07.26]
 
 returns actual entity count
 =============
 ***/
 int GAME_EXPORT pfnNumberOfEntities (void)
 	{
-	int	i, total = 0;
+	/*int	i, total = 0;*/
+	int	total = 0;
 
-	for (i = 0; i < svgame.numEntities; i++)
+	/*for (i = 0; i < svgame.numEntities; i++)*/
+	for (int i = 0; i < svgame.numEntities; i++)
 		{
 		if (svgame.edicts[i].free)
 			continue;
+
 		total++;
 		}
 
@@ -4047,7 +4113,7 @@ pfnGetInfoKeyBuffer [FWGS, 01.05.24]
 ***/
 static char *GAME_EXPORT pfnGetInfoKeyBuffer (edict_t *e)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 
 	// NULL passes localinfo
 	if (!SV_IsValidEdict (e))
@@ -4086,7 +4152,7 @@ pfnSetClientKeyValue
 ***/
 static void GAME_EXPORT pfnSetClientKeyValue (int clientIndex, char *infobuffer, char *key, char *value)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 
 	if ((infobuffer == svs.localinfo) || (infobuffer == svs.serverinfo))
 		return;
@@ -4114,7 +4180,7 @@ pfnGetPhysicsKeyValue
 ***/
 static const char *GAME_EXPORT pfnGetPhysicsKeyValue (const edict_t *pClient, const char *key)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 
 	// [FWGS, 01.07.24] pfnUserInfoChanged passed
 	if ((cl = SV_ClientFromEdict (pClient, false)) == NULL)
@@ -4133,7 +4199,7 @@ pfnSetPhysicsKeyValue
 ***/
 static void GAME_EXPORT pfnSetPhysicsKeyValue (const edict_t *pClient, const char *key, const char *value)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 
 	// [FWGS, 01.07.24] pfnUserInfoChanged passed
 	if ((cl = SV_ClientFromEdict (pClient, false)) == NULL)
@@ -4152,7 +4218,7 @@ pfnGetPhysicsInfoString
 ***/
 static const char *GAME_EXPORT pfnGetPhysicsInfoString (const edict_t *pClient)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 
 	// [FWGS, 01.07.24] pfnUserInfoChanged passed
 	if ((cl = SV_ClientFromEdict (pClient, false)) == NULL)
@@ -4179,7 +4245,7 @@ static word GAME_EXPORT pfnPrecacheEvent (int type, const char *psz)
 
 /***
 =============
-pfnPlaybackEvent
+pfnPlaybackEvent [FWGS, 01.07.26]
 =============
 ***/
 void GAME_EXPORT SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word eventindex, float delay, float *origin,
@@ -4189,7 +4255,8 @@ void GAME_EXPORT SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word 
 	event_state_t	*es;
 	event_args_t	args;
 	event_info_t	*ei = NULL;
-	int		j, slot, bestslot;
+	/*int		j, slot, bestslot;*/
+	int		j, bestslot;
 	int		invokerIndex;
 	byte	*mask = NULL;
 	vec3_t	pvspoint;
@@ -4197,14 +4264,14 @@ void GAME_EXPORT SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word 
 	if (FBitSet (flags, FEV_CLIENT))
 		return;	// someone stupid joke
 
-	// [FWGS, 01.07.24] first check event for out of bounds
+	// first check event for out of bounds
 	if ((eventindex < 1) || (eventindex >= MAX_EVENTS))
 		{
 		Con_Printf (S_ERROR "%s: invalid eventindex %i\n", __func__, eventindex);
 		return;
 		}
 
-	// [FWGS, 01.03.26] check event for precached
+	// check event for precached
 	if (COM_StringEmptyOrNULL (sv.event_precache[eventindex]))
 		{
 		Con_Printf (S_ERROR "%s: event %i was not precached\n", __func__, eventindex);
@@ -4270,7 +4337,7 @@ void GAME_EXPORT SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word 
 		{
 		if (!SV_ClientFromEdict (pInvoker, true))
 			{
-			const char *ev_name = sv.event_precache[eventindex];
+			const char	*ev_name = sv.event_precache[eventindex];
 
 			if (FBitSet (flags, FEV_NOTHOST))
 				{
@@ -4290,7 +4357,7 @@ void GAME_EXPORT SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word 
 	if (delay < 0.0f)
 		delay = 0.0f;	// fixup negative delays
 
-	// [FWGS, 01.07.24] setup pvs cluster for invoker
+	// setup pvs cluster for invoker
 	if (!FBitSet (flags, FEV_GLOBAL))
 		{
 		Mod_FatPVS (pvspoint, FATPHS_RADIUS, fatphs, world.fatbytes, false, (svs.maxclients == 1), true);
@@ -4298,7 +4365,9 @@ void GAME_EXPORT SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word 
 		}
 
 	// process all the clients
-	for (slot = 0, cl = svs.clients; slot < svs.maxclients; slot++, cl++)
+	/*for (slot = 0, cl = svs.clients; slot < svs.maxclients; slot++, cl++)*/
+	cl = svs.clients;
+	for (int slot = 0; slot < svs.maxclients; slot++, cl++)
 		{
 		if ((cl->state != cs_spawned) || !cl->edict || FBitSet (cl->flags, FCL_FAKECLIENT))
 			continue;
@@ -4485,12 +4554,13 @@ static qboolean Mod_HeadnodeVisible (model_t *mod, mnode_t *node, const byte *vi
 
 /***
 =============
-pfnCheckVisibility [FWGS, 01.02.25]
+pfnCheckVisibility [FWGS, 01.07.26]
 =============
 ***/
 static int GAME_EXPORT pfnCheckVisibility (const edict_t *ent, byte *pset)
 	{
-	int			i, leafnum;
+	/*int			i, leafnum;*/
+	int		i;
 	qboolean	large_leafs = FBitSet (sv.worldmodel->flags, MODEL_QBSP2);
 
 	if (!SV_IsValidEdict (ent))
@@ -4524,6 +4594,7 @@ static int GAME_EXPORT pfnCheckVisibility (const edict_t *ent, byte *pset)
 		}
 	else
 		{
+		int	leafnum;
 		for (i = 0; i < MAX_ENT_LEAFS (large_leafs); i++)
 			{
 			if (large_leafs)
@@ -4560,7 +4631,7 @@ pfnCanSkipPlayer
 ***/
 static int GAME_EXPORT pfnCanSkipPlayer (const edict_t *player)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 
 	if ((cl = SV_ClientFromEdict (player, false)) == NULL)
 		return false;
@@ -4617,10 +4688,11 @@ pfnGetPlayerUserId
 ***/
 static int GAME_EXPORT pfnGetPlayerUserId (edict_t *e)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 
 	if ((cl = SV_ClientFromEdict (e, false)) == NULL)
 		return -1;
+
 	return cl->userid;
 	}
 
@@ -4631,7 +4703,7 @@ pfnGetPlayerStats
 ***/
 static void GAME_EXPORT pfnGetPlayerStats (const edict_t *pClient, int *ping, int *packet_loss)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 
 	if (packet_loss) 
 		*packet_loss = 0;
@@ -4655,24 +4727,25 @@ static void GAME_EXPORT Cmd_AddServerCommand (const char *cmd_name, xcommand_t f
 
 /***
 =============
-pfnForceUnmodified
+pfnForceUnmodified [FWGS, 01.07.26]
 =============
 ***/
 static void GAME_EXPORT pfnForceUnmodified (FORCE_TYPE type, float *mins, float *maxs, const char *filename)
 	{
-	consistency_t *pc;
+	/*consistency_t	*pc;
 	int		i;
 
-	// [FWGS, 01.03.26]
+	// [FWGS, 01.03.26]*/
 	if (COM_StringEmptyOrNULL (filename))
 		return;
 
 	if (sv.state == ss_loading)
 		{
-		for (i = 0; i < MAX_MODELS; i++)
+		/*for (i = 0; i < MAX_MODELS; i++)*/
+		for (int i = 0; i < MAX_MODELS; i++)
 			{
-			pc = &sv.consistency_list[i];
-
+			/*pc = &sv.consistency_list[i];*/
+			consistency_t	*pc = &sv.consistency_list[i];
 			if (!pc->filename)
 				{
 				if (mins)
@@ -4689,19 +4762,23 @@ static void GAME_EXPORT pfnForceUnmodified (FORCE_TYPE type, float *mins, float 
 				return;
 				}
 			}
+
 		Host_Error ("MAX_MODELS limit exceeded (%d)\n", MAX_MODELS);
 		}
 	else
 		{
-		for (i = 0; i < MAX_MODELS; i++)
+		/*for (i = 0; i < MAX_MODELS; i++)*/
+		for (int i = 0; i < MAX_MODELS; i++)
 			{
-			pc = &sv.consistency_list[i];
+			/*pc = &sv.consistency_list[i];*/
+			consistency_t	*pc = &sv.consistency_list[i];
 			if (!pc->filename)
 				continue;
 
 			if (!Q_strcmp (filename, pc->filename))
 				return;
 			}
+
 		Con_Printf (S_ERROR "Failed to enforce consistency for %s: was not precached\n", filename);
 		}
 	}
@@ -4766,7 +4843,7 @@ request client cvar value
 ***/
 static void GAME_EXPORT pfnQueryClientCvarValue (const edict_t *player, const char *cvarName)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 
 	// [FWGS, 01.03.26]
 	if (COM_StringEmptyOrNULL (cvarName))
@@ -4794,7 +4871,7 @@ request client cvar value (bugfixed)
 ***/
 static void GAME_EXPORT pfnQueryClientCvarValue2 (const edict_t *player, const char *cvarName, int requestID)
 	{
-	sv_client_t *cl;
+	sv_client_t	*cl;
 
 	// [FWGS, 01.03.26]
 	if (COM_StringEmptyOrNULL (cvarName))
@@ -4852,7 +4929,7 @@ static int GAME_EXPORT pfnGetTimesTutorMessageShown (int mid)
 // [FWGS, 25.12.24]
 static void GAME_EXPORT pfnGetGameDir (char *out)
 	{
-	char rootdir[MAX_SYSPATH];
+	char	rootdir[MAX_SYSPATH];
 
 	if (!out)
 		return;
@@ -4872,6 +4949,16 @@ static void GAME_EXPORT pfnGetGameDir (char *out)
 			Q_strncpy (out, GI->gamefolder, 256);
 			}
 		}
+	}
+
+// [FWGS, 01.07.26]
+static cvar_t *GAME_EXPORT SV_CvarGetPointer (const char *szVarName)
+	{
+	cvar_t	*result = (cvar_t *)Cvar_FindVar (szVarName);
+	if (!result)
+		Con_DPrintf (S_WARN "%s: server tried to get non-existent cvar \"%s\"\n", __func__, szVarName);
+
+	return result;
 	}
 
 // engine callbacks
@@ -4993,7 +5080,8 @@ static enginefuncs_t gEngfuncs =
 	pfnGetPlayerUserId,
 	pfnBuildSoundMsg,
 	pfnIsDedicatedServer,
-	pfnCVarGetPointer,
+	/*pfnCVarGetPointer,*/
+	SV_CvarGetPointer,		// [FWGS, 01.07.26]
 	pfnGetPlayerWONId,
 	(void *)Info_RemoveKey,
 	pfnGetPhysicsKeyValue,
@@ -5053,7 +5141,7 @@ static void SV_FreeKeyValueStrings (KeyValueData *kvd, int numpairs)
 
 /***
 ====================
-SV_ParseEdict
+SV_ParseEdict [FWGS, 01.07.26]
 
 Parses an edict out of the given string, returning the new position
 ed should be a properly initialized empty edict
@@ -5062,9 +5150,10 @@ ed should be a properly initialized empty edict
 static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 	{
 	KeyValueData	pkvd[256];	// per one entity
-	qboolean		adjust_origin = false, customentity;
-	int				i, numpairs = 0;
-	const char		*classname = NULL;
+	qboolean	adjust_origin = false, customentity;
+	/*int				i, numpairs = 0;*/
+	int		numpairs = 0;
+	const char	*classname = NULL;
 
 	// go through all the dictionary pairs
 	while (1)
@@ -5100,7 +5189,8 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 		// classname must be first
 		if (!Q_strcmp (keyname, "classname"))
 			{
-			KeyValueData kvd = {
+			KeyValueData kvd =
+				{
 				.szClassName = NULL,
 				.szKeyName = keyname,
 				.szValue = value,
@@ -5119,7 +5209,7 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 			if (!kvd.fHandled)
 				Host_Error ("%s: game didn't handled \"%s\" classname\n", __func__, value);
 
-			// [FWGS, 05.04.26] this lets game dll override custom entity classname
+			// this lets game dll override custom entity classname
 			// to something bogus that's exported in game dll
 			classname = SV_GetString (ent->v.classname);
 			continue;
@@ -5166,7 +5256,8 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 
 	if (customentity)
 		{
-		KeyValueData kvd = {
+		KeyValueData kvd =
+			{
 			.szClassName = (char *)"custom",
 			.szKeyName = (char *)"customclass",
 			.szValue = (char *)classname,
@@ -5186,14 +5277,15 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 		}
 #endif
 
-	for (i = 0; i < numpairs; i++)
+	/*for (i = 0; i < numpairs; i++)*/
+	for (int i = 0; i < numpairs; i++)
 		{
-		char *keyname, *value;
-		char temp[MAX_VA_STRING];
+		char	*keyname, *value;
+		char	temp[MAX_VA_STRING];
 
 		if (!Q_strcmp (pkvd[i].szKeyName, "angle"))
 			{
-			float flYawAngle = Q_atof (pkvd[i].szValue);
+			float	flYawAngle = Q_atof (pkvd[i].szValue);
 
 			Mem_Free (pkvd[i].szKeyName);	// will be replace with 'angles'
 			Mem_Free (pkvd[i].szValue);		// release old value, so we don't need these
@@ -5223,8 +5315,8 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 
 		if (adjust_origin && !Q_strcmp (pkvd[i].szKeyName, "origin"))
 			{
-			char *pstart = pkvd[i].szValue;
-			vec3_t origin;
+			char	*pstart = pkvd[i].szValue;
+			vec3_t	origin;
 
 			COM_ParseVector (&pstart, origin, 3);
 			Mem_Free (pkvd[i].szValue);	// release old value, so we don't need these
@@ -5249,7 +5341,7 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 
 /***
 ================
-SV_LoadFromFile
+SV_LoadFromFile [FWGS, 01.07.26]
 
 The entities are directly placed in the array, rather than allocated with
 ED_Alloc, because otherwise an error loading the map would have entity
@@ -5261,9 +5353,9 @@ parsing textual entity definitions out of an ent file
 ***/
 static void SV_LoadFromFile (const char *mapname, char *entities)
 	{
-	char		token[2048];
+	char	token[2048];
 	qboolean	create_world = true;
-	int			inhibited;
+	/*int			inhibited;*/
 	edict_t		*ent;
 
 	Assert (entities != NULL);
@@ -5271,16 +5363,15 @@ static void SV_LoadFromFile (const char *mapname, char *entities)
 	// user dll can override spawn entities function (Xash3D extension)
 	if (!svgame.physFuncs.SV_LoadEntities || !svgame.physFuncs.SV_LoadEntities (mapname, entities))
 		{
-		inhibited = 0;
+		/*inhibited = 0;*/
+		int	inhibited = 0;
 
 		// parse ents
 		while ((entities = COM_ParseFile (entities, token, sizeof (token))) != NULL)
 			{
-			// [FWGS, 01.07.24]
 			if (token[0] != '{')
 				Host_Error ("%s: found %s when expecting {\n", __func__, token);
 
-			// [FWGS, 05.04.26]
 			if (create_world)
 				{
 				create_world = false;
@@ -5323,7 +5414,7 @@ parsing textual entity definitions out of an ent file
 ***/
 void SV_SpawnEntities (const char *mapname)
 	{
-	edict_t *ent;
+	edict_t	*ent;
 
 	// reset misc parms
 	Cvar_Reset ("sv_zmax");
@@ -5363,7 +5454,7 @@ void SV_SpawnEntities (const char *mapname)
 // [FWGS, 25.12.24]
 void SV_UnloadProgs (void)
 	{
-	pending_cvar_t *pending_cvars_list;
+	pending_cvar_t	*pending_cvars_list;
 
 	if (!svgame.hInstance)
 		return;
@@ -5400,10 +5491,11 @@ void SV_UnloadProgs (void)
 	memset (&svgame, 0, sizeof (svgame));
 	}
 
-// [FWGS, 01.03.26]
+// [FWGS, 01.07.26]
 qboolean SV_LoadProgs (const char *name)
 	{
-	int			i, version;
+	/*int			i, version;*/
+	int		version;
 	static APIFUNCTION		GetEntityAPI;
 	static APIFUNCTION2		GetEntityAPI2;
 	static GIVEFNPTRSTODLL	GiveFnptrsToDll;
@@ -5411,7 +5503,7 @@ qboolean SV_LoadProgs (const char *name)
 	static enginefuncs_t	gpEngfuncs;
 	static globalvars_t		gpGlobals;
 	static playermove_t		gpMove;
-	edict_t		*e;
+	/*edict_t		*e;*/
 	qboolean	init_entity_api = false;
 
 	if (svgame.hInstance)
@@ -5537,8 +5629,10 @@ qboolean SV_LoadProgs (const char *name)
 	svs.baselines = Z_Calloc (sizeof (entity_state_t) * GI->max_edicts);
 	svgame.numEntities = svs.maxclients + 1;	// clients + world
 
-	for (i = 0, e = svgame.edicts; i < GI->max_edicts; i++, e++)
-		e->free = true;	// mark all edicts as freed
+	/*for (i = 0, e = svgame.edicts; i < GI->max_edicts; i++, e++)
+		e->free = true;	// mark all edicts as freed*/
+	for (int i = 0; i < GI->max_edicts; i++)
+		svgame.edicts[i].free = true;	// mark all edicts as freed
 
 	Cvar_FullSet ("host_gameloaded", "1", FCVAR_READ_ONLY);
 	SV_AllocStringPool ();

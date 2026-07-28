@@ -125,7 +125,6 @@ static qboolean Image_CheckDXT5Alpha (dds_t *hdr, byte *fin)
 			fin += 8;
 
 			/*bitmask = ((uint *)fin)[1];*/
-			byte *alphamask = fin + 2;
 			fin += 8;
 
 			// last three bytes

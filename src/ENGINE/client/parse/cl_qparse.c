@@ -1056,7 +1056,7 @@ void CL_ParseQuakeMessage (sizebuf_t *msg)
 			// [FWGS, 01.07.26]
 			case svc_updatename:
 				param1 = MSG_ReadByte (msg);
-				if (param1 >= ARRAYSIZE (cl.players))
+				if (param1 >= HLARRAYSIZE (cl.players))
 					{
 					MSG_ReadString (msg);
 					break;

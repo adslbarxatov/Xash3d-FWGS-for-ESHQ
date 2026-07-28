@@ -473,7 +473,7 @@ char **COM_ConvertToLocalPlatform (EFunctionMangleType to, const char *from, siz
 	// only three possible variations
 	*numfuncs = HLARRAYSIZE (postfix);
 	/*ret = Z_Malloc (sizeof (char *) * HLARRAYSIZE (postfix));*/
-	char **ret = Z_Malloc (sizeof (char *) * ARRAYSIZE (postfix));
+	char **ret = Z_Malloc (sizeof (char *) * HLARRAYSIZE (postfix));
 
 	string temp, temp2;
 	Q_strncpy (temp, "_ZN", sizeof (temp));

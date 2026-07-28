@@ -479,7 +479,7 @@ static int Delta_NumTables (void)
 // [FWGS, 01.07.26]
 static delta_info_t *Delta_FindStructByIndex (int index)
 	{
-	if ((index < 0) || (index >= ARRAYSIZE (dt_info)))
+	if ((index < 0) || (index >= HLARRAYSIZE (dt_info)))
 		return NULL;
 
 	return &dt_info[index];
