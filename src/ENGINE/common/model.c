@@ -732,26 +732,28 @@ void Mod_NeedCRC (const char *name, qboolean needCRC)
 		ClearBits (p->flags, FCRC_SHOULD_CHECKSUM);
 	}
 
-#if XASH_ENGINE_TESTS
+// [FWGS, 01.08.26]
+/*if XASH_ENGINE_TESTS*/
+#if XASH_LLVM_LIBFUZZER
 
-static const uint8_t *fuzz_data;
-static size_t fuzz_size;
+static const uint8_t	*fuzz_data;
+static size_t	fuzz_size;
 
-// [FWGS, 01.02.25]
 static byte *Fuzz_LoadFile (const char *path, fs_offset_t *filesizeptr, qboolean gamedironly)
 	{
-	byte *buf = Mem_Malloc (host.mempool, fuzz_size);
+	byte	*buf = Mem_Malloc (host.mempool, fuzz_size);
+
 	memcpy (buf, fuzz_data, fuzz_size);
 	*filesizeptr = fuzz_size;
+
 	return buf;
 	}
 
-// [FWGS, 01.02.25]
 int EXPORT Fuzz_Mod_LoadModel (const uint8_t *Data, size_t Size);
 
 int EXPORT Fuzz_Mod_LoadModel (const uint8_t *Data, size_t Size)
 	{
-	model_t mod = { .name = "test", .needload = NL_NEEDS_LOADED };
+	model_t	mod = { .name = "test", .needload = NL_NEEDS_LOADED };
 
 	Memory_Init ();
 

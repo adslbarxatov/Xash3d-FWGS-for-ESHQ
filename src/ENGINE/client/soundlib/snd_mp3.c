@@ -16,15 +16,14 @@ GNU General Public License for more details
 #include "soundlib.h"
 #include "libmpg/libmpg.h"
 
-// [FWGS, 01.05.23]
 #pragma pack( push, 1 )
 typedef struct did3v2_header_s
 	{
-	char     ident[3];	// must be "ID3"
-	uint8_t  major_ver;	// must be 4
-	uint8_t  minor_ver;	// must be 0
-	uint8_t  flags;
-	uint32_t length;	// size of extended header, padding and frames
+	char		ident[3];	// must be "ID3"
+	uint8_t		major_ver;	// must be 4
+	uint8_t		minor_ver;	// must be 0
+	uint8_t		flags;
+	uint32_t	length;		// size of extended header, padding and frames
 	} did3v2_header_t;
 
 // [FWGS, 01.12.24]
@@ -32,9 +31,9 @@ STATIC_CHECK_SIZEOF (did3v2_header_t, 10, 10);
 
 typedef struct did3v2_extended_header_s
 	{
-	uint32_t length;
-	uint8_t  flags_length;
-	uint8_t  flags[1];
+	uint32_t	length;
+	uint8_t		flags_length;
+	uint8_t		flags[1];
 	} did3v2_extended_header_t;
 
 // [FWGS, 01.12.24]
@@ -42,9 +41,9 @@ STATIC_CHECK_SIZEOF (did3v2_extended_header_t, 6, 6);
 
 typedef struct did3v2_frame_s
 	{
-	char     frame_id[4];
-	uint32_t length;
-	uint8_t  flags[2];
+	char		frame_id[4];
+	uint32_t	length;
+	uint8_t		flags[2];
 	} did3v2_frame_t;
 
 // [FWGS, 01.12.24]
@@ -60,12 +59,12 @@ typedef enum did3v2_header_flags_e
 	ID3V2_HEADER_FOOTER_PRESENT = BIT (4U),
 	} did3v2_header_flags_t;
 
-#define CHECK_IDENT(ident, b0, b1, b2)        (((ident)[0]) == (b0) && ((ident)[1]) == (b1) && ((ident)[2]) == (b2))
-#define CHECK_FRAME_ID(ident, b0, b1, b2, b3) (CHECK_IDENT (ident, b0, b1, b2) && ((ident)[3]) == (b3))
+#define CHECK_IDENT(ident, b0, b1, b2)			(((ident)[0]) == (b0) && ((ident)[1]) == (b1) && ((ident)[2]) == (b2))
+#define CHECK_FRAME_ID(ident, b0, b1, b2, b3)	(CHECK_IDENT (ident, b0, b1, b2) && ((ident)[3]) == (b3))
 
 static uint32_t Sound_ParseSynchInteger (uint32_t v)
 	{
-	uint32_t res = 0;
+	uint32_t	res = 0;
 
 	// read as big endian
 	res |= ((v >> 24) & 0x7f) << 0;
@@ -90,8 +89,8 @@ static qboolean Sound_ParseID3Frame (const did3v2_frame_t *frame, const byte *bu
 	{
 	if (CHECK_FRAME_ID (frame->frame_id, 'T', 'X', 'X', 'X'))
 		{
-		string key, value;
-		int32_t key_len, value_len;
+		string	key, value;
+		int32_t	key_len, value_len;
 
 		if ((buffer[0] == 0x00) || (buffer[0] == 0x03))
 			{
@@ -165,8 +164,8 @@ static qboolean Sound_ParseID3Tag (const byte *buffer, fs_offset_t filesize)
 	// just skip extended header
 	if (FBitSet (header->flags, ID3V2_HEADER_EXTENDED_HEADER))
 		{
-		const did3v2_extended_header_t *ext_header = (const did3v2_extended_header_t *)buffer;
-		uint32_t ext_length = Sound_ParseSynchInteger (ext_header->length);
+		const did3v2_extended_header_t	*ext_header = (const did3v2_extended_header_t *)buffer;
+		uint32_t	ext_length = Sound_ParseSynchInteger (ext_header->length);
 
 		// [FWGS, 01.07.24]
 		if (ext_length > tag_length)
@@ -181,8 +180,8 @@ static qboolean Sound_ParseID3Tag (const byte *buffer, fs_offset_t filesize)
 
 	while (buffer - buffer_begin < tag_length)
 		{
-		const did3v2_frame_t *frame = (const did3v2_frame_t *)buffer;
-		uint32_t frame_length = Sound_ParseSynchInteger (frame->length);
+		const did3v2_frame_t	*frame = (const did3v2_frame_t *)buffer;
+		uint32_t	frame_length = Sound_ParseSynchInteger (frame->length);
 
 		// [FWGS, 01.07.24]
 		if (frame_length > tag_length)
@@ -203,8 +202,10 @@ static qboolean Sound_ParseID3Tag (const byte *buffer, fs_offset_t filesize)
 	return true;
 	}
 
-// [FWGS, 01.02.24]
-#if XASH_ENGINE_TESTS
+// [FWGS, 01.08.26]
+/*// [FWGS, 01.02.24]
+if XASH_ENGINE_TESTS*/
+#if XASH_LLVM_LIBFUZZER
 
 int HLEXPORT Fuzz_Sound_ParseID3Tag (const uint8_t *Data, size_t Size);
 
@@ -267,7 +268,7 @@ qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesi
 	// [FWGS, 01.07.24]
 	if (!sound.size)
 		{
-		// bad mpeg file ?
+		// bad mpeg file?
 		Con_DPrintf (S_ERROR "%s: (%s) is probably corrupted\n", __func__, name);
 		close_decoder (mpeg);
 		return false;
@@ -284,8 +285,8 @@ qboolean Sound_LoadMPG (const char *name, const byte *buffer, fs_offset_t filesi
 
 		if ((feed_mpeg_stream (mpeg, NULL, 0, out, &outsize) != MP3_OK) && (outsize <= 0))
 			{
-			const byte *data = buffer + pos;
-			int	bufsize;
+			const byte	*data = buffer + pos;
+			int		bufsize;
 
 			// if there are no bytes remainig so we can decompress the new frame
 			if (pos + FRAME_SIZE > filesize)
@@ -390,16 +391,16 @@ assume stream is valid
 int Stream_ReadMPG (stream_t *stream, int needBytes, void *buffer)
 	{
 	// buffer handling
-	int	bytesWritten = 0;
+	int		bytesWritten = 0;
 	/*void *mpg;
 
 	mpg = stream->ptr;*/
-	void *mpg = stream->ptr;
+	void	*mpg = stream->ptr;
 
 	while (1)
 		{
-		byte *data;
-		int	outsize;
+		byte	*data;
+		int		outsize;
 
 		if (!stream->buffsize)
 			{
@@ -410,7 +411,8 @@ int Stream_ReadMPG (stream_t *stream, int needBytes, void *buffer)
 		// check remaining size
 		if (bytesWritten + stream->pos > needBytes)
 			outsize = (needBytes - bytesWritten);
-		else outsize = stream->pos;
+		else
+			outsize = stream->pos;
 
 		// copy raw sample to output buffer
 		data = (byte *)buffer + bytesWritten;

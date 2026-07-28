@@ -44,7 +44,7 @@ typedef enum
 
 // net packets type
 #define NET_HEADER_OUTOFBANDPACKET	-1
-#define NET_HEADER_SPLITPACKET	-2
+#define NET_HEADER_SPLITPACKET		-2
 #define NET_HEADER_COMPRESSEDPACKET	-3
 
 
@@ -96,11 +96,14 @@ static inline qboolean NET_IsLocalAddress (netadr_t adr)
 // [FWGS, 01.04.25]
 void NET_GetLocalAddress (netadr_t *ip4, netadr_t *ip6);
 
-// [FWGS, 01.07.26]
+// [FWGS, 01.08.26]
 #if !XASH_DEDICATED
+
 /*int CL_GetSplitSize (void);*/
 size_t CL_GetSplitSize (void);
 qboolean CL_IsFromConnectingServer (netadr_t from);
+qboolean CL_HasActiveNetRequest (netadr_t from);
+
 #endif
 
 void HTTP_AddCustomServer (const char *url);

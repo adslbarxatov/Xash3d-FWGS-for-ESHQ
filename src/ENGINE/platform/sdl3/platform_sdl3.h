@@ -33,6 +33,14 @@ GNU General Public License for more details
 void SDLash_InitCursors (void);
 void SDLash_FreeCursors (void);
 
+//
+// sensor_sdl3.c [FWGS, 01.08.26]
+//
+void SDLash_InitSensors (void);
+void SDLash_ShutdownSensors (void);
+qboolean SDLash_GyroIsAvailable (void);
+void SDLash_SensorUpdate (SDL_SensorEvent sensor);
+
 #endif
 
 // ESHQ: ограничение компиляции

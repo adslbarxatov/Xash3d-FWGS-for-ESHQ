@@ -95,13 +95,13 @@ static void CL_ParseSoundPacket (sizebuf_t *msg, qboolean restore)
 
 	// entity relative
 	/*entnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);*/
-	int entnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
+	int	entnum = MSG_ReadUBitLong (msg, MAX_ENTITY_BITS);
 
 	// positioned in space
-	vec3_t pos;
+	vec3_t	pos;
 	MSG_ReadVec3Coord (msg, pos);
 
-	sound_t handle = 0;
+	sound_t	handle = 0;
 	if (FBitSet (flags, SND_SENTENCE))
 		{
 		char	sentenceName[32];
@@ -118,8 +118,8 @@ static void CL_ParseSoundPacket (sizebuf_t *msg, qboolean restore)
 		handle = cl.sound_index[sound];	// see precached sound
 		}
 
-	uint wordIndex = 0;
-	double samplePos = 0, forcedEnd = 0;
+	uint	wordIndex = 0;
+	double	samplePos = 0, forcedEnd = 0;
 	if (restore)
 		{
 		wordIndex = MSG_ReadByte (msg);
@@ -436,7 +436,7 @@ qboolean CL_RequestMissingResources (void)
 	return false;
 	}
 
-// [FWGS, 01.07.26]
+// [FWGS, 01.08.26]
 void CL_BatchResourceRequest (qboolean initialize)
 	{
 	/*byte		data[MAX_INIT_MSG];
@@ -529,7 +529,8 @@ void CL_BatchResourceRequest (qboolean initialize)
 	if (cls.state != ca_disconnected)
 		{
 		if (done_downloading && CL_PrecacheResources ())
-			CL_RegisterResources (&msg, cls.legacymode);
+			CL_RegisterResources (&msg, cls.net_protocol);
+			/*CL_RegisterResources (&msg, cls.legacymode);*/
 
 		Netchan_CreateFragments (&cls.netchan, &msg);
 		Netchan_FragSend (&cls.netchan);
@@ -1262,20 +1263,19 @@ CL_ParseBaseline
 ***/
 void CL_ParseBaseline (sizebuf_t *msg, connprotocol_t proto)
 	{
-	const entity_state_t nullstate = { 0 };
+	const entity_state_t	nullstate = { 0 };
 
 	Delta_InitClient ();	// finalize client delta's
 
-	// [FWGS, 01.03.26]
 	while (1)
 		{
-		cl_entity_t *ent;
-		qboolean player;
-		int newnum;
+		cl_entity_t	*ent;
+		qboolean	player;
+		int	newnum;
 
 		if (proto == PROTO_GOLDSRC)
 			{
-			uint value = MSG_ReadWord (msg);
+			uint	value = MSG_ReadWord (msg);
 
 			if (value == 0xffff)
 				break;	// end of baselines
@@ -1302,13 +1302,18 @@ void CL_ParseBaseline (sizebuf_t *msg, connprotocol_t proto)
 		// only one baseline allowed in legacy protocol
 		if (proto == PROTO_GOLDSRC)
 			{
-			int type = MSG_ReadUBitLong (msg, 2);
-			int delta_type;
+			int	type = MSG_ReadUBitLong (msg, 2);
+			int	delta_type;
 
-			if (player)
+			// [FWGS, 01.08.26]
+			/*if (player)
 				delta_type = DT_ENTITY_STATE_PLAYER_T;
 			else if (type != ENTITY_NORMAL)
+				delta_type = DT_CUSTOM_ENTITY_STATE_T;*/
+			if (FBitSet (type, ENTITY_BEAM))
 				delta_type = DT_CUSTOM_ENTITY_STATE_T;
+			else if (player)
+				delta_type = DT_ENTITY_STATE_PLAYER_T;
 			else
 				delta_type = DT_ENTITY_STATE_T;
 
@@ -1321,7 +1326,6 @@ void CL_ParseBaseline (sizebuf_t *msg, connprotocol_t proto)
 			}
 		}
 
-	// [FWGS, 01.03.26]
 	cl.instanced_baseline_count = MSG_ReadUBitLong (msg, 6);
 
 	for (int i = 0; i < cl.instanced_baseline_count; i++)

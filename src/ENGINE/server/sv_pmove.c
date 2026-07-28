@@ -45,7 +45,6 @@ void SV_ClipPMoveToEntity (physent_t *pe, const vec3_t start, vec3_t mins, vec3_
 static qboolean SV_CopyEdictToPhysEnt (physent_t *pe, edict_t *ed)
 	{
 	model_t	*mod = SV_ModelHandle (ed->v.modelindex);
-
 	if (!mod)
 		return false;
 
@@ -542,14 +541,15 @@ static void PM_CheckMovingGround (edict_t *ent, float frametime)
 	ClearBits (ent->v.flags, FL_BASEVELOCITY);
 	}
 
-// [FWGS, 01.07.26]
+// [FWGS, 01.08.26]
 static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd, const char *physinfo)
 	{
 	vec3_t	absmin, absmax;
 	edict_t	*clent = cl->edict;
 	/*int		i;*/
 
-	svgame.globals->frametime = (ucmd->msec * 0.001f);
+	/*svgame.globals->frametime = (ucmd->msec * 0.001f);*/
+	pmove->frametime = ucmd->msec * 0.001f;
 
 	pmove->player_index = NUM_FOR_EDICT (clent) - 1;
 	pmove->multiplayer = (svs.maxclients > 1) ? true : false;

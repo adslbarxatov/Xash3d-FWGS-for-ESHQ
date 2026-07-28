@@ -26,7 +26,7 @@ imglib_t	image;
 
 typedef struct suffix_s
 	{
-	const char *suf;
+	const char	*suf;
 	uint		flags;
 	side_hint_t	hint;
 	} suffix_t;
@@ -63,8 +63,8 @@ static const suffix_t cubemap_v1[6] =
 
 typedef struct cubepack_s
 	{
-	const char *name;	// just for debug
-	const suffix_t *type;
+	const char		*name;	// just for debug
+	const suffix_t	*type;
 	} cubepack_t;
 
 // [FWGS, 22.01.25]
@@ -104,11 +104,11 @@ const bpc_desc_t PFDesc[PF_TOTALCOUNT] =
 // [FWGS, 01.09.25]
 #if DEBUG_LOOKUPS_COUNT
 
-static int g_lookups = 0;
-static int g_lookups_total = 0;
-static double g_lookup_start = 0.0f;
-static double g_lookup_time = 0.0f;
-static double g_lookup_time_total = 0.0f;
+static int		g_lookups = 0;
+static int		g_lookups_total = 0;
+static double	g_lookup_start = 0.0f;
+static double	g_lookup_time = 0.0f;
+static double	g_lookup_time_total = 0.0f;
 
 // [FWGS, 01.09.25]
 static void Image_ReportLookupsCount (const char *name)
@@ -123,8 +123,8 @@ static void Image_ReportLookupsCount (const char *name)
 // [FWGS, 01.03.26]
 static void Image_IncrementLookupTime (void)
 	{
-	double t = Platform_DoubleTime ();
-	double dt = t - g_lookup_start;
+	double	t = Platform_DoubleTime ();
+	double	dt = t - g_lookup_start;
 
 	g_lookup_time += dt;
 	g_lookup_time_total += dt;
@@ -199,7 +199,7 @@ static MALLOC_LIKE (FS_FreeImage, 1) rgbdata_t *ImagePack (const char *name)
 		return NULL;
 
 	/*pack = Mem_Calloc (host.imagepool, sizeof (*pack));*/
-	rgbdata_t *pack = Mem_Calloc (host.imagepool, sizeof (*pack));
+	rgbdata_t	*pack = Mem_Calloc (host.imagepool, sizeof (*pack));
 
 	if (image.cubemap)
 		{
@@ -261,7 +261,7 @@ static qboolean FS_AddSideToPack (int adjust_flags)
 
 	// flip image if needed
 	/*flipped = Image_FlipInternal (image.rgba, &image.width, &image.height, image.source_type, adjust_flags);*/
-	byte *flipped = Image_FlipInternal (image.rgba, &image.width, &image.height, image.source_type, adjust_flags);
+	byte	*flipped = Image_FlipInternal (image.rgba, &image.width, &image.height, image.source_type, adjust_flags);
 	if (!flipped) 
 		return false;	// try to reasmple dxt?
 
@@ -271,7 +271,7 @@ static qboolean FS_AddSideToPack (int adjust_flags)
 	// resampling image if needed
 	/*out = Image_ResampleInternal ((uint *)image.rgba, image.width, image.height, image.source_width, 
 		image.source_height, image.source_type, &resampled);*/
-	byte *out = Image_ResampleInternal ((uint *)image.rgba, image.width, image.height, image.source_width,
+	byte	*out = Image_ResampleInternal ((uint *)image.rgba, image.width, image.height, image.source_width,
 		image.source_height, image.source_type, &resampled);
 	if (!out) 
 		return false;	// try to reasmple dxt?
@@ -389,7 +389,7 @@ static qboolean Image_ProbeLoad2 (const char *name, const char *suffix, int over
 
 		for (i = 0; i < t->numfilenames; i++)
 			{
-			const char *ext = COM_FileExtension (t->filenames[i]);
+			const char	*ext = COM_FileExtension (t->filenames[i]);
 
 			if (!Q_stricmp (ext, fmt->ext))
 				break;
@@ -482,7 +482,7 @@ rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size)
 		/*for (i = 0; i < 6; i++)*/
 		for (int i = 0; i < 6; i++)
 			{
-			const cubepack_t *cmap = &load_cubemap[j];
+			const cubepack_t	*cmap = &load_cubemap[j];
 
 			if (Image_ProbeLoad (extfmt, loadname, cmap->type[i].suf, cmap->type[i].hint))
 				FS_AddSideToPack (cmap->type[i].flags);
@@ -706,9 +706,10 @@ rgbdata_t *FS_CopyImage (const rgbdata_t *in)
 
 static void GeneratePixel (byte *pix, uint i, uint j, uint w, uint h, qboolean genAlpha)
 	{
-	double x = (j / (double)w) - 0.5;
-	double y = (i / (double)h) - 0.5;
-	double d = sqrt (x * x + y * y);
+	double	x = (j / (double)w) - 0.5;
+	double	y = (i / (double)h) - 0.5;
+	double	d = sqrt (x * x + y * y);
+
 	pix[0] = (byte)((sin (d * 30.0) + 1.0) * 126);
 	pix[1] = (byte)((sin (d * 27.723) + 1.0) * 126);
 	pix[2] = (byte)((sin (d * 42.41) + 1.0) * 126);
@@ -718,28 +719,23 @@ static void GeneratePixel (byte *pix, uint i, uint j, uint w, uint h, qboolean g
 // [FWGS, 01.07.26]
 static void Test_CheckImage (const char *name, rgbdata_t *rgb)
 	{
-	/*rgbdata_t *load;*/
-
 	// test reading
-	/*load = FS_LoadImage (name, NULL, 0);*/
-	rgbdata_t *load = FS_LoadImage (name, NULL, 0);
+	rgbdata_t	*load = FS_LoadImage (name, NULL, 0);
 	TASSERT (load->width == rgb->width)
-		TASSERT (load->height == rgb->height)
-		TASSERT (load->type == rgb->type)
-		TASSERT ((load->flags & rgb->flags) != 0)
-		TASSERT (load->size == rgb->size)
-		TASSERT (memcmp (load->buffer, rgb->buffer, rgb->size) == 0)
+	TASSERT (load->height == rgb->height)
+	TASSERT (load->type == rgb->type)
+	TASSERT ((load->flags & rgb->flags) != 0)
+	TASSERT (load->size == rgb->size)
+	TASSERT (memcmp (load->buffer, rgb->buffer, rgb->size) == 0)
 
-		FS_FreeImage (load);
+	FS_FreeImage (load);
 	}
 
 // [FWGS, 01.07.26]
 void Test_RunImagelib (void)
 	{
-	rgbdata_t rgb = { 0 };
-	/*byte *buf;*/
-	const char *extensions[] = { "tga", "png", "bmp" };
-	/*uint i, j;*/
+	rgbdata_t	rgb = { 0 };
+	const char	*extensions[] = { "tga", "png", "bmp" };
 
 	Image_Setup ();
 
@@ -750,13 +746,10 @@ void Test_RunImagelib (void)
 	rgb.flags = IMAGE_HAS_ALPHA;
 	rgb.size = rgb.width * rgb.height * 4;
 
-	/*buf = rgb.buffer = Z_Malloc (rgb.size);*/
-	byte *buf = rgb.buffer = Z_Malloc (rgb.size);
+	byte	*buf = rgb.buffer = Z_Malloc (rgb.size);
 
-	/*for (i = 0; i < rgb.height; i++)*/
 	for (uint i = 0; i < rgb.height; i++)
 		{
-		/*for (j = 0; j < rgb.width; j++)*/
 		for (uint j = 0; j < rgb.width; j++)
 			{
 			GeneratePixel (buf, i, j, rgb.width, rgb.height, true);
@@ -764,15 +757,12 @@ void Test_RunImagelib (void)
 			}
 		}
 
-	/*for (i = 0; i < sizeof (extensions) / sizeof (extensions[0]); i++)*/
 	for (uint i = 0; i < sizeof (extensions) / sizeof (extensions[0]); i++)
 		{
-		/*qboolean ret; */
-		char name[MAX_VA_STRING];
+		char	name[MAX_VA_STRING];
 		Q_snprintf (name, sizeof (name), "test_gen.%s", extensions[i]);
 
 		// test saving
-		/*ret = FS_SaveImage (name, &rgb);*/
 		qboolean ret = FS_SaveImage (name, &rgb);
 		Con_Printf ("Checking if we can save images in '%s' format...\n", extensions[i]);
 		ASSERT (ret == true);
@@ -785,7 +775,13 @@ void Test_RunImagelib (void)
 	Z_Free (rgb.buffer);
 	}
 
-// [FWGS, 05.04.26]
+#endif
+
+// [FWGS, 01.08.26]
+#if XASH_LLVM_LIBFUZZER
+
+#include "sprite.h"
+
 #define IMPLEMENT_IMAGELIB_FUZZ_TARGET( export, target ) \
 int HLEXPORT export( const uint8_t *Data, size_t Size ); \
 int HLEXPORT export( const uint8_t *Data, size_t Size ) \
@@ -807,5 +803,33 @@ IMPLEMENT_IMAGELIB_FUZZ_TARGET (Fuzz_Image_LoadBMP, Image_LoadBMP)
 IMPLEMENT_IMAGELIB_FUZZ_TARGET (Fuzz_Image_LoadPNG, Image_LoadPNG)
 IMPLEMENT_IMAGELIB_FUZZ_TARGET (Fuzz_Image_LoadDDS, Image_LoadDDS)
 IMPLEMENT_IMAGELIB_FUZZ_TARGET (Fuzz_Image_LoadTGA, Image_LoadTGA)
+
+// [FWGS, 01.08.26]
+/*endif*/
+int EXPORT Fuzz_Image_LoadSPR (const uint8_t *Data, size_t Size);
+
+int EXPORT Fuzz_Image_LoadSPR (const uint8_t *Data, size_t Size)
+	{
+	rgbdata_t	*rgb;
+
+	// the real caller passes only the pixel data size, the frame header is extra
+	if (Size < sizeof (dspriteframe_t))
+		return 0;
+
+	host.type = HOST_NORMAL;
+	Memory_Init ();
+	Image_Init ();
+
+	image.hint = IL_HINT_Q1;	// installs the Quake palette so the decoder runs
+
+	if (Image_LoadSPR ("#internal.spr", Data, Size - sizeof (dspriteframe_t)))
+		{
+		rgb = ImagePack ("#internal.spr");
+		FS_FreeImage (rgb);
+		}
+
+	Image_Shutdown ();
+	return 0;
+	}
 
 #endif

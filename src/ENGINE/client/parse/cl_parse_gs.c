@@ -99,7 +99,7 @@ typedef struct delta_header_t
 
 static int CL_ParseDeltaHeader (sizebuf_t *msg, qboolean delta, int oldnum, struct delta_header_t *hdr)
 	{
-	int entnum = oldnum;
+	int	entnum = oldnum;
 	memset (hdr, 0, sizeof (*hdr));
 
 	if (!delta)
@@ -163,7 +163,7 @@ static int CL_GetEntityDelta (const struct delta_header_t *hdr, int entnum)
 // [FWGS, 01.02.25]
 static int CL_FlushEntityPacketGS (frame_t *frame, sizebuf_t *msg)
 	{
-	int playerbytes = 0, numbase = 0;
+	int	playerbytes = 0, numbase = 0;
 
 	frame->valid = false;
 	cl.validsequence = 0;	// can't render a frame
@@ -174,7 +174,7 @@ static int CL_FlushEntityPacketGS (frame_t *frame, sizebuf_t *msg)
 		int		newnum, bufstart;
 		entity_state_t	from = { 0 }, to;
 		delta_header_t	hdr;
-		qboolean		player;
+		qboolean	player;
 
 		if (MSG_ReadWord (msg) != 0)
 			{
@@ -213,9 +213,9 @@ static void CL_DeltaEntityGS (const delta_header_t *hdr, sizebuf_t *msg, frame_t
 	{
 	cl_entity_t		*ent;
 	entity_state_t	*to;
-	qboolean		newent = from == NULL;
-	int				pack = frame->num_entities;
-	qboolean		has_update = msg != NULL;
+	qboolean	newent = from == NULL;
+	int			pack = frame->num_entities;
+	qboolean	has_update = msg != NULL;
 	static entity_state_t	nullent;
 
 	// alloc next slot to store update
@@ -297,10 +297,11 @@ static void CL_DeltaEntityGS (const delta_header_t *hdr, sizebuf_t *msg, frame_t
 
 static void CL_CopyPacketEntity (frame_t *frame, int num, const entity_state_t *from)
 	{
-	delta_header_t fakehdr =
+	delta_header_t	fakehdr =
 		{
-			.custom = FBitSet (from->entityType, ENTITY_BEAM) == ENTITY_BEAM,
+		.custom = FBitSet (from->entityType, ENTITY_BEAM) == ENTITY_BEAM,
 		};
+
 	CL_DeltaEntityGS (&fakehdr, NULL, frame, num, from);
 	}
 
@@ -355,18 +356,18 @@ static int CL_ParsePacketEntitiesGS (sizebuf_t *msg, qboolean delta)
 	/*oldent = NULL;
 	oldindex = 0;
 	oldnum = CL_UpdateOldEntNum (oldindex, oldframe, &oldent);*/
-	entity_state_t *oldent = NULL;
-	int oldindex = 0;
-	int oldnum = CL_UpdateOldEntNum (oldindex, oldframe, &oldent);
+	entity_state_t	*oldent = NULL;
+	int	oldindex = 0;
+	int	oldnum = CL_UpdateOldEntNum (oldindex, oldframe, &oldent);
 
 	// read it all but ignore it
 	while (1)
 		{
-		int bufstart, newnum;
-		qboolean player;
-		delta_header_t hdr;
-		int val = MSG_ReadWord (msg);
-
+		int		bufstart, newnum;
+		qboolean	player;
+		delta_header_t	hdr;
+		
+		int	val = MSG_ReadWord (msg);
 		if (val)
 			{
 			MSG_SeekToBit (msg, -16, SEEK_CUR);
@@ -449,7 +450,7 @@ static int CL_ParsePacketEntitiesGS (sizebuf_t *msg, qboolean delta)
 	// [FWGS, 01.07.26]
 static float MSG_ReadGSBitCoord (sizebuf_t *sb)
 	{
-	float value = 0;
+	float	value = 0;
 	/*int ival, fval;*/
 
 	/*ival = MSG_ReadOneBit (sb);
@@ -495,7 +496,7 @@ static void MSG_ReadGSBitVec3Coord (sizebuf_t *sb, vec3_t fa)
 		fa[2] = MSG_ReadGSBitCoord (sb);
 	}
 
-// [FWGS, 01.07.26]
+// [FWGS, 01.08.26]
 static void CL_ParseSoundPacketGS (sizebuf_t *msg)
 	{
 	/*vec3_t	pos;
@@ -507,35 +508,36 @@ static void CL_ParseSoundPacketGS (sizebuf_t *msg)
 	MSG_StartBitWriting (msg);
 
 	/*flags = MSG_ReadUBitLong (msg, 9);*/
-	int flags = MSG_ReadUBitLong (msg, 9);
+	int	flags = MSG_ReadUBitLong (msg, 9);
 
-	float volume;
+	float	volume;
 	if (FBitSet (flags, SND_VOLUME))
 		volume = (float)MSG_ReadByte (msg) / 255.0f;
 	else
 		volume = VOL_NORM;
 
-	float attn;
+	float	attn;
 	if (FBitSet (flags, SND_ATTENUATION))
 		attn = (float)MSG_ReadByte (msg) / 64.0f;
 	else
-		attn = ATTN_EVERYWHERE;
+		attn = 1.0f;
+	/*attn = ATTN_EVERYWHERE;*/
 
 	/*chan = MSG_ReadUBitLong (msg, 3);
 	entnum = MSG_ReadUBitLong (msg, MAX_GOLDSRC_ENTITY_BITS);*/
-	int chan = MSG_ReadUBitLong (msg, 3);
-	int entnum = MSG_ReadUBitLong (msg, MAX_GOLDSRC_ENTITY_BITS);
-	int sound;
+	int	chan = MSG_ReadUBitLong (msg, 3);
+	int	entnum = MSG_ReadUBitLong (msg, MAX_GOLDSRC_ENTITY_BITS);
+	int	sound;
 
 	if (FBitSet (flags, SND_GOLDSRC_LARGE_INDEX))
 		sound = MSG_ReadWord (msg);
 	else
 		sound = MSG_ReadByte (msg);
 	
-	vec3_t pos;
+	vec3_t	pos;
 	MSG_ReadGSBitVec3Coord (msg, pos);
 
-	int pitch;
+	int	pitch;
 	if (FBitSet (flags, SND_PITCH))
 		pitch = MSG_ReadByte (msg);
 	else

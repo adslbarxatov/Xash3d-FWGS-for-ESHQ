@@ -107,16 +107,16 @@ typedef enum
 // instanced baselines container
 typedef struct
 	{
-	const char *classname;
+	const char		*classname;
 	entity_state_t	baseline;
 	} sv_baseline_t;
 
 typedef struct
 	{
-	qboolean		active;
-	qboolean		net_log;
-	netadr_t		net_address;
-	file_t *file;
+	qboolean	active;
+	qboolean	net_log;
+	netadr_t	net_address;
+	file_t		*file;
 	} server_log_t;
 
 typedef struct server_s
@@ -202,8 +202,8 @@ typedef struct
 	clientdata_t	clientdata;
 	weapon_data_t	weapondata[MAX_LOCAL_WEAPONS];
 
-	int  		num_entities;
-	int  		first_entity;		// into the circular sv_packet_entities[]
+	int			num_entities;
+	int			first_entity;		// into the circular sv_packet_entities[]
 	} client_frame_t;
 
 typedef struct sv_client_s
@@ -356,7 +356,7 @@ typedef struct
 // [FWGS, 01.03.25]
 typedef struct
 	{
-	qboolean		initialized;		// sv_init has completed
+	qboolean	initialized;		// sv_init has completed
 	
 	double	timestart;		// just for profiling
 	int		maxclients;		// server max clients
@@ -370,21 +370,21 @@ typedef struct
 	char		localinfo[MAX_LOCALINFO_STRING];
 
 	int		spawncount;		// incremented each server start, used to check late spawns
-	sv_client_t *clients;			// [svs.maxclients]
+	sv_client_t		*clients;		// [svs.maxclients]
 	int		num_client_entities;	// svs.maxclients*UPDATE_BACKUP*MAX_PACKET_ENTITIES
 	int		next_client_entities;	// next client_entity to use
-	entity_state_t *packet_entities;		// [num_client_entities]
-	entity_state_t *baselines;		// [GI->max_edicts]
-	entity_state_t *static_entities;		// [MAX_STATIC_ENTITIES];
+	entity_state_t	*packet_entities;		// [num_client_entities]
+	entity_state_t	*baselines;		// [GI->max_edicts]
+	entity_state_t	*static_entities;		// [MAX_STATIC_ENTITIES];
 
 	uint32_t	challenge_salt[16];	// pregenerated random numbers for generating challenged based on IP's MD5 address
 
-	sizebuf_t	testpacket;         // pregenerataed testpacket, only needs CRC32 patching
-	byte		*testpacket_buf;    // check for NULL if testpacket is available
-	byte		*testpacket_crcpos; // pointer to write pregenerated crc (unaligned!)
-	uint32_t	*testpacket_crcs;   // checksums lookup table
-	int			testpacket_filepos; // file position (need to calculate lookup table pos)
-	int			testpacket_filelen; // file and lookup table length
+	sizebuf_t	testpacket;			// pregenerataed testpacket, only needs CRC32 patching
+	byte		*testpacket_buf;	// check for NULL if testpacket is available
+	byte		*testpacket_crcpos;	// pointer to write pregenerated crc (unaligned!)
+	uint32_t	*testpacket_crcs;	// checksums lookup table
+	int			testpacket_filepos;	// file position (need to calculate lookup table pos)
+	int			testpacket_filelen;	// file and lookup table length
 	} server_static_t;
 
 // =============================================================================
@@ -568,6 +568,10 @@ void SV_EndRedirect (host_redirect_t *rd);
 void SV_RejectConnection (netadr_t from, const char *fmt, ...) FORMAT_CHECK (2);
 void SV_GetPlayerCount (int *clients, int *bots);
 
+// [FWGS, 01.08.26]
+int SV_CreateChallenge (netadr_t from, qboolean *error);
+qboolean SV_ValidateChallenge (netadr_t from, int challenge);
+
 // [FWGS, 01.03.26]
 static inline qboolean SV_HavePassword (void)
 	{
@@ -644,8 +648,6 @@ const char *SV_GetString (string_t iString);
 void SV_SetStringArrayMode (qboolean dynamic);
 void SV_EmptyStringPool (qboolean clear_stats);
 void SV_PrintStr64Stats_f (void);
-
-// [FWGS, 01.05.24]
 sv_client_t *SV_ClientFromEdict (const edict_t *pEdict, qboolean spawned_only);
 uint SV_MapIsValid (const char *filename, const char *landmark_name);
 void SV_StartSound (edict_t *ent, int chan, const char *sample, float vol, float attn, int flags, int pitch);
@@ -668,10 +670,9 @@ qboolean SV_RestoreCustomDecal (struct decallist_s *entry, edict_t *pEdict, qboo
 static inline qboolean SV_CheckEdict (const edict_t *e, const char *file, const int line)
 	{
 	if (!e)
-		return false; // may be NULL
+		return false;	// may be NULL
 
-	int n = ((int)((edict_t *)(e)-svgame.edicts));
-
+	int	n = ((int)((edict_t *)(e)-svgame.edicts));
 	if ((n >= 0) && (n < GI->max_edicts))
 		return !e->free;
 
@@ -684,6 +685,7 @@ static inline edict_t *SV_EdictNum (int n)
 	{
 	if (likely ((n >= 0) && (n < GI->max_edicts)))
 		return &svgame.edicts[n];
+
 	return NULL;
 	}
 
@@ -735,8 +737,9 @@ void SV_SetLightStyle (int style, const char *s, float f);
 int SV_LightForEntity (edict_t *pEdict);
 
 //
-// sv_query.c [FWGS, 01.12.24]
+// sv_query.c [FWGS, 01.07.26]
 //
-void SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from);
+/*void SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from);*/
+void SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from, sizebuf_t *msg);
 
 #endif

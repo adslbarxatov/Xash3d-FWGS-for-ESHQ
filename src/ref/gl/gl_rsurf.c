@@ -577,7 +577,7 @@ static texture_t *R_TextureAnim (texture_t *b)
 		}
 
 	/*count = 0;*/
-	int count = 0;
+	int	count = 0;
 
 	while ((base->anim_min > reletive) || (base->anim_max <= reletive))
 		{
@@ -650,16 +650,14 @@ static texture_t *R_TextureAnimation (msurface_t *s)
 
 /***
 ===============
-R_AddDynamicLights [FWGS, 01.07.26]
+R_AddDynamicLights [FWGS, 01.08.26]
 ===============
 ***/
-static void R_AddDynamicLights (const msurface_t *surf)
+/*static void R_AddDynamicLights (const msurface_t *surf)*/
+static void R_AddDynamicLights (const msurface_t *surf, float sample_size, int smax, int tmax)
 	{
 	const mextrasurf_t	*info = surf->info;
-	/*int			lnum, smax, tmax;*/
 	int		sample_frac = 1.0;
-	/*float	sample_size;
-	mtexinfo_t	*tex;*/
 
 	// no dlighted surfaces here
 	if (!surf->dlightbits)
@@ -669,9 +667,9 @@ static void R_AddDynamicLights (const msurface_t *surf)
 	smax = (info->lightextents[0] / sample_size) + 1;
 	tmax = (info->lightextents[1] / sample_size) + 1;
 	tex = surf->texinfo;*/
-	float	sample_size = gEngfuncs.Mod_SampleSizeForFace (surf);
+	/*float	sample_size = gEngfuncs.Mod_SampleSizeForFace (surf);
 	int		smax = (info->lightextents[0] / sample_size) + 1;
-	int		tmax = (info->lightextents[1] / sample_size) + 1;
+	int		tmax = (info->lightextents[1] / sample_size) + 1;*/
 	mtexinfo_t	*tex = surf->texinfo;
 
 	if (FBitSet (tex->flags, TEX_WORLD_LUXELS))
@@ -697,7 +695,7 @@ static void R_AddDynamicLights (const msurface_t *surf)
 			continue;	// not lit by this light
 
 		/*dl = &gp_dlights[lnum];*/
-		dlight_t *dl = &gp_dlights[lnum];
+		dlight_t	*dl = &gp_dlights[lnum];
 
 		// transform light origin to local bmodel space
 		if (!tr.modelviewIdentity)
@@ -707,13 +705,13 @@ static void R_AddDynamicLights (const msurface_t *surf)
 
 		/*rad = dl->radius;
 		dist = PlaneDiff (origin_l, surf->plane);*/
-		float rad = dl->radius;
-		float dist = PlaneDiff (origin_l, surf->plane);
+		float	rad = dl->radius;
+		float	dist = PlaneDiff (origin_l, surf->plane);
 		rad -= fabs (dist);
 
 		// rad is now the highest intensity on the plane
 		/*minlight = dl->minlight;*/
-		float minlight = dl->minlight;
+		float	minlight = dl->minlight;
 		if (rad < minlight)
 			continue;
 
@@ -731,23 +729,31 @@ static void R_AddDynamicLights (const msurface_t *surf)
 
 		/*sl = DotProduct (impact, info->lmvecs[0]) + info->lmvecs[0][3] - info->lightmapmins[0];
 		tl = DotProduct (impact, info->lmvecs[1]) + info->lmvecs[1][3] - info->lightmapmins[1];*/
-		float sl = DotProduct (impact, info->lmvecs[0]) + info->lmvecs[0][3] - info->lightmapmins[0];
-		float tl = DotProduct (impact, info->lmvecs[1]) + info->lmvecs[1][3] - info->lightmapmins[1];
+		float	sl = DotProduct (impact, info->lmvecs[0]) + info->lmvecs[0][3] - info->lightmapmins[0];
+		float	tl = DotProduct (impact, info->lmvecs[1]) + info->lmvecs[1][3] - info->lightmapmins[1];
 
-		/*for (t = 0; t < tmax; t++)*/
-		for (int t = 0; t < tmax; t++)
+		/*for (int t = 0; t < tmax; t++)*/
+		// dist >= max( sd, td ), so a luxel can only pass the test below when both
+		// sd and td are under minlight
+		float	half = (minlight + 1.0f) / (sample_size * sample_frac);
+		int	s0 = Q_max (0, (int)(sl / sample_size - half));
+		int	s1 = Q_min (smax - 1, (int)(sl / sample_size + half));
+		int	t0 = Q_max (0, (int)(tl / sample_size - half));
+		int	t1 = Q_min (tmax - 1, (int)(tl / sample_size + half));
+
+		for (int t = t0; t <= t1; t++)
 			{
-			int td = (tl - sample_size * t) * sample_frac;
+			int	td = (tl - sample_size * t) * sample_frac;
 			/*int s;*/
 
 			if (td < 0)
 				td = -td;
 
-			/*for (s = 0; s < smax; s++)*/
-			for (int s = 0; s < smax; s++)
+			/*for (int s = 0; s < smax; s++)*/
+			for (int s = s0; s <= s1; s++)
 				{
-				int sd = (sl - sample_size * s) * sample_frac;
-				float dist;
+				int		sd = (sl - sample_size * s) * sample_frac;
+				float	dist;
 
 				if (sd < 0)
 					sd = -sd;
@@ -759,7 +765,7 @@ static void R_AddDynamicLights (const msurface_t *surf)
 
 				if (dist < minlight)
 					{
-					uint *bl = &r_blocklights[(s + (t * smax)) * 3];
+					uint	*bl = &r_blocklights[(s + (t * smax)) * 3];
 					bl[0] += ((int)((rad - dist) * 256) * dl->color.r) / 256;
 					bl[1] += ((int)((rad - dist) * 256) * dl->color.g) / 256;
 					bl[2] += ((int)((rad - dist) * 256) * dl->color.b) / 256;
@@ -831,7 +837,7 @@ static void LM_UploadBlock (qboolean dynamic)
 
 /***
 =================
-R_BuildLightmap [FWGS, 01.07.26]
+R_BuildLightmap [FWGS, 01.08.26]
 
 Combine and scale multiple lightmaps into the floating
 format in r_blocklights
@@ -883,7 +889,8 @@ static void R_BuildLightMap (const msurface_t *surf, byte *dest, int stride, qbo
 
 	// add all the dynamic lights
 	if ((surf->dlightframe == tr.framecount) && dynamic)
-		R_AddDynamicLights (surf);
+		R_AddDynamicLights (surf, sample_size, smax, tmax);
+		/*R_AddDynamicLights (surf);*/
 
 	/*for (t = 0; t < tmax; t++)*/
 	for (int t = 0; t < tmax; t++)

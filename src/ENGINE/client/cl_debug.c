@@ -34,7 +34,7 @@ typedef struct
 typedef struct
 	{
 	oldcmd_t	oldcmd[MSG_COUNT];
-	int	currentcmd;
+	int		currentcmd;
 	qboolean	parsing;
 	} msg_debug_t;
 
@@ -48,10 +48,11 @@ const char *CL_MsgInfo (int cmd)
 	if ((cmd >= 0) && (cmd <= svc_lastmsg))
 		{
 		// get engine message name
-		const char *svc_string = NULL;
+		const char	*svc_string = NULL;
 
-		// [FWGS, 01.03.26]
-		switch (cls.legacymode)
+		// [FWGS, 01.07.26]
+		/*switch (cls.legacymode)*/
+		switch (cls.net_protocol)
 			{
 			case PROTO_CURRENT:
 				svc_string = svc_strings[cmd];
@@ -88,7 +89,8 @@ const char *CL_MsgInfo (int cmd)
 				}
 			}
 		}
-	return sz;
+
+	return	sz;
 	}
 
 /***
@@ -118,7 +120,7 @@ void CL_Parse_RecordCommand (int cmd, int startoffset)
 		return;
 
 	/*slot = (cls_message_debug.currentcmd++ & MSG_MASK);*/
-	int slot = (cls_message_debug.currentcmd++ & MSG_MASK);
+	int	slot = (cls_message_debug.currentcmd++ & MSG_MASK);
 	cls_message_debug.oldcmd[slot].command = cmd;
 	cls_message_debug.oldcmd[slot].starting_offset = startoffset;
 	cls_message_debug.oldcmd[slot].frame_number = host.framecount;
@@ -141,20 +143,20 @@ void CL_ResetFrame (frame_t *frame)
 
 /***
 =====================
-CL_WriteErrorMessage [FWGS, 01.07.26]
+CL_WriteErrorMessage [FWGS, 01.08.26]
 
 write net_message into buffer.dat for debugging
 =====================
 ***/
 static void CL_WriteErrorMessage (int current_count, sizebuf_t *msg)
 	{
-	const char *buffer_file = "buffer.dat";
+	const char	*buffer_file = "buffer.dat";
 
 	/*file_t *fp;
 
 	// [FWGS, 01.03.26]
 	fp = FS_Open (buffer_file, "wb", false);*/
-	file_t *fp = FS_Open (buffer_file, "wb", false);
+	file_t	*fp = FS_Open (buffer_file, "wb", false);
 	if (!fp)
 		{
 		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, buffer_file);
@@ -163,7 +165,8 @@ static void CL_WriteErrorMessage (int current_count, sizebuf_t *msg)
 
 	FS_Write (fp, &cls.starting_count, sizeof (int));
 	FS_Write (fp, &current_count, sizeof (int));
-	FS_Write (fp, &cls.legacymode, sizeof (cls.legacymode));
+	/*FS_Write (fp, &cls.legacymode, sizeof (cls.legacymode));*/
+	FS_Write (fp, &cls.net_protocol, sizeof (cls.net_protocol));
 	FS_Write (fp, MSG_GetData (msg), MSG_GetMaxBytes (msg));
 	FS_Close (fp);
 
@@ -213,14 +216,14 @@ void CL_WriteMessageHistory (void)
 	cls_message_debug.parsing = false;
 	}
 
-// [FWGS, 01.03.25]
+// [FWGS, 01.08.26]
 void CL_ReplayBufferDat_f (void)
 	{
-	file_t *f = FS_Open (Cmd_Argv (1), "rb", true);
-	sizebuf_t msg;
-	char buffer[NET_MAX_MESSAGE];
-	int starting_count, current_count, protocol;
-	fs_offset_t len;
+	file_t		*f = FS_Open (Cmd_Argv (1), "rb", true);
+	sizebuf_t	msg;
+	char	buffer[NET_MAX_MESSAGE];
+	int		starting_count, current_count, protocol;
+	fs_offset_t	len;
 
 	if (!f)
 		return;
@@ -229,7 +232,8 @@ void CL_ReplayBufferDat_f (void)
 	FS_Read (f, &current_count, sizeof (current_count));
 	FS_Read (f, &protocol, sizeof (protocol));
 
-	cls.legacymode = protocol;
+	/*cls.legacymode = protocol;*/
+	cls.net_protocol = protocol;
 
 	len = FS_Read (f, buffer, sizeof (buffer));
 	FS_Close (f);

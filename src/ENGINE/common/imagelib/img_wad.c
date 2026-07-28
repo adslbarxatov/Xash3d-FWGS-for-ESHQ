@@ -67,8 +67,8 @@ Image_LoadPAL
 ***/
 qboolean Image_LoadPAL (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
-	int	rendermode = LUMP_NORMAL;
-	byte pal[768];
+	int		rendermode = LUMP_NORMAL;
+	byte	pal[768];
 
 	if (filesize > sizeof (pal))
 		{
@@ -273,13 +273,13 @@ qboolean Image_LoadMDL (const char *name, const byte *buffer, fs_offset_t filesi
 
 /***
 ============
-Image_LoadSPR [FWGS, 01.07.26]
+Image_LoadSPR [FWGS, 01.08.26]
 ============
 ***/
 qboolean Image_LoadSPR (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
 	dspriteframe_t	pin;	// identical for q1\hl sprites
-	qboolean		truecolor = false;
+	qboolean	truecolor = false;
 	/*byte			*fin;*/
 
 	if (image.hint == IL_HINT_HL)
@@ -301,15 +301,18 @@ qboolean Image_LoadSPR (const char *name, const byte *buffer, fs_offset_t filesi
 	image.width = pin.width;
 	image.height = pin.height;
 
-	if (filesize < image.width * image.height)
+	/*if (filesize < image.width * image.height)*/
+	if (filesize < (fs_offset_t)image.width * image.height)
 		return false;
 
-	if (filesize == (image.width * image.height * 4))
+	/*if (filesize == (image.width * image.height * 4))*/
+	if (filesize == (fs_offset_t)image.width * image.height * 4)
 		truecolor = true;
 
 	// sorry, can't validate palette rendermode
 	if (!Image_LumpValidSize (name))
 		return false;
+
 	image.type = (truecolor) ? PF_RGBA_32 : PF_INDEXED_32;	// 32-bit palete
 	image.depth = 1;
 

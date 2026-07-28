@@ -288,9 +288,12 @@ void FS_FreeStream (stream_t *stream)
 	stream->format->freefunc (stream);
 	}
 
-#if XASH_ENGINE_TESTS
+// [FWGS, 01.08.26]
+/*if XASH_ENGINE_TESTS
 
-// [FWGS, 01.02.24]
+// [FWGS, 01.02.24]*/
+#if XASH_LLVM_LIBFUZZER
+
 #define IMPLEMENT_SOUNDLIB_FUZZ_TARGET( export, target ) \
 int HLEXPORT export( const uint8_t *Data, size_t Size ); \
 int HLEXPORT export( const uint8_t *Data, size_t Size ) \

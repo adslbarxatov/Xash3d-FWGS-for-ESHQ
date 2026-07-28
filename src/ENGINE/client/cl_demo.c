@@ -401,7 +401,7 @@ void GAME_EXPORT CL_WriteDemoUserMessage (int size, byte *buffer)
 
 /***
 ====================
-CL_WriteDemoHeader [FWGS, 01.07.26]
+CL_WriteDemoHeader [FWGS, 01.08.26]
 
 Write demo header
 ====================
@@ -434,8 +434,8 @@ static void CL_WriteDemoHeader (const char *name)
 
 	demo.header.id = IDEMOHEADER;
 	demo.header.dem_protocol = DEMO_PROTOCOL;
-	demo.header.net_protocol = CL_GetDemoNetProtocol (cls.legacymode);
-
+	/*demo.header.net_protocol = CL_GetDemoNetProtocol (cls.legacymode);*/
+	demo.header.net_protocol = CL_GetDemoNetProtocol (cls.net_protocol);
 	demo.header.host_fps = host_maxfps.value ? bound (MIN_FPS, host_maxfps.value, maxfps) : maxfps;
 
 	Q_strncpy (demo.header.mapname, clgame.mapname, sizeof (demo.header.mapname));
@@ -460,11 +460,10 @@ static void CL_WriteDemoHeader (const char *name)
 	FS_Flush (cls.demoheader);
 
 	// now copy the stuff we cached from the server
-	int copysize, savepos;
+	int	copysize, savepos;
 	copysize = savepos = FS_Tell (cls.demoheader);
 
 	FS_Seek (cls.demoheader, 0, SEEK_SET);
-
 	FS_FileCopy (cls.demofile, cls.demoheader, copysize);
 
 	// jump back to end, in case we record another demo for this session
@@ -478,7 +477,7 @@ static void CL_WriteDemoHeader (const char *name)
 
 	// now move on to entry # 1, the first data chunk
 	/*curpos = FS_Tell (cls.demofile);*/
-	int curpos = FS_Tell (cls.demofile);
+	int	curpos = FS_Tell (cls.demofile);
 	demo.entry->length = curpos - demo.entry->offset;
 
 	// now we are writing the first real lump.
@@ -731,14 +730,14 @@ static void CL_ReadDemoSequence (qboolean discard)
 
 /***
 =================
-CL_DemoStartPlayback [FWGS, 22.01.25]
+CL_DemoStartPlayback
 =================
 ***/
 static void CL_DemoStartPlayback (int mode)
 	{
 	if (cls.changedemo)
 		{
-		int maxclients = cl.maxclients;
+		int	maxclients = cl.maxclients;
 
 		S_StopAllSounds (true);
 		SCR_BeginLoadingPlaque (false);
@@ -763,8 +762,10 @@ static void CL_DemoStartPlayback (int mode)
 
 	demo.starttime = CL_GetDemoPlaybackClock ();	// for determining whether to read another message
 
-	// [FWGS, 01.12.24]
-	CL_SetupNetchanForProtocol (cls.legacymode);
+	// [FWGS, 01.08.26]
+	/*// [FWGS, 01.12.24]
+	CL_SetupNetchanForProtocol (cls.legacymode);*/
+	CL_SetupNetchanForProtocol (cls.net_protocol);
 
 	memset (demo.cmds, 0, sizeof (demo.cmds));
 	demo.angle_position = 1;
@@ -1562,7 +1563,7 @@ static qboolean CL_ParseDemoHeader (const char *callee, const char *filename, fi
 
 /***
 ====================
-CL_PlayDemo_f [FWGS, 01.07.26]
+CL_PlayDemo_f [FWGS, 01.08.26]
 
 playdemo <demoname>
 ====================
@@ -1635,8 +1636,11 @@ void CL_PlayDemo_f (void)
 			cls.forcetrack = -cls.forcetrack;
 
 		CL_DemoStartPlayback (DEMO_QUAKE1);
-		cls.legacymode = PROTO_QUAKE;
-		return;	// quake demo is started
+		/*cls.legacymode = PROTO_QUAKE;*/
+		cls.net_protocol = PROTO_QUAKE;
+
+		// quake demo is started
+		return;
 		}
 
 	// read in the demo header
@@ -1652,7 +1656,7 @@ void CL_PlayDemo_f (void)
 	/*for (i = 0; i < demo.directory.numentries; i++)*/
 	for (int i = 0; i < demo.directory.numentries; i++)
 		{
-		demoentry_t *entry = &demo.directory.entries[i];
+		demoentry_t	*entry = &demo.directory.entries[i];
 
 		if (FS_Read (cls.demofile, entry, sizeof (*entry)) != sizeof (*entry))
 			{
@@ -1672,7 +1676,8 @@ void CL_PlayDemo_f (void)
 	CL_DemoStartPlayback (DEMO_XASH3D);
 
 	// must be after DemoStartPlayback, as CL_Disconnect_f resets the protocol
-	cls.legacymode = CL_GetProtocolFromDemo (demo.header.net_protocol);
+	/*cls.legacymode = CL_GetProtocolFromDemo (demo.header.net_protocol);*/
+	cls.net_protocol = CL_GetProtocolFromDemo (demo.header.net_protocol);
 
 	// g-cont. is this need?
 	Q_strncpy (cls.servername, demoname, sizeof (cls.servername));

@@ -438,13 +438,16 @@ typedef struct
 	float		applied_angle;
 	} screen_shake_t;
 
+// [FWGS, 01.08.26]
 typedef struct
 	{
 	net_response_t		resp;
 	net_api_response_func_t	pfnFunc;
 	double			timeout;
 	double			timesend;	// time when request was sended
-	int			flags;	// FNETAPI_MULTIPLE_RESPONSE etc
+	int		flags;		// FNETAPI_MULTIPLE_RESPONSE etc
+
+	int		challenge;	// GoldSrc query challenge, -1 until received
 	} net_request_t;
 
 // new versions of client dlls have a single export with all callbacks
@@ -655,8 +658,9 @@ typedef struct
 	// [FWGS, 01.07.26]
 	/*uint32_t		internetservers_key;		// compare key to validate master server reply*/
 	
-	// multiprotocol support
-	connprotocol_t	legacymode;
+	// [FWGS, 01.08.26] multiprotocol support
+	/*connprotocol_t	legacymode;*/
+	connprotocol_t	net_protocol;
 	int				extensions;
 
 	netadr_t		serveradr;
@@ -808,9 +812,10 @@ void CL_SignonReply (connprotocol_t proto);
 void CL_ClearState (void);
 void CL_SetCheatState (qboolean multiplayer, qboolean allow_cheats);
 
-// [FWGS, 01.07.26]
+// [FWGS, 01.08.26]
 void CL_SendGoldSrcConnectPacket (netadr_t adr, int challenge, const void *ticket, size_t ticketlen);
 void CL_NotifyServerListResponse (void);
+qboolean CL_NetRequestSend (net_request_t *nr);
 
 //
 // cl_demo.c

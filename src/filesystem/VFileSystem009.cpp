@@ -28,13 +28,13 @@ GNU General Public License for more details
 #endif
 
 // GoldSrc Directories and ID
-// GAME          gamedir
-// GAMECONFIG    gamedir (rodir integration?)
-// GAMEDOWNLOAD  gamedir_downloads (gamedir/downloads for us)
-// GAME_FALLBACK liblist.gam's fallback_dir
-// ROOT and BASE rootdir
-// PLATFORM      platform
-// CONFIG        platform/config
+// GAME				gamedir
+// GAMECONFIG		gamedir (rodir integration?)
+// GAMEDOWNLOAD		gamedir_downloads
+// GAME_FALLBACK	liblist.gam's fallback_dir
+// ROOT and BASE	rootdir
+// PLATFORM			platform
+// CONFIG			platform/config
 
 // This is a macro because pointers returned by alloca
 // shouldn't leave current scope
@@ -43,19 +43,30 @@ GNU General Public License for more details
 	char * const var = static_cast<char *>( alloca( var ## _size )); \
 	CopyAndFixSlashes( var, ( str ), var ## _size )
 
-static inline bool IsIdGamedir (const char *id)
+// [FWGS, 01.08.26]
+/*static inline bool IsIdGamedir (const char *id)*/
+static bool IsIdGamedir (const char *id)
 	{
-	return !Q_strcmp (id, "GAME") ||
-		!Q_strcmp (id, "GAMECONFIG") ||
+	return !Q_strcmp (id, "GAME") || !Q_strcmp (id, "GAMECONFIG") ||
 		!Q_strcmp (id, "GAMEDOWNLOAD");
 	}
 
-static inline const char *IdToDir (char *dir, size_t size, const char *id)
+// [FWGS, 01.08.26]
+/*static inline const char *IdToDir (char *dir, size_t size, const char *id)*/
+static searchpath_t *IdToWritableSearchpath (const char *id)
+	{
+	if (!Q_strcmp (id, "GAME") || !Q_strcmp (id, "GAMECONFIG"))
+		return fs_writepath;
+
+	return NULL;
+	}
+
+// [FWGS, 01.08.26]
+static const char *IdToDir (char *dir, size_t size, const char *id)
 	{
 	if (!Q_strcmp (id, "GAME"))
 		return GI->gamefolder;
 
-	// [FWGS, 01.05.26]
 	if (!Q_strcmp (id, "GAMEDOWNLOAD"))
 		{
 		Q_snprintf (dir, size, "%s" DEFAULT_DOWNLOADED_DIRECTORY_SUFFIX, GI->gamefolder);
@@ -75,8 +86,9 @@ static inline const char *IdToDir (char *dir, size_t size, const char *id)
 	return fs_rootdir;	// give at least root directory
 	}
 
-// [FWGS, 01.12.24]
-static inline void CopyAndFixSlashes (char *p, const char *in, size_t size)
+// [FWGS, 01.08.26]
+/*static inline void CopyAndFixSlashes (char *p, const char *in, size_t size)*/
+static void CopyAndFixSlashes (char *p, const char *in, size_t size)
 	{
 	Q_strncpy (p, in, size);
 	COM_FixSlashes (p);
@@ -150,17 +162,21 @@ class CXashFS : public IFileSystem
 			return true;
 			}
 
+		// [FWGS, 01.08.26]
 		void RemoveFile (const char *path, const char *id) override
 			{
-			char dir[MAX_VA_STRING], fullpath[MAX_VA_STRING];
+			/*char dir[MAX_VA_STRING], fullpath[MAX_VA_STRING];
 			
 			Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", IdToDir (dir, sizeof (dir), id), path);
-			FS_Delete (fullpath);	// FS_Delete is aware of slashes
+			FS_Delete (fullpath);	// FS_Delete is aware of slashes*/
+			// FIXME: handle writable downloads path
+			if (IdToWritableSearchpath (id))
+				FS_Delete (path);	// FS_Delete is aware of slashes
 			}
 
 		void CreateDirHierarchy (const char *path, const char *id) override
 			{
-			char dir[MAX_VA_STRING], fullpath[MAX_VA_STRING];
+			char	dir[MAX_VA_STRING], fullpath[MAX_VA_STRING];
 
 			Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", IdToDir (dir, sizeof (dir), id), path);
 			FS_CreatePath (fullpath);	// FS_CreatePath is aware of slashes

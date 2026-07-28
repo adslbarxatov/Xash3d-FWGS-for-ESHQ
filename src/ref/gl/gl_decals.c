@@ -717,11 +717,11 @@ static void R_DecalNodeSurfaces (model_t *model, mnode_t *node, decalinfo_t *dec
 
 	firstsurface = node_firstsurface (node, model);
 	numsurfaces = node_numsurfaces (node, model);*/
-	int firstsurface = node_firstsurface (node, model);
-	int numsurfaces = node_numsurfaces (node, model);
+	int	firstsurface = node_firstsurface (node, model);
+	int	numsurfaces = node_numsurfaces (node, model);
 
 	/*surf = model->surfaces + firstsurface;*/
-	msurface_t *surf = model->surfaces + firstsurface;
+	msurface_t	*surf = model->surfaces + firstsurface;
 
 	/*for (i = 0; i < numsurfaces; i++, surf++)*/
 	for (int i = 0; i < numsurfaces; i++, surf++)
@@ -755,9 +755,9 @@ static void R_DecalNode (model_t *model, mnode_t *node, decalinfo_t *decalinfo)
 
 	/*splitplane = node->plane;
 	dist = DotProduct (decalinfo->m_Position, splitplane->normal) - splitplane->dist;*/
-	struct mplane_t *splitplane = node->plane;
-	float dist = DotProduct (decalinfo->m_Position, splitplane->normal) - splitplane->dist;
-
+	struct mplane_t	*splitplane = node->plane;
+	
+	float	dist = DotProduct (decalinfo->m_Position, splitplane->normal) - splitplane->dist;
 	if (dist > decalinfo->m_Size)
 		{
 		R_DecalNode (model, node_child (node, 0, model), decalinfo);
@@ -776,7 +776,7 @@ static void R_DecalNode (model_t *model, mnode_t *node, decalinfo_t *decalinfo)
 		}
 	}
 
-// [FWGS, 01.07.26] Shoots a decal onto the surface of the BSP.  position is the center of the decal in world coords
+// [FWGS, 01.08.26] Shoots a decal onto the surface of the BSP.  position is the center of the decal in world coords
 void R_DecalShoot (int textureIndex, int entityIndex, int modelIndex, vec3_t pos, int flags, float scale)
 	{
 	/*decalinfo_t	decalInfo;
@@ -791,8 +791,8 @@ void R_DecalShoot (int textureIndex, int entityIndex, int modelIndex, vec3_t pos
 		return;
 		}
 
-	cl_entity_t *ent = NULL;
-	model_t *model = NULL;
+	cl_entity_t	*ent = NULL;
+	model_t	*model = NULL;
 	if (entityIndex > 0)
 		{
 		ent = CL_GetEntityByIndex (entityIndex);
@@ -818,11 +818,12 @@ void R_DecalShoot (int textureIndex, int entityIndex, int modelIndex, vec3_t pos
 
 	if (model->type != mod_brush)
 		{
-		gEngfuncs.Con_Printf (S_ERROR "Decals must hit mod_brush!\n");
+		/*gEngfuncs.Con_Printf (S_ERROR "Decals must hit mod_brush!\n");*/
+		gEngfuncs.Con_Reportf (S_ERROR "Decals must hit mod_brush!\n");
 		return;
 		}
 
-	decalinfo_t decalInfo;
+	decalinfo_t	decalInfo;
 	decalInfo.m_pModel = model;
 	
 	/*hull = &model->hulls[0];	// always use #0 hull*/

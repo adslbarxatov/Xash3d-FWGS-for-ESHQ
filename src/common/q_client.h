@@ -28,10 +28,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 
 // Definitions originally taken from Quake, modified for binary compatibility
 
+// [FWGS, 01.08.26]
 typedef struct usercmd_s
 	{
 	int16_t		lerp_msec;	// added in HL
-	int8_t		msec;		// added in QW
+	/*int8_t		msec;		// added in QW*/
+	uint8_t		msec;		// added in QW
 	uint8_t		pad1;
 	vec3_t		viewangles;
 
@@ -62,7 +64,7 @@ typedef struct dlight_s
 
 	struct
 		{
-		uint8_t r, g, b;
+		uint8_t	r, g, b;
 		} color;
 
 	float		die;		// stop lighting after this time
@@ -105,7 +107,7 @@ typedef enum
 	// added in HL
 	pt_4x_slowgrav,	// 4 times faster than pt_slowgrav
 	pt_8x_slowgrav,	// 8 times faster than pt_slowgrav
-	pt_custom, // will call think function from particle
+	pt_custom,		// will call think function from particle
 	} ptype_t;
 
 // [FWGS, 01.04.26]
