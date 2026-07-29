@@ -3464,52 +3464,90 @@ static void GAME_EXPORT NetAPI_Status (net_status_t *status)
 
 /***
 =================
-NetAPI_SendRequest
+NetAPI_SendRequest [FWGS, 01.08.26]
 =================
 ***/
 static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags, double timeout,
 	netadr_t *remote_address, net_api_response_func_t response)
 	{
-	net_request_t	*nr = NULL;
-	int		i;
+	/*net_request_t	*nr = NULL;
+	int		i;*/
 
 	if (!response)
 		{
-		Con_DPrintf (S_ERROR "%s: no callbcak specified for request with context %i!\n", __func__, context);
+		/*Con_DPrintf (S_ERROR "%s: no callbcak specified for request with context %i!\n", __func__, context);*/
+		Con_DPrintf (S_ERROR "%s: no callback specified for request with context %i!\n",
+			__func__, context);
 		return;
 		}
 
-	// [FWGS, 01.03.25]
+	// FIXME: call pfnFunc and tell client.dll about errors?
 	if ((NET_NetadrType (remote_address) == NA_IPX) || (NET_NetadrType (remote_address) == NA_BROADCAST_IPX))
 		return;	// IPX no longer support
 
-	if (request == NETAPI_REQUEST_SERVERLIST)
-		return;	// no support for server list requests
+	/*if (request == NETAPI_REQUEST_SERVERLIST)*/
+	switch (request)
+		{
+		case NETAPI_REQUEST_SERVERLIST:
+			return;	// no support for server list requests
+
+		case NETAPI_REQUEST_PING:
+		case NETAPI_REQUEST_RULES:
+		case NETAPI_REQUEST_PLAYERS:
+		case NETAPI_REQUEST_DETAILS:
+			break;
+
+		default:
+			Con_Printf (S_ERROR "%s: unknown request type %d, context %i\n",
+				__func__, request, context);
+			return;
+		}
 
 	// find a free request
-	for (i = 0; i < MAX_REQUESTS; i++)
+	/*for (i = 0; i < MAX_REQUESTS; i++)*/
+	net_request_t	*nr = NULL, *oldest_nr = NULL;
+	int		i;
+	double	max_timeout = 0;
+
+	for (i = 0; i < HLARRAYSIZE (clgame.net_requests); i++)
 		{
 		nr = &clgame.net_requests[i];
+		/*if (!nr->pfnFunc)
+			break;*/
+
+		if ((host.realtime - nr->timesend) > max_timeout)
+			{
+			max_timeout = host.realtime - nr->timesend;
+			oldest_nr = nr;
+			}
+
 		if (!nr->pfnFunc)
 			break;
 		}
 
-	if (i == MAX_REQUESTS)
+	/*if (i == MAX_REQUESTS)*/
+	if (i == HLARRAYSIZE (clgame.net_requests))
 		{
-		double	max_timeout = 0;
+		/*double	max_timeout = 0;*/
 
 		// no free requests? use oldest
-		for (i = 0, nr = NULL; i < MAX_REQUESTS; i++)
+		/*for (i = 0, nr = NULL; i < MAX_REQUESTS; i++)
 			{
 			if ((host.realtime - clgame.net_requests[i].timesend) > max_timeout)
 				{
 				max_timeout = host.realtime - clgame.net_requests[i].timesend;
 				nr = &clgame.net_requests[i];
 				}
-			}
+			}*/
+		nr = oldest_nr;
 		}
 
-	Assert (nr != NULL);
+	/*Assert (nr != NULL);*/
+	if (!nr)
+		{
+		Con_Printf (S_ERROR "%s: no free requests\n", __func__);
+		return;
+		}
 
 	// clear slot
 	memset (nr, 0, sizeof (*nr));
@@ -3522,27 +3560,28 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 	nr->resp.type = request;
 	nr->resp.remote_address = *remote_address;
 	nr->flags = flags;
+	nr->challenge = -1;
 	
-	// [FWGS, 01.03.26] local servers request
-	Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, A2A_NETINFO" %i %i %i", PROTOCOL_VERSION, context, request);
+	/*// [FWGS, 01.03.26] local servers request
+	Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, A2A_NETINFO" %i %i %i",
+		PROTOCOL_VERSION, context, request);*/
+	if (!CL_NetRequestSend (nr))
+		Con_Printf (S_ERROR "%s: failed to send net request for type %d with context %i\n",
+			__func__, request, context);
 	}
 
 /***
 =================
-NetAPI_CancelRequest [FWGS, 01.07.26]
+NetAPI_CancelRequest [FWGS, 01.08.26]
 =================
 ***/
 static void GAME_EXPORT NetAPI_CancelRequest (int context)
 	{
-	/*net_request_t *nr;
-	int i;*/
-
 	// find a specified request
-	/*for (i = 0; i < MAX_REQUESTS; i++)*/
-	for (int i = 0; i < MAX_REQUESTS; i++)
+	/*for (int i = 0; i < MAX_REQUESTS; i++)*/
+	for (int i = 0; i < HLARRAYSIZE (clgame.net_requests); i++)
 		{
-		/*nr = &clgame.net_requests[i];*/
-		net_request_t *nr = &clgame.net_requests[i];
+		net_request_t	*nr = &clgame.net_requests[i];
 
 		if (clgame.net_requests[i].resp.context == context)
 			{
@@ -3561,20 +3600,16 @@ static void GAME_EXPORT NetAPI_CancelRequest (int context)
 
 /***
 =================
-NetAPI_CancelAllRequests [FWGS, 01.07.26]
+NetAPI_CancelAllRequests [FWGS, 01.08.26]
 =================
 ***/
 void GAME_EXPORT NetAPI_CancelAllRequests (void)
 	{
-	/*net_request_t	*nr;
-	int				i;*/
-
 	// tell the user about cancel
-	/*for (i = 0; i < MAX_REQUESTS; i++)*/
-	for (int i = 0; i < MAX_REQUESTS; i++)
+	/*for (int i = 0; i < MAX_REQUESTS; i++)*/
+	for (int i = 0; i < HLARRAYSIZE (clgame.net_requests); i++)
 		{
-		/*nr = &clgame.net_requests[i];*/
-		net_request_t *nr = &clgame.net_requests[i];
+		net_request_t	*nr = &clgame.net_requests[i];
 		if (!nr->pfnFunc)
 			continue;	// not used
 
@@ -3681,7 +3716,7 @@ static void GAME_EXPORT VGui_ViewportPaintBackground (int extents[4])
 // [FWGS, 01.07.26]
 static cvar_t *GAME_EXPORT CL_CvarGetPointer (const char *szVarName)
 	{
-	cvar_t *result = (cvar_t *)Cvar_FindVar (szVarName);
+	cvar_t	*result = (cvar_t *)Cvar_FindVar (szVarName);
 
 	if (!result)
 		Con_DPrintf (S_WARN "%s: client tried to get non-existent cvar \"%s\"\n",
@@ -3795,7 +3830,7 @@ static event_api_t gEventApi =
 	PM_CL_TraceTexture,
 	pfnStopAllSounds,
 	pfnKillEvents,
-	CL_PlayerTraceExt,		// Xash3D added
+	CL_PlayerTraceExt,	// Xash3D added
 	CL_SoundFromIndex,
 	pfnTraceSurface,
 	pfnGetMoveVars,
@@ -3978,7 +4013,7 @@ static cl_enginefunc_t gEngfuncs =
 	Cmd_AliasGetList,
 	pfnVguiWrap2_GetMouseDelta,
 	pfnFilteredClientCmd,
-	pfnGetCurrentDuckState		// ESHQ: поддержка клиентской части
+	pfnGetCurrentDuckState	// ESHQ: поддержка клиентской части
 	};
 
 void CL_UnloadProgs (void)

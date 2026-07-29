@@ -56,7 +56,7 @@ le_struct_end ();
 
 // [FWGS, 01.05.26] removed Mod_LoadSpriteModel
 
-// [FWGS, 01.07.26]
+// [FWGS, 01.08.26]
 static byte *Mod_SwapSpriteFrame (byte *p, byte *end, int bytes)
 	{
 	dspriteframe_t	frame;
@@ -73,17 +73,24 @@ static byte *Mod_SwapSpriteFrame (byte *p, byte *end, int bytes)
 	p += sizeof (frame);
 
 	// skip pixel data
-	if (p + frame.width * frame.height * bytes > end)
+	/*if (p + frame.width * frame.height * bytes > end)*/
+	if ((frame.width < 0) || (frame.height < 0))
 		return NULL;
 
-	p += frame.width * frame.height * bytes;
+	/*p += frame.width * frame.height * bytes;*/
+	uint64_t	pixels = (uint64_t)frame.width * frame.height * bytes;
+
+	if (pixels > (size_t)(end - p))
+		return NULL;
+
+	p += pixels;
 	return p;
 	}
 
-// [FWGS, 01.07.26]
-static byte *Mod_SwapSpriteGroup (byte *p, byte *end, int bytes)
+// [FWGS, 01.08.26]
+/*static byte *Mod_SwapSpriteGroup (byte *p, byte *end, int bytes)*/
+static byte *Mod_SwapSpriteGroup (byte *p, byte *end, int bytes, int min_frames)
 	{
-	/*dspritegroup_t	*group;*/
 	dspritegroup_t	group;
 
 	/*if (p + sizeof (*group) > end)*/
@@ -99,10 +106,9 @@ static byte *Mod_SwapSpriteGroup (byte *p, byte *end, int bytes)
 	p += sizeof (group);
 
 	// swap intervals
-	/*int numframes = group->numframes;*/
-	int numframes = group.numframes;
-
-	if (p + numframes * sizeof (dspriteinterval_t) > end)
+	int	numframes = group.numframes;
+	if ((numframes < min_frames) || ((size_t)numframes > (size_t)(end - p) / sizeof (dspriteinterval_t)))
+		/*if (p + numframes * sizeof (dspriteinterval_t) > end)*/
 		return NULL;
 
 	for (int i = 0; i < numframes; i++)
@@ -110,7 +116,7 @@ static byte *Mod_SwapSpriteGroup (byte *p, byte *end, int bytes)
 		/*dspriteinterval_t *interval = (dspriteinterval_t *)p;
 		interval->interval = LittleFloat (interval->interval);
 		p += sizeof (*interval);*/
-		dspriteinterval_t interval;
+		dspriteinterval_t	interval;
 
 		memcpy (&interval, p, sizeof (interval));
 		interval.interval = LittleFloat (interval.interval);
@@ -129,7 +135,7 @@ static byte *Mod_SwapSpriteGroup (byte *p, byte *end, int bytes)
 	return p;
 	}
 
-// [FWGS, 01.07.26]
+// [FWGS, 01.08.26]
 static qboolean Mod_SwapSprite (void *buffer, size_t buffersize, int *out_version)
 	{
 	byte	*end = (byte *)buffer + buffersize;
@@ -169,9 +175,16 @@ static qboolean Mod_SwapSprite (void *buffer, size_t buffersize, int *out_versio
 			if (p + sizeof (short) > end)
 				return false;
 
-			short numi = LittleShort (*(short *)p);
+			short	numi = LittleShort (*(short *)p);
 			*(short *)p = numi;
-			p += sizeof (short) + numi * 3;
+			
+			/*p += sizeof (short) + numi * 3;*/
+			p += sizeof (short);
+
+			if ((numi < 0) || (p + numi * 3 > end))
+				return false;
+
+			p += numi * 3;
 			break;
 			}
 
@@ -179,14 +192,16 @@ static qboolean Mod_SwapSprite (void *buffer, size_t buffersize, int *out_versio
 			return false;
 		}
 
+	if (numframes < 0)
+		return false;
+
 	*out_version = version;
-	/*bytes = (version == SPRITE_VERSION_32) ? 4 : 1;*/
 	int bytes = (version == SPRITE_VERSION_32) ? 4 : 1;
 
 	// swap all frames
-	for (int i = 0; (i < numframes) && p && (p < end); i++)
+	/*for (int i = 0; (i < numframes) && p && (p < end); i++)*/
+	for (int i = 0; i < numframes; i++)
 		{
-		/*dframetype_t	*frametype;*/
 		dframetype_t	frametype;
 
 		/*if (p + sizeof (*frametype) > end)*/
@@ -209,13 +224,22 @@ static qboolean Mod_SwapSprite (void *buffer, size_t buffersize, int *out_versio
 				break;
 
 			case FRAME_GROUP:
+				p = Mod_SwapSpriteGroup (p, end, bytes, 1);
+				break;
+
 			case FRAME_ANGLED:
-				p = Mod_SwapSpriteGroup (p, end, bytes);
+				/*p = Mod_SwapSpriteGroup (p, end, bytes);*/
+				// angled groups are indexed by 0..7 at render time
+				p = Mod_SwapSpriteGroup (p, end, bytes, 8);
 				break;
 
 			default:
 				return false;
 			}
+
+
+		if (!p)
+			return false;
 		}
 
 	return true;
@@ -223,7 +247,7 @@ static qboolean Mod_SwapSprite (void *buffer, size_t buffersize, int *out_versio
 
 /***
 ====================
-Mod_LoadSpriteModel [FWGS, 01.07.26]
+Mod_LoadSpriteModel [FWGS, 01.08.26]
 
 load sprite model
 ====================
@@ -231,13 +255,11 @@ load sprite model
 void Mod_LoadSpriteModel (model_t *mod, void *buffer, size_t buffersize, qboolean *loaded)
 	{
 	msprite_t	*psprite;
-	/*char	poolname[MAX_VA_STRING];
-	int		version;*/
 
 	if (loaded)
 		*loaded = false;
 
-	int version;
+	int	version;
 	if (!Mod_SwapSprite (buffer, buffersize, &version))
 		{
 		Con_DPrintf (S_ERROR "%s: %s is not a valid sprite\n", __func__, mod->name);
@@ -262,31 +284,40 @@ void Mod_LoadSpriteModel (model_t *mod, void *buffer, size_t buffersize, qboolea
 			}
 
 		/*size = sizeof (msprite_t) + (pinq1->numframes - 1) * sizeof (psprite->frames);*/
-		size_t size = sizeof (msprite_t) + (pinq1->numframes - 1) * sizeof (psprite->frames);
+		size_t	size = sizeof (msprite_t) + (pinq1->numframes - 1) * sizeof (psprite->frames);
 		psprite = Mem_Calloc (mod->mempool, size);
 		mod->cache.data = psprite;	// make link to extradata
 
 		psprite->type = pinq1->type;
 		psprite->texFormat = SPR_ADDITIVE;
-
 		psprite->numframes = mod->numframes = pinq1->numframes;
 		psprite->facecull = SPR_CULL_FRONT;
-		psprite->radius = pinq1->boundingradius;
+		
+		/*psprite->radius = pinq1->boundingradius;*/
+		float	radius = floorf (pinq1->boundingradius);
+		if (radius >= (float)INT_MAX)
+			psprite->radius = INT_MAX;
+		else if ((radius < 0.0f) || IS_NAN (radius))
+			psprite->radius = 0;
+		else
+			psprite->radius = (int)radius;
+		
 		psprite->synctype = pinq1->synctype;
 
 		// LadyHavoc: hack to allow sprites to be non-fullbright
 		if (Q_strchr (mod->name, '!'))
 			psprite->texFormat = SPR_ALPHTEST;
 
-		mod->mins[0] = mod->mins[1] = -pinq1->bounds[0] * 0.5f;
+		/*mod->mins[0] = mod->mins[1] = -pinq1->bounds[0] * 0.5f;*/
 		mod->maxs[0] = mod->maxs[1] = pinq1->bounds[0] * 0.5f;
-		mod->mins[2] = -pinq1->bounds[1] * 0.5f;
+		/*mod->mins[2] = -pinq1->bounds[1] * 0.5f;*/
+		mod->mins[0] = mod->mins[1] = -mod->maxs[0];
 		mod->maxs[2] = pinq1->bounds[1] * 0.5f;
+		mod->mins[2] = -mod->maxs[2];
 		}
-	else	// if( version == SPRITE_VERSION_HL )
+	else	// if (version == SPRITE_VERSION_HL)
 		{
 		dsprite_hl_t	*pinhl = buffer;
-		/*size_t	size;*/
 
 		if (pinhl->numframes == 0)
 			{
@@ -295,7 +326,7 @@ void Mod_LoadSpriteModel (model_t *mod, void *buffer, size_t buffersize, qboolea
 			}
 
 		/*size = sizeof (msprite_t) + (pinhl->numframes - 1) * sizeof (psprite->frames);*/
-		size_t size = sizeof (msprite_t) + (pinhl->numframes - 1) * sizeof (psprite->frames);
+		size_t	size = sizeof (msprite_t) + (pinhl->numframes - 1) * sizeof (psprite->frames);
 		psprite = Mem_Calloc (mod->mempool, size);
 		mod->cache.data = psprite;	// make link to extradata
 
@@ -306,10 +337,12 @@ void Mod_LoadSpriteModel (model_t *mod, void *buffer, size_t buffersize, qboolea
 		psprite->radius = pinhl->boundingradius;
 		psprite->synctype = pinhl->synctype;
 
-		mod->mins[0] = mod->mins[1] = -pinhl->bounds[0] * 0.5f;
+		/*mod->mins[0] = mod->mins[1] = -pinhl->bounds[0] * 0.5f;*/
 		mod->maxs[0] = mod->maxs[1] = pinhl->bounds[0] * 0.5f;
-		mod->mins[2] = -pinhl->bounds[1] * 0.5f;
+		/*mod->mins[2] = -pinhl->bounds[1] * 0.5f;*/
+		mod->mins[0] = mod->mins[1] = -mod->maxs[0];
 		mod->maxs[2] = pinhl->bounds[1] * 0.5f;
+		mod->mins[2] = -mod->maxs[2];
 		}
 
 	// done
@@ -328,3 +361,38 @@ void Mod_LoadSpriteModel (model_t *mod, void *buffer, size_t buffersize, qboolea
 	Mod_SpriteLoadTextures (mod, buffer);
 #endif
 	}
+
+// [FWGS, 01.08.26]
+#if XASH_LLVM_LIBFUZZER
+
+int EXPORT Fuzz_Mod_LoadSpriteModel (const uint8_t *Data, size_t Size);
+
+int EXPORT Fuzz_Mod_LoadSpriteModel (const uint8_t *Data, size_t Size)
+	{
+	model_t	mod = { .name = "#internal.spr", .needload = NL_NEEDS_LOADED };
+	qboolean	loaded = false;
+	byte	*buf;
+
+	if (Size == 0)
+		return 0;
+
+	Memory_Init ();
+
+	// dedicated mode exercises the parser/validator without needing a renderer
+	host.type = HOST_DEDICATED;
+	host.mempool = Mem_AllocPool ("fuzzing pool");
+
+	// the loader byteswaps the buffer in place, so hand it a writable copy
+	buf = Mem_Malloc (host.mempool, Size);
+	memcpy (buf, Data, Size);
+
+	Mod_LoadSpriteModel (&mod, buf, Size, &loaded);
+
+	if (mod.mempool)
+		Mem_FreePool (&mod.mempool);
+	Mem_FreePool (&host.mempool);
+
+	return 0;
+	}
+
+#endif

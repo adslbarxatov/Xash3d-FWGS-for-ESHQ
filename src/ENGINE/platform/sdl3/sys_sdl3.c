@@ -50,10 +50,12 @@ void Platform_Sleep (int msec)
 #endif
 
 #if XASH_MESSAGEBOX == MSGBOX_SDL
+
 void Platform_MessageBox (const char *title, const char *message, qboolean parentMainWindow)
 	{
 	SDL_ShowSimpleMessageBox (SDL_MESSAGEBOX_ERROR, title, message, parentMainWindow ? host.hWnd : NULL);
 	}
+
 #endif
 
 void SDLash_NanoSleep (int nsec)
@@ -99,10 +101,11 @@ static void SDLCALL SDLash_LogOutputFunction (void *userdata, int category, SDL_
 		}
 	}
 
-// [FWGS, 01.03.26]
-void SDLash_Init (const char *basedir)
+// [FWGS, 01.07.26]
+/*void SDLash_Init (const char *basedir)*/
+void SDLash_Init (void)
 	{
-	(void)basedir;
+	/*(void)basedir;*/
 
 	// TODO: initial state, to be filled from gameinfo!
 	SDL_SetAppMetadata (XASH_ENGINE_NAME, XASH_VERSION, "su.xash.engine");

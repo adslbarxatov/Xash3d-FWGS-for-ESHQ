@@ -13,13 +13,13 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-// [FWGS, 01.07.26]
+// [FWGS, 01.08.26]
 #include <inttypes.h>
 #include "common.h"
 #include "const.h"
 #include "server.h"
 #include "net_encode.h"
-#include "net_api.h"
+/*include "net_api.h"*/
 
 // [FWGS, 05.04.26] challenges are valid for two consecutive windows of this size (max lifetime ~10s)
 #define CHALLENGE_WINDOW_SECONDS	5
@@ -115,12 +115,49 @@ static int SV_GetChallenge (netadr_t from, uint32_t time_window, qboolean *error
 	return digest[0] | (digest[1] << 8) | (digest[2] << 16) | (digest[3] << 24);
 	}
 
-// [FWGS, 05.04.26]
-static void SV_SendChallenge (netadr_t from, qboolean skip_bandwidth_test)
+// [FWGS, 01.08.26] removed SV_SendChallenge
+/*// [FWGS, 05.04.26]
+static void SV_SendChallenge (netadr_t from, qboolean skip_bandwidth_test)*/
+
+/***
+=================
+SV_CreateChallenge [FWGS, 01.08.26]
+=================
+***/
+int SV_CreateChallenge (netadr_t from, qboolean *error)
+	{
+	uint32_t	time_window = (uint32_t)(host.realtime / CHALLENGE_WINDOW_SECONDS);
+
+	return SV_GetChallenge (from, time_window, error);
+	}
+
+/***
+=================
+SV_ValidateChallenge [FWGS, 01.08.26]
+=================
+***/
+qboolean SV_ValidateChallenge (netadr_t from, int challenge)
 	{
 	qboolean	error = false;
 	uint32_t	time_window = (uint32_t)(host.realtime / CHALLENGE_WINDOW_SECONDS);
-	int			challenge = SV_GetChallenge (from, time_window, &error);
+	/*int			challenge = SV_GetChallenge (from, time_window, &error);*/
+
+	// accept the current window and the previous one so challenges issued just
+	// before a window boundary remain valid for the full expected lifetime
+	if ((SV_GetChallenge (from, time_window, &error) == challenge) && !error)
+		return true;
+
+	if ((SV_GetChallenge (from, time_window - 1, &error) == challenge) && !error)
+		return true;
+
+	return false;
+	}
+
+// [FWGS, 01.08.26]
+static void SV_SendChallenge (netadr_t from, qboolean skip_bandwidth_test)
+	{
+	qboolean	error = false;
+	int	challenge = SV_CreateChallenge (from, &error);
 
 	if (error)
 		return;
@@ -132,7 +169,7 @@ static void SV_SendChallenge (netadr_t from, qboolean skip_bandwidth_test)
 static int SV_GetFragmentSize (void *pcl, fragsize_t mode)
 	{
 	sv_client_t	*cl = (sv_client_t *)pcl;
-	int			cl_frag_size;
+	int		cl_frag_size;
 
 	if (Netchan_IsLocal (&cl->netchan))
 		return FRAGMENT_LOCAL_SIZE;
@@ -215,14 +252,14 @@ static void SV_FailDownload (sv_client_t *cl, const char *filename)
 
 /***
 ================
-SV_CheckChallenge [FWGS, 05.04.26]
+SV_CheckChallenge [FWGS, 01.08.26]
 
 Make sure connecting client is not spoofing
 ================
 ***/
 static int SV_CheckChallenge (netadr_t from, int challenge)
 	{
-	qboolean	error = false;
+	/*qboolean	error = false;
 	uint32_t	time_window = (uint32_t)(host.realtime / CHALLENGE_WINDOW_SECONDS);
 
 	// accept the current window and the previous one so challenges issued just
@@ -230,7 +267,8 @@ static int SV_CheckChallenge (netadr_t from, int challenge)
 	if ((SV_GetChallenge (from, time_window, &error) == challenge) && !error)
 		return true;
 
-	if ((SV_GetChallenge (from, time_window - 1, &error) == challenge) && !error)
+	if ((SV_GetChallenge (from, time_window - 1, &error) == challenge) && !error)*/
+	if (SV_ValidateChallenge (from, challenge))
 		return true;
 
 	SV_RejectConnection (from, "no challenge for your address\n");
@@ -301,7 +339,7 @@ static void SV_MaybeNotifyPlayerCountChange (const sv_client_t *cl, const char *
 
 /***
 ==================
-SV_ConnectClient [FWGS, 01.07.26]
+SV_ConnectClient [FWGS, 01.08.26]
 
 A connection request that did not come from the master
 ==================
@@ -313,7 +351,6 @@ static void SV_ConnectClient (netadr_t from)
 	client_frame_t	*frames;
 	sv_client_t		*newcl = NULL;
 	int		qport, version;
-	/*int			i;*/
 	int		challenge;
 	const char	*s;
 	int		extensions;
@@ -488,6 +525,7 @@ static void SV_ConnectClient (netadr_t from)
 	protinfo[0] = '\0';
 	Info_SetValueForKeyf (protinfo, "ext", sizeof (protinfo), "%d", newcl->extensions);
 	Info_SetValueForKey (protinfo, "cheats", sv_cheats.value ? "1" : "0", sizeof (protinfo));
+	Info_SetValueForKeyf (protinfo, "challenge", sizeof (protinfo), "%d", challenge);
 
 	if (FBitSet (newcl->extensions, NET_EXT_NETCHAN_COOKIE))
 		Info_SetValueForKeyf (protinfo, "cookie", sizeof (protinfo), "%016"PRIx64, netchan_cookie);
@@ -981,13 +1019,15 @@ static void SV_ConnectNatClient (netadr_t from)
 	SV_Info (to, PROTOCOL_VERSION);
 	}
 
-/***
+// [FWGS, 01.08.26] removed SV_BuildNetAnswer
+
+/*
 ================
 SV_BuildNetAnswer
 
 Responds with long info for local and broadcast requests
 ================
-***/
+/
 static void SV_BuildNetAnswer (netadr_t from)
 	{
 	const cvar_t	*cv;
@@ -1094,7 +1134,7 @@ static void SV_BuildNetAnswer (netadr_t from)
 		}
 
 	Netchan_OutOfBandPrint (NS_SERVER, from, A2A_NETINFO " %i %i %s\n", context, type, string);
-	}
+	}*/
 
 // [FWGS, 01.12.24] removed SV_Ping
 
@@ -3249,8 +3289,8 @@ static qboolean SV_EntCreate_f (sv_client_t *cl)
 		{
 		for (i = i + 1; i < Cmd_Argc () - 1; i++)
 			{
-			string keyname;
-			string value;
+			string	keyname;
+			string	value;
 			/*KeyValueData pkvd;*/
 
 			Q_strncpy (keyname, Cmd_Argv (i++), sizeof (keyname));
@@ -3260,7 +3300,7 @@ static qboolean SV_EntCreate_f (sv_client_t *cl)
 			pkvd.szClassName = (char *)SV_GetString (ent->v.classname);
 			pkvd.szKeyName = keyname;
 			pkvd.szValue = value;*/
-			KeyValueData pkvd =
+			KeyValueData	pkvd =
 				{
 				.szClassName = (char *)SV_GetString (ent->v.classname),
 				.szKeyName = keyname,
@@ -3447,15 +3487,16 @@ void SV_ConnectionlessPacket (netadr_t from, sizebuf_t *msg)
 		return;
 		}
 
-	// [FWGS, 01.05.26] must check `args` because A2S_GOLDSRC_INFO contains spaces.
+	// [FWGS, 01.08.26] must check `args` because A2S_GOLDSRC_INFO contains spaces.
 	// `pcmd` points only to the first word from the query string
 	if (!Q_strcmp (args, A2S_GOLDSRC_INFO) || (pcmd[0] == A2S_GOLDSRC_PLAYERS) || (pcmd[0] == A2S_GOLDSRC_RULES))
 		{
-		SV_SourceQuery_HandleConnnectionlessPacket (args, from);
+		/*SV_SourceQuery_HandleConnnectionlessPacket (args, from);
 		}
 	else if (!Q_strcmp (pcmd, A2A_NETINFO))
 		{
-		SV_BuildNetAnswer (from);
+		SV_BuildNetAnswer (from);*/
+		SV_SourceQuery_HandleConnnectionlessPacket (args, from, msg);
 		}
 	else if (!Q_strcmp (pcmd, A2A_INFO))
 		{
