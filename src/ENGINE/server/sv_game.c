@@ -2062,8 +2062,8 @@ int SV_BuildSoundMsg (sizebuf_t *msg, edict_t *ent, int chan, const char *sample
 	int	entityIndex;
 
 	// ESHQ: исправление более не требуется???
-	int	sound_idx;// = -1;
-	qboolean spawn;
+	int	sound_idx = -1;
+	qboolean	spawn;
 
 	// [FWGS, 01.07.24]
 	if ((vol < 0) || (vol > 255))
