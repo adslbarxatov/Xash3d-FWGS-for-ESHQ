@@ -202,21 +202,14 @@ merge refdef with overview settings
 static void V_RefApplyOverview (ref_viewpass_t *rvp)
 	{
 	ref_overview_t	*ov = &clgame.overView;
-	/*float	aspect;
-	float	size_x, size_y;
-	vec2_t	mins, maxs;*/
 
 	if (!CL_IsDevOverviewMode ())
 		return;
 
 	// NOTE: Xash3D may use 16:9 or 16:10 aspects
-	/*aspect = (float)refState.width / (float)refState.height;*/
-	float aspect = (float)refState.width / (float)refState.height;
-
-	/*size_x = fabs (8192.0f / ov->flZoom);
-	size_y = fabs (8192.0f / (ov->flZoom * aspect));*/
-	float size_x = fabs (8192.0f / ov->flZoom);
-	float size_y = fabs (8192.0f / (ov->flZoom * aspect));
+	float	aspect = (float)refState.width / (float)refState.height;
+	float	size_x = fabs (8192.0f / ov->flZoom);
+	float	size_y = fabs (8192.0f / (ov->flZoom * aspect));
 
 	// compute rectangle
 	ov->xLeft = -(size_x / 2);
@@ -232,10 +225,9 @@ static void V_RefApplyOverview (ref_viewpass_t *rvp)
 
 	VectorCopy (ov->origin, rvp->vieworigin);
 	rvp->vieworigin[2] = ov->zFar + ov->zNear;
-	/*Vector2Copy (rvp->vieworigin, mins);
-	Vector2Copy (rvp->vieworigin, maxs);*/
-	vec2_t mins = Vec2 (rvp->vieworigin);
-	vec2_t maxs = Vec2 (rvp->vieworigin);
+
+	vec2_t	mins = Vec2 (rvp->vieworigin);
+	vec2_t	maxs = Vec2 (rvp->vieworigin);
 
 	mins[!ov->rotated] += ov->xLeft;
 	maxs[!ov->rotated] += ov->xRight;
@@ -258,15 +250,11 @@ V_CalcFov [FWGS, 01.07.26]
 ***/
 static float V_CalcFov (float *fov_x, float width, float height)
 	{
-	/*float	x, half_fov_y;*/
-
 	if ((*fov_x < 1.0f) || (*fov_x > 179.0f))
 		*fov_x = 90.0f;	// default value
 
-	/*x = width / tan (DEG2RAD (*fov_x) * 0.5f);
-	half_fov_y = atan (height / x);*/
-	float x = width / tan (DEG2RAD (*fov_x) * 0.5f);
-	float half_fov_y = atan (height / x);
+	float	x = width / tan (DEG2RAD (*fov_x) * 0.5f);
+	float	half_fov_y = atan (height / x);
 
 	return RAD2DEG (half_fov_y) * 2;
 	}
@@ -278,7 +266,7 @@ V_AdjustFov
 ***/
 static void V_AdjustFov (float *fov_x, float *fov_y, float width, float height, qboolean lock_x)
 	{
-	float x, y;
+	float	x, y;
 
 	// 4:3 or 5:4 ratio
 	if ((width * 3 == 4 * height) || (width * 4 == height * 5))
@@ -446,7 +434,6 @@ void V_RenderView (void)
 		GL_RenderFrame (&rvp);
 		S_UpdateFrame (&rvp);
 		viewnum++;
-
 		} while (rp.nextView);
 
 	// draw debug triangles on a server
@@ -460,7 +447,7 @@ void V_RenderView (void)
 
 static void R_DrawLeafNode (float x, float y, float scale)
 	{
-	float downScale = scale * 0.25f;	// * POINT_SIZE;
+	float	downScale = scale * 0.25f;	// * POINT_SIZE;
 
 	ref.dllFuncs.R_DrawStretchPic (x - downScale * 0.5f, y - downScale * 0.5f, downScale, downScale,
 		0, 0, 1, 1, R_GetBuiltinTexture (REF_PARTICLE_TEXTURE));
@@ -486,7 +473,7 @@ static void R_ShowTree_r (mnode_t *node, float x, float y, float scale, int show
 
 	if (node->contents < 0)
 		{
-		mleaf_t *leaf = (mleaf_t *)node;
+		mleaf_t	*leaf = (mleaf_t *)node;
 
 		if (world.recursion_level > world.max_recursion)
 			world.max_recursion = world.recursion_level;
@@ -529,16 +516,12 @@ static void R_ShowTree (void)
 	{
 	float	x = (float)((refState.width - (int)POINT_SIZE) >> 1);
 	float	y = NODE_INTERVAL_Y (1.0f);
-	/*mleaf_t	*viewleaf;*/
 
 	if (!cl.worldmodel || !r_showtree.value)
 		return;
 
 	world.recursion_level = 0;
-	/*viewleaf = Mod_PointInLeaf (refState.vieworg, cl.worldmodel->nodes, cl.worldmodel);
-
-	// [FWGS, 01.12.24]*/
-	mleaf_t *viewleaf = Mod_PointInLeaf (refState.vieworg, cl.worldmodel->nodes, cl.worldmodel);
+	mleaf_t	*viewleaf = Mod_PointInLeaf (refState.vieworg, cl.worldmodel->nodes, cl.worldmodel);
 
 	ref.dllFuncs.TriRenderMode (kRenderTransTexture);
 	ref.dllFuncs.Color4f (1, 0.7f, 0, 1.0f);
@@ -555,7 +538,7 @@ V_PostRender
 ***/
 void V_PostRender (void)
 	{
-	qboolean draw_2d = false;
+	qboolean	draw_2d = false;
 
 	ref.dllFuncs.R_AllowFog (false);
 	ref.dllFuncs.R_Set2DMode (true);
@@ -596,9 +579,13 @@ void V_PostRender (void)
 		CL_DrawHUD (CL_CHANGELEVEL);
 		ref.dllFuncs.R_ShowTextures ();
 		R_ShowTree ();
-		Con_DrawConsole ();
+		
+		// [FWGS, 01.09.26]
+		/*Con_DrawConsole ();*/
 		UI_UpdateMenu (host.realtime);
 		Con_DrawVersion ();
+		Con_DrawConsole ();
+
 		Con_DrawDebug ();	// must be last
 		Touch_Draw ();
 		OSK_Draw ();

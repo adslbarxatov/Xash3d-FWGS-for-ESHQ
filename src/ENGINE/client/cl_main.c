@@ -590,7 +590,7 @@ static int CL_DriftInterpolationAmount (int goal)
 
 /***
 ===============
-CL_ComputeClientInterpolationAmount
+CL_ComputeClientInterpolationAmount [FWGS, 01.09.26]
 
 Validate interpolation cvars, calc interpolation window
 ===============
@@ -598,37 +598,47 @@ Validate interpolation cvars, calc interpolation window
 static void CL_ComputeClientInterpolationAmount (usercmd_t *cmd)
 	{
 	const float	epsilon = 0.001f;	// to avoid float invalid comparision
-	float	min_interp;
+	/*float	min_interp;
 	float	max_interp = MAX_EX_INTERP;
-	float	interpolation_time;
+	float	interpolation_time;*/
 
 	if (cl_updaterate.value < MIN_UPDATERATE)
 		{
-		Con_Printf ("cl_updaterate minimum is %f, resetting to default (20)\n", MIN_UPDATERATE);
+		/*Con_Printf ("cl_updaterate minimum is %f, resetting to default (20)\n", MIN_UPDATERATE);*/
+		Con_Printf ("cl_updaterate minimum is %g, resetting to default (%s)\n", MIN_UPDATERATE, cl_updaterate.def_string);
 		Cvar_Reset ("cl_updaterate");
 		}
 
 	if (cl_updaterate.value > MAX_UPDATERATE)
 		{
-		Con_Printf ("cl_updaterate clamped at maximum (%f)\n", MAX_UPDATERATE);
-		Cvar_SetValue ("cl_updaterate", MAX_UPDATERATE);
+		/*Con_Printf ("cl_updaterate clamped at maximum (%f)\n", MAX_UPDATERATE);
+		Cvar_SetValue ("cl_updaterate", MAX_UPDATERATE);*/
+		Con_Printf ("cl_updaterate clamped at maximum (%g)\n", MAX_UPDATERATE);
+		Cvar_DirectSetValue (&cl_updaterate, MAX_UPDATERATE);
 		}
 
-	if (cls.spectator)
+	/*if (cls.spectator)
 		max_interp = 0.2f;
 
 	min_interp = 1.0f / cl_updaterate.value;
-	interpolation_time = cl_interp.value * 1000.0;
+	interpolation_time = cl_interp.value * 1000.0;*/
+	float	min_interp = 1.0f / cl_updaterate.value;
+	float	max_interp = cls.spectator ? 0.2f : MAX_EX_INTERP;
+	float	interpolation_time = cl_interp.value;
 
+	/*if ((cl_interp.value + epsilon) < min_interp)*/
 	if ((cl_interp.value + epsilon) < min_interp)
 		{
 		Con_Printf ("ex_interp forced up to %.1f msec\n", min_interp * 1000.f);
-		Cvar_SetValue ("ex_interp", min_interp);
+		/*Cvar_SetValue ("ex_interp", min_interp);*/
+		Cvar_DirectSetValue (&cl_interp, min_interp);
 		}
+	/*else if ((cl_interp.value - epsilon) > max_interp)*/
 	else if ((cl_interp.value - epsilon) > max_interp)
 		{
 		Con_Printf ("ex_interp forced down to %.1f msec\n", max_interp * 1000.f);
-		Cvar_SetValue ("ex_interp", max_interp);
+		/*Cvar_SetValue ("ex_interp", max_interp);*/
+		Cvar_DirectSetValue (&cl_interp, max_interp);
 		}
 
 	interpolation_time = bound (min_interp, interpolation_time, max_interp);
@@ -3844,12 +3854,13 @@ static void CL_FullServerinfo_f (void)
 
 /***
 =================
-CL_Escape_f
+CL_Escape_f [FWGS, 01.09.26]
 
 Escape to menu from game
 =================
 ***/
-static void CL_Escape_f (void)
+/*static void CL_Escape_f (void)*/
+void CL_Escape_f (void)
 	{
 	if (cls.key_dest == key_menu)
 		return;
@@ -4329,9 +4340,11 @@ void CL_Shutdown (void)
 
 	cls.initialized = false;
 
-	// for client-side VGUI support we use other order
+	// [FWGS, 01.09.26]
+	/*// for client-side VGUI support we use other order
 	if (FI && FI->GameInfo && !FI->GameInfo->internal_vgui_support)
-		VGui_Shutdown ();
+		VGui_Shutdown ();*/
+	VGui_Shutdown ();
 
 	if (g_fsapi.Delete)
 		g_fsapi.Delete ("demoheader.tmp");	// remove tmp file

@@ -65,9 +65,7 @@ SCR_DrawFPS [FWGS, 01.07.26]
 ***/
 void SCR_DrawFPS (int height)
 	{
-	/*float			calc;*/
 	rgba_t			color;
-	/*double			newtime;*/
 	static double	nexttime = 0, lasttime = 0;
 	static double	framerate = 0;
 	static int		framecount = 0;
@@ -88,9 +86,7 @@ void SCR_DrawFPS (int height)
 		default: return;
 		}
 
-	/*// [FWGS, 01.03.26]
-	newtime = Platform_DoubleTime ();*/
-	double newtime = Platform_DoubleTime ();
+	double	newtime = Platform_DoubleTime ();
 	if (newtime >= nexttime)
 		{
 		framerate = framecount / (newtime - lasttime);
@@ -99,8 +95,7 @@ void SCR_DrawFPS (int height)
 		framecount = 0;
 		}
 
-	/*calc = framerate;*/
-	float calc = framerate;
+	float	calc = framerate;
 	framecount++;
 
 	if (calc < 1.0f)
@@ -141,18 +136,13 @@ Draw local player position, angles and velocity
 void SCR_DrawPos (void)
 	{
 	static char	msg[MAX_SYSPATH];
-	/*float		speed;
-	cl_entity_t	*ent;*/
-	rgba_t		color;
+	rgba_t	color;
 
 	if ((cls.state != ca_active) || !cl_showpos.value || cl.background)
 		return;
 
-	/*// [FWGS, 25.12.24]
-	ent = CL_GetLocalPlayer ();
-	speed = VectorLength (cl.simvel);*/
-	cl_entity_t *ent = CL_GetLocalPlayer ();
-	float speed = VectorLength (cl.simvel);
+	cl_entity_t	*ent = CL_GetLocalPlayer ();
+	float	speed = VectorLength (cl.simvel);
 
 	Q_snprintf (msg, MAX_SYSPATH,
 		"pos: %.2f %.2f %.2f\n" "ang: %.2f %.2f %.2f\n" "velocity: %.2f",
@@ -174,30 +164,25 @@ SCR_DrawEnts [FWGS, 01.07.26]
 void SCR_DrawEnts (void)
 	{
 	rgba_t	color = { 255, 255, 255, 255 };
-	/*int		i;*/
 
 	if ((cls.state != ca_active) || !cl_showents.value || ((cl.maxclients > 1) && !cls.demoplayback))
 		return;
 
 	// this probably better hook CL_AddVisibleEntities
 	// as entities might get added by client.dll
-	/*for (i = 0; i < clgame.maxEntities; i++)*/
 	for (int i = 0; i < clgame.maxEntities; i++)
 		{
 		const cl_entity_t	*ent = &clgame.entities[i];
 		string	msg;
-		/*vec3_t screen, pos;*/
 		vec3_t	screen;
 
 		if (ent->curstate.messagenum != cl.parsecount)
 			continue;
 
-		/*VectorCopy (ent->origin, pos);*/
-		vec3_t pos = Vec3 (ent->origin);
-
+		vec3_t	pos = Vec3 (ent->origin);
 		if (ent->model != NULL)
 			{
-			vec3_t v;
+			vec3_t	v;
 
 			// simple model type filter
 			if (cl_showents.value > 1)
@@ -234,11 +219,11 @@ another debugging aids, shows pressed buttons
 ***/
 void SCR_DrawUserCmd (void)
 	{
-	runcmd_t *pcmd = &cl.commands[(cls.netchan.outgoing_sequence - 1) & CL_UPDATE_MASK];
+	runcmd_t	*pcmd = &cl.commands[(cls.netchan.outgoing_sequence - 1) & CL_UPDATE_MASK];
 	struct
 		{
-		int mask;
-		const char *name;
+		int		mask;
+		const char	*name;
 		} buttons[16] =
 			{
 			{ IN_ATTACK, "attack" },
@@ -258,19 +243,16 @@ void SCR_DrawUserCmd (void)
 			{ IN_ALT1, "alt1" },
 			{ IN_SCORE, "score" },
 			};
-	cl_font_t *font = Con_GetCurFont ();
-	string msg;
-	/*int i, ypos = 100;*/
-	int ypos = 100;
+	cl_font_t	*font = Con_GetCurFont ();
+	string	msg;
+	int		ypos = 100;
 
 	if ((cls.state != ca_active) || (!cl_showcmd.value))
 		return;
 
-	/*for (i = 0; i < HLARRAYSIZE (buttons); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (buttons); i++)
 		{
-		rgba_t rgba;
-
+		rgba_t	rgba;
 		rgba[0] = FBitSet (pcmd->cmd.buttons, buttons[i].mask) ? 0 : 255;
 		rgba[1] = FBitSet (pcmd->cmd.buttons, buttons[i].mask) ? 255 : 0;
 		rgba[2] = 0;
@@ -297,7 +279,6 @@ same as r_speeds but for network channel
 void SCR_NetSpeeds (void)
 	{
 	static char	msg[MAX_SYSPATH];
-	/*int			x, y;*/
 	float		time = cl.mtime[0];
 	static int	min_svfps = 100;
 	static int	max_svfps = 0;
@@ -345,12 +326,10 @@ void SCR_NetSpeeds (void)
 		(int)(time / 60.0f), (int)fmod (time, 60.0f),
 		Q_memprint (cls.netchan.total_received),
 		Q_memprint (cls.netchan.total_sended)
-	);
+		);
 
-	/*x = refState.width - 320 * font->scale;
-	y = 384;*/
-	int x = refState.width - 320 * font->scale;
-	int y = 384;
+	int	x = refState.width - 320 * font->scale;
+	int	y = 384;
 
 	MakeRGBA (color, 255, 255, 255, 255);
 	CL_DrawString (x, y, msg, color, font, FONT_DRAW_RESETCOLORONLF);
@@ -363,21 +342,17 @@ SCR_RSpeeds [FWGS, 01.07.26]
 ***/
 void SCR_RSpeeds (void)
 	{
-	char msg[2048];
+	char	msg[2048];
 
 	if (!host.allow_console)
 		return;
 
 	if (ref.dllFuncs.R_SpeedsMessage (msg, sizeof (msg)))
 		{
-		/*int	x, y;*/
 		rgba_t	color;
-		cl_font_t *font = Con_GetCurFont ();
-
-		/*x = refState.width - 340 * font->scale;
-		y = 64;*/
-		int x = refState.width - 340 * font->scale;
-		int y = 64;
+		cl_font_t	*font = Con_GetCurFont ();
+		int	x = refState.width - 340 * font->scale;
+		int	y = 64;
 
 		MakeRGBA (color, 255, 255, 255, 255);
 		CL_DrawString (x, y, msg, color, font, FONT_DRAW_RESETCOLORONLF);
@@ -411,12 +386,10 @@ static void VID_WriteOverviewScript (void)
 	{
 	ref_overview_t	*ov = &clgame.overView;
 	string	filename;
-	/*file_t			*f;*/
 
 	Q_snprintf (filename, sizeof (filename), "overviews/%s.txt", clgame.mapname);
 
-	/*f = FS_Open (filename, "w", false);*/
-	file_t *f = FS_Open (filename, "w", false);
+	file_t	*f = FS_Open (filename, "w", false);
 	if (!f)
 		{
 		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, filename);
@@ -629,7 +602,6 @@ void SCR_TileClear (void)
 	{
 	int		i, top, bottom, left, right, texnum;
 	dirty_t	clear;
-	/*float	tw, th;*/
 
 	// full screen rendering
 	if (likely (scr_viewsize.value >= 120))
@@ -679,10 +651,8 @@ void SCR_TileClear (void)
 	left = clgame.viewport[0];
 	right = left + clgame.viewport[2] - 1;
 
-	/*tw = REF_GET_PARM (PARM_TEX_SRC_WIDTH, texnum);
-	th = REF_GET_PARM (PARM_TEX_SRC_HEIGHT, texnum);*/
-	float tw = REF_GET_PARM (PARM_TEX_SRC_WIDTH, texnum);
-	float th = REF_GET_PARM (PARM_TEX_SRC_HEIGHT, texnum);
+	float	tw = REF_GET_PARM (PARM_TEX_SRC_WIDTH, texnum);
+	float	th = REF_GET_PARM (PARM_TEX_SRC_HEIGHT, texnum);
 
 	if (clear.y1 < top)
 		{
@@ -727,7 +697,7 @@ text to the screen
 ***/
 void SCR_UpdateScreen (void)
 	{
-	qboolean screen_redraw = true;	// assume screen has been redrawn
+	qboolean	screen_redraw = true;	// assume screen has been redrawn
 
 	if (!V_PreRender ())
 		return;
@@ -782,7 +752,7 @@ void SCR_LoadCreditsFont (void)
 	// replace default gfx.wad textures by current charset's font
 	if (!CRC32_File (&crc, "gfx.wad") || (crc == 0x49eb9f16))
 		{
-		string charsetFnt;
+		string	charsetFnt;
 
 		if (Q_snprintf (charsetFnt, sizeof (charsetFnt),
 			"creditsfont_%s.fnt", Cvar_VariableString ("con_charset")) > 0)
@@ -795,18 +765,16 @@ void SCR_LoadCreditsFont (void)
 	if (!success)
 		success = Con_LoadVariableWidthFont ("gfx/creditsfont.fnt", font, scale, &hud_fontrender, TF_FONT);
 
-	// [FWGS, 05.04.26]
+	// [FWGS, 01.09.26] it's a Quake font, we need to keep source texture for it
 	if (!success)
-		success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, &hud_fontrender, TF_FONT | TF_NEAREST);
+		/*success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, &hud_fontrender, TF_FONT | TF_NEAREST);*/
+		success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, &hud_fontrender, TF_FONT | TF_NEAREST | TF_KEEP_SOURCE);
 
 	// [FWGS, 01.07.26] copy font size for client.dll
 	if (success)
 		{
-		/*int i;*/
-
 		clgame.scrInfo.iCharHeight = cls.creditsFont.charHeight;
 
-		/*for (i = 0; i < HLARRAYSIZE (cls.creditsFont.charWidths); i++)*/
 		for (int i = 0; i < HLARRAYSIZE (cls.creditsFont.charWidths); i++)
 			clgame.scrInfo.charWidths[i] = cls.creditsFont.charWidths[i];
 		}
@@ -826,7 +794,7 @@ INTERNAL RESOURCE
 static void SCR_InstallParticlePalette (void)
 	{
 	rgbdata_t	*pic;
-	int			i;
+	int		i;
 
 	// first check 'palette.lmp' then 'palette.pal'
 	pic = FS_LoadImage (DEFAULT_INTERNAL_PALETTE, NULL, 0);
@@ -845,6 +813,7 @@ static void SCR_InstallParticlePalette (void)
 			clgame.palette[i].g = pic->palette[i * 4 + 1];
 			clgame.palette[i].b = pic->palette[i * 4 + 2];
 			}
+
 		FS_FreeImage (pic);
 		}
 	else
@@ -881,9 +850,9 @@ INTERNAL RESOURCE
 ***/
 void SCR_RegisterTextures (void)
 	{
-	const char *exts[] = { "lmp", "bmp", "png" };
-	const char *names[] = { "gfx/lambda", "gfx/loading" };
-	uint flags = TF_IMAGE | TF_ALLOW_NEAREST;
+	const char	*exts[] = { "lmp", "bmp", "png" };
+	const char	*names[] = { "gfx/lambda", "gfx/loading" };
+	uint	flags = TF_IMAGE | TF_ALLOW_NEAREST;
 
 	if (cl_allow_levelshots.value)
 		SetBits (flags, TF_LUMINANCE);
@@ -892,7 +861,7 @@ void SCR_RegisterTextures (void)
 		{
 		for (int j = 0; j < HLARRAYSIZE (exts); j++)
 			{
-			string path;
+			string	path;
 
 			if (Q_snprintf (path, sizeof (path), "%s.%s", names[i], exts[j]) < 0)
 				continue;
