@@ -28,7 +28,6 @@ GNU General Public License for more details
 // [FWGS, 01.05.26]
 #include "r_studioint.h"
 #include "mod_local.h"
-
 #include "r_efx.h"
 #include "demo_api.h"
 #include "ivoicetweak.h"
@@ -107,7 +106,7 @@ static const dllfunc_t cdll_exports[] =
 	};
 
 // optional exports
-static const dllfunc_t cdll_new_exports[] = // allowed only in SDK 2.3 and higher
+static const dllfunc_t cdll_new_exports[] =	// allowed only in SDK 2.3 and higher
 	{
 	{ "HUD_GetStudioModelInterface", (void **)&clgame.dllFuncs.pfnGetStudioModelInterface },
 	{ "HUD_DirectorMessage", (void **)&clgame.dllFuncs.pfnDirectorMessage },
@@ -137,7 +136,7 @@ Create a default valve playlist
 ***/
 static void CL_CreatePlaylist (const char *filename)
 	{
-	file_t *f;
+	file_t	*f;
 
 	// [FWGS, 01.03.26]
 	f = FS_Open (filename, "w", false);
@@ -188,8 +187,6 @@ Initialize CD playlist
 ***/
 static void CL_InitCDAudio (const char *filename)
 	{
-	/*byte	*afile;
-	char	*pfile;*/
 	string	token;
 	int		c = 0;
 
@@ -199,13 +196,11 @@ static void CL_InitCDAudio (const char *filename)
 		CL_CreatePlaylist (filename);
 		}
 
-	/*afile = FS_LoadFile (filename, NULL, false);*/
-	byte *afile = FS_LoadFile (filename, NULL, false);
+	byte	*afile = FS_LoadFile (filename, NULL, false);
 	if (!afile)
 		return;
 
-	/*pfile = (char *)afile;*/
-	char *pfile = (char *)afile;
+	char	*pfile = (char *)afile;
 
 	// format: trackname\n [num]
 	while ((pfile = COM_ParseFile (pfile, token, sizeof (token))) != NULL)
@@ -219,7 +214,9 @@ static void CL_InitCDAudio (const char *filename)
 			Q_strncpy (clgame.cdtracks[c], &token[1], sizeof (clgame.cdtracks[c]));
 			}
 		else
+			{
 			Q_snprintf (clgame.cdtracks[c], sizeof (clgame.cdtracks[c]), "media/%s", token);
+			}
 
 		if (++c > MAX_CDTRACKS - 1)
 			{
@@ -308,7 +305,7 @@ print centerscreen message
 ***/
 void CL_CenterPrint (const char *text, float y)
 	{
-	cl_font_t *font = Con_GetCurFont ();
+	cl_font_t	*font = Con_GetCurFont ();
 
 	// [FWGS, 01.03.26]
 	if (COM_StringEmptyOrNULL (text) || !font || !font->valid)
@@ -338,16 +335,12 @@ draw hudsprite routine
 ***/
 void SPR_AdjustSize (float *x, float *y, float *w, float *h)
 	{
-	/*float	xscale, yscale;*/
-
 	if ((refState.width == clgame.scrInfo.iWidth) && (refState.height == clgame.scrInfo.iHeight))
 		return;
 
 	// scale for screen sizes
-	/*xscale = refState.width / (float)clgame.scrInfo.iWidth;
-	yscale = refState.height / (float)clgame.scrInfo.iHeight;*/
-	float xscale = refState.width / (float)clgame.scrInfo.iWidth;
-	float yscale = refState.height / (float)clgame.scrInfo.iHeight;
+	float	xscale = refState.width / (float)clgame.scrInfo.iWidth;
+	float	yscale = refState.height / (float)clgame.scrInfo.iHeight;
 
 	*x *= xscale;
 	*y *= yscale;
@@ -358,9 +351,9 @@ void SPR_AdjustSize (float *x, float *y, float *w, float *h)
 // [FWGS, 01.03.25]
 static void SPR_AdjustTexCoords (int texnum, float width, float height, float *s1, float *t1, float *s2, float *t2)
 	{
-	const qboolean filtering = REF_GET_PARM (PARM_TEX_FILTERING, texnum);
-	const int xremainder = refState.width % clgame.scrInfo.iWidth;
-	const int yremainder = refState.height % clgame.scrInfo.iHeight;
+	const qboolean	filtering = REF_GET_PARM (PARM_TEX_FILTERING, texnum);
+	const int	xremainder = refState.width % clgame.scrInfo.iWidth;
+	const int	yremainder = refState.height % clgame.scrInfo.iHeight;
 
 	if ((filtering || xremainder) && (refState.width != clgame.scrInfo.iWidth))
 		{
@@ -392,7 +385,6 @@ draw hudsprite routine
 static void SPR_DrawGeneric (int frame, float x, float y, float width, float height, const wrect_t *prc)
 	{
 	float	s1, s2, t1, t2;
-	/*int		texnum;*/
 
 	if ((width == -1) && (height == -1))
 		{
@@ -405,12 +397,11 @@ static void SPR_DrawGeneric (int frame, float x, float y, float width, float hei
 		height = h;
 		}
 
-	/*texnum = R_GetSpriteTexture (clgame.ds.pSprite, frame);*/
-	int texnum = R_GetSpriteTexture (clgame.ds.pSprite, frame);
+	int	texnum = R_GetSpriteTexture (clgame.ds.pSprite, frame);
 
 	if (prc)
 		{
-		wrect_t rc = *prc;
+		wrect_t	rc = *prc;
 
 		// Sigh! some stupid modmakers set wrong rectangles in hud.txt
 		if ((rc.left <= 0) || (rc.left >= width))
@@ -459,11 +450,6 @@ called each frame
 void CL_DrawCenterPrint (void)
 	{
 	cl_font_t	*font = Con_GetCurFont ();
-	/*char		*pText;
-	int			i, j, x, y;
-	int			width, lineLength;
-	byte		*colorDefault, line[MAX_LINELENGTH];
-	int			charWidth, charHeight;*/
 	byte	line[MAX_LINELENGTH];
 	int		charHeight;
 
@@ -477,10 +463,7 @@ void CL_DrawCenterPrint (void)
 		return;
 		}
 
-	/*y = clgame.centerPrint.y;	// start y
-	colorDefault = g_color_table[7];
-	pText = clgame.centerPrint.message;*/
-	int		y = clgame.centerPrint.y; // start y
+	int		y = clgame.centerPrint.y;	// start y
 	byte	*colorDefault = g_color_table[7];
 	char	*pText = clgame.centerPrint.message;
 
@@ -488,25 +471,21 @@ void CL_DrawCenterPrint (void)
 	CL_SetFontRendermode (font);
 	CL_SetFontColor (font, colorDefault);
 
-	/*for (i = 0; i < clgame.centerPrint.lines; i++)*/
 	for (int i = 0; i < clgame.centerPrint.lines; i++)
 		{
-		/*lineLength = 0;
-		width = 0;
-
-		// [FWGS, 01.09.25]*/
-		int lineLength = 0;
-		int width = 0;
+		int	lineLength = 0;
+		int	width = 0;
 
 		while (*pText && (*pText != '\n') && (lineLength < MAX_LINELENGTH))
 			{
-			int number = Con_UtfProcessChar ((byte)*pText);
+			int	number = Con_UtfProcessChar ((byte)*pText);
 			pText++;
+
 			if (number == 0)
 				continue;
 
 			line[lineLength] = number;
-			int charWidth;
+			int	charWidth;
 			CL_DrawCharacterLen (font, number, &charWidth, NULL);
 
 			width += charWidth;
@@ -519,12 +498,8 @@ void CL_DrawCenterPrint (void)
 		pText++;	// skip LineFeed
 		line[lineLength] = 0;
 
-		/*x = CL_AdjustXPos (-1, width, clgame.centerPrint.totalWidth);
+		int	x = CL_AdjustXPos (-1, width, clgame.centerPrint.totalWidth);
 
-		// [FWGS, 01.04.26]*/
-		int x = CL_AdjustXPos (-1, width, clgame.centerPrint.totalWidth);
-
-		/*for (j = 0; j < lineLength; j++)*/
 		for (int j = 0; j < lineLength; j++)
 			{
 			if ((x >= 0) && (y >= 0) && (x <= refState.width))
@@ -538,7 +513,7 @@ void CL_DrawCenterPrint (void)
 
 static int V_FadeAlpha (screenfade_t *sf)
 	{
-	int alpha;
+	int	alpha;
 
 	if ((cl.time > sf->fadeReset) && (cl.time > sf->fadeEnd))
 		{
@@ -575,13 +550,9 @@ can be modulated
 ***/
 static void CL_DrawScreenFade (void)
 	{
-	screenfade_t *sf = &clgame.fade;
-	/*int	alpha;
+	screenfade_t	*sf = &clgame.fade;
+	int	alpha = V_FadeAlpha (sf);
 
-	// keep pushing reset time out indefinitely
-	alpha = V_FadeAlpha (sf);*/
-
-	int alpha = V_FadeAlpha (sf);
 	if (!alpha)
 		return;
 
@@ -629,8 +600,8 @@ static void CL_InitTitles (const char *filename)
 	clgame.titles = NULL;
 	clgame.numTitles = 0;
 
-	fs_offset_t fileSize = 0;
-	char *pMemFile = (char *)FS_LoadFile (filename, &fileSize, false);
+	fs_offset_t	fileSize = 0;
+	char	*pMemFile = (char *)FS_LoadFile (filename, &fileSize, false);
 	if (!pMemFile)
 		return;
 
@@ -663,12 +634,9 @@ Parse TE_TEXTMESSAGE
 void CL_ParseTextMessage (sizebuf_t *msg)
 	{
 	static int		msgindex = 0;
-	/*client_textmessage_t *text;
-	int			channel;*/
 
 	// read channel ( 0 - auto)
-	/*channel = MSG_ReadByte (msg);*/
-	int channel = MSG_ReadByte (msg);
+	int	channel = MSG_ReadByte (msg);
 
 	if ((channel <= 0) || (channel > (MAX_TEXTCHANNELS - 1)))
 		{
@@ -677,8 +645,7 @@ void CL_ParseTextMessage (sizebuf_t *msg)
 		}
 
 	// grab message channel
-	/*text = &cl_textmessage[channel];*/
-	client_textmessage_t *text = &cl_textmessage[channel];
+	client_textmessage_t	*text = &cl_textmessage[channel];
 
 	text->x = (float)(MSG_ReadShort (msg) / 8192.0f);
 	text->y = (float)(MSG_ReadShort (msg) / 8192.0f);
@@ -703,7 +670,6 @@ void CL_ParseTextMessage (sizebuf_t *msg)
 
 	// to prevent grab too long messages
 	Q_strncpy ((char *)text->pMessage, MSG_ReadString (msg), 2048);
-
 	CL_HudMessage (text->pName);
 	}
 
@@ -731,22 +697,17 @@ return soundname from index
 ***/
 static const char *CL_SoundFromIndex (int index)
 	{
-	/*sfx_t *sfx = NULL;
-	int	hSound;*/
-
 	// make sure what we in-bounds
 	index = bound (0, index, MAX_SOUNDS);
 
-	/*hSound = cl.sound_index[index];*/
-	int hSound = cl.sound_index[index];
+	int	hSound = cl.sound_index[index];
 	if (!hSound)
 		{
 		Con_DPrintf (S_ERROR "%s: invalid sound index %i\n", __func__, index);
 		return NULL;
 		}
 
-	/*sfx = S_GetSfxByHandle (hSound);*/
-	sfx_t *sfx = S_GetSfxByHandle (hSound);
+	sfx_t	*sfx = S_GetSfxByHandle (hSound);
 	if (!sfx)
 		{
 		Con_DPrintf (S_ERROR "%s: bad sfx for index %i\n", __func__, index);
@@ -794,8 +755,6 @@ perform common scissor test
 qboolean CL_Scissor (const scissor_state_t *scissor, float *x, float *y, float *width, float *height,
 	float *u0, float *v0, float *u1, float *v1)
 	{
-	/*float dudx, dvdy;*/
-
 	if (!scissor->test)
 		return true;
 
@@ -812,10 +771,8 @@ qboolean CL_Scissor (const scissor_state_t *scissor, float *x, float *y, float *
 	if (*y >= scissor->y + scissor->height)
 		return false;
 
-	/*dudx = (*u1 - *u0) / *width;
-	dvdy = (*v1 - *v0) / *height;*/
-	float dudx = (*u1 - *u0) / *width;
-	float dvdy = (*v1 - *v0) / *height;
+	float	dudx = (*u1 - *u0) / *width;
+	float	dvdy = (*v1 - *v0) / *height;
 
 	if (*x < scissor->x)
 		{
@@ -881,8 +838,8 @@ Render crosshair
 ***/
 static void CL_DrawCrosshair (void)
 	{
-	int	x, y, width, height;
-	float xscale, yscale;
+	int		x, y, width, height;
+	float	xscale, yscale;
 
 	if (!clgame.ds.pCrosshair || !cl_crosshair.value)
 		return;
@@ -902,9 +859,9 @@ static void CL_DrawCrosshair (void)
 	// if we're not using autoaim, just draw in the middle of the screen
 	if (!VectorIsNull (cl.crosshairangle))
 		{
-		vec3_t angles;
-		vec3_t forward;
-		vec3_t point, screen;
+		vec3_t	angles;
+		vec3_t	forward;
+		vec3_t	point, screen;
 
 		VectorAdd (refState.viewangles, cl.crosshairangle, angles);
 		AngleVectors (angles, forward, NULL, NULL);
@@ -941,8 +898,8 @@ draw loading progress bar
 ***/
 static void CL_DrawLoadingOrPaused (int tex)
 	{
-	float x, y, width, height;
-	int iWidth, iHeight;
+	float	x, y, width, height;
+	int		iWidth, iHeight;
 
 	R_GetTextureParms (&iWidth, &iHeight, tex);
 	x = (clgame.scrInfo.iWidth - iWidth) / 2.0f;
@@ -1010,9 +967,6 @@ void CL_DrawHUD (int state)
 // [FWGS, 01.07.26]
 static void CL_ClearUserMessage (char *pszName, int svc_num)
 	{
-	/*int i;
-
-	for (i = 0; i < MAX_USER_MESSAGES && clgame.msg[i].name[0]; i++)*/
 	for (int i = 0; i < MAX_USER_MESSAGES && clgame.msg[i].name[0]; i++)
 		if ((clgame.msg[i].number == svc_num) && Q_stricmp (clgame.msg[i].name, pszName))
 			clgame.msg[i].number = 0;
@@ -1058,7 +1012,7 @@ void CL_ClearWorld (void)
 	{
 	if (clgame.entities)	// check if we have entities, legacy protocol support kinda breaks this logic
 		{
-		cl_entity_t *worldmodel = clgame.entities;
+		cl_entity_t	*worldmodel = clgame.entities;
 
 		worldmodel->curstate.modelindex = 1;	// world model
 		worldmodel->curstate.solid = SOLID_BSP;
@@ -1143,10 +1097,6 @@ free studio cache on change level
 ***/
 void CL_ClearSpriteTextures (void)
 	{
-	/*int	i;
-
-	// [FWGS, 01.03.26]
-	for (i = 1; i < MAX_CLIENT_SPRITES; i++)*/
 	for (int i = 1; i < MAX_CLIENT_SPRITES; i++)
 		{
 		if (clgame.sprites[i].needload == NL_UNREFERENCED)
@@ -1296,8 +1246,6 @@ upload sprite frames
 ***/
 static qboolean CL_LoadHudSprite (const char *szSpriteName, model_t *m_pSprite, uint type, uint texFlags)
 	{
-	/*byte		*buf;
-	fs_offset_t	size;*/
 	qboolean	loaded;
 
 	Assert (m_pSprite != NULL);
@@ -1327,9 +1275,8 @@ static qboolean CL_LoadHudSprite (const char *szSpriteName, model_t *m_pSprite, 
 			}
 		}
 
-	/*buf = FS_LoadFile (szSpriteName, &size, false);*/
-	fs_offset_t size;
-	byte *buf = FS_LoadFile (szSpriteName, &size, false);
+	fs_offset_t	size;
+	byte	*buf = FS_LoadFile (szSpriteName, &size, false);
 	if (buf == NULL)
 		return false;
 
@@ -1368,9 +1315,6 @@ static model_t *CL_LoadSpriteModel (const char *filename, uint type, uint texFla
 	{
 	char	name[MAX_QPATH];
 	model_t	*mod;
-	/*int		i, start;
-
-	// [FWGS, 01.03.26]*/
 	int		i;
 
 	if (COM_StringEmptyOrNULL (filename))
@@ -1398,11 +1342,8 @@ static model_t *CL_LoadSpriteModel (const char *filename, uint type, uint texFla
 			}
 		}
 
-	// Use low indices only for HUD sprites for GoldSrc bug compatibility
-	/*start = type == SPR_HUDSPRITE ? 0 : MAX_CLIENT_SPRITES / 2;
-
-	// [FWGS, 01.03.26]*/
-	int start = type == SPR_HUDSPRITE ? 0 : MAX_CLIENT_SPRITES / 2;
+	// use low indices only for HUD sprites for GoldSrc bug compatibility
+	int	start = type == SPR_HUDSPRITE ? 0 : MAX_CLIENT_SPRITES / 2;
 
 	for (i = 0, mod = &clgame.sprites[start]; i < MAX_CLIENT_SPRITES / 2; i++, mod++)
 		{
@@ -1447,10 +1388,7 @@ pfnSPR_LoadExt [FWGS, 01.07.26]
 ***/
 HLSPRITE pfnSPR_LoadExt (const char *szPicName, uint texFlags)
 	{
-	/*model_t *spr;*/
-	model_t *spr = CL_LoadSpriteModel (szPicName, SPR_CLIENT, texFlags);
-
-	/*if ((spr = CL_LoadSpriteModel (szPicName, SPR_CLIENT, texFlags)) == NULL)*/
+	model_t	*spr = CL_LoadSpriteModel (szPicName, SPR_CLIENT, texFlags);
 	if (spr == NULL)
 		return 0;
 
@@ -1468,10 +1406,7 @@ HLSPRITE HLEXPORT pfnSPR_Load (const char *szPicName);
 
 HLSPRITE HLEXPORT pfnSPR_Load (const char *szPicName)
 	{
-	/*model_t *spr;*/
-	model_t *spr = CL_LoadSpriteModel (szPicName, SPR_HUDSPRITE, 0);
-
-	/*if ((spr = CL_LoadSpriteModel (szPicName, SPR_HUDSPRITE, 0)) == NULL)*/
+	model_t	*spr = CL_LoadSpriteModel (szPicName, SPR_HUDSPRITE, 0);
 	if (spr == NULL)
 		return 0;
 
@@ -1486,19 +1421,16 @@ CL_GetSpritePointer [FWGS, 01.07.26]
 ***/
 static const model_t *CL_GetSpritePointer (HLSPRITE hSprite)
 	{
-	/*model_t *mod;*/
-	int index = hSprite - 1;
+	int	index = hSprite - 1;
 
 	// bad image
 	if ((index < 0) || (index >= MAX_CLIENT_SPRITES))
 		return NULL;
 
-	/*mod = &clgame.sprites[index];*/
-	model_t *mod = &clgame.sprites[index];
+	model_t	*mod = &clgame.sprites[index];
 	if (mod->needload == NL_NEEDS_LOADED)
 		{
-		/*int	type = FBitSet (mod->flags, MODEL_CLIENT) ? SPR_HUDSPRITE : SPR_MAPSPRITE;*/
-		int type = FBitSet (mod->flags, MODEL_CLIENT) ? SPR_HUDSPRITE : SPR_MAPSPRITE;
+		int	type = FBitSet (mod->flags, MODEL_CLIENT) ? SPR_HUDSPRITE : SPR_MAPSPRITE;
 
 		if (CL_LoadHudSprite (mod->name, mod, type, mod->numtexinfo))
 			return mod;
@@ -1569,7 +1501,7 @@ pfnSPR_Set
 ***/
 static void GAME_EXPORT pfnSPR_Set (HLSPRITE hPic, int r, int g, int b)
 	{
-	const model_t *sprite = CL_GetSpritePointer (hPic);
+	const model_t	*sprite = CL_GetSpritePointer (hPic);
 
 	// a1ba: do not alter the state if invalid HSPRITE was passed
 	if (!sprite)
@@ -1945,8 +1877,6 @@ pfnGetPlayerInfo [FWGS, 01.07.26]
 ***/
 static void GAME_EXPORT pfnGetPlayerInfo (int ent_num, hud_player_info_t *pinfo)
 	{
-	/*player_info_t *player;*/
-
 	ent_num -= 1;	// player list if offset by 1 from ents
 
 	if ((ent_num >= cl.maxclients) || (ent_num < 0) || !cl.players[ent_num].name[0])
@@ -1956,8 +1886,7 @@ static void GAME_EXPORT pfnGetPlayerInfo (int ent_num, hud_player_info_t *pinfo)
 		return;
 		}
 
-	/*player = &cl.players[ent_num];*/
-	player_info_t *player = &cl.players[ent_num];
+	player_info_t	*player = &cl.players[ent_num];
 	pinfo->thisplayer = (ent_num == cl.playernum) ? true : false;
 	pinfo->name = player->name;
 	pinfo->model = player->model;
@@ -1975,7 +1904,7 @@ pfnPlaySoundByName
 ***/
 static void GAME_EXPORT pfnPlaySoundByName (const char *szSound, float volume)
 	{
-	int hSound = S_RegisterSound (szSound);
+	int	hSound = S_RegisterSound (szSound);
 
 	// ESHQ: исправление радиуса звука
 	S_StartSound (NULL, cl.viewentity, CHAN_ITEM, hSound, volume, ATTN_MEDIUM, PITCH_NORM, SND_STOP_LOOPING);
@@ -1988,13 +1917,10 @@ pfnPlaySoundByIndex [FWGS, 01.07.26]
 ***/
 static void GAME_EXPORT pfnPlaySoundByIndex (int iSound, float volume)
 	{
-	/*int hSound;*/
-
 	// make sure what we in-bounds
 	iSound = bound (0, iSound, MAX_SOUNDS);
-	/*hSound = cl.sound_index[iSound];*/
 
-	int hSound = cl.sound_index[iSound];
+	int	hSound = cl.sound_index[iSound];
 	if (!hSound)
 		return;
 
@@ -2042,8 +1968,8 @@ returns drawed chachter width (in real screen pixels)
 ***/
 static int GAME_EXPORT pfnDrawCharacter (int x, int y, int number, int r, int g, int b)
 	{
-	rgba_t color = { r, g, b, 255 };
-	int flags = FONT_DRAW_HUD;
+	rgba_t	color = { r, g, b, 255 };
+	int		flags = FONT_DRAW_HUD;
 
 	if (hud_utf8.value)
 		flags |= FONT_DRAW_UTF8;
@@ -2060,8 +1986,9 @@ drawing string like a console string
 ***/
 int GAME_EXPORT pfnDrawConsoleString (int x, int y, char *string)
 	{
-	cl_font_t *font = Con_GetFont (con_fontsize.value);
-	rgba_t color;
+	cl_font_t	*font = Con_GetFont (con_fontsize.value);
+	rgba_t	color;
+
 	Vector4Copy (clgame.ds.textColor, color);
 	Vector4Set (clgame.ds.textColor, 255, 255, 255, 255);
 
@@ -2093,7 +2020,7 @@ compute string length in screen pixels
 ***/
 void GAME_EXPORT pfnDrawConsoleStringLen (const char *pText, int *length, int *height)
 	{
-	cl_font_t *font = Con_GetFont (con_fontsize.value);
+	cl_font_t	*font = Con_GetFont (con_fontsize.value);
 
 	if (height)
 		*height = font->charHeight;
@@ -2140,11 +2067,12 @@ GetWindowCenterX
 ***/
 static int GAME_EXPORT pfnGetWindowCenterX (void)
 	{
-	int x = 0;
+	int	x = 0;
+
 #if XASH_WIN32
 	if (m_ignore.value)
 		{
-		POINT pos;
+		POINT	pos;
 		GetCursorPos (&pos);
 		return pos.x;
 		}
@@ -2165,11 +2093,12 @@ GetWindowCenterY
 ***/
 static int GAME_EXPORT pfnGetWindowCenterY (void)
 	{
-	int y = 0;
+	int	y = 0;
+
 #if XASH_WIN32
 	if (m_ignore.value)
 		{
-		POINT pos;
+		POINT	pos;
 		GetCursorPos (&pos);
 		return pos.y;
 		}
@@ -2278,9 +2207,7 @@ pfnCalcShake [FWGS, 01.07.26]
 ***/
 static void GAME_EXPORT pfnCalcShake (void)
 	{
-	screen_shake_t *const shake = &clgame.shake;
-	/*float frametime, fraction, freq;
-	int i;*/
+	screen_shake_t	*const shake = &clgame.shake;
 
 	if ((cl.time > shake->time) || (shake->amplitude <= 0) || (shake->frequency <= 0) || (shake->duration <= 0))
 		{
@@ -2295,8 +2222,7 @@ static void GAME_EXPORT pfnCalcShake (void)
 		return;
 		}
 
-	/*frametime = cl_clientframetime ();*/
-	float frametime = cl_clientframetime ();
+	float	frametime = cl_clientframetime ();
 
 	if (cl.time > shake->next_shake)
 		{
@@ -2304,23 +2230,19 @@ static void GAME_EXPORT pfnCalcShake (void)
 		shake->next_shake = (float)cl.time + shake->frequency / shake->duration;
 
 		// randomize each shake
-		/*for (i = 0; i < 3; i++)*/
 		for (int i = 0; i < 3; i++)
 			shake->offset[i] = COM_RandomFloat (-shake->amplitude, shake->amplitude);
 		shake->angle = COM_RandomFloat (-shake->amplitude * 0.25f, shake->amplitude * 0.25f);
 		}
 
 	// get initial fraction and frequency values over the duration
-	/*fraction = ((float)cl.time - shake->time) / shake->duration;
-	freq = fraction != 0.0f ? (shake->frequency / fraction) * shake->frequency : 0.0f;*/
-	float fraction = ((float)cl.time - shake->time) / shake->duration;
-	float freq = fraction != 0.0f ? (shake->frequency / fraction) * shake->frequency : 0.0f;
+	float	fraction = ((float)cl.time - shake->time) / shake->duration;
+	float	freq = fraction != 0.0f ? (shake->frequency / fraction) * shake->frequency : 0.0f;
 
 	// quickly approach zero but apply time over sine wave
 	fraction *= fraction * sin (cl.time * freq);
 
 	// apply shake offset
-	/*for (i = 0; i < 3; i++)*/
 	for (int i = 0; i < 3; i++)
 		shake->applied_offset[i] = shake->offset[i] * fraction;
 
@@ -2376,7 +2298,7 @@ pmtrace_t *PM_CL_TraceLine (float *start, float *end, int flags, int usehull, in
 
 static void GAME_EXPORT pfnPlaySoundByNameAtLocation (char *szSound, float volume, float *origin)
 	{
-	int hSound = S_RegisterSound (szSound);
+	int	hSound = S_RegisterSound (szSound);
 
 	// ESHQ: исправление радиуса звука
 	S_StartSound (origin, cl.viewentity, CHAN_AUTO, hSound, volume, ATTN_MEDIUM, PITCH_NORM, 0);
@@ -2434,10 +2356,6 @@ pfnKillEvents [FWGS, 01.07.26]
 ***/
 static void GAME_EXPORT pfnKillEvents (int entnum, const char *eventname)
 	{
-	/*int		i;
-	event_state_t	*es;
-	event_info_t	*ei;
-	word	eventIndex = CL_EventIndex (eventname);*/
 	word	eventIndex = CL_EventIndex (eventname);
 
 	if (eventIndex >= MAX_EVENTS)
@@ -2446,14 +2364,11 @@ static void GAME_EXPORT pfnKillEvents (int entnum, const char *eventname)
 	if ((entnum < 0) || (entnum >= clgame.maxEntities))
 		return;
 
-	/*es = &cl.events;*/
 	event_state_t	*es = &cl.events;
 
 	// find all events with specified index and kill it
-	/*for (i = 0; i < MAX_EVENT_QUEUE; i++)*/
 	for (int i = 0; i < MAX_EVENT_QUEUE; i++)
 		{
-		/*ei = &es->ei[i];*/
 		event_info_t	*ei = &es->ei[i];
 
 		if ((ei->index == eventIndex) && (ei->entity_index == entnum))
@@ -2483,9 +2398,6 @@ CL_FindModelIndex [FWGS, 01.07.26]
 static int GAME_EXPORT CL_FindModelIndex (const char *m)
 	{
 	char	filepath[MAX_QPATH];
-	/*int		i;
-
-	// [FWGS, 01.03.26]*/
 
 	if (COM_StringEmptyOrNULL (m))
 		return 0;
@@ -2493,7 +2405,6 @@ static int GAME_EXPORT CL_FindModelIndex (const char *m)
 	Q_strncpy (filepath, m, sizeof (filepath));
 	COM_FixSlashes (filepath);
 
-	/*for (i = 0; i < cl.nummodels; i++)*/
 	for (int i = 0; i < cl.nummodels; i++)
 		{
 		if (!cl.models[i + 1])
@@ -2814,9 +2725,7 @@ pfnLoadMapSprite [FWGS, 01.07.26]
 ***/
 static model_t *pfnLoadMapSprite (const char *filename)
 	{
-	/*model_t *mod;
-	mod = Mod_FindName (filename, false);*/
-	model_t *mod = Mod_FindName (filename, false);
+	model_t	*mod = Mod_FindName (filename, false);
 
 	if (CL_LoadHudSprite (filename, mod, SPR_MAPSPRITE, 0))
 		return mod;
@@ -2844,7 +2753,7 @@ This doesn't search in the pak file
 ***/
 static int GAME_EXPORT COM_ExpandFilename (const char *fileName, char *nameOutBuffer, int nameOutBufferSize)
 	{
-	char result[MAX_SYSPATH];
+	char	result[MAX_SYSPATH];
 
 	// [FWGS, 01.03.26]
 	if (COM_StringEmptyOrNULL (fileName) || !nameOutBuffer || (nameOutBufferSize <= 0))
@@ -2890,13 +2799,10 @@ PlayerInfo_SetValueForKey [FWGS, 01.07.26]
 ***/
 static void GAME_EXPORT PlayerInfo_SetValueForKey (const char *key, const char *value)
 	{
-	/*convar_t *var;*/
-
 	if (!Q_strcmp (Info_ValueForKey (cls.userinfo, key), value))
-		return;	// no changes ?
+		return;		// no changes ?
 
-	/*var = Cvar_FindVar (key);*/
-	convar_t *var = Cvar_FindVar (key);
+	convar_t	*var = Cvar_FindVar (key);
 	if (var && FBitSet (var->flags, FCVAR_USERINFO))
 		{
 		Cvar_DirectSet (var, value);
@@ -2974,12 +2880,10 @@ pfnGetMousePos [FWGS, 01.07.26]
 ***/
 static void GAME_EXPORT pfnGetMousePos (struct tagPOINT *ppt)
 	{
-	/*int x, y;*/
-
 	if (!ppt)
 		return;
 
-	int x, y;
+	int	x, y;
 	Platform_GetMousePos (&x, &y);
 
 	ppt->x = x;
@@ -3092,8 +2996,8 @@ pfnDrawString
 ***/
 static int GAME_EXPORT pfnDrawString (int x, int y, const char *str, int r, int g, int b)
 	{
-	rgba_t color = { r, g, b, 255 };
-	int flags = FONT_DRAW_HUD | FONT_DRAW_NOLF;
+	rgba_t	color = { r, g, b, 255 };
+	int		flags = FONT_DRAW_HUD | FONT_DRAW_NOLF;
 
 	// draw the string until we hit the null character or a newline character
 	if (hud_utf8.value)
@@ -3109,14 +3013,13 @@ pfnDrawStringReverse [FWGS, 01.07.26]
 ***/
 static int GAME_EXPORT pfnDrawStringReverse (int x, int y, const char *str, int r, int g, int b)
 	{
-	rgba_t color = { r, g, b, 255 };
-	int flags = FONT_DRAW_HUD | FONT_DRAW_NOLF;
-	/*int width;*/
+	rgba_t	color = { r, g, b, 255 };
+	int		flags = FONT_DRAW_HUD | FONT_DRAW_NOLF;
 
 	if (hud_utf8.value)
 		SetBits (flags, FONT_DRAW_UTF8);
 
-	int width;
+	int	width;
 	CL_DrawStringLen (&cls.creditsFont, str, &width, NULL, flags);
 	x -= width;
 
@@ -3141,7 +3044,7 @@ pfnPlaySoundVoiceByName
 ***/
 static void GAME_EXPORT pfnPlaySoundVoiceByName (char *filename, float volume, int pitch)
 	{
-	int hSound = S_RegisterSound (filename);
+	int	hSound = S_RegisterSound (filename);
 
 	S_StartSound (NULL, cl.viewentity, CHAN_NETWORKVOICE_END + 1, hSound, volume, 1.0, pitch, SND_STOP_LOOPING);
 	}
@@ -3172,7 +3075,7 @@ pfnPlaySoundByNameAtPitch
 ***/
 static void GAME_EXPORT pfnPlaySoundByNameAtPitch (char *filename, float volume, int pitch)
 	{
-	int hSound = S_RegisterSound (filename);
+	int	hSound = S_RegisterSound (filename);
 	S_StartSound (NULL, cl.viewentity, CHAN_ITEM, hSound, volume, 1.0, pitch, SND_STOP_LOOPING);
 	}
 
@@ -3204,7 +3107,7 @@ pfnGetAppID
 ***/
 static int GAME_EXPORT pfnGetAppID (void)
 	{
-	return 70; // Half-Life AppID
+	return 70;	// Half-Life AppID
 	}
 
 /***
@@ -3286,11 +3189,6 @@ TriBrightness [FWGS, 01.07.26]
 ***/
 void TriBrightness (float brightness)
 	{
-	/*float	r, g, b;
-
-	r = clgame.ds.triRGBA[0] * clgame.ds.triRGBA[3] * brightness;
-	g = clgame.ds.triRGBA[1] * clgame.ds.triRGBA[3] * brightness;
-	b = clgame.ds.triRGBA[2] * clgame.ds.triRGBA[3] * brightness;*/
 	float	r = clgame.ds.triRGBA[0] * clgame.ds.triRGBA[3] * brightness;
 	float	g = clgame.ds.triRGBA[1] * clgame.ds.triRGBA[3] * brightness;
 	float	b = clgame.ds.triRGBA[2] * clgame.ds.triRGBA[3] * brightness;
@@ -3342,13 +3240,10 @@ NOTE: dlights are ignored
 ***/
 void TriLightAtPoint (float *pos, float *value)
 	{
-	/*colorVec	vLightColor;*/
-
 	if (!pos || !value)
 		return;
 
-	/*vLightColor = ref.dllFuncs.R_LightPoint (pos);*/
-	colorVec vLightColor = ref.dllFuncs.R_LightPoint (pos);
+	colorVec	vLightColor = ref.dllFuncs.R_LightPoint (pos);
 
 	value[0] = vLightColor.r;
 	value[1] = vLightColor.g;
@@ -3384,12 +3279,8 @@ bind current texture
 ***/
 int TriSpriteTexture (model_t *pSpriteModel, int frame)
 	{
-	/*int	gl_texturenum;
+	int	gl_texturenum = R_GetSpriteTexture (pSpriteModel, frame);
 
-	// [FWGS, 01.05.26]*/
-	int gl_texturenum = R_GetSpriteTexture (pSpriteModel, frame);
-
-	/*if ((gl_texturenum = R_GetSpriteTexture (pSpriteModel, frame)) <= 0)*/
 	if (gl_texturenum <= 0)
 		return 0;
 
@@ -3442,7 +3333,7 @@ NetAPI_Status
 static void GAME_EXPORT NetAPI_Status (net_status_t *status)
 	{
 	qboolean	connected = false;
-	int	packet_loss = 0;
+	int		packet_loss = 0;
 
 	Assert (status != NULL);
 
@@ -3470,12 +3361,8 @@ NetAPI_SendRequest [FWGS, 01.08.26]
 static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags, double timeout,
 	netadr_t *remote_address, net_api_response_func_t response)
 	{
-	/*net_request_t	*nr = NULL;
-	int		i;*/
-
 	if (!response)
 		{
-		/*Con_DPrintf (S_ERROR "%s: no callbcak specified for request with context %i!\n", __func__, context);*/
 		Con_DPrintf (S_ERROR "%s: no callback specified for request with context %i!\n",
 			__func__, context);
 		return;
@@ -3485,7 +3372,6 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 	if ((NET_NetadrType (remote_address) == NA_IPX) || (NET_NetadrType (remote_address) == NA_BROADCAST_IPX))
 		return;	// IPX no longer support
 
-	/*if (request == NETAPI_REQUEST_SERVERLIST)*/
 	switch (request)
 		{
 		case NETAPI_REQUEST_SERVERLIST:
@@ -3504,7 +3390,6 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 		}
 
 	// find a free request
-	/*for (i = 0; i < MAX_REQUESTS; i++)*/
 	net_request_t	*nr = NULL, *oldest_nr = NULL;
 	int		i;
 	double	max_timeout = 0;
@@ -3512,9 +3397,6 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 	for (i = 0; i < HLARRAYSIZE (clgame.net_requests); i++)
 		{
 		nr = &clgame.net_requests[i];
-		/*if (!nr->pfnFunc)
-			break;*/
-
 		if ((host.realtime - nr->timesend) > max_timeout)
 			{
 			max_timeout = host.realtime - nr->timesend;
@@ -3525,24 +3407,12 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 			break;
 		}
 
-	/*if (i == MAX_REQUESTS)*/
 	if (i == HLARRAYSIZE (clgame.net_requests))
 		{
-		/*double	max_timeout = 0;*/
-
 		// no free requests? use oldest
-		/*for (i = 0, nr = NULL; i < MAX_REQUESTS; i++)
-			{
-			if ((host.realtime - clgame.net_requests[i].timesend) > max_timeout)
-				{
-				max_timeout = host.realtime - clgame.net_requests[i].timesend;
-				nr = &clgame.net_requests[i];
-				}
-			}*/
 		nr = oldest_nr;
 		}
 
-	/*Assert (nr != NULL);*/
 	if (!nr)
 		{
 		Con_Printf (S_ERROR "%s: no free requests\n", __func__);
@@ -3562,9 +3432,6 @@ static void GAME_EXPORT NetAPI_SendRequest (int context, int request, int flags,
 	nr->flags = flags;
 	nr->challenge = -1;
 	
-	/*// [FWGS, 01.03.26] local servers request
-	Netchan_OutOfBandPrint (NS_CLIENT, nr->resp.remote_address, A2A_NETINFO" %i %i %i",
-		PROTOCOL_VERSION, context, request);*/
 	if (!CL_NetRequestSend (nr))
 		Con_Printf (S_ERROR "%s: failed to send net request for type %d with context %i\n",
 			__func__, request, context);
@@ -3578,7 +3445,6 @@ NetAPI_CancelRequest [FWGS, 01.08.26]
 static void GAME_EXPORT NetAPI_CancelRequest (int context)
 	{
 	// find a specified request
-	/*for (int i = 0; i < MAX_REQUESTS; i++)*/
 	for (int i = 0; i < HLARRAYSIZE (clgame.net_requests); i++)
 		{
 		net_request_t	*nr = &clgame.net_requests[i];
@@ -3606,7 +3472,6 @@ NetAPI_CancelAllRequests [FWGS, 01.08.26]
 void GAME_EXPORT NetAPI_CancelAllRequests (void)
 	{
 	// tell the user about cancel
-	/*for (int i = 0; i < MAX_REQUESTS; i++)*/
 	for (int i = 0; i < HLARRAYSIZE (clgame.net_requests); i++)
 		{
 		net_request_t	*nr = &clgame.net_requests[i];
@@ -3949,7 +3814,6 @@ static cl_enginefunc_t gEngfuncs =
 	pfnHookEvent,
 	Con_Visible,
 	pfnGetGameDirectory,
-	/*pfnCVarGetPointer,*/
 	CL_CvarGetPointer,	// [FWGS, 01.07.26]
 	Key_LookupBinding,
 	pfnGetLevelName,
@@ -4096,7 +3960,6 @@ static engine_studio_api_t gStudioAPI =
 	.Mod_ForName = pfnStudio_Mod_ForName,
 	.Mod_Extradata = pfnStudio_Mod_Extradata,
 	.GetModelByIndex = CL_ModelHandle,
-	/*.GetCvar = pfnCVarGetPointer,*/
 	.GetCvar = CL_CvarGetPointer,
 	.GetChromeSprite = pfnStudio_GetChromeSprite,
 	.GetAliasScale = pfnStudio_GetAliasScale,
@@ -4108,14 +3971,12 @@ static engine_studio_api_t gStudioAPI =
 // [FWGS, 01.07.26]
 static void CL_InitStudioAPI (void)
 	{
-	static r_studio_interface_t gDefaultStudioDraw;
-	/*r_studio_interface_t *pStudioDraw;*/
+	static r_studio_interface_t	gDefaultStudioDraw;
 
 	if (!ref.dllFuncs.R_StudioFillAPI (&gStudioAPI, &gDefaultStudioDraw))
 		return;
 
-	/*pStudioDraw = &gDefaultStudioDraw;*/
-	r_studio_interface_t *pStudioDraw = &gDefaultStudioDraw;
+	r_studio_interface_t	*pStudioDraw = &gDefaultStudioDraw;
 
 	if (clgame.dllFuncs.pfnGetStudioModelInterface)
 		clgame.dllFuncs.pfnGetStudioModelInterface (STUDIO_INTERFACE_VERSION, &pStudioDraw, &gStudioAPI);
@@ -4131,7 +3992,6 @@ qboolean CL_LoadProgs (const char *name)
 	qboolean	valid_single_export = false;
 	qboolean	missed_exports = false;
 	qboolean	try_internal_vgui_support = GI->internal_vgui_support;
-	/*int			i;*/
 
 	if (clgame.hInstance)
 		CL_UnloadProgs ();
@@ -4192,8 +4052,6 @@ qboolean CL_LoadProgs (const char *name)
 	if (GetClientAPI != NULL)	// check critical functions again
 		valid_single_export = ValidateExports (cdll_exports, HLARRAYSIZE (cdll_exports));
 
-	/*// [FWGS, 01.03.26]
-	for (i = 0; i < HLARRAYSIZE (cdll_exports); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (cdll_exports); i++)
 		{
 		if (*(cdll_exports[i].func) != NULL)
@@ -4226,7 +4084,6 @@ qboolean CL_LoadProgs (const char *name)
 	if (!valid_single_export)
 		ClearExports (cdll_new_exports, HLARRAYSIZE (cdll_new_exports));
 
-	/*for (i = 0; i < HLARRAYSIZE (cdll_new_exports); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (cdll_new_exports); i++)
 		{
 		if (*(cdll_new_exports[i].func) != NULL)
