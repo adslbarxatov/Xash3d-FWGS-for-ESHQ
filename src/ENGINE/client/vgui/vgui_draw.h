@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
@@ -30,6 +30,9 @@ void VGui_MWheelEvent (int y);
 void VGui_KeyEvent (int key, int down);
 void VGui_MouseMove (int x, int y);
 qboolean VGui_IsActive (void);
+
+// [FWGS, 01.09.26]
+qboolean VGui_IsProvidedByClientDll (void);
 void *VGui_GetPanel (void);
 void VGui_ReportTextInput (const char *text);
 void VGui_UpdateInternalCursorState (VGUI_DefaultCursor cursorType);

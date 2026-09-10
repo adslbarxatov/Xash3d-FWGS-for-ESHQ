@@ -16,9 +16,23 @@ GNU General Public License for more details
 #ifndef RENDER_API_H
 #define RENDER_API_H
 
-// [FWGS, 01.03.26]
-#include <stdint.h>
+// [FWGS, 01.09.26]
+/*include <stdint.h>*/
+#include <stdint.h>		// intptr_t
+#include <stddef.h>		// size_t
 #include "lightstyle.h"
+
+// [FWGS, 01.09.26] this header only needs byte, vec3_t, qboolean and colorVec, all of which come
+// from const.h. don't pull in xash3d_types.h for them: it drags in build.h/port.h
+// and its link_t collides with the one in the HL SDK's const.h, which keeps mods
+// from including this header at all
+#ifndef ALLOC_CHECK
+	#if __GNUC__ >= 4 || defined( __clang__ )
+		#define ALLOC_CHECK( x ) __attribute__(( alloc_size( x )))
+	#else
+		#define ALLOC_CHECK( x )
+	#endif
+#endif
 
 #define CL_RENDER_INTERFACE_VERSION	37	// Xash3D 1.0
 #define MAX_STUDIO_DECALS			4096	// + unused space of BSP decals
@@ -118,12 +132,15 @@ typedef enum
 	TF_ALLOW_NEAREST =	(1 << 30),	// allows toggling nearest filtering for TF_NOMIPMAP textures
 	} texFlags_t;
 
+// [FWGS, 01.09.26]
 typedef enum
 	{
 	CONTEXT_TYPE_GL = 0,	// Compatibility profile
 	CONTEXT_TYPE_GLES_1_X,
 	CONTEXT_TYPE_GLES_2_X,
-	CONTEXT_TYPE_GL_CORE
+	/*CONTEXT_TYPE_GL_CORE*/
+	CONTEXT_TYPE_GL_CORE,
+	CONTEXT_TYPE_SOFTWARE,	// not a context by itself, just software renderer
 	} gl_context_type_t;
 
 typedef enum
@@ -193,8 +210,6 @@ typedef struct render_api_s
 	void		(*GetDetailScaleForTexture)(int texture, float* xScale, float* yScale);
 	void		(*GetExtraParmsForTexture)(int texture, byte* red, byte* green, byte* blue, byte* alpha);
 	lightstyle_t	*(*GetLightStyle)(int number);
-	/*dlight_t	*(*GetDynamicLight)(int number);
-	dlight_t	*(*GetEntityLight)(int number);*/
 	struct dlight_s		*(*GetDynamicLight)(int number);
 	struct dlight_s		*(*GetEntityLight)(int number);
 	byte		(*LightToTexGamma)(byte color);	// software gamma support

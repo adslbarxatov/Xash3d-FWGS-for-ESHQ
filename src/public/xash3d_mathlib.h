@@ -141,11 +141,6 @@ CONSTANTS AND HELPER MACROS
 #define VectorLerp( v1, lerp, v2, c ) ((c)[0] = (v1)[0] + (lerp) * ((v2)[0] - (v1)[0]), (c)[1] = (v1)[1] + (lerp) * ((v2)[1] - (v1)[1]), (c)[2] = (v1)[2] + (lerp) * ((v2)[2] - (v1)[2]))
 
 // [FWGS, 01.07.26]
-/*define VectorNormalize( v ) { float ilength = (float)sqrt(DotProduct(v, v));if (ilength) ilength = 1.0f / ilength;v[0] *= ilength;v[1] *= ilength;v[2] *= ilength; }
-define VectorNormalize2( v, dest ) {float ilength = (float)sqrt(DotProduct(v,v));if (ilength) ilength = 1.0f / ilength;dest[0] = v[0] * ilength;dest[1] = v[1] * ilength;dest[2] = v[2] * ilength; }
-
-// [FWGS, 01.09.25]
-define VectorNormalizeFast( v ) {float ilength = (float)Q_rsqrt(DotProduct(v,v)); v[0] *= ilength; v[1] *= ilength; v[2] *= ilength; }*/
 #define VectorNormalize( v )	{ float ilength = (float)sqrt(DotProduct((v), (v)));if (ilength) ilength = 1.0f / ilength;(v)[0] *= ilength;(v)[1] *= ilength;(v)[2] *= ilength; }
 #define VectorNormalize2( v, dest )		{float ilength = (float)sqrt(DotProduct((v),(v)));if (ilength) ilength = 1.0f / ilength;(dest)[0] = (v)[0] * ilength; (dest)[1] = (v)[1] * ilength;(dest)[2] = (v)[2] * ilength; }
 #define VectorNormalizeFast( v )	{float ilength = (float)Q_rsqrt(DotProduct((v),(v))); (v)[0] *= ilength; (v)[1] *= ilength; (v)[2] *= ilength; }
@@ -248,37 +243,113 @@ static inline void PlaneIntersect (const struct mplane_t *plane, const vec3_t p0
 	}
 
 //
-// matrixlib.c [FWGS, 01.02.25]
+// matrixlib.c [FWGS, 01.09.26]
 //
+#define Matrix3x4_Copy( out, in ) memcpy( out, in, sizeof( matrix3x4 ))
+
 static inline void Matrix3x4_LoadIdentity (matrix3x4 m)
 	{
 	memset (m, 0, sizeof (matrix3x4));
 	m[0][0] = m[1][1] = m[2][2] = 1.0f;
 	}
 
-#define Matrix3x4_Copy( out, in ) memcpy( out, in, sizeof( matrix3x4 ))
+/*define Matrix3x4_Copy( out, in ) memcpy( out, in, sizeof( matrix3x4 ))
 void Matrix3x4_VectorTransform (const matrix3x4 in, const float v[3], float out[3]);
 void Matrix3x4_VectorITransform (const matrix3x4 in, const float v[3], float out[3]);
 void Matrix3x4_VectorRotate (const matrix3x4 in, const float v[3], float out[3]);
-void Matrix3x4_VectorIRotate (const matrix3x4 in, const float v[3], float out[3]);
+void Matrix3x4_VectorIRotate (const matrix3x4 in, const float v[3], float out[3]);*/
+
+// [FWGS, 01.09.26]
+static inline void Matrix3x4_VectorRotate (const matrix3x4 in, const float v[3], float out[3])
+	{
+	out[0] = v[0] * in[0][0] + v[1] * in[0][1] + v[2] * in[0][2];
+	out[1] = v[0] * in[1][0] + v[1] * in[1][1] + v[2] * in[1][2];
+	out[2] = v[0] * in[2][0] + v[1] * in[2][1] + v[2] * in[2][2];
+	}
+
+// [FWGS, 01.09.26]
+static inline void Matrix3x4_VectorIRotate (const matrix3x4 in, const float v[3], float out[3])
+	{
+	out[0] = v[0] * in[0][0] + v[1] * in[1][0] + v[2] * in[2][0];
+	out[1] = v[0] * in[0][1] + v[1] * in[1][1] + v[2] * in[2][1];
+	out[2] = v[0] * in[0][2] + v[1] * in[1][2] + v[2] * in[2][2];
+	}
+
+// [FWGS, 01.09.26]
+static inline void Matrix3x4_VectorTransform (const matrix3x4 in, const float v[3], float out[3])
+	{
+	out[0] = v[0] * in[0][0] + v[1] * in[0][1] + v[2] * in[0][2] + in[0][3];
+	out[1] = v[0] * in[1][0] + v[1] * in[1][1] + v[2] * in[1][2] + in[1][3];
+	out[2] = v[0] * in[2][0] + v[1] * in[2][1] + v[2] * in[2][2] + in[2][3];
+	}
+
+// [FWGS, 01.09.26]
+static inline void Matrix3x4_VectorITransform (const matrix3x4 in, const float v[3], float out[3])
+	{
+	vec3_t	dir;
+	dir[0] = v[0] - in[0][3];
+	dir[1] = v[1] - in[1][3];
+	dir[2] = v[2] - in[2][3];
+
+	Matrix3x4_VectorIRotate (in, dir, out);
+	}
+
 void Matrix3x4_ConcatTransforms (matrix3x4 out, const matrix3x4 in1, const matrix3x4 in2);
 void Matrix3x4_FromOriginQuat (matrix3x4 out, const vec4_t quaternion, const vec3_t origin);
 void Matrix3x4_CreateFromEntity (matrix3x4 out, const vec3_t angles, const vec3_t origin, float scale);
 void Matrix3x4_TransformAABB (const matrix3x4 world, const vec3_t mins, const vec3_t maxs, vec3_t absmin, vec3_t absmax);
 void Matrix3x4_AnglesFromMatrix (const matrix3x4 in, vec3_t out);
 
-// [FWGS, 01.02.25]
+// [FWGS, 01.09.26]
+#define Matrix4x4_Copy( out, in ) memcpy( out, in, sizeof( matrix4x4 ))
+
 static inline void Matrix4x4_LoadIdentity (matrix4x4 m)
 	{
 	memset (m, 0, sizeof (matrix4x4));
 	m[0][0] = m[1][1] = m[2][2] = m[3][3] = 1.0f;
 	}
 
-#define Matrix4x4_Copy( out, in ) memcpy( out, in, sizeof( matrix4x4 ))
+/*define Matrix4x4_Copy( out, in ) memcpy( out, in, sizeof( matrix4x4 ))
 void Matrix4x4_VectorTransform (const matrix4x4 in, const float v[3], float out[3]);
 void Matrix4x4_VectorITransform (const matrix4x4 in, const float v[3], float out[3]);
 void Matrix4x4_VectorRotate (const matrix4x4 in, const float v[3], float out[3]);
-void Matrix4x4_VectorIRotate (const matrix4x4 in, const float v[3], float out[3]);
+void Matrix4x4_VectorIRotate (const matrix4x4 in, const float v[3], float out[3]);*/
+
+// [FWGS, 01.09.26]
+static inline void Matrix4x4_VectorRotate (const matrix4x4 in, const float v[3], float out[3])
+	{
+	out[0] = v[0] * in[0][0] + v[1] * in[0][1] + v[2] * in[0][2];
+	out[1] = v[0] * in[1][0] + v[1] * in[1][1] + v[2] * in[1][2];
+	out[2] = v[0] * in[2][0] + v[1] * in[2][1] + v[2] * in[2][2];
+	}
+
+// [FWGS, 01.09.26]
+static inline void Matrix4x4_VectorIRotate (const matrix4x4 in, const float v[3], float out[3])
+	{
+	out[0] = v[0] * in[0][0] + v[1] * in[1][0] + v[2] * in[2][0];
+	out[1] = v[0] * in[0][1] + v[1] * in[1][1] + v[2] * in[2][1];
+	out[2] = v[0] * in[0][2] + v[1] * in[1][2] + v[2] * in[2][2];
+	}
+
+// [FWGS, 01.09.26]
+static inline void Matrix4x4_VectorTransform (const matrix4x4 in, const float v[3], float out[3])
+	{
+	out[0] = v[0] * in[0][0] + v[1] * in[0][1] + v[2] * in[0][2] + in[0][3];
+	out[1] = v[0] * in[1][0] + v[1] * in[1][1] + v[2] * in[1][2] + in[1][3];
+	out[2] = v[0] * in[2][0] + v[1] * in[2][1] + v[2] * in[2][2] + in[2][3];
+	}
+
+// [FWGS, 01.09.26]
+static inline void Matrix4x4_VectorITransform (const matrix4x4 in, const float v[3], float out[3])
+	{
+	vec3_t	dir;
+	dir[0] = v[0] - in[0][3];
+	dir[1] = v[1] - in[1][3];
+	dir[2] = v[2] - in[2][3];
+
+	Matrix4x4_VectorIRotate (in, dir, out);
+	}
+
 void Matrix4x4_ConcatTransforms (matrix4x4 out, const matrix4x4 in1, const matrix4x4 in2);
 void Matrix4x4_CreateFromEntity (matrix4x4 out, const vec3_t angles, const vec3_t origin, float scale);
 void Matrix4x4_TransformPositivePlane (const matrix4x4 in, const vec3_t normal, float d, vec3_t out, float *dist);

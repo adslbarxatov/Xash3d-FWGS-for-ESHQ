@@ -299,12 +299,12 @@ static inline size_t Q_strncat (char *dst, const char *src, size_t size)
 #else
 
 	{
-	size_t slen = strlen (src);
-	size_t dlen = Q_strnlen (dst, size);
+	size_t	slen = strlen (src);
+	size_t	dlen = Q_strnlen (dst, size);
 
 	if (dlen != size)
 		{
-		size_t copy = size - dlen - 1;
+		size_t	copy = size - dlen - 1;
 
 		if (copy > slen)
 			copy = slen;
@@ -389,7 +389,7 @@ static inline char *Q_stristr (const char *s1, const char *s2)
 
 static inline char *Q_strchrnul (const char *s, int c)
 	{
-	char *p = (char *)Q_strchr (s, c);
+	char	*p = (char *)Q_strchr (s, c);
 	if (p)
 		return p;
 
@@ -415,7 +415,7 @@ static inline int Q_splitstr (char *str, int delim, void *userdata,
 
 	for (; ; prev = next + 1, next = Q_strchrnul (prev, delim))
 		{
-		int ch = *next;	// save next value if it's modified by handler
+		int	ch = *next;	// save next value if it's modified by handler
 
 		ret = handler (prev, next, userdata);
 		if (!ch || (ret != 0))
@@ -427,22 +427,26 @@ static inline int Q_splitstr (char *str, int delim, void *userdata,
 
 /***
 ============
-COM_FixSlashes [FWGS, 01.03.26]
+COM_FixSlashes [FWGS, 01.09.26]
 
 Changes all '\' characters into '/' characters and removes duplicate slashes, in place
 ============
 ***/
 static inline void COM_FixSlashes (char *pname)
 	{
-	char *s = pname;
-	int i, j;
+	char	*s = pname;
+	int		i, j;
 
 	while ((s = Q_strchr (s, '\\')))
 		*s = '/';
 
-	for (i = 0, j = 0; pname[i]; i++)
+	/*for (i = 0, j = 0; pname[i]; i++)*/
+	// a leading '//' is an UNC path prefix and must be preserved
+	i = j = ((pname[0] == '/') && (pname[1] == '/')) ? 2 : 0;
+
+	for (; pname[i]; i++)
 		{
-		if (pname[i] == '/' && pname[i + 1] == '/')
+		if ((pname[i] == '/') && (pname[i + 1] == '/'))
 			continue;
 		pname[j++] = pname[i];
 		}

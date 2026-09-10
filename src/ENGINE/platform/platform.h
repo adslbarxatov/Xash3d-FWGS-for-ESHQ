@@ -61,7 +61,6 @@ platform_orientation_t Platform_GetDisplayOrientation (void);
 	const char *IOS_GetDocsDir (void);
 	const char *IOS_GetExecDir (void);
 	void IOS_LaunchDialog (void);
-
 #endif
 
 #if XASH_WIN32 || XASH_LINUX
@@ -70,11 +69,19 @@ platform_orientation_t Platform_GetDisplayOrientation (void);
 	#undef XASH_PLATFORM_HAVE_STATUS
 #endif
 
-// [FWGS, 22.01.25]
+// [FWGS, 01.09.26]
 #if XASH_POSIX
 	void Posix_Daemonize (void);
 	void Posix_SetupSigtermHandling (void);
 	char *Posix_Input (void);
+
+	// returns the number of stable network device MAC addresses, each packed into low 48 bits
+	int Posix_GetNetDeviceAddresses (uint64_t *addresses, int max);
+#endif
+
+// [FWGS, 01.09.26]
+#if XASH_OSX
+	qboolean Apple_GetSerialNumber (char *out, size_t size);
 #endif
 
 // [FWGS, 01.05.26]
@@ -245,10 +252,6 @@ static inline void Sys_RestoreCrashHandler (void) { }
 static inline qboolean Platform_LibraryExists (const char *name, qboolean gamedironly)
 	{
 #if XASH_ANDROID
-	/*// sorry, unimplemented
-	return false;
-	else
-	return g_fsapi.FileExists (name, gamedironly);*/
 	// when libs come from a separate APK (cs16client, tf15client, …) we can't see them
 	// from the VFS; trust the launcher
 	if (!COM_StringEmptyOrNULL (getenv ("XASH3D_GAMELIBDIR")))
@@ -327,16 +330,29 @@ static inline void Platform_MouseMove (float *x, float *y)
 	}
 #endif
 
-// [FWGS, 01.06.25]
+// [FWGS, 01.09.26] rect is the area where the text is edited, in render coordinates, so the platform
+// might keep it visible when it shows the on-screen keyboard over the game
 #if (XASH_SDL >= 2) || XASH_PSVITA || XASH_DOS || XASH_USE_EVDEV
-void Platform_EnableTextInput (qboolean enable);
+/*void Platform_EnableTextInput (qboolean enable);*/
+void Platform_EnableTextInput (qboolean enable, int x, int y, int w, int h);
 #else
-static inline void Platform_EnableTextInput (qboolean enable) {}
+static inline void Platform_EnableTextInput (qboolean enable, int x, int y, int w, int h) {}
+#endif
+
+// [FWGS, 01.09.26] engine keynums are scancodes in SDL terminology
+// This asks the platform what character the user's keyboard layout puts on that physical key
+// and returns it as an engine keynum, or returns keynum unchanged when the layout produces
+// nothing the engine has a keynum for
+#if XASH_SDL >= 2
+int Platform_TranslateKeyLayout (int keynum);
+#else
+/*static inline void Platform_EnableTextInput (qboolean enable) {}*/
+static inline int Platform_TranslateKeyLayout (int keynum) { return keynum; }
 #endif
 
 // [FWGS, 01.06.25]
 #if XASH_SDL >= 2
-int Platform_JoyInit (void); // returns number of connected gamepads, negative if error
+int Platform_JoyInit (void);	// returns number of connected gamepads, negative if error
 void Platform_JoyShutdown (void);
 void Platform_CalibrateGamepadGyro (void);
 key_modifier_t Platform_GetKeyModifiers (void);
@@ -399,7 +415,7 @@ qboolean  VID_SetMode (void);
 rserr_t   R_ChangeDisplaySettings (int width, int height, window_mode_t window_mode);
 int       R_MaxVideoModes (void);
 struct vidmode_s *R_GetVideoMode (int num);
-void *GL_GetProcAddress (const char *name); // RenderAPI requirement
+void *GL_GetProcAddress (const char *name);		// RenderAPI requirement
 void      GL_UpdateSwapInterval (void);
 int GL_SetAttribute (int attr, int val);
 int GL_GetAttribute (int attr, int *val);
@@ -435,7 +451,7 @@ qboolean SNDDMA_Init (void);
 void SNDDMA_Shutdown (void);
 void SNDDMA_BeginPainting (void);
 void SNDDMA_Submit (void);
-void SNDDMA_Activate (qboolean active); // pause audio
+void SNDDMA_Activate (qboolean active);		// pause audio
 
 qboolean VoiceCapture_Init (void);
 void VoiceCapture_Shutdown (void);
@@ -449,7 +465,7 @@ qboolean VoiceCapture_Lock (qboolean lock);
 #if XASH_LINUX && XASH_X86
 
 	#define INLINE_RAISE(x) asm volatile( "int $3;" );
-	#define INLINE_NANOSLEEP1()	// nothing!
+	#define INLINE_NANOSLEEP1()		// nothing!
 
 // [FWGS, 01.12.24]
 #elif XASH_LINUX && XASH_ARM && !XASH_64BIT

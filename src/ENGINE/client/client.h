@@ -655,11 +655,7 @@ typedef struct
 	qboolean		internetservers_nat;
 	string			internetservers_customfilter;
 
-	// [FWGS, 01.07.26]
-	/*uint32_t		internetservers_key;		// compare key to validate master server reply*/
-	
 	// [FWGS, 01.08.26] multiprotocol support
-	/*connprotocol_t	legacymode;*/
 	connprotocol_t	net_protocol;
 	int				extensions;
 
@@ -812,10 +808,11 @@ void CL_SignonReply (connprotocol_t proto);
 void CL_ClearState (void);
 void CL_SetCheatState (qboolean multiplayer, qboolean allow_cheats);
 
-// [FWGS, 01.08.26]
+// [FWGS, 01.09.26]
 void CL_SendGoldSrcConnectPacket (netadr_t adr, int challenge, const void *ticket, size_t ticketlen);
 void CL_NotifyServerListResponse (void);
 qboolean CL_NetRequestSend (net_request_t *nr);
+void CL_Escape_f (void);
 
 //
 // cl_demo.c
@@ -1158,6 +1155,9 @@ void Con_ToggleConsole_f (void);
 void Con_ClearNotify (void);
 void Con_DrawDebug (void);
 void Con_RunConsole (void);
+
+// [FWGS, 01.09.26]
+qboolean Con_GetInputRect (int *x, int *y, int *w, int *h);
 void Con_DrawConsole (void);
 void Con_DrawVersion (void);
 int Con_UtfProcessChar (int in);
@@ -1198,8 +1198,6 @@ sound_t S_RegisterSound (const char *sample);
 void S_EndRegistration (void);
 
 // [FWGS, 01.07.26]
-/*void S_RestoreSound (const vec3_t pos, int ent, int chan, sound_t handle, float fvol, float attn,
-	int pitch, int flags, double sample, double end, int wordIndex);*/
 void S_RestoreSound (const vec3_t pos, int ent, int chan, sound_t handle, float fvol, float attn,
 	int pitch, int flags, double sample, double end, uint wordIndex);
 void S_StartSound (const vec3_t pos, int ent, int chan, sound_t sfx, float vol, float attn, int pitch, int flags);
@@ -1294,6 +1292,9 @@ const char *Key_KeynumToString (int keynum);
 void Key_EnumCmds_f (void);
 void Key_SetKeyDest (int key_dest);
 void Key_EnableTextInput (qboolean enable, qboolean force);
+
+// [FWGS, 01.09.26]
+void Key_SetTextInputRect (int x, int y, int w, int h);
 int Key_ToUpper (int key);
 qboolean Cmd_GetKeysList (const char *s, char *completedname, int length, qboolean print_suggestions);
 

@@ -52,14 +52,14 @@ typedef struct ui_globalvars_s
 	int		scrHeight;
 
 	int		maxClients;
-	int		developer;		// FWGS: boolean, changed from allow_console to make mainui_cpp compile for both engines
+	int		developer;		// boolean, changed from allow_console to make mainui_cpp compile for both engines
 	int		demoplayback;
 	int		demorecording;
 	char	demoname[64];	// name of currently playing demo
 	char	maptitle[64];	// title of active map
 	} ui_globalvars_t;
 
-struct ref_viewpass_s;	// FWGS
+struct ref_viewpass_s;
 
 typedef struct ui_enginefuncs_s
 	{
@@ -94,7 +94,7 @@ typedef struct ui_enginefuncs_s
 	const char *(*pfnCmdArgv)(int argc) PFN_RETURNS_NONNULL;
 	const char *(*pfnCmd_Args)(void) PFN_RETURNS_NONNULL;
 
-	// [FWGS, 01.12.24] debug messages (in-menu shows only notify)	
+	// [FWGS, 01.12.24] debug messages (in-menu shows only notify)
 	void (*Con_Printf)(const char *fmt, ...) FORMAT_CHECK (1);
 	void (*Con_DPrintf)(const char *fmt, ...) FORMAT_CHECK (1);
 	void (*Con_NPrintf)(int pos, const char *fmt, ...) FORMAT_CHECK (2);
@@ -139,7 +139,7 @@ typedef struct ui_enginefuncs_s
 	void	(*COM_FreeFile)(void *buffer);
 
 	// keyfuncs
-	void	(*pfnKeyClearStates)(void);				// call when menu open or close
+	void	(*pfnKeyClearStates)(void);			// call when menu open or close
 	void	(*pfnSetKeyDest)(int dest);
 	const char	*(*pfnKeynumToString)(int keynum);
 	const char	*(*pfnKeyGetBinding)(int keynum);
@@ -155,11 +155,11 @@ typedef struct ui_enginefuncs_s
 
 	// collect info from engine
 	int		(*pfnGetGameInfo)(GAMEINFO *pgameinfo);
-	GAMEINFO	**(*pfnGetGamesList)(int *numGames);			// collect info about all mods
+	GAMEINFO	**(*pfnGetGamesList)(int *numGames);		// collect info about all mods
 	char	**(*pfnGetFilesList)(const char *pattern, int *numFiles, int gamedironly);	// find in files
 	int 	(*pfnGetSaveComment)(const char *savename, char *comment);
 	int		(*pfnGetDemoComment)(const char *demoname, char *comment);
-	int		(*pfnCheckGameDll)(void);				// returns false if hl.dll is missed or invalid
+	int		(*pfnCheckGameDll)(void);			// returns false if hl.dll is missed or invalid
 	char	*(*pfnGetClipboardData)(void);
 
 	// engine launcher
@@ -240,6 +240,11 @@ typedef struct ui_extendedfuncs_s
 	// [FWGS, 01.12.24] returns 1 if cvar has read-only flag
 	// or -1 if cvar not found
 	int (*pfnIsCvarReadOnly)(const char *name);
+
+	// [FWGS, 01.09.26] tells the engine where the menu edits the text, in screen coordinates
+	// engine tries to keep this rect visible, when the on-screen keyboard covers the screen
+	// must be called before pfnEnableTextInput(true), empty rect means the whole screen
+	void (*pfnSetTextInputRect)(int x, int y, int w, int h);
 	} ui_extendedfuncs_t;
 
 // deprecated export from old engine

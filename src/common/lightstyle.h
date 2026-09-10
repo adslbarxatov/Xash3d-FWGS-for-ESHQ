@@ -16,8 +16,8 @@ GNU General Public License for more details
 #ifndef LIGHTSTYLE_H
 #define LIGHTSTYLE_H
 
-// [FWGS, 01.03.26]
-#include "xash3d_types.h"
+// [FWGS, 01.09.26]
+/*include "xash3d_types.h"*/
 
 typedef struct
 	{

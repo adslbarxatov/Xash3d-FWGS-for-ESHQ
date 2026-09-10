@@ -78,11 +78,15 @@ GNU General Public License for more details
 // - Moved detail textures parsing and cinematic texture management to engine
 // - Moved creation of default textures to the engine
 // 16. RefGetParm return type changed from int to intptr_t
-/*define REF_API_VERSION 16*/
 // 17. [FWGS, 01.07.26] _Mem_AllocPool now takes a flags argument (see MEM_SMALL_ALLOC_OPT in engine/common/common.h).
 // Pools that opt into MEM_SMALL_ALLOC_OPT use a compact 16/24-byte header for allocations
 // <= 255 bytes, dropping per-allocation filename/fileline tracking
-#define REF_API_VERSION	17
+/*#define REF_API_VERSION	17*/
+// 18. [FWGS, 01.09.26] PARM_GET_{LIGHT,SCREEN,LINEAR}GAMMATABLE_PTR now point to uint16_t arrays instead of uint.
+// Their entries never exceed 1023, so the narrowing is lossless.
+// 19. Added R_Set2DOffset. Translates everything drawn in 2D mode, including TriAPI, by the given
+// screen-space offset until it's changed again. Used to draw VGUI panels in their own coordinates
+#define REF_API_VERSION		19
 
 #define TF_SKY		(TF_SKYSIDE|TF_NOMIPMAP|TF_ALLOW_NEAREST)
 #define TF_FONT		(TF_NOMIPMAP|TF_CLAMP|TF_ALLOW_NEAREST)
@@ -455,7 +459,6 @@ typedef struct ref_api_s
 	void		*(*Mod_Calloc)(int number, size_t size);
 
 	// [FWGS, 01.07.26] memory
-	/*poolhandle_t	(*_Mem_AllocPool)(const char *name, const char *filename, int fileline) WARN_UNUSED_RESULT;*/
 	poolhandle_t (*_Mem_AllocPool)(const char *name, unsigned int flags, const char *filename, int fileline) WARN_UNUSED_RESULT;
 	void		(*_Mem_FreePool)(poolhandle_t *poolptr, const char *filename, int fileline);
 
@@ -573,8 +576,9 @@ typedef struct ref_interface_s
 	void		(*GL_ProcessTexture)(int texnum, float gamma, int topColor, int bottomColor);
 	void		(*R_SetupSky)(int *skyboxTextures);
 
-	// [FWGS, 01.05.26] 2D
+	// [FWGS, 01.09.26] 2D
 	void		(*R_Set2DMode)(qboolean enable);
+	void		(*R_Set2DOffset)(float x, float y);		// in screen space, applies to every 2D draw including TriAPI
 	void		(*R_DrawStretchPic)(float x, float y, float w, float h, float s1, float t1, float s2, float t2, int texnum);
 
 	// in screen space

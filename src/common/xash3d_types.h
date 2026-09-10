@@ -136,7 +136,14 @@ typedef int qboolean;
 	#define NORETURN __attribute__(( noreturn ))
 	#define NONNULL __attribute__(( nonnull ))
 
-	#define FORMAT_CHECK( x ) __attribute__(( format( printf, x, x + 1 )))
+	// [FWGS, 01.09.26]
+	/*define FORMAT_CHECK( x ) __attribute__(( format( printf, x, x + 1 )))*/
+	#if defined( __MINGW32__ )
+		#define FORMAT_CHECK( x ) __attribute__(( format( gnu_printf, x, x + 1 )))
+	#else
+		#define FORMAT_CHECK( x ) __attribute__(( format( printf, x, x + 1 )))
+	#endif
+
 	#define ALLOC_CHECK( x ) __attribute__(( alloc_size( x )))
 	#define WARN_UNUSED_RESULT __attribute__(( warn_unused_result ))
 
@@ -178,7 +185,7 @@ typedef int qboolean;
 	#define unlikely( x ) __builtin_expect( x, 0 )
 	#define likely( x ) __builtin_expect( x, 1 )
 #elif defined( __has_builtin )
-	#if __has_builtin( __builtin_expect ) // this must be after defined() check
+	#if __has_builtin( __builtin_expect )	// this must be after defined() check
 		#define unlikely( x ) __builtin_expect( x, 0 )
 		#define likely( x ) __builtin_expect( x, 1 )
 	#endif
@@ -186,9 +193,9 @@ typedef int qboolean;
 
 // [FWGS, 01.11.25]
 // [ESHQ: где-то есть проблема с переключением, принудительно выставлен __restrict]
-#if !defined( __cplusplus ) && __STDC_VERSION__ >= 199101L && false	// not C++ and C99 or newer
+#if !defined( __cplusplus ) && __STDC_VERSION__ >= 199101L && false		// not C++ and C99 or newer
 	#define XASH_RESTRICT restrict
-#elif _MSC_VER || __GNUC__ || __clang__ // compiler-specific extensions
+#elif _MSC_VER || __GNUC__ || __clang__		// compiler-specific extensions
 	#define XASH_RESTRICT __restrict
 #endif
 
@@ -267,7 +274,7 @@ typedef int qboolean;
 #endif
 
 // [FWGS, 01.01.24]
-#if __STDC_VERSION__ >= 202311L || __cplusplus >= 201103L // C23 or C++ static_assert is a keyword
+#if __STDC_VERSION__ >= 202311L || __cplusplus >= 201103L	// C23 or C++ static_assert is a keyword
 	#define STATIC_ASSERT_( ignore, x, y ) static_assert( x, y )
 	#define STATIC_ASSERT static_assert
 #elif __STDC_VERSION__ >= 201112L // in C11 it's _Static_assert

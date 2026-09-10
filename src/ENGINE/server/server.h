@@ -48,7 +48,10 @@ extern int SV_UPDATE_BACKUP;
 #define MAP_HAS_LANDMARK		BIT( 2 )
 #define MAP_INVALID_VERSION		BIT( 3 )
 
-#define SV_SPAWN_TIME	0.1
+// [FWGS, 01.09.26]
+/*define SV_SPAWN_TIME	0.1*/
+#define SV_SPAWN_TIME		0.1
+#define SV_SPAWN_TIME_MP	0.8
 
 // group flags
 #define GROUP_OP_AND	0
@@ -67,7 +70,7 @@ extern int SV_UPDATE_BACKUP;
 #define MAX_LOCALINFO_STRING	32768	// localinfo used on server and not sended to the clients
 #define MAX_ENT_LEAFS(ext)		(( ext ) ? MAX_ENT_LEAFS_32 : MAX_ENT_LEAFS_16 )
 
-// [FWGS, 01.07.26]
+// [FWGS, 01.09.26]
 #define FCL_RESEND_USERINFO		BIT( 0 )
 #define FCL_RESEND_MOVEVARS		BIT( 1 )
 #define FCL_SKIP_NET_MESSAGE	BIT( 2 )
@@ -80,6 +83,7 @@ extern int SV_UPDATE_BACKUP;
 #define FCL_SEND_RESOURCES		BIT( 9 )
 #define FCL_FORCE_UNMODIFIED	BIT( 10 )
 #define FCL_EXPECT_RESOURCELIST	BIT( 11 )	// engine sent svc_resourcerequest, expect one clc_resourcelist in response
+#define FCL_HOLD_FIRST_DATAGRAM	BIT( 12 )	// don't send the first datagram until the reliable stream is idle
 
 typedef enum
 	{
@@ -739,7 +743,27 @@ int SV_LightForEntity (edict_t *pEdict);
 //
 // sv_query.c [FWGS, 01.07.26]
 //
-/*void SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from);*/
 void SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from, sizebuf_t *msg);
+
+// [FWGS, 01.09.26]
+static inline qboolean SV_CheckGroupOp (int op, int groupinfo, int mask)
+	{
+	if ((op == GROUP_OP_AND) && !FBitSet (groupinfo, mask))
+		return false;
+
+	if ((op == GROUP_OP_NAND) && FBitSet (groupinfo, mask))
+		return false;
+
+	return true;
+	}
+
+// [FWGS, 01.09.26]
+static inline qboolean SV_CheckGroupTrace (const edict_t *e1, const edict_t *e2)
+	{
+	if (e1->v.groupinfo && e2->v.groupinfo)
+		return SV_CheckGroupOp (svs.groupop, e1->v.groupinfo, e2->v.groupinfo);
+
+	return true;
+	}
 
 #endif

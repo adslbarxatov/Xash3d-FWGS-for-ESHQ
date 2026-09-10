@@ -32,6 +32,9 @@ void IN_Init (void);
 void Host_InputFrame (void);
 void IN_Shutdown (void);
 void IN_MouseEvent (int key, int down);
+
+// [FWGS, 01.09.26]
+void IN_ClearMouseState (void);
 void IN_MWheelEvent (int direction);
 void IN_ActivateMouse (void);
 void IN_DeactivateMouse (void);
@@ -50,7 +53,7 @@ void IN_GyroDrawDebug (void);
 
 uint IN_CollectInputDevices (void);
 void IN_LockInputDevices (qboolean lock);
-void IN_EngineAppendMove (float frametime, usercmd_t *cmd, qboolean active);	// [FWGS, 01.12.24]
+void IN_EngineAppendMove (float frametime, usercmd_t *cmd, qboolean active);
 
 // [FWGS, 01.03.25]
 void IN_SetRelativeMouseMode (qboolean set);
