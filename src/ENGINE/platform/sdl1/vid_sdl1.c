@@ -25,14 +25,15 @@ GNU General Public License for more details
 static vidmode_t *vidmodes = NULL;
 static int num_vidmodes = 0;
 static void GL_SetupAttributes (void);
+
 struct
 	{
-	int prev_width, prev_height;
+	int	prev_width, prev_height;
 	} sdlState = { 640, 480 };
 
 struct
 	{
-	int width, height;
+	int	width, height;
 	SDL_Surface *surf;
 	SDL_Surface *win;
 	} sw;
@@ -95,9 +96,7 @@ int R_MaxVideoModes (void)
 vidmode_t *R_GetVideoMode (int num)
 	{
 	if (!vidmodes || (num < 0) || (num >= R_MaxVideoModes ()))
-		{
 		return NULL;
-		}
 
 	return vidmodes + num;
 	}
@@ -105,31 +104,24 @@ vidmode_t *R_GetVideoMode (int num)
 // [FWGS, 01.07.26]
 static void R_InitVideoModes (void)
 	{
-	/*char buf[MAX_VA_STRING];
-	SDL_Rect **modes;
-	int len = 0, i = 0, j;
-
-	modes = SDL_ListModes (NULL, SDL_FULLSCREEN);*/
-	SDL_Rect **modes = SDL_ListModes (NULL, SDL_FULLSCREEN);
+	SDL_Rect	**modes = SDL_ListModes (NULL, SDL_FULLSCREEN);
 
 	if (!modes || modes == (void *)-1)
 		return;
 
-	/*for (len = 0; modes[len]; len++);*/
-	int len = 0;
+	int	len = 0;
 	for (; modes[len]; len++);
 
 	vidmodes = Mem_Malloc (host.mempool, len * sizeof (vidmode_t));
 
-	char buf[MAX_VA_STRING];
+	char	buf[MAX_VA_STRING];
 
 	// from smallest to largest
-	/*for (; i < len; i++)*/
 	for (int i = 0; i < len; i++)
 		{
-		SDL_Rect *mode = modes[len - i - 1];
+		SDL_Rect	*mode = modes[len - i - 1];
 
-		int j;
+		int	j;
 		for (j = 0; j < num_vidmodes; j++)
 			{
 			if (mode->w == vidmodes[j].width &&
@@ -154,12 +146,9 @@ static void R_InitVideoModes (void)
 // [FWGS, 01.07.26]
 static void R_FreeVideoModes (void)
 	{
-	/*int i;*/
-
 	if (!vidmodes)
 		return;
 
-	/*for (i = 0; i < num_vidmodes; i++)*/
 	for (int i = 0; i < num_vidmodes; i++)
 		Mem_Free ((char *)vidmodes[i].desc);
 
@@ -174,7 +163,7 @@ GL_GetProcAddress
 ***/
 void *GL_GetProcAddress (const char *name)
 	{
-	void *func = SDL_GL_GetProcAddress (name);
+	void	*func = SDL_GL_GetProcAddress (name);
 
 	if (!func)
 		Con_Reportf (S_ERROR "%s failed for %s\n", __func__, name);
@@ -225,7 +214,7 @@ static qboolean GL_UpdateContext (void)
 
 void VID_SaveWindowSize (int width, int height, qboolean maximized)
 	{
-	int render_w = width, render_h = height;
+	int	render_w = width, render_h = height;
 
 	VID_SetDisplayTransform (&render_w, &render_h);
 	R_SaveVideoMode (width, height, render_w, render_h, maximized);
@@ -241,16 +230,27 @@ void VID_RestoreScreenResolution (void)
 	{
 	}
 
+// [FWGS, 01.09.26]
 static qboolean VID_CreateWindowWithSafeGL (const char *wndname, int xpos, int ypos, int w, int h, uint32_t flags)
 	{
-	while (glw_state.safe >= SAFE_NO && glw_state.safe < SAFE_LAST)
+	int	bpp = 16;
+
+#if XASH_APPLE	// Quartz SDL 1.2: fixed 16bpp GL modes often fail NSWindow creation (CGSWindow error 1002)
+	if (FBitSet (flags, SDL_OPENGL))
+		bpp = 0;
+#endif
+
+	while ((glw_state.safe >= SAFE_NO) && (glw_state.safe < SAFE_LAST))
 		{
-		host.hWnd = sw.surf = SDL_SetVideoMode (w, h, 16, flags);
+		/*host.hWnd = sw.surf = SDL_SetVideoMode (w, h, 16, flags);*/
+		host.hWnd = sw.surf = SDL_SetVideoMode (w, h, bpp, flags);
+
 		// we have window, exit loop
 		if (host.hWnd)
 			break;
 
-		Con_Reportf (S_ERROR "%s: couldn't create '%s' with safegl level %d: %s\n", __func__, wndname, glw_state.safe, SDL_GetError ());
+		Con_Reportf (S_ERROR "%s: couldn't create '%s' with safegl level %d: %s\n", __func__,
+			wndname, glw_state.safe, SDL_GetError ());
 
 		glw_state.safe++;
 
@@ -271,10 +271,10 @@ static qboolean VID_CreateWindowWithSafeGL (const char *wndname, int xpos, int y
 
 static qboolean RectFitsInDisplay (const SDL_Rect *rect, const SDL_Rect *display)
 	{
-	return rect->x >= display->x
-		&& rect->y >= display->y
-		&& rect->x + rect->w <= display->x + display->w
-		&& rect->y + rect->h <= display->y + display->h;
+	return (rect->x >= display->x) &&
+		(rect->y >= display->y) &&
+		(rect->x + rect->w <= display->x + display->w) &&
+		(rect->y + rect->h <= display->y + display->h);
 	}
 
 // Function to check if the rectangle fits in any display
@@ -285,6 +285,7 @@ static qboolean RectFitsInAnyDisplay (const SDL_Rect *rect, const SDL_Rect *disp
 		if (RectFitsInDisplay (rect, &display_rects[i]))
 			return true;	// rectangle fits in this display
 		}
+
 	return false;	// rectangle does not fit in any display
 	}
 
@@ -295,13 +296,21 @@ VID_CreateWindow
 ***/
 qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 	{
-	string wndname;
-	Uint32 flags = 0;
+	string	wndname;
+	Uint32	flags = 0;
 
 	Q_strncpy (wndname, GI->title, sizeof (wndname));
 
+	// [FWGS, 01.09.26]
 	if (window_mode != WINDOW_MODE_WINDOWED)
-		SetBits (flags, SDL_FULLSCREEN | SDL_HWSURFACE);
+		/*SetBits (flags, SDL_FULLSCREEN | SDL_HWSURFACE);*/
+		{
+		SetBits (flags, SDL_FULLSCREEN);
+
+#if !XASH_APPLE	// SDL docs: do not combine SDL_HWSURFACE with SDL_FULLSCREEN on macOS Quartz
+		SetBits (flags, SDL_HWSURFACE);
+#endif
+		}
 
 	if (!glw_state.software)
 		SetBits (flags, SDL_OPENGL);
@@ -310,7 +319,6 @@ qboolean VID_CreateWindow (int width, int height, window_mode_t window_mode)
 		return false;
 
 	VID_SaveWindowSize (width, height, false);
-
 	return true;
 	}
 
@@ -327,8 +335,10 @@ void VID_DestroyWindow (void)
 	if (host.hWnd)
 		host.hWnd = NULL;
 
-	if (refState.fullScreen)
-		refState.fullScreen = false;
+	// [FWGS, 01.09.26]
+	/*if (refState.fullScreen)
+		refState.fullScreen = false;*/
+	refState.window_mode = WINDOW_MODE_WINDOWED;
 	}
 
 /***
@@ -341,9 +351,11 @@ static void GL_SetupAttributes (void)
 	ref.dllFuncs.GL_SetupAttributes (glw_state.safe);
 	}
 
+// [FWGS, 01.09.26]
 void GL_SwapBuffers (void)
 	{
-	SDL_Flip (host.hWnd);
+	/*SDL_Flip (host.hWnd);*/
+	SDL_GL_SwapBuffers ();
 	}
 
 int GL_SetAttribute (int attr, int val)
@@ -390,23 +402,25 @@ int GL_GetAttribute (int attr, int *val)
 
 /***
 ==================
-R_Init_Video [FWGS, 01.07.26]
+R_Init_Video [FWGS, 01.09.26]
 ==================
 ***/
 qboolean R_Init_Video (ref_graphic_apis_t type)
 	{
-	string safe;
-	/*qboolean retval;*/
+	string	safe;
 
-	refState.desktopBitsPixel = 16;
+	/*refState.desktopBitsPixel = 16;*/
 
 	switch (type)
 		{
 		case REF_SOFTWARE:
+			refState.desktopBitsPixel = 16;
 			glw_state.software = true;
 			break;
 
 		case REF_GL:
+			refState.desktopBitsPixel = 32;	// assume true color for opengl
+
 			if (!glw_state.safe && Sys_GetParmFromCmdLine ("-safegl", safe))
 				glw_state.safe = bound (SAFE_NO, Q_atoi (safe), SAFE_DONTCARE);
 
@@ -425,19 +439,38 @@ qboolean R_Init_Video (ref_graphic_apis_t type)
 			break;
 		}
 
-	/*if (!(retval = VID_SetMode ()))
-		{*/
-	qboolean retval = VID_SetMode ();
+	qboolean	retval = VID_SetMode ();
 	if (!retval)
 		return retval;
-	/*}*/
 
 	switch (type)
 		{
 		case REF_GL:
+			{
+			int	red = 0, green = 0, blue = 0;
+
+			// do not hardcode 16bpp, wrong depth breaks additive blending and can corrupt uploads
+			if (!SDL_GL_GetAttribute (SDL_GL_RED_SIZE, &red) &&
+				!SDL_GL_GetAttribute (SDL_GL_GREEN_SIZE, &green) &&
+				!SDL_GL_GetAttribute (SDL_GL_BLUE_SIZE, &blue) &&
+				((red + green + blue) > 0))
+				{
+				refState.desktopBitsPixel = red + green + blue;
+				}
+			else
+				{
+				SDL_VideoInfo *vi = SDL_GetVideoInfo ();
+
+				if (vi && vi->vfmt && (vi->vfmt->BitsPerPixel >= 16))
+					refState.desktopBitsPixel = vi->vfmt->BitsPerPixel;
+				else
+					refState.desktopBitsPixel = 32;
+				}
+
 			// refdll also can check extensions
 			ref.dllFuncs.GL_InitExtensions ();
 			break;
+			}
 
 		case REF_SOFTWARE:
 		default:
@@ -450,18 +483,22 @@ qboolean R_Init_Video (ref_graphic_apis_t type)
 	return true;
 	}
 
+// [FWGS, 01.09.26]
 rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mode)
 	{
-	refState.fullScreen = window_mode != WINDOW_MODE_WINDOWED;
+	/*refState.fullScreen = window_mode != WINDOW_MODE_WINDOWED;
 	Con_Reportf ("%s: Setting video mode to %dx%d %s\n", __func__, width, height, refState.fullScreen ?
-		"fullscreen" : "windowed");
+		"fullscreen" : "windowed");*/
+	const qboolean	fullscreen = window_mode != WINDOW_MODE_WINDOWED;
+	Con_Reportf ("%s: Setting video mode to %dx%d %s\n", __func__, width, height, fullscreen ? "fullscreen" : "windowed");
 
 	if (!host.hWnd)
 		{
 		if (!VID_CreateWindow (width, height, window_mode))
 			return rserr_invalid_mode;
 		}
-	else if (refState.fullScreen)
+	/*else if (refState.fullScreen)*/
+	else if (fullscreen)
 		{
 		if (!VID_SetScreenResolution (width, height, window_mode))
 			return rserr_invalid_fullscreen;
@@ -472,6 +509,7 @@ rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mod
 		VID_SaveWindowSize (width, height, true);
 		}
 
+	refState.window_mode = window_mode;
 	return rserr_ok;
 	}
 
@@ -484,14 +522,9 @@ Set the described video mode
 ***/
 qboolean VID_SetMode (void)
 	{
-	/*int iScreenWidth, iScreenHeight;*/
 	rserr_t	err;
-	/*window_mode_t window_mode;*/
-
-	/*iScreenWidth = Cvar_VariableInteger ("width");
-	iScreenHeight = Cvar_VariableInteger ("height");*/
-	int iScreenWidth = Cvar_VariableInteger ("width");
-	int iScreenHeight = Cvar_VariableInteger ("height");
+	int		iScreenWidth = Cvar_VariableInteger ("width");
+	int		iScreenHeight = Cvar_VariableInteger ("height");
 
 	// trying to get resolution automatically by default
 	if ((iScreenWidth < VID_MIN_WIDTH) || (iScreenHeight < VID_MIN_HEIGHT))
@@ -500,8 +533,7 @@ qboolean VID_SetMode (void)
 		iScreenHeight = 240;
 		}
 
-	/*window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);*/
-	window_mode_t window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);
+	window_mode_t	window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);
 	SetBits (gl_vsync.flags, FCVAR_CHANGED);
 
 	if ((err = R_ChangeDisplaySettings (iScreenWidth, iScreenHeight, window_mode)) == rserr_ok)
@@ -550,12 +582,30 @@ R_Free_Video
 void R_Free_Video (void)
 	{
 	GL_DeleteContext ();
-
 	VID_DestroyWindow ();
-
 	R_FreeVideoModes ();
 
 	ref.dllFuncs.GL_ClearExtensions ();
+	}
+
+/***
+==========
+VID_Info_f [FWGS, 01.09.26]
+==========
+***/
+void VID_Info_f (void)
+	{
+	const SDL_VideoInfo	*vi = SDL_GetVideoInfo ();
+	const char	*driver = SDL_VideoDriverName (NULL, 0);
+	const char	*mode = refState.window_mode != WINDOW_MODE_WINDOWED ? "fullscreen" : "windowed";
+
+	Con_Printf ("Video: " S_GREEN "SDL1" S_DEFAULT "\n");
+	Con_Printf ("Video driver: " S_GREEN "%s" S_DEFAULT "\n", driver ? driver : "unknown");
+	Con_Printf ("Window size: " S_GREEN "%dx%d" S_DEFAULT "\n", refState.width, refState.height);
+	Con_Printf ("Window mode: " S_GREEN "%s" S_DEFAULT "\n", mode);
+
+	if (vi)
+		Con_Printf ("Desktop: " S_GREEN "%dbpp" S_DEFAULT "\n", vi->vfmt ? vi->vfmt->BitsPerPixel : 0);
 	}
 
 // ESHQ: ограничение компиляции

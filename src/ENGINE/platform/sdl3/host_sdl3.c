@@ -49,12 +49,12 @@ static void SDLash_ActiveEvent (qboolean focus)
 
 static void SDLash_KeyEvent (const SDL_KeyboardEvent *key)
 	{
-	int keynum = key->scancode;
+	int	keynum = key->scancode;
 
 	if (SDL_TextInputActive (host.hWnd) && key->down)
 		{
 		// this is how engine understands ctrl+c, ctrl+v and other hotkeys
-		if (cls.key_dest != key_game && FBitSet (SDL_GetModState (), SDL_KMOD_CTRL))
+		if ((cls.key_dest != key_game) && FBitSet (SDL_GetModState (), SDL_KMOD_CTRL))
 			{
 			if ((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
 				{
@@ -65,10 +65,20 @@ static void SDLash_KeyEvent (const SDL_KeyboardEvent *key)
 			return;
 			}
 
+		// [FWGS, 01.09.26] the console key closes the console regardless of the layout,
+		// everywhere else it's a character
+		qboolean console_key = (keynum == SDL_SCANCODE_GRAVE) && (cls.key_dest == key_console);
+
 		// ignore printable keys, they are coming through SDL_EVENT_TEXT_INPUT
-		if (((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z))
-			|| ((keynum >= SDL_SCANCODE_1) && (keynum <= SDL_SCANCODE_0))
-			|| ((keynum >= SDL_SCANCODE_KP_1) && (keynum <= SDL_SCANCODE_KP_0)))
+		/*if (((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z)) ||
+			((keynum >= SDL_SCANCODE_1) && (keynum <= SDL_SCANCODE_0)) ||
+			((keynum >= SDL_SCANCODE_KP_1) && (keynum <= SDL_SCANCODE_KP_0)))*/
+		// [FWGS, 01.09.26] printable keys have keycode equal to their Unicode value, others have SDLK_SCANCODE_MASK set
+		if (!console_key && !FBitSet (key->key, SDLK_SCANCODE_MASK) && !FBitSet (key->key, SDLK_EXTENDED_MASK) &&
+			(key->key >= 32) && (key->key != 127))
+			return;
+
+		if ((keynum >= SDL_SCANCODE_KP_1) && (keynum <= SDL_SCANCODE_KP_0))
 			return;
 		}
 
@@ -178,7 +188,7 @@ static void SDLash_TextEvent (const SDL_TextInputEvent *text)
 
 	for (const char *s = text->text; *s; s++)
 		{
-		int ch = (byte)*s;
+		int	ch = (byte)*s;
 
 		// convert to single byte encoding if game doesn't request UTF-8
 		if (!cls.accept_utf8)
@@ -196,7 +206,7 @@ static void SDLash_MouseEvent (const SDL_MouseButtonEvent *button)
 	if (button->which == SDL_TOUCH_MOUSEID)
 		return;
 
-	int down;
+	int	down;
 	if (!button->down)
 		down = 0;
 	else if (button->clicks >= 2)
@@ -234,7 +244,7 @@ static void SDLash_MouseEvent (const SDL_MouseButtonEvent *button)
 
 static void SDLash_TouchEvent (const SDL_TouchFingerEvent *touch)
 	{
-	touchEventType type;
+	touchEventType	type;
 
 	switch (touch->type)
 		{

@@ -35,9 +35,8 @@ SDLash_KeyEvent
 ***/
 static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 	{
-	int down = key.state != SDL_RELEASED;
-
-	int keynum = key.keysym.scancode;
+	int	down = key.state != SDL_RELEASED;
+	int	keynum = key.keysym.scancode;
 
 #if XASH_ANDROID
 	if ((keynum == SDL_SCANCODE_VOLUMEUP) || (keynum == SDL_SCANCODE_VOLUMEDOWN))
@@ -59,10 +58,19 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 			return;
 			}
 
+		// [FWGS, 01.09.26] the console key closes the console regardless of the layout,
+		// everywhere else it's a character
+		qboolean	console_key = keynum == SDL_SCANCODE_GRAVE && (cls.key_dest == key_console);
+
 		// ignore printable keys, they are coming through SDL_TEXTINPUT
-		if (((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z)) ||
+		/*if (((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z)) ||
 			((keynum >= SDL_SCANCODE_1) && (keynum <= SDL_SCANCODE_0)) ||
-			((keynum >= SDL_SCANCODE_KP_1) && (keynum <= SDL_SCANCODE_KP_0)))
+			((keynum >= SDL_SCANCODE_KP_1) && (keynum <= SDL_SCANCODE_KP_0)))*/
+		// printable keys have keycode equal to their Unicode value, others have SDLK_SCANCODE_MASK set
+		if (!console_key && !FBitSet (key.keysym.sym, SDLK_SCANCODE_MASK) && (key.keysym.sym >= 32) && (key.keysym.sym != 127))
+			return;
+
+		if ((keynum >= SDL_SCANCODE_KP_1) && (keynum <= SDL_SCANCODE_KP_0))
 			return;
 		}
 
@@ -86,7 +94,7 @@ static void SDLash_KeyEvent (SDL_KeyboardEvent key)
 		}
 	else
 		{
-		qboolean numLock = FBitSet (SDL_GetModState (), KMOD_NUM);
+		qboolean	numLock = FBitSet (SDL_GetModState (), KMOD_NUM);
 		switch (keynum)
 			{
 			case SDL_SCANCODE_GRAVE:
@@ -347,7 +355,7 @@ SDLash_MouseEvent [FWGS, 01.06.25]
 ***/
 static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
 	{
-	int down;
+	int	down;
 
 	if (button.which == SDL_TOUCH_MOUSEID)
 		return;
@@ -394,13 +402,11 @@ SDLash_InputEvent [FWGS, 01.07.26]
 ***/
 static void SDLash_InputEvent (SDL_TextInputEvent input)
 	{
-	/*const char *text;*/
 	VGui_ReportTextInput (input.text);
 
-	/*for (text = input.text; *text; text++)*/
 	for (const char *text = input.text; *text; text++)
 		{
-		int ch = (byte)*text;
+		int	ch = (byte)*text;
 
 		// do not pass UTF-8 sequence into the engine, convert it here
 		if (!cls.accept_utf8)
@@ -484,9 +490,9 @@ static void SDLash_EventHandler (SDL_Event *event)
 		case SDL_FINGERUP:
 		case SDL_FINGERMOTION:
 			{
-			static int scale = 0;
-			touchEventType type;
-			float x, y, dx, dy;
+			static int	scale = 0;
+			touchEventType	type;
+			float	x, y, dx, dy;
 
 			if (event->type == SDL_FINGERDOWN)
 				type = event_down;
@@ -624,7 +630,7 @@ SDLash_RunEvents [FWGS, 01.05.25]
 ***/
 void Platform_RunEvents (void)
 	{
-	SDL_Event event;
+	SDL_Event	event;
 
 	while ((host.status != HOST_CRASHED) && !host.shutdown_issued && SDL_PollEvent (&event))
 		SDLash_EventHandler (&event);

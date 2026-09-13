@@ -72,7 +72,7 @@ EntvarsDescription [FWGS, 01.12.24]
 entavrs table for FindEntityByString
 =============
 ***/
-static const TYPEDESCRIPTION gEntvarsDescription[] =
+static const TYPEDESCRIPTION	gEntvarsDescription[] =
 	{
 	DEFINE_ENTITY_FIELD (classname, FIELD_STRING),
 	DEFINE_ENTITY_FIELD (globalname, FIELD_STRING),
@@ -172,12 +172,9 @@ update entity bounds, relink into world
 ***/
 void SV_SetMinMaxSize (edict_t *e, const float *mins, const float *maxs, qboolean relink)
 	{
-	/*int	i;*/
-
 	if (!SV_IsValidEdict (e))
 		return;
 
-	/*for (i = 0; i < 3; i++)*/
 	for (int i = 0; i < 3; i++)
 		{
 		if (mins[i] > maxs[i])
@@ -316,14 +313,11 @@ Check visibility through client camera, portal camera, etc
 ***/
 static qboolean SV_CheckClientVisiblity (sv_client_t *cl, const byte *mask)
 	{
-	/*int		i, clientnum;*/
 	vec3_t	vieworg;
 	mleaf_t	*leaf;
 
 	if (!mask)
 		return true;	// GoldSrc rules
-
-	/*clientnum = cl - svs.clients;*/
 
 	// Invasion issues: wrong camera position received in ENGINE_SET_PVS
 	if (cl->pViewEntity)
@@ -337,7 +331,6 @@ static qboolean SV_CheckClientVisiblity (sv_client_t *cl, const byte *mask)
 		return true;	// visible from player view or camera view
 
 	// now check all the portal cameras
-	/*for (i = 0; i < cl->num_viewents; i++)*/
 	for (int i = 0; i < cl->num_viewents; i++)
 		{
 		edict_t	*view = cl->viewentity[i];
@@ -474,17 +467,20 @@ static int SV_Multicast (int dest, const vec3_t origin, const edict_t *ent, qboo
 
 		// reject step sounds while predicting is enabled
 		// FIXME: make sure what this code doesn't cutoff something important!
-		if (filter && cl == sv.current_client && FBitSet (sv.current_client->flags, FCL_PREDICT_MOVEMENT))
+		if (filter && (cl == sv.current_client) && FBitSet (sv.current_client->flags, FCL_PREDICT_MOVEMENT))
 			continue;
 
-		if (SV_IsValidEdict (ent) && ent->v.groupinfo && cl->edict->v.groupinfo)
+		// [FWGS, 01.09.26]
+		/*if (SV_IsValidEdict (ent) && ent->v.groupinfo && cl->edict->v.groupinfo)
 			{
 			if ((svs.groupop == GROUP_OP_AND) && !FBitSet (cl->edict->v.groupinfo, ent->v.groupinfo))
 				continue;
 
 			if ((svs.groupop == GROUP_OP_NAND) && FBitSet (cl->edict->v.groupinfo, ent->v.groupinfo))
 				continue;
-			}
+			}*/
+		if (SV_IsValidEdict (ent) && !SV_CheckGroupTrace (ent, cl->edict))
+			continue;
 
 		if (!SV_CheckClientVisiblity (cl, mask))
 			continue;
@@ -581,7 +577,6 @@ qboolean SV_CreateStaticEntity (sizebuf_t *msg, int index)
 	{
 	entity_state_t	nullstate, *baseline;
 	entity_state_t	*state;
-	/*int		offset;*/
 
 	if (index >= (MAX_STATIC_ENTITIES - 1))
 		{
@@ -612,7 +607,6 @@ qboolean SV_CreateStaticEntity (sizebuf_t *msg, int index)
 	state->number = 0;
 
 	// trying to compress with previous delta's
-	/*offset = SV_FindBestBaseline (index, &baseline, state, NULL, false);*/
 	int	offset = SV_FindBestBaseline (index, &baseline, state, NULL, false);
 
 	MSG_BeginServerCmd (msg, svc_spawnstatic);
@@ -630,13 +624,10 @@ Write all the static ents into demo
 ***/
 void SV_RestartStaticEnts (void)
 	{
-	/*int	i;*/
-
 	// remove all the static entities on the client
 	CL_ClearStaticEntities ();
 
 	// resend them again
-	/*for (i = 0; i < sv.num_static_entities; i++)*/
 	for (int i = 0; i < sv.num_static_entities; i++)
 		SV_CreateStaticEntity (&sv.reliable_datagram, i);
 	}
@@ -668,7 +659,6 @@ void SV_RestartAmbientSounds (void)
 
 	soundlist_t	soundInfo[256];
 	string		curtrack, looptrack;
-	/*int			i, nSounds;*/
 	int		nSounds;
 	int		position;
 
@@ -677,7 +667,6 @@ void SV_RestartAmbientSounds (void)
 
 	nSounds = S_GetCurrentStaticSounds (soundInfo, 256);
 
-	/*for (i = 0; i < nSounds; i++)*/
 	for (int i = 0; i < nSounds; i++)
 		{
 		soundlist_t	*si = &soundInfo[i];
@@ -712,10 +701,7 @@ void SV_RestartDecals (void)
 #if !XASH_DEDICATED
 
 	decallist_t	*list;
-	/*int			decalIndex;
-	int			modelIndex;*/
 	sizebuf_t	*msg;
-	/*int		i, numdecals;*/
 	int		numdecals;
 
 	if (!SV_Active () || Host_IsDedicated ())
@@ -732,18 +718,15 @@ void SV_RestartDecals (void)
 	msg = SV_GetReliableDatagram ();
 
 	// restore decals and write them into network message
-	/*for (i = 0; i < numdecals; i++)*/
 	for (int i = 0; i < numdecals; i++)
 		{
 		decallist_t	*entry = &list[i];
-		/*modelIndex = SV_PEntityOfEntIndex (entry->entityIndex, true)->v.modelindex;*/
 		int	modelIndex = SV_PEntityOfEntIndex (entry->entityIndex, true)->v.modelindex;
 
 		// game override
 		if (SV_RestoreCustomDecal (entry, SV_PEntityOfEntIndex (entry->entityIndex, true), false))
 			continue;
 
-		/*decalIndex = pfnDecalIndex (entry->name);*/
 		int	decalIndex = pfnDecalIndex (entry->name);
 
 		// studiodecals will be restored at game-side
@@ -880,7 +863,7 @@ void SV_WriteEntityPatch (const char *filename)
 
 	if (lumplen >= 10)
 		{
-		char *entities = NULL;
+		char	*entities = NULL;
 
 		FS_Seek (f, lumpofs, SEEK_SET);
 		entities = (char *)Z_Calloc (lumplen + 1);
@@ -1222,15 +1205,8 @@ release all the edicts from server
 ***/
 void SV_FreeEdicts (void)
 	{
-	/*int		i = 0;
-	edict_t	*ent;
-
-	for (i = 0; i < svgame.numEntities; i++)
-		{
-		// [FWGS, 05.04.26]*/
 	for (int i = 0; i < svgame.numEntities; i++)
 		{
-		/*ent = SV_EdictNum (i);*/
 		edict_t	*ent = SV_EdictNum (i);
 		if (ent->free)
 			continue;
@@ -1384,9 +1360,6 @@ pfnModelIndex [FWGS, 01.07.26]
 static int GAME_EXPORT pfnModelIndex (const char *m)
 	{
 	char	name[MAX_QPATH];
-	/*int		i;
-
-	// [FWGS, 01.03.26]*/
 
 	if (COM_StringEmptyOrNULL (m))
 		return 0;
@@ -1397,7 +1370,6 @@ static int GAME_EXPORT pfnModelIndex (const char *m)
 	Q_strncpy (name, m, sizeof (name));
 	COM_FixSlashes (name);
 
-	/*for (i = 1; (i < MAX_MODELS) && sv.model_precache[i][0]; i++)*/
 	for (int i = 1; (i < MAX_MODELS) && sv.model_precache[i][0]; i++)
 		{
 		if (!Q_stricmp (sv.model_precache[i], name))
@@ -1553,13 +1525,8 @@ SV_FindEntityByString [FWGS, 01.07.26]
 ***/
 static edict_t *SV_FindEntityByString (edict_t *pStartEdict, const char *pszField, const char *pszValue)
 	{
-	/*int			i = 0, e = 0;*/
 	int		e = 0;
 	const TYPEDESCRIPTION	*desc = NULL;
-	/*edict_t		*ed;
-	const char	*t;
-
-	// [FWGS, 01.03.26]*/
 
 	if (COM_StringEmptyOrNULL (pszValue))
 		return svgame.edicts;
@@ -1567,7 +1534,6 @@ static edict_t *SV_FindEntityByString (edict_t *pStartEdict, const char *pszFiel
 	if (pStartEdict)
 		e = NUM_FOR_EDICT (pStartEdict);
 
-	/*for (i = 0; i < HLARRAYSIZE (gEntvarsDescription); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (gEntvarsDescription); i++)
 		{
 		if (!Q_strcmp (pszField, gEntvarsDescription[i].fieldName))
@@ -1585,8 +1551,6 @@ static edict_t *SV_FindEntityByString (edict_t *pStartEdict, const char *pszFiel
 
 	for (e++; e < svgame.numEntities; e++)
 		{
-		/*// [FWGS, 05.04.26]
-		ed = SV_EdictNum (e);*/
 		edict_t		*ed = SV_EdictNum (e);
 		const char	*t;
 		if (!SV_IsValidEdict (ed))
@@ -1601,7 +1565,7 @@ static edict_t *SV_FindEntityByString (edict_t *pStartEdict, const char *pszFiel
 			case FIELD_MODELNAME:
 			case FIELD_SOUNDNAME:
 				t = SV_GetString (*(string_t *)&((byte *)&ed->v)[desc->fieldOffset]);
-				if (t != NULL && t != svgame.globals->pStringBase)
+				if ((t != NULL) && (t != svgame.globals->pStringBase))
 					{
 					if (!Q_strcmp (t, pszValue))
 						return ed;
@@ -1627,7 +1591,7 @@ ripped out from the hl.dll
 edict_t *SV_FindGlobalEntity (string_t classname, string_t globalname)
 	{
 	// [FWGS, 05.04.26]
-	edict_t *pent = SV_FindEntityByString (NULL, "globalname", SV_GetString (globalname));
+	edict_t	*pent = SV_FindEntityByString (NULL, "globalname", SV_GetString (globalname));
 
 	if (SV_IsValidEdict (pent))
 		{
@@ -1650,10 +1614,6 @@ find the entity in sphere
 ***/
 static edict_t *pfnFindEntityInSphere (edict_t *pStartEdict, const float *org, float flRadius)
 	{
-	/*float	distSquared;
-	int		j, e = 0;
-	float	eorg;
-	edict_t	*ent;*/
 	int	e = 0;
 
 	flRadius *= flRadius;
@@ -1663,8 +1623,6 @@ static edict_t *pfnFindEntityInSphere (edict_t *pStartEdict, const float *org, f
 
 	for (e++; e < svgame.numEntities; e++)
 		{
-		/*// [FWGS, 05.04.26]
-		ent = SV_EdictNum (e);*/
 		edict_t	*ent = SV_EdictNum (e);
 		float	distSquared = 0.0f;
 
@@ -1675,9 +1633,6 @@ static edict_t *pfnFindEntityInSphere (edict_t *pStartEdict, const float *org, f
 		if ((e <= svs.maxclients) && !SV_ClientFromEdict (ent, true))
 			continue;
 
-		/*distSquared = 0.0f;
-
-		for (j = 0; (j < 3) && (distSquared <= flRadius); j++)*/
 		for (int j = 0; (j < 3) && (distSquared <= flRadius); j++)
 			{
 			float	eorg;
@@ -1708,12 +1663,11 @@ build the new client PVS
 ***/
 static int SV_CheckClientPVS (int check, qboolean bMergePVS)
 	{
-	byte		*pvs;
-	vec3_t		vieworg;
+	byte	*pvs;
+	vec3_t	vieworg;
 	sv_client_t	*cl;
-	/*int			i, j, k;*/
-	int			i;
-	edict_t		*ent = NULL;
+	int		i;
+	edict_t	*ent = NULL;
 
 	// cycle to the next one
 	check = bound (1, check, svs.maxclients);
@@ -1753,7 +1707,6 @@ static int SV_CheckClientPVS (int check, qboolean bMergePVS)
 		return i;
 
 	// now merge PVS with all the portal cameras
-	/*for (k = 0; k < cl->num_viewents && bMergePVS; k++)*/
 	for (int k = 0; k < cl->num_viewents && bMergePVS; k++)
 		{
 		edict_t	*view = cl->viewentity[k];
@@ -1764,7 +1717,6 @@ static int SV_CheckClientPVS (int check, qboolean bMergePVS)
 		VectorAdd (view->v.origin, view->v.view_ofs, vieworg);
 		pvs = Mod_GetPVSForPoint (vieworg);
 
-		/*for (j = 0; j < world.visbytes && pvs; j++)*/
 		for (int j = 0; j < world.visbytes && pvs; j++)
 			SetBits (clientpvs[j], pvs[j]);
 		}
@@ -1840,11 +1792,8 @@ pfnEntitiesInPVS [FWGS, 01.07.26]
 ***/
 static edict_t *pfnEntitiesInPVS (edict_t *pview)
 	{
-	/*edict_t	*pchain, *ptest;*/
 	edict_t	*pchain;
 	vec3_t	viewpoint;
-	/*edict_t	*pent;
-	int		i;*/
 
 	if (!SV_IsValidEdict (pview))
 		return NULL;
@@ -1852,12 +1801,8 @@ static edict_t *pfnEntitiesInPVS (edict_t *pview)
 	VectorAdd (pview->v.origin, pview->v.view_ofs, viewpoint);
 	pchain = SV_EdictNum (0);
 
-	/*for (i = 1; i < svgame.numEntities; i++)
-		{
-		// [FWGS, 05.04.26]*/
 	for (int i = 1; i < svgame.numEntities; i++)
 		{
-		/*pent = SV_EdictNum (i);*/
 		edict_t	*pent = SV_EdictNum (i);
 		edict_t	*ptest;
 
@@ -1971,13 +1916,11 @@ int GAME_EXPORT pfnDropToFloor (edict_t *e)
 	{
 	qboolean	monsterClip;
 	trace_t		trace;
-	/*vec3_t		end;*/
 
 	if (!SV_IsValidEdict (e))
 		return 0;
 
 	monsterClip = FBitSet (e->v.flags, FL_MONSTERCLIP) ? true : false;
-	/*VectorCopy (e->v.origin, end);*/
 	
 	vec3_t	end = Vec3 (e->v.origin);
 	end[2] -= 256.0f;
@@ -2005,8 +1948,6 @@ pfnWalkMove [FWGS, 01.07.26]
 ***/
 static int GAME_EXPORT pfnWalkMove (edict_t *ent, float yaw, float dist, int iMode)
 	{
-	/*vec3_t	move;*/
-
 	if (!SV_IsValidEdict (ent))
 		return 0;
 
@@ -2014,9 +1955,7 @@ static int GAME_EXPORT pfnWalkMove (edict_t *ent, float yaw, float dist, int iMo
 		return 0;
 
 	yaw = DEG2RAD (yaw);
-	/*VectorSet (move, cos (yaw) * dist, sin (yaw) * dist, 0.0f);
 
-	// [FWGS, 01.03.26]*/
 	vec3_t	move = { cos (yaw) * dist, sin (yaw) * dist, 0.0f };
 
 	switch (iMode)
@@ -2303,7 +2242,7 @@ static int GAME_EXPORT pfnTraceMonsterHull (edict_t *pEdict, const float *v1, co
 	edict_t *pentToSkip, TraceResult *ptr)
 	{
 	qboolean	monsterClip;
-	trace_t	trace;
+	trace_t		trace;
 
 	if (!SV_IsValidEdict (pEdict))
 		return 0;
@@ -2406,8 +2345,6 @@ static void GAME_EXPORT pfnGetAimVector (edict_t *ent, float speed, float *rgflR
 	{
 	edict_t	*check;
 	vec3_t	start, dir, end, bestdir;
-	/*float	dist, bestdist;
-	int		i, j;*/
 	float	bestdist;
 	trace_t	tr;
 
@@ -2437,7 +2374,6 @@ static void GAME_EXPORT pfnGetAimVector (edict_t *ent, float speed, float *rgflR
 
 	check = SV_EdictNum (1);	// start at first client
 
-	/*for (i = 1; i < svgame.numEntities; i++, check++)*/
 	for (int i = 1; i < svgame.numEntities; i++, check++)
 		{
 		float	dist;
@@ -2454,7 +2390,6 @@ static void GAME_EXPORT pfnGetAimVector (edict_t *ent, float speed, float *rgflR
 		if (check == ent)
 			continue;
 
-		/*for (j = 0; j < 3; j++)*/
 		for (int j = 0; j < 3; j++)
 			end[j] = check->v.origin[j] + 0.5f * (check->v.mins[j] + check->v.maxs[j]);
 
@@ -2600,13 +2535,9 @@ register decal name on client
 ***/
 int GAME_EXPORT pfnDecalIndex (const char *m)
 	{
-	/*int	i;
-
-	// [FWGS, 01.03.26]*/
 	if (COM_StringEmptyOrNULL (m))
 		return -1;
 
-	/*for (i = 1; i < MAX_DECALS && host.draw_decals[i][0]; i++)*/
 	for (int i = 1; (i < MAX_DECALS) && host.draw_decals[i][0]; i++)
 		{
 		if (!Q_stricmp (host.draw_decals[i], m))
@@ -2634,9 +2565,9 @@ static int SV_CanRewriteMessage (int msg_num)
 
 static qboolean SV_RewriteMessage (void)
 	{
-	vec3_t		origin;
-	const char *sample = NULL;
-	float		vol, attn;
+	vec3_t	origin;
+	const char	*sample = NULL;
+	float	vol, attn;
 	int		ent, pitch, flags, idx;
 	int		cmd;
 
@@ -2683,7 +2614,6 @@ pfnMessageBegin [FWGS, 01.07.26]
 ***/
 static void GAME_EXPORT pfnMessageBegin (int msg_dest, int msg_num, const float *pOrigin, edict_t *ed)
 	{
-	/*int	i, iSize;*/
 	int	iSize;
 
 	if (svgame.msg_started)
@@ -2762,8 +2692,7 @@ static void GAME_EXPORT pfnMessageBegin (int msg_dest, int msg_num, const float 
 	svgame.msg_ent = ed;
 
 	// enable message tracing
-	svgame.msg_trace = (sv_trace_messages.value != 0) &&
-		(msg_num > svc_lastmsg) &&
+	svgame.msg_trace = (sv_trace_messages.value != 0) && (msg_num > svc_lastmsg) &&
 		Q_strcmp (svgame.msg_name, "ReqState");
 
 	if (svgame.msg_trace)
@@ -3176,7 +3105,6 @@ static struct str64_s
 	size_t		numdups;
 	size_t		numoverflows;
 	size_t		totalalloc;
-	/*} str64;*/
 	} str64 MAYBE_UNUSED;
 
 /***
@@ -3234,8 +3162,8 @@ void SV_SetStringArrayMode (qboolean dynamic)
 
 // [FWGS, 01.12.24]
 #if XASH_AMD64 && XASH_LINUX && !XASH_ANDROID
-#define USE_MMAP 1
-#include <sys/mman.h>
+	#define USE_MMAP 1
+	#include <sys/mman.h>
 #endif
 
 /***
@@ -3251,8 +3179,8 @@ this case need patched game dll with SV_MakeString checking ptrdiff size
 static void SV_AllocStringPool (void)
 	{
 #if XASH_64BIT
-	void *ptr = NULL;
-	string lenstr;
+	void	*ptr = NULL;
+	string	lenstr;
 
 	Con_Reportf ("%s()\n", __func__);
 	if (Sys_GetParmFromCmdLine ("-str64alloc", lenstr))
@@ -3271,11 +3199,11 @@ static void SV_AllocStringPool (void)
 
 #if USE_MMAP
 	{
-	uint flags;
-	size_t pagesize = sysconf (_SC_PAGESIZE);
-	int arrlen = (str64.maxstringarray * 2) & ~(pagesize - 1);
-	void *base = svgame.dllFuncs.pfnGameInit;
-	void *start = svgame.hInstance - arrlen;
+	uint	flags;
+	size_t	pagesize = sysconf (_SC_PAGESIZE);
+	int		arrlen = (str64.maxstringarray * 2) & ~(pagesize - 1);
+	void	*base = svgame.dllFuncs.pfnGameInit;
+	void	*start = svgame.hInstance - arrlen;
 
 #if defined(MAP_ANON)
 	flags = MAP_ANON | MAP_PRIVATE;
@@ -3285,15 +3213,18 @@ static void SV_AllocStringPool (void)
 
 	while (start - base > INT_MIN)
 		{
-		void *mapptr = mmap ((void *)((unsigned long)start & ~(pagesize - 1)), arrlen, PROT_READ | PROT_WRITE,
+		void	*mapptr = mmap ((void *)((unsigned long)start & ~(pagesize - 1)), arrlen, PROT_READ | PROT_WRITE,
 			flags, 0, 0);
+
 		if (mapptr && mapptr != (void *)-1 && mapptr - base > INT_MIN && mapptr - base < INT_MAX)
 			{
 			ptr = mapptr;
 			break;
 			}
+
 		if (mapptr)
 			munmap (mapptr, arrlen);
+
 		start -= arrlen;
 		}
 
@@ -3302,15 +3233,18 @@ static void SV_AllocStringPool (void)
 		start = base;
 		while (start - base < INT_MAX)
 			{
-			void *mapptr = mmap ((void *)((unsigned long)start & ~(pagesize - 1)), arrlen, PROT_READ | PROT_WRITE,
+			void	*mapptr = mmap ((void *)((unsigned long)start & ~(pagesize - 1)), arrlen, PROT_READ | PROT_WRITE,
 				flags, 0, 0);
+
 			if (mapptr && mapptr != (void *)-1 && mapptr - base > INT_MIN && mapptr - base < INT_MAX)
 				{
 				ptr = mapptr;
 				break;
 				}
+
 			if (mapptr)
 				munmap (mapptr, arrlen);
+
 			start += arrlen;
 			}
 		}
@@ -3376,7 +3310,7 @@ static uint SV_ProcessString (char *dst, const char *src)
 		{
 		if (*p == '\\')
 			{
-			char replace = 0;
+			char	replace = 0;
 
 			switch (p[1])
 				{
@@ -3444,7 +3378,7 @@ string_t GAME_EXPORT SV_AllocString (const char *szValue)
 
 	if (svgame.physFuncs.pfnAllocString != NULL)
 		{
-		string_t i = svgame.physFuncs.pfnAllocString (processed_string);
+		string_t	i = svgame.physFuncs.pfnAllocString (processed_string);
 		Mem_Free (processed_string);
 
 		return i;
@@ -3499,18 +3433,23 @@ string_t GAME_EXPORT SV_AllocString (const char *szValue)
 #endif
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 01.09.26]
 void SV_PrintStr64Stats_f (void)
 	{
 #if XASH_64BIT
 	Con_Printf ("====================\n");
 	Con_Printf ("64 bit string pool statistics\n");
 	Con_Printf ("====================\n");
-	Con_Printf ("string array size: %lu\n", str64.maxstringarray);
+	/*Con_Printf ("string array size: %lu\n", str64.maxstringarray);
 	Con_Printf ("total alloc %lu\n", str64.totalalloc);
 	Con_Printf ("maximum array usage: %lu\n", str64.maxalloc);
 	Con_Printf ("overflow counter: %lu\n", str64.numoverflows);
-	Con_Printf ("dup string counter: %lu\n", str64.numdups);
+	Con_Printf ("dup string counter: %lu\n", str64.numdups);*/
+	Con_Printf ("string array size: %zu\n", str64.maxstringarray);
+	Con_Printf ("total alloc %zu\n", str64.totalalloc);
+	Con_Printf ("maximum array usage: %zu\n", str64.maxalloc);
+	Con_Printf ("overflow counter: %zu\n", str64.numoverflows);
+	Con_Printf ("dup string counter: %zu\n", str64.numdups);
 #else
 	Con_Printf ("Not implemented\n");
 #endif
@@ -3530,7 +3469,7 @@ string_t SV_MakeString (const char *szValue)
 
 #if XASH_64BIT
 	{
-	long long ptrdiff = szValue - svgame.globals->pStringBase;
+	long long	ptrdiff = szValue - svgame.globals->pStringBase;
 	if (ptrdiff > INT_MAX || ptrdiff < INT_MIN)
 		return SV_AllocString (szValue);
 	else
@@ -3550,6 +3489,7 @@ const char *GAME_EXPORT SV_GetString (string_t iString)
 	{
 	if (svgame.physFuncs.pfnGetString != NULL)
 		return svgame.physFuncs.pfnGetString (iString);
+
 	return (svgame.globals->pStringBase + iString);
 	}
 
@@ -3592,12 +3532,9 @@ pfnIndexOfEdict [FWGS, 01.07.26]
 ***/
 int GAME_EXPORT pfnIndexOfEdict (const edict_t *pEdict)
 	{
-	/*int	number;*/
-
 	if (!pEdict)
 		return 0;	// world ?
 
-	/*number = NUM_FOR_EDICT (pEdict);*/
 	int	number = NUM_FOR_EDICT (pEdict);
 	if ((number < 0) || (number > GI->max_edicts))
 		Host_Error ("bad entity number %d\n", number);
@@ -3635,18 +3572,12 @@ debug thing
 ***/
 static edict_t *GAME_EXPORT pfnFindEntityByVars (entvars_t *pvars)
 	{
-	/*edict_t	*pEdict;
-	int		i;*/
-
 	// don't pass invalid arguments
 	if (!pvars)
 		return NULL;
 
-	/*for (i = 0; i < GI->max_edicts; i++)*/
 	for (int i = 0; i < GI->max_edicts; i++)
 		{
-		/*// [FWGS, 05.04.26]
-		pEdict = SV_EdictNum (i);*/
 		edict_t	*pEdict = SV_EdictNum (i);
 
 		// g-cont: we should compare pointers
@@ -4041,7 +3972,6 @@ static void GAME_EXPORT pfnRunPlayerMove (edict_t *pClient, const float *viewang
 	float upmove, word buttons, byte impulse, byte msec)
 	{
 	sv_client_t	*cl, *oldcl;
-	/*usercmd_t	cmd;*/
 	uint	seed;
 
 	if ((cl = SV_ClientFromEdict (pClient, true)) == NULL)
@@ -4055,15 +3985,7 @@ static void GAME_EXPORT pfnRunPlayerMove (edict_t *pClient, const float *viewang
 	sv.current_client = SV_ClientFromEdict (pClient, true);
 	sv.current_client->timebase = (sv.time + sv.frametime) - ((double)msec / 1000.0);
 
-	/*memset (&cmd, 0, sizeof (cmd));
-	VectorCopy (viewangles, cmd.viewangles);
-	cmd.forwardmove = fmove;
-	cmd.sidemove = smove;
-	cmd.upmove = upmove;
-	cmd.buttons = buttons;
-	cmd.impulse = impulse;
-	cmd.msec = msec;*/
-	usercmd_t cmd =
+	usercmd_t	cmd =
 		{
 		.viewangles = Vec3 (viewangles),
 		.forwardmove = fmove,
@@ -4091,10 +4013,8 @@ returns actual entity count
 ***/
 int GAME_EXPORT pfnNumberOfEntities (void)
 	{
-	/*int	i, total = 0;*/
 	int	total = 0;
 
-	/*for (i = 0; i < svgame.numEntities; i++)*/
 	for (int i = 0; i < svgame.numEntities; i++)
 		{
 		if (svgame.edicts[i].free)
@@ -4245,7 +4165,7 @@ static word GAME_EXPORT pfnPrecacheEvent (int type, const char *psz)
 
 /***
 =============
-pfnPlaybackEvent [FWGS, 01.07.26]
+pfnPlaybackEvent
 =============
 ***/
 void GAME_EXPORT SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word eventindex, float delay, float *origin,
@@ -4255,7 +4175,6 @@ void GAME_EXPORT SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word 
 	event_state_t	*es;
 	event_args_t	args;
 	event_info_t	*ei = NULL;
-	/*int		j, slot, bestslot;*/
 	int		j, bestslot;
 	int		invokerIndex;
 	byte	*mask = NULL;
@@ -4365,21 +4284,23 @@ void GAME_EXPORT SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word 
 		}
 
 	// process all the clients
-	/*for (slot = 0, cl = svs.clients; slot < svs.maxclients; slot++, cl++)*/
 	cl = svs.clients;
 	for (int slot = 0; slot < svs.maxclients; slot++, cl++)
 		{
 		if ((cl->state != cs_spawned) || !cl->edict || FBitSet (cl->flags, FCL_FAKECLIENT))
 			continue;
 
-		if (SV_IsValidEdict (pInvoker) && pInvoker->v.groupinfo && cl->edict->v.groupinfo)
+		// [FWGS, 01.09.26]
+		/*if (SV_IsValidEdict (pInvoker) && pInvoker->v.groupinfo && cl->edict->v.groupinfo)
 			{
 			if (svs.groupop == GROUP_OP_AND && !FBitSet (cl->edict->v.groupinfo, pInvoker->v.groupinfo))
 				continue;
 
 			if (svs.groupop == GROUP_OP_NAND && FBitSet (cl->edict->v.groupinfo, pInvoker->v.groupinfo))
 				continue;
-			}
+			}*/
+		if (SV_IsValidEdict (pInvoker) && !SV_CheckGroupTrace (pInvoker, cl->edict))
+			continue;
 
 		if (SV_IsValidEdict (pInvoker))
 			{
@@ -4467,10 +4388,11 @@ pfnGetCurrentPlayer
 ***/
 static int GAME_EXPORT pfnGetCurrentPlayer (void)
 	{
-	int idx = sv.current_client - svs.clients;
+	int	idx = sv.current_client - svs.clients;
 
 	if ((idx < 0) || (idx >= svs.maxclients))
 		return -1;
+
 	return idx;
 	}
 
@@ -4523,11 +4445,11 @@ byte *pfnSetFatPAS (const float *org)
 	return fatphs;
 	}
 
-/*
+/***
 =============
 Mod_HeadnodeVisible [FWGS, 01.02.25]
 =============
-*/
+***/
 static qboolean Mod_HeadnodeVisible (model_t *mod, mnode_t *node, const byte *visbits, int *lastleaf)
 	{
 	if (!node || (node->contents == CONTENTS_SOLID))
@@ -4559,7 +4481,6 @@ pfnCheckVisibility [FWGS, 01.07.26]
 ***/
 static int GAME_EXPORT pfnCheckVisibility (const edict_t *ent, byte *pset)
 	{
-	/*int			i, leafnum;*/
 	int		i;
 	qboolean	large_leafs = FBitSet (sv.worldmodel->flags, MODEL_QBSP2);
 
@@ -4732,19 +4653,13 @@ pfnForceUnmodified [FWGS, 01.07.26]
 ***/
 static void GAME_EXPORT pfnForceUnmodified (FORCE_TYPE type, float *mins, float *maxs, const char *filename)
 	{
-	/*consistency_t	*pc;
-	int		i;
-
-	// [FWGS, 01.03.26]*/
 	if (COM_StringEmptyOrNULL (filename))
 		return;
 
 	if (sv.state == ss_loading)
 		{
-		/*for (i = 0; i < MAX_MODELS; i++)*/
 		for (int i = 0; i < MAX_MODELS; i++)
 			{
-			/*pc = &sv.consistency_list[i];*/
 			consistency_t	*pc = &sv.consistency_list[i];
 			if (!pc->filename)
 				{
@@ -4767,10 +4682,8 @@ static void GAME_EXPORT pfnForceUnmodified (FORCE_TYPE type, float *mins, float 
 		}
 	else
 		{
-		/*for (i = 0; i < MAX_MODELS; i++)*/
 		for (int i = 0; i < MAX_MODELS; i++)
 			{
-			/*pc = &sv.consistency_list[i];*/
 			consistency_t	*pc = &sv.consistency_list[i];
 			if (!pc->filename)
 				continue;
@@ -5080,7 +4993,6 @@ static enginefuncs_t gEngfuncs =
 	pfnGetPlayerUserId,
 	pfnBuildSoundMsg,
 	pfnIsDedicatedServer,
-	/*pfnCVarGetPointer,*/
 	SV_CvarGetPointer,		// [FWGS, 01.07.26]
 	pfnGetPlayerWONId,
 	(void *)Info_RemoveKey,
@@ -5151,7 +5063,6 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 	{
 	KeyValueData	pkvd[256];	// per one entity
 	qboolean	adjust_origin = false, customentity;
-	/*int				i, numpairs = 0;*/
 	int		numpairs = 0;
 	const char	*classname = NULL;
 
@@ -5189,7 +5100,7 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 		// classname must be first
 		if (!Q_strcmp (keyname, "classname"))
 			{
-			KeyValueData kvd =
+			KeyValueData	kvd =
 				{
 				.szClassName = NULL,
 				.szKeyName = keyname,
@@ -5256,7 +5167,7 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 
 	if (customentity)
 		{
-		KeyValueData kvd =
+		KeyValueData	kvd =
 			{
 			.szClassName = (char *)"custom",
 			.szKeyName = (char *)"customclass",
@@ -5277,7 +5188,6 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 		}
 #endif
 
-	/*for (i = 0; i < numpairs; i++)*/
 	for (int i = 0; i < numpairs; i++)
 		{
 		char	*keyname, *value;
@@ -5296,17 +5206,14 @@ static qboolean SV_ParseEdict (char **pfile, edict_t *ent)
 				Q_snprintf (temp, sizeof (temp), "%g %g %g", ent->v.angles[0], flYawAngle, ent->v.angles[2]);
 				pkvd[i].szValue = copystring (temp);
 				}
-
 			else if (flYawAngle == -1.0f)
 				{
 				pkvd[i].szValue = copystring ("-90 0 0");
 				}
-
 			else if (flYawAngle == -2.0f)
 				{
 				pkvd[i].szValue = copystring ("90 0 0");
 				}
-
 			else
 				{
 				pkvd[i].szValue = copystring ("0 0 0");	// technically an error
@@ -5355,7 +5262,6 @@ static void SV_LoadFromFile (const char *mapname, char *entities)
 	{
 	char	token[2048];
 	qboolean	create_world = true;
-	/*int			inhibited;*/
 	edict_t		*ent;
 
 	Assert (entities != NULL);
@@ -5363,7 +5269,6 @@ static void SV_LoadFromFile (const char *mapname, char *entities)
 	// user dll can override spawn entities function (Xash3D extension)
 	if (!svgame.physFuncs.SV_LoadEntities || !svgame.physFuncs.SV_LoadEntities (mapname, entities))
 		{
-		/*inhibited = 0;*/
 		int	inhibited = 0;
 
 		// parse ents
@@ -5494,7 +5399,6 @@ void SV_UnloadProgs (void)
 // [FWGS, 01.07.26]
 qboolean SV_LoadProgs (const char *name)
 	{
-	/*int			i, version;*/
 	int		version;
 	static APIFUNCTION		GetEntityAPI;
 	static APIFUNCTION2		GetEntityAPI2;
@@ -5503,7 +5407,6 @@ qboolean SV_LoadProgs (const char *name)
 	static enginefuncs_t	gpEngfuncs;
 	static globalvars_t		gpGlobals;
 	static playermove_t		gpMove;
-	/*edict_t		*e;*/
 	qboolean	init_entity_api = false;
 
 	if (svgame.hInstance)
@@ -5629,8 +5532,6 @@ qboolean SV_LoadProgs (const char *name)
 	svs.baselines = Z_Calloc (sizeof (entity_state_t) * GI->max_edicts);
 	svgame.numEntities = svs.maxclients + 1;	// clients + world
 
-	/*for (i = 0, e = svgame.edicts; i < GI->max_edicts; i++, e++)
-		e->free = true;	// mark all edicts as freed*/
 	for (int i = 0; i < GI->max_edicts; i++)
 		svgame.edicts[i].free = true;	// mark all edicts as freed
 

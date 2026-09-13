@@ -25,21 +25,24 @@ static SDL_Sensor *g_system_gyro;
 
 /***
 ==============
-SDLash_InitSensors
+SDLash_InitSensors [FWGS, 01.09.26]
 ==============
 ***/
 void SDLash_InitSensors (void)
 	{
-	if (SDL_InitSubSystem (SDL_INIT_SENSOR) == 0)
+	/*if (SDL_InitSubSystem (SDL_INIT_SENSOR) == 0)*/
+	if (SDL_InitSubSystem (SDL_INIT_SENSOR))
 		{
 		int	num_sensors;
 		SDL_SensorID	*sensors = SDL_GetSensors (&num_sensors);
 
 		for (int i = 0; i < num_sensors; i++)
 			{
-			if (SDL_GetSensorTypeForID (i) == SDL_SENSOR_GYRO)
+			/*if (SDL_GetSensorTypeForID (i) == SDL_SENSOR_GYRO)*/
+			if (SDL_GetSensorTypeForID (sensors[i]) == SDL_SENSOR_GYRO)
 				{
-				g_system_gyro = SDL_OpenSensor (i);
+				/*g_system_gyro = SDL_OpenSensor (i);*/
+				g_system_gyro = SDL_OpenSensor (sensors[i]);
 				if (g_system_gyro)
 					{
 					g_system_gyro_id = sensors[i];

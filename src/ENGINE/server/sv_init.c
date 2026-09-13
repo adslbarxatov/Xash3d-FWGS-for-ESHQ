@@ -48,7 +48,7 @@ generic method to put the resources into array
 ***/
 static void SV_AddResource (resourcetype_t type, const char *name, int size, byte flags, int index)
 	{
-	resource_t *pResource = &sv.resources[sv.num_resources];
+	resource_t	*pResource = &sv.resources[sv.num_resources];
 
 	if (sv.num_resources >= MAX_RESOURCES)
 		Host_Error ("MAX_RESOURCES limit exceeded (%d)\n", MAX_RESOURCES);
@@ -71,7 +71,7 @@ hot precache on a flying
 static void SV_SendSingleResource (const char *name, resourcetype_t type, int index, byte flags)
 	{
 	resource_t	*pResource = &sv.resources[sv.num_resources];
-	int			nSize = 0;
+	int		nSize = 0;
 
 	// [FWGS, 01.03.26]
 	if (COM_StringEmptyOrNULL (name))
@@ -323,7 +323,6 @@ static void SV_ReadResourceList (const char *filename)
 	string	token;
 	byte	*afile;
 	char	*pfile;
-	/*resourcetype_t	restype;*/
 
 	afile = FS_LoadFile (filename, NULL, false);
 	if (!afile)
@@ -336,7 +335,7 @@ static void SV_ReadResourceList (const char *filename)
 
 	while ((pfile = COM_ParseFile (pfile, token, sizeof (token))) != NULL)
 		{
-		resourcetype_t restype;
+		resourcetype_t	restype;
 
 		if (!COM_IsSafeFileToDownload (token))
 			continue;
@@ -350,7 +349,7 @@ static void SV_ReadResourceList (const char *filename)
 			// TODO do we need to handle other resource types specifically too?
 			case t_sound:
 				{
-				const char *filepath = token;
+				const char	*filepath = token;
 				filepath += sizeof (DEFAULT_SOUNDPATH) - 1;	// skip "sound/" part
 				SV_SoundIndex (filepath);
 				break;
@@ -376,7 +375,6 @@ loads external resource list
 static void SV_CreateGenericResources (void)
 	{
 	string	filename;
-	/*int		i;*/
 
 	Q_strncpy (filename, sv.model_precache[1], sizeof (filename));
 	COM_ReplaceExtension (filename, ".res", sizeof (filename));
@@ -386,7 +384,6 @@ static void SV_CreateGenericResources (void)
 	SV_ReadResourceList ("reslist.txt");
 
 	// precache wads so client can knows this map needs some extra wad files
-	/*for (i = 0; i < world.wadcount; i++)*/
 	for (int i = 0; i < world.wadcount; i++)
 		{
 		if (world.wadlist[i].usage > 0)
@@ -403,7 +400,6 @@ add resources to common list
 ***/
 static void SV_CreateResourceList (void)
 	{
-	/*qboolean	ffirstsent = false;*/
 	int		i, nSize;
 	char	*s;
 
@@ -419,7 +415,7 @@ static void SV_CreateResourceList (void)
 		SV_AddResource (t_generic, s, nSize, RES_FATALIFMISSING, i);
 		}
 
-	qboolean ffirstsent = false;
+	qboolean	ffirstsent = false;
 	for (i = 1; i < MAX_SOUNDS; i++)
 		{
 		s = sv.sound_precache[i];
@@ -499,7 +495,7 @@ static void SV_CreateBaseline (void)
 	int		entnum;
 
 	// [FWGS, 15.04.26]
-	if (svs.maxclients > 1 || sv_voice_singleplayer.value)
+	if ((svs.maxclients > 1) || sv_voice_singleplayer.value)
 		SV_WriteVoiceCodec (&sv.signon);
 
 	if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE))
@@ -512,7 +508,7 @@ static void SV_CreateBaseline (void)
 	for (entnum = 0; entnum < svgame.numEntities; entnum++)
 		{
 		// [FWGS, 05.04.26]
-		edict_t *pEdict = SV_EdictNum (entnum);
+		edict_t	*pEdict = SV_EdictNum (entnum);
 
 		if (!SV_IsValidEdict (pEdict))
 			continue;
@@ -552,7 +548,7 @@ static void SV_CreateBaseline (void)
 	for (entnum = 0; entnum < svgame.numEntities; entnum++)
 		{
 		// [FWGS, 05.04.26]
-		edict_t *pEdict = SV_EdictNum (entnum);
+		edict_t	*pEdict = SV_EdictNum (entnum);
 
 		if (!SV_IsValidEdict (pEdict))
 			continue;
@@ -580,7 +576,7 @@ static void SV_CreateBaseline (void)
 	// ESHQ: поддержка для системы ES: Randomaze
 	if (strstr (sv.name, "ESRM"))
 		{
-		char mName[32];
+		char	mName[32];
 		mName[0] = '\0';
 
 		sprintf (mName, "-x %s", sv.name);
@@ -604,10 +600,8 @@ remove immediate entities
 void SV_FreeOldEntities (void)
 	{
 	edict_t	*ent;
-	/*int		i;*/
 
 	// at end of frame kill all entities which supposed to it
-	/*for (i = svs.maxclients + 1; i < svgame.numEntities; i++)*/
 	for (int i = svs.maxclients + 1; i < svgame.numEntities; i++)
 		{
 		ent = SV_EdictNum (i);
@@ -629,8 +623,8 @@ activate server on changed map, run physics
 ***/
 void SV_ActivateServer (int runPhysics)
 	{
-	int			i, numFrames;
-	byte		msg_buf[MAX_INIT_MSG];
+	int		i, numFrames;
+	byte	msg_buf[MAX_INIT_MSG];
 	sizebuf_t	msg;
 	sv_client_t	*cl;
 
@@ -654,10 +648,22 @@ void SV_ActivateServer (int runPhysics)
 	// parse user-specified resources
 	SV_CreateGenericResources ();
 
+	// [FWGS, 01.09.26]
 	if (runPhysics)
 		{
-		numFrames = (svs.maxclients <= 1) ? 2 : 8;
-		sv.frametime = SV_SPAWN_TIME;
+		/*numFrames = (svs.maxclients <= 1) ? 2 : 8;
+		sv.frametime = SV_SPAWN_TIME;*/
+		// GoldSrc gives the world more time to prepare in multiplayer
+		if (svs.maxclients <= 1)
+			{
+			numFrames = 2;
+			sv.frametime = SV_SPAWN_TIME;
+			}
+		else
+			{
+			numFrames = 16;
+			sv.frametime = SV_SPAWN_TIME_MP;
+			}
 		}
 	else
 		{
@@ -734,8 +740,7 @@ deactivate server, free edicts, strings etc
 ***/
 void SV_DeactivateServer (void)
 	{
-	/*int	i;*/
-	const char *cycle = Cvar_VariableString ("disconcfgfile");
+	const char	*cycle = Cvar_VariableString ("disconcfgfile");
 
 	if (!COM_StringEmptyOrNULL (cycle))
 		Cbuf_AddTextf ("exec %s\n", cycle);
@@ -758,7 +763,6 @@ void SV_DeactivateServer (void)
 	SV_EmptyStringPool (true);
 	Mem_EmptyPool (svgame.stringspool);
 
-	/*for (i = 0; i < svs.maxclients; i++)*/
 	for (int i = 0; i < svs.maxclients; i++)
 		{
 		// release client frames
@@ -783,7 +787,7 @@ A brand new game has been started
 ***/
 qboolean SV_InitGame (qboolean silent)
 	{
-	string dllpath;
+	string	dllpath;
 
 	if (svgame.hInstance)
 		return true;
@@ -920,7 +924,6 @@ static void SV_GenerateTestPacket (void)
 	uint32_t	crc;
 	file_t	*file;
 	byte	*filepos;
-	/*int			i;*/
 
 	if (!sv_allow_testpacket.value)
 		{
@@ -970,11 +973,8 @@ static void SV_GenerateTestPacket (void)
 	crc = 0;
 
 	// TODO: shrink to minimum!
-	/*for (i = 0; i < svs.testpacket_filelen; i++)*/
 	for (int i = 0; i < svs.testpacket_filelen; i++)
 		{
-		/*uint32_t crc2;*/
-
 		CRC32_ProcessByte (&crc, filepos[i]);
 		svs.testpacket_crcs[i] = crc;
 		}
@@ -990,9 +990,6 @@ clients along with it
 ***/
 qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean background)
 	{
-	/*int			i, current_skill;
-	edict_t		*ent;
-	const char	*cycle;*/
 	int		i;
 
 	SV_SetupClients ();
@@ -1017,9 +1014,7 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 	for (i = 0; i < HLARRAYSIZE (svs.challenge_salt); i++)
 		svs.challenge_salt[i] = COM_RandomLong (0, 0x7FFFFFFE);
 
-	/*// [FWGS, 01.03.26]
-	cycle = Cvar_VariableString ("mapchangecfgfile");*/
-	const char *cycle = Cvar_VariableString ("mapchangecfgfile");
+	const char	*cycle = Cvar_VariableString ("mapchangecfgfile");
 	if (!COM_StringEmptyOrNULL (cycle))
 		Cbuf_AddTextf ("exec %s\n", cycle);
 
@@ -1054,17 +1049,17 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 	if (coop.value)
 		Cvar_SetValue ("deathmatch", 0);
 
-	/*current_skill = Q_rint (skill.value);*/
-	int current_skill = Q_rint (skill.value);
+	int	current_skill = Q_rint (skill.value);
 	current_skill = bound (0, current_skill, 3);
 	Cvar_SetValue ("skill", (float)current_skill);
 
 	// enforce hpk_max_size
 	HPAK_CheckSize (hpk_custom_file.string);
 
-	// force normal player collisions for single player
+	// [FWGS, 01.09.26] force normal player collisions for single player
 	if (svs.maxclients == 1)
-		Cvar_SetValue ("sv_clienttrace", 1);
+		/*Cvar_SetValue ("sv_clienttrace", 1);*/
+		Cvar_DirectSet (&sv_clienttrace, "1");
 
 	// copy gamemode into svgame.globals
 	svgame.globals->deathmatch = deathmatch.value;
@@ -1075,9 +1070,9 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 	Cvar_DirectFullSet (&sv_background, sv.background ? "1" : "0", FCVAR_READ_ONLY);
 	Cvar_DirectFullSet (&cl_background, sv.background ? "1" : "0", FCVAR_READ_ONLY);
 
-	// force normal player collisions for single player
+	/*// force normal player collisions for single player
 	if (svs.maxclients == 1) 
-		Cvar_SetValue ("sv_clienttrace", 1);
+		Cvar_SetValue ("sv_clienttrace", 1);*/
 	
 	// allow loading maps from subdirectories, strip extension anyway
 	Q_strncpy (sv.name, mapname, sizeof (sv.name));
@@ -1098,7 +1093,7 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 
 	if (FBitSet (host.features, ENGINE_QUAKE_COMPATIBLE) && FS_FileExists ("progs.dat", false))
 		{
-		file_t *f = FS_Open ("progs.dat", "rb", false);
+		file_t	*f = FS_Open ("progs.dat", "rb", false);
 		FS_Seek (f, sizeof (int), SEEK_SET);
 		FS_Read (f, &sv.progsCRC, sizeof (int));
 		FS_Close (f);
@@ -1115,7 +1110,7 @@ qboolean SV_SpawnServer (const char *mapname, const char *startspot, qboolean ba
 	// leave slots at start for clients only
 	for (i = 0; i < svs.maxclients; i++)
 		{
-		edict_t *ent;
+		edict_t	*ent;
 
 		// needs to reconnect
 		if (svs.clients[i].state > cs_connected)
