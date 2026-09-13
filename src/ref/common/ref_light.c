@@ -31,7 +31,6 @@ CL_RunLightStyles [FWGS, 01.07.26]
 void CL_RunLightStyles (lightstyle_t *ls)
 	{
 	const model_t	*world = gp_cl->models[1];
-	/*int		i;*/
 	float	frametime = gp_cl->time - gp_cl->oldtime;
 
 	if (!world)
@@ -39,7 +38,6 @@ void CL_RunLightStyles (lightstyle_t *ls)
 
 	if (r_fullbright->value || !world->lightdata)
 		{
-		/*for (i = 0; i < MAX_LIGHTSTYLES; i++)*/
 		for (int i = 0; i < MAX_LIGHTSTYLES; i++)
 			g_lightstylevalue[i] = 256 * 256;
 
@@ -48,12 +46,8 @@ void CL_RunLightStyles (lightstyle_t *ls)
 
 	// light animations
 	// 'm' is normal light, 'a' is no light, 'z' is double bright
-	/*for (i = 0; i < MAX_LIGHTSTYLES; i++)*/
 	for (int i = 0; i < MAX_LIGHTSTYLES; i++)
 		{
-		/*int k, flight, clight;
-		float l, lerpfrac, backlerp;*/
-
 		if (!gp_cl->paused && (frametime <= 0.1f))
 			ls[i].time += frametime;	// evaluate local time
 
@@ -69,8 +63,7 @@ void CL_RunLightStyles (lightstyle_t *ls)
 			continue;
 			}
 
-		/*flight = (int)Q_floor (ls[i].time * 10);*/
-		int flight = (int)Q_floor (ls[i].time * 10);
+		int	flight = (int)Q_floor (ls[i].time * 10);
 
 		if (!ls[i].interp || !cl_lightstyle_lerping->value)
 			{
@@ -78,19 +71,14 @@ void CL_RunLightStyles (lightstyle_t *ls)
 			continue;
 			}
 
-		/*clight = (int)Q_ceil (ls[i].time * 10);
-		lerpfrac = (ls[i].time * 10) - flight;
-		backlerp = 1.0f - lerpfrac;*/
-		int clight = (int)Q_ceil (ls[i].time * 10);
-		float lerpfrac = (ls[i].time * 10) - flight;
-		float backlerp = 1.0f - lerpfrac;
+		int	clight = (int)Q_ceil (ls[i].time * 10);
+		float	lerpfrac = (ls[i].time * 10) - flight;
+		float	backlerp = 1.0f - lerpfrac;
 
 		// interpolate animating light
 		// frame just gone
-		/*k = ls[i].map[flight % ls[i].length];
-		l = (float)(k * 22.0f) * backlerp;*/
-		int k = ls[i].map[flight % ls[i].length];
-		float l = (float)(k * 22.0f) * backlerp;
+		int	k = ls[i].map[flight % ls[i].length];
+		float	l = (float)(k * 22.0f) * backlerp;
 
 		// upcoming frame
 		k = ls[i].map[clight % ls[i].length];
@@ -107,13 +95,13 @@ R_MarkLights
 ***/
 static void R_MarkLights (const dlight_t *light, int bit, const mnode_t *node, model_t *model, int dlightframecount)
 	{
-	const float virtual_radius = light->radius * Q_max (1.0f, r_dlight_virtual_radius.value);
-	const float maxdist = light->radius * light->radius;
+	const float	virtual_radius = light->radius * Q_max (1.0f, r_dlight_virtual_radius.value);
+	const float	maxdist = light->radius * light->radius;
 start:
 	if (!node || (node->contents < 0))
 		return;
 
-	float dist = PlaneDiff (light->origin, node->plane);
+	float	dist = PlaneDiff (light->origin, node->plane);
 
 	if (dist > virtual_radius)
 		{
@@ -127,11 +115,11 @@ start:
 		goto start;
 		}
 
-	const float dist_sq = dist * dist;
+	const float	dist_sq = dist * dist;
 
 	// mark the polygons
-	int firstsurface = node_firstsurface (node, model);
-	int numsurfaces = node_numsurfaces (node, model);
+	int	firstsurface = node_firstsurface (node, model);
+	int	numsurfaces = node_numsurfaces (node, model);
 
 	for (int i = 0; i < numsurfaces && dist_sq < maxdist; i++)
 		{
@@ -194,7 +182,7 @@ int R_PushDlights (model_t *model, int framecount)
 
 	for (int i = 0; i < MAX_DLIGHTS; i++)
 		{
-		const dlight_t *l = &gp_dlights[i];
+		const dlight_t	*l = &gp_dlights[i];
 
 		if ((l->die < gp_cl->time) || !l->radius)
 			continue;
@@ -210,14 +198,12 @@ void R_PushDlightsForBmodel (model_t *model, int framecount, const matrix4x4 obj
 	{
 	for (int i = 0; i < MAX_DLIGHTS; i++)
 		{
-		dlight_t *l = &gp_dlights[i];
+		dlight_t	*l = &gp_dlights[i];
 
 		if ((l->die < gp_cl->time) || !l->radius)
 			continue;
 
-		/*vec3_t oldorigin;
-		VectorCopy (l->origin, oldorigin);*/
-		vec3_t oldorigin = Vec3 (l->origin);
+		vec3_t	oldorigin = Vec3 (l->origin);
 
 		Matrix4x4_VectorITransform (object_matrix, oldorigin, l->origin);
 		R_MarkLights (l, 1 << i, model->nodes + model->hulls[0].firstclipnode, model, framecount);
@@ -252,22 +238,22 @@ start:
 		}
 
 	// calculate mid point
-	float front = PlaneDiff (start, node->plane);
-	float back = PlaneDiff (end, node->plane);
+	float	front = PlaneDiff (start, node->plane);
+	float	back = PlaneDiff (end, node->plane);
+	int		side = front < 0;
 
-	int side = front < 0;
 	if ((back < 0) == side)
 		{
 		node = node_child (node, side, model);
 		goto start;
 		}
 
-	float frac = front / (front - back);
+	float	frac = front / (front - back);
+	vec3_t	mid;
 
-	vec3_t mid;
 	VectorLerp (start, frac, end, mid);
 
-	float midf = p1f + (p2f - p1f) * frac;
+	float	midf = p1f + (p2f - p1f) * frac;
 
 	// co down front side
 	if (R_RecursiveLightPoint (model, node_child (node, side, model), p1f, midf, cv, start, mid))
@@ -280,27 +266,27 @@ start:
 		}
 
 	// check for impact on this node
-	int firstsurface = node_firstsurface (node, model);
-	int numsurfaces = node_numsurfaces (node, model);
+	int	firstsurface = node_firstsurface (node, model);
+	int	numsurfaces = node_numsurfaces (node, model);
 
 	VectorCopy (mid, g_trace_lightspot);
 
 	for (int i = 0; i < numsurfaces; i++)
 		{
-		const msurface_t *surf = &model->surfaces[firstsurface + i];
-		const mextrasurf_t *info = surf->info;
+		const msurface_t	*surf = &model->surfaces[firstsurface + i];
+		const mextrasurf_t	*info = surf->info;
 
 		if (FBitSet (surf->flags, SURF_DRAWTILED))
 			continue;	// no lightmaps
 
-		float s = DotProduct (mid, info->lmvecs[0]) + info->lmvecs[0][3];
-		float t = DotProduct (mid, info->lmvecs[1]) + info->lmvecs[1][3];
+		float	s = DotProduct (mid, info->lmvecs[0]) + info->lmvecs[0][3];
+		float	t = DotProduct (mid, info->lmvecs[1]) + info->lmvecs[1][3];
 
 		if ((s < info->lightmapmins[0]) || (t < info->lightmapmins[1]))
 			continue;
 
-		float ds = s - info->lightmapmins[0];
-		float dt = t - info->lightmapmins[1];
+		float	ds = s - info->lightmapmins[0];
+		float	dt = t - info->lightmapmins[1];
 
 		if ((ds > info->lightextents[0]) || (dt > info->lightextents[1]))
 			continue;
@@ -310,18 +296,20 @@ start:
 		if (!surf->samples)
 			return true;
 
-		int sample_size = gEngfuncs.Mod_SampleSizeForFace (surf);
-		int smax = (info->lightextents[0] / sample_size) + 1;
-		int tmax = (info->lightextents[1] / sample_size) + 1;
+		int	sample_size = gEngfuncs.Mod_SampleSizeForFace (surf);
+		int	smax = (info->lightextents[0] / sample_size) + 1;
+		int	tmax = (info->lightextents[1] / sample_size) + 1;
 
 		ds /= sample_size;
 		dt /= sample_size;
 
 		g_trace_fraction = midf;
 
-		const color24 *lm = surf->samples + Q_rint (dt) * smax + Q_rint (ds);
-		const color24 *dm = NULL;
-		matrix3x4 tbn;
+		// [FWGS, 01.09.26]
+		const color24	*lm = surf->samples + Q_rint (dt) * smax + Q_rint (ds);
+		const color24	*dm = NULL;
+		/*matrix3x4	tbn;*/
+		matrix3x4	tbn = { 0 };
 
 		if (surf->info->deluxemap)
 			{
@@ -349,7 +337,7 @@ start:
 			VectorNormalize (tbn[2]);
 			}
 
-		int size = smax * tmax;
+		int	size = smax * tmax;
 
 		for (int map = 0; map < MAXLIGHTMAPS && surf->styles[map] != 255; map++)
 			{
@@ -364,18 +352,15 @@ start:
 			// [FWGS, 01.07.26]
 			if (dm != NULL)
 				{
-				/*vec3_t	srcNormal, lightNormal;
-				float	f = (1.0f / 128.0f);*/
-				const float f = (1.0f / 128.0f);
-				vec3_t srcNormal =
+				const float	f = (1.0f / 128.0f);
+				vec3_t	srcNormal =
 					{
 					((float)dm->r - 128.0f) * f,
 					((float)dm->g - 128.0f) * f,
 					((float)dm->b - 128.0f) * f,
 					};
-				vec3_t lightNormal;
+				vec3_t	lightNormal;
 
-				/*VectorSet (srcNormal, ((float)dm->r - 128.0f) * f, ((float)dm->g - 128.0f) * f, ((float)dm->b - 128.0f) * f);*/
 				Matrix3x4_VectorIRotate (tbn, srcNormal, lightNormal);		// turn to world space
 				VectorScale (lightNormal, (float)scale * -1.0f, lightNormal);	// turn direction from light
 				VectorAdd (g_trace_lightvec, lightNormal, g_trace_lightvec);
@@ -408,14 +393,14 @@ static colorVec R_LightVecInternal (const vec3_t start, const vec3_t end, vec3_t
 	if (!gp_cl->models[1] || !gp_cl->models[1]->lightdata)
 		return (colorVec) { 255, 255, 255, 0 };
 
-	float last_fraction = 1.0f;
-	int max_ents = r_lighting_extended.value ? MAX_PHYSENTS : 1;	// get light from bmodels too
-	colorVec light = { 0 };
+	float	last_fraction = 1.0f;
+	int		max_ents = r_lighting_extended.value ? MAX_PHYSENTS : 1;	// get light from bmodels too
+	colorVec	light = { 0 };
 
 	// check all the bsp-models
 	for (int i = 0; i < max_ents; i++)
 		{
-		const physent_t *pe = gEngfuncs.EV_GetPhysent (i);
+		const physent_t	*pe = gEngfuncs.EV_GetPhysent (i);
 
 		if (!pe)
 			break;
@@ -423,8 +408,8 @@ static colorVec R_LightVecInternal (const vec3_t start, const vec3_t end, vec3_t
 		if (!pe->model || (pe->model->type != mod_brush))
 			continue;	// skip non-bsp models
 
-		mnode_t *pnodes = &pe->model->nodes[pe->model->hulls[0].firstclipnode];
-		vec3_t offset, start_l, end_l;
+		mnode_t	*pnodes = &pe->model->nodes[pe->model->hulls[0].firstclipnode];
+		vec3_t	offset, start_l, end_l;
 
 		VectorSubtract (pe->model->hulls[0].clip_mins, vec3_origin, offset);
 		VectorAdd (offset, pe->origin, offset);
@@ -434,7 +419,7 @@ static colorVec R_LightVecInternal (const vec3_t start, const vec3_t end, vec3_t
 		// rotate start and end into the models frame of reference
 		if (!VectorIsNull (pe->angles))
 			{
-			matrix4x4 matrix;
+			matrix4x4	matrix;
 			Matrix4x4_CreateFromEntity (matrix, pe->angles, offset, 1.0f);
 			Matrix4x4_VectorITransform (matrix, start, start_l);
 			Matrix4x4_VectorITransform (matrix, end, end_l);
@@ -444,14 +429,16 @@ static colorVec R_LightVecInternal (const vec3_t start, const vec3_t end, vec3_t
 		VectorClear (g_trace_lightvec);
 		g_trace_fraction = 1.0f;
 
-		colorVec cv;
+		colorVec	cv;
 		if (!R_RecursiveLightPoint (pe->model, pnodes, 0.0f, 1.0f, &cv, start_l, end_l))
 			continue;	// didn't hit anything
 
 		if (g_trace_fraction < last_fraction)
 			{
-			if (lspot) VectorCopy (g_trace_lightspot, lspot);
-			if (lvec) VectorNormalize2 (g_trace_lightvec, lvec);
+			if (lspot)
+				VectorCopy (g_trace_lightspot, lspot);
+			if (lvec)
+				VectorNormalize2 (g_trace_lightvec, lvec);
 
 			light.r = Q_min ((cv.r >> 8), 255);
 			light.g = Q_min ((cv.g >> 8), 255);
@@ -475,9 +462,9 @@ check bspmodels to get light from
 ***/
 colorVec R_LightVec (const vec3_t start, const vec3_t end, vec3_t lspot, vec3_t lvec)
 	{
-	colorVec light = R_LightVecInternal (start, end, lspot, lvec);
+	colorVec	light = R_LightVecInternal (start, end, lspot, lvec);
 
-	if (r_lighting_extended.value && lspot != NULL && lvec != NULL)
+	if (r_lighting_extended.value && (lspot != NULL) && (lvec != NULL))
 		{
 		// trying to get light from ceiling (but ignore gradient analyze)
 		if ((light.r + light.g + light.b) == 0)
@@ -496,10 +483,7 @@ light from floor
 ***/
 colorVec R_LightPoint (const vec3_t p0)
 	{
-	/*vec3_t p1;
-
-	VectorSet (p1, p0[0], p0[1], p0[2] - 2048.0f);*/
-	vec3_t p1 = { p0[0], p0[1], p0[2] - 2048.0f };
+	vec3_t	p1 = { p0[0], p0[1], p0[2] - 2048.0f };
 	return R_LightVec (p0, p1, NULL, NULL);
 	}
 
@@ -512,8 +496,7 @@ get light level of an entity and set it as player's light level
 ***/
 void R_GatherPlayerLight (cl_entity_t *view)
 	{
-	colorVec c = R_LightPoint (view->origin);
-
+	colorVec	c = R_LightPoint (view->origin);
 	gEngfuncs.SetLocalLightLevel ((c.r + c.g + c.b) / 3);
 	}
 
@@ -524,14 +507,6 @@ R_EntityDynamicLight [FWGS, 01.07.26]
 ***/
 void R_EntityDynamicLight (cl_entity_t *ent, alight_t *plight, qboolean draw_world, double time, vec3_t lightspot, vec3_t lightvec)
 	{
-	/*movevars_t	*mv = gp_movevars;
-	vec3_t		lightDir, vecSrc, vecEnd;
-	vec3_t		origin, dist, finalLight;
-	float		add, radius, total;
-	colorVec	light;
-	uint		lnum;
-	dlight_t	*dl;*/
-
 	if (!plight || !ent)
 		return;
 
@@ -545,8 +520,8 @@ void R_EntityDynamicLight (cl_entity_t *ent, alight_t *plight, qboolean draw_wor
 		return;
 		}
 
-	movevars_t *mv = gp_movevars;
-	vec3_t lightDir;
+	movevars_t	*mv = gp_movevars;
+	vec3_t	lightDir;
 
 	// determine plane to get lightvalues from: ceil or floor
 	if (FBitSet (ent->curstate.effects, EF_INVLIGHT))
@@ -554,19 +529,15 @@ void R_EntityDynamicLight (cl_entity_t *ent, alight_t *plight, qboolean draw_wor
 	else
 		VectorSet (lightDir, 0.0f, 0.0f, -1.0f);
 
-	/*VectorCopy (ent->origin, origin);*/
-	vec3_t origin = Vec3 (ent->origin);
-	vec3_t vecSrc = { origin[0], origin[1], origin[2] - lightDir[2] * 8.0f };
-	vec3_t vecEnd;
+	vec3_t	origin = Vec3 (ent->origin);
+	vec3_t	vecSrc = { origin[0], origin[1], origin[2] - lightDir[2] * 8.0f };
+	vec3_t	vecEnd;
+	colorVec	light;
 
-	/*VectorSet (vecSrc, origin[0], origin[1], origin[2] - lightDir[2] * 8.0f);*/
-	colorVec light;
 	light.r = light.g = light.b = light.a = 0;
 
 	if ((mv->skycolor[0] + mv->skycolor[1] + mv->skycolor[2]) != 0)
 		{
-		/*msurface_t	*psurf = NULL;
-		pmtrace_t	trace;*/
 		vec3_t	skyvec;
 
 		if (FBitSet (gp_host->features, ENGINE_WRITE_LARGE_COORD))
@@ -576,17 +547,16 @@ void R_EntityDynamicLight (cl_entity_t *ent, alight_t *plight, qboolean draw_wor
 
 		VectorSubtract (origin, skyvec, vecEnd);
 
-		/*trace = gEngfuncs.CL_TraceLine (vecSrc, vecEnd, PM_WORLD_ONLY);*/
-		pmtrace_t trace = gEngfuncs.CL_TraceLine (vecSrc, vecEnd, PM_WORLD_ONLY);
-		msurface_t *psurf;
+		pmtrace_t	trace = gEngfuncs.CL_TraceLine (vecSrc, vecEnd, PM_WORLD_ONLY);
+		msurface_t	*psurf;
 
 		if (trace.ent > 0)
 			psurf = gEngfuncs.EV_TraceSurface (trace.ent, vecSrc, vecEnd);
 		else
 			psurf = gEngfuncs.EV_TraceSurface (0, vecSrc, vecEnd);
 
-		if (((ent->model->type == mod_studio) && FBitSet (ent->model->flags, STUDIO_FORCE_SKYLIGHT))
-			|| (psurf && FBitSet (psurf->flags, SURF_DRAWSKY)))
+		if (((ent->model->type == mod_studio) && FBitSet (ent->model->flags, STUDIO_FORCE_SKYLIGHT)) ||
+			(psurf && FBitSet (psurf->flags, SURF_DRAWSKY)))
 			{
 			VectorCopy (mv->skyvec, lightDir);
 
@@ -598,9 +568,6 @@ void R_EntityDynamicLight (cl_entity_t *ent, alight_t *plight, qboolean draw_wor
 
 	if ((light.r + light.g + light.b) == 0)
 		{
-		/*colorVec	gcolor;
-		float		grad[4];*/
-
 		VectorScale (lightDir, 2048.0f, vecEnd);
 		VectorAdd (vecEnd, vecSrc, vecEnd);
 
@@ -608,8 +575,8 @@ void R_EntityDynamicLight (cl_entity_t *ent, alight_t *plight, qboolean draw_wor
 
 		if (VectorIsNull (lightvec))
 			{
-			float grad[4];
-			colorVec gcolor;
+			float	grad[4];
+			colorVec	gcolor;
 
 			vecSrc[0] -= 16.0f;
 			vecSrc[1] -= 16.0f;
@@ -654,34 +621,28 @@ void R_EntityDynamicLight (cl_entity_t *ent, alight_t *plight, qboolean draw_wor
 		light.b *= ent->curstate.iuser4 / 10.0f;
 		}
 
-	/*VectorSet (finalLight, light.r, light.g, light.b);*/
-	vec3_t finalLight = { light.r, light.g, light.b };
+	vec3_t	finalLight = { light.r, light.g, light.b };
 	ent->cvFloorColor = light;
 
-	/*total = Q_max (Q_max (light.r, light.g), light.b);*/
-	float total = Q_max (Q_max (light.r, light.g), light.b);
+	float	total = Q_max (Q_max (light.r, light.g), light.b);
 	if (total == 0.0f)
 		total = 1.0f;
 
 	// scale lightdir by light intentsity
 	VectorScale (lightDir, total, lightDir);
 
-	/*for (lnum = 0; lnum < MAX_DLIGHTS; lnum++)*/
 	for (uint lnum = 0; lnum < MAX_DLIGHTS; lnum++)
 		{
-		/*dl = &gp_dlights[lnum];*/
-		const dlight_t *dl = &gp_dlights[lnum];
+		const dlight_t	*dl = &gp_dlights[lnum];
 
 		if ((dl->die < time) || !r_dynamic->value)
 			continue;
 
-		vec3_t dist;
+		vec3_t	dist;
 		VectorSubtract (ent->origin, dl->origin, dist);
 
-		/*radius = VectorLength (dist);
-		add = (dl->radius - radius);*/
-		float radius = VectorLength (dist);
-		float add = (dl->radius - radius);
+		float	radius = VectorLength (dist);
+		float	add = (dl->radius - radius);
 
 		if (add > 0.0f)
 			{
@@ -700,18 +661,14 @@ void R_EntityDynamicLight (cl_entity_t *ent, alight_t *plight, qboolean draw_wor
 			}
 		}
 
-	float scale;
+	float	scale;
 	if (ent->model->type == mod_alias)
 		scale = 0.9f;
-		/*add = 0.9f;*/
 	else if ((ent->model->type == mod_studio) && FBitSet (ent->model->flags, STUDIO_AMBIENT_LIGHT))
 		scale = 0.6f;
-		/*add = 0.6f;*/
 	else
 		scale = bound (0.75f, v_direct->value, 1.0f);
-		/*add = bound (0.75f, v_direct->value, 1.0f);*/
 
-	/*VectorScale (lightDir, add, lightDir);*/
 	VectorScale (lightDir, scale, lightDir);
 
 	plight->shadelight = VectorLength (lightDir);
@@ -725,7 +682,9 @@ void R_EntityDynamicLight (cl_entity_t *ent, alight_t *plight, qboolean draw_wor
 		plight->color[2] = finalLight[2] * (1.0f / total);
 		}
 	else
+		{
 		VectorSet (plight->color, 1.0f, 1.0f, 1.0f);
+		}
 
 	if (plight->ambientlight > 128)
 		plight->ambientlight = 128;

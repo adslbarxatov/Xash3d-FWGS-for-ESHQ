@@ -21,11 +21,17 @@ GNU General Public License for more details
 //-----------------------------------------------------------------------------
 // Gamma conversion support
 //-----------------------------------------------------------------------------
-static qboolean gamma_rebuilt;	// [FWGS, 01.03.24]
-static byte	texgammatable[256];
-static uint	lightgammatable[1024];
+
+static qboolean	gamma_rebuilt;
+static byte		texgammatable[256];
+
+// [FWGS, 01.09.26]
+/*static uint	lightgammatable[1024];
 static uint	lineargammatable[1024];
-static uint	screengammatable[1024];
+static uint	screengammatable[1024];*/
+static uint16_t	lightgammatable[1024];
+static uint16_t	lineargammatable[1024];
+static uint16_t	screengammatable[1024];
 
 static CVAR_DEFINE (v_direct, "direct", "0.9", 0,
 	"direct studio lighting");
@@ -42,7 +48,6 @@ static CVAR_DEFINE (v_gamma, "gamma", "1.5", FCVAR_ARCHIVE,
 static void BuildGammaTable (const float gamma, const float brightness, const float texgamma, const float lightgamma)
 	{
 	float	g1, g2, g3;
-	/*int		i;*/
 
 	if (gamma != 0.0)
 		g1 = 1.0 / gamma;
@@ -57,8 +62,6 @@ static void BuildGammaTable (const float gamma, const float brightness, const fl
 	else
 		g3 = 0.05;
 
-	/*// [FWGS, 05.04.26]
-	for (i = 0; i < 256; i++)*/
 	for (int i = 0; i < 256; i++)
 		{
 		// keep it float or texgamma test will fail with -ffast-math
@@ -68,12 +71,9 @@ static void BuildGammaTable (const float gamma, const float brightness, const fl
 		texgammatable[i] = bound (0, inf, 255);
 		}
 
-	/*for (i = 0; i < 1024; i++)*/
 	for (int i = 0; i < 1024; i++)
 		{
-		/*double	d;*/
 		float	f = pow (i / 1023.0, (double)lightgamma);
-		/*int		inf;*/
 
 		if (brightness > 1.0)
 			f *= brightness;
@@ -83,10 +83,8 @@ static void BuildGammaTable (const float gamma, const float brightness, const fl
 		else
 			f = ((f - g3) / (1.0 - g3)) * 0.875 + 0.125;
 
-		/*d = pow ((double)f, (double)g1);	// do not remove the cast, or tests fail
-		inf = d * 1023.0;*/
-		double d = pow ((double)f, (double)g1);	// do not remove the cast, or tests fail
-		int inf = d * 1023.0;
+		double	d = pow ((double)f, (double)g1);	// do not remove the cast, or tests fail
+		int		inf = d * 1023.0;
 		lightgammatable[i] = bound (0, inf, 1023);
 
 		// do these calculations in the same loop...
@@ -122,7 +120,7 @@ static void V_ValidateGammaCvars (void)
 // [FWGS, 01.03.24]
 void V_CheckGamma (void)
 	{
-	static qboolean dirty = false;
+	static qboolean	dirty = false;
 
 	// because these cvars were defined as archive
 	// but wasn't doing anything useful
@@ -229,6 +227,7 @@ uint LinearGammaTable (uint b)
 	// [FWGS, 01.12.24]
 	if (unlikely (b >= HLARRAYSIZE (lineargammatable)))
 		return 0;
+
 	return lineargammatable[b];
 	}
 
@@ -251,18 +250,19 @@ intptr_t V_GetGammaPtr (int parm)
 	}
 
 #if XASH_ENGINE_TESTS
+
 #include "tests.h"
 
 typedef struct precomputed_gamma_tables_s
 	{
-	float gamma;
-	float brightness;
-	float texgamma;
-	float lightgamma;
-	byte  texgammatable[256];
-	int   lightgammatable[1024];
-	int   lineargammatable[1024];
-	int   screengammatable[1024];
+	float	gamma;
+	float	brightness;
+	float	texgamma;
+	float	lightgamma;
+	byte	texgammatable[256];
+	int		lightgammatable[1024];
+	int		lineargammatable[1024];
+	int		screengammatable[1024];
 	} precomputed_gamma_tables_t;
 
 // put at the end of the file, to not confuse Qt Creator's parser
@@ -271,16 +271,13 @@ precomputed_gamma_tables_t *Test_GetGammaTables (int i);
 // [FWGS, 01.07.26]
 static void Test_PrecomputedGammaTables (void)
 	{
-	precomputed_gamma_tables_t *data;
-	int i = 0;
+	precomputed_gamma_tables_t	*data;
+	int	i = 0;
 
 	while ((data = Test_GetGammaTables (i)))
 		{
-		/*int j;*/
-
 		BuildGammaTable (data->gamma, data->brightness, data->texgamma, data->lightgamma);
 
-		/*for (j = 0; j < 1024; j++)*/
 		for (int j = 0; j < 1024; j++)
 			{
 			if (j < 256)
@@ -292,6 +289,7 @@ static void Test_PrecomputedGammaTables (void)
 			TASSERT_EQi (lineargammatable[j], data->lineargammatable[j]);
 			TASSERT_EQi (screengammatable[j], data->screengammatable[j]);
 			}
+
 		i++;
 		}
 	}
@@ -304,7 +302,7 @@ void Test_RunGamma (void)
 precomputed_gamma_tables_t *Test_GetGammaTables (int i)
 	{
 	static precomputed_gamma_tables_t precomputed_data[] = {
-	{
+		{
 		.gamma = 2.5,
 		.brightness = 0.0,
 		.texgamma = 2.0,
@@ -380,7 +378,7 @@ precomputed_gamma_tables_t *Test_GetGammaTables (int i)
 			987, 987, 988, 988, 988, 989, 989, 990, 990, 991, 991, 991, 992, 992, 993, 993, 993, 994, 994, 995, 995, 996, 996, 996, 997, 997, 998, 998, 998, 999, 999, 1000, 1000, 1001, 1001, 1001, 1002, 1002, 1003, 1003, 1003, 1004, 1004, 1005, 1005, 1005, 1006, 1006,
 			1007, 1007, 1008, 1008, 1008, 1009, 1009, 1010, 1010, 1010, 1011, 1011, 1012, 1012, 1012, 1013, 1013, 1014, 1014, 1014, 1015, 1015, 1016, 1016, 1016, 1017, 1017, 1018, 1018, 1018, 1019, 1019, 1020, 1020, 1020, 1021, 1021, 1022, 1022, 1023
 		},
-	}, {
+		}, {
 		.gamma = 2.2,
 		.brightness = 1.0,
 		.texgamma = 2.2,
@@ -456,7 +454,7 @@ precomputed_gamma_tables_t *Test_GetGammaTables (int i)
 			982, 982, 983, 983, 984, 984, 985, 985, 986, 986, 987, 987, 988, 988, 989, 989, 990, 990, 991, 991, 991, 992, 992, 993, 993, 994, 994, 995, 995, 996, 996, 997, 997, 998, 998, 999, 999, 999, 1000, 1000, 1001, 1001, 1002, 1002, 1003, 1003, 1004, 1004, 1005,
 			1005, 1006, 1006, 1006, 1007, 1007, 1008, 1008, 1009, 1009, 1010, 1010, 1011, 1011, 1012, 1012, 1012, 1013, 1013, 1014, 1014, 1015, 1015, 1016, 1016, 1017, 1017, 1017, 1018, 1018, 1019, 1019, 1020, 1020, 1021, 1021, 1022, 1022, 1023
 		},
-	}
+		}
 		};
 
 	if ((i < 0) || (i >= HLARRAYSIZE (precomputed_data)))
@@ -464,4 +462,5 @@ precomputed_gamma_tables_t *Test_GetGammaTables (int i)
 
 	return &precomputed_data[i];
 	}
+
 #endif

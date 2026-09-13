@@ -25,7 +25,6 @@ double Platform_DoubleTime (void)
 	{
 	static Uint64	g_PerformanceFrequency;
 	static Uint64	g_ClockStart;
-	/*Uint64 CurrentTime;*/
 
 	if (!g_PerformanceFrequency)
 		{
@@ -33,8 +32,7 @@ double Platform_DoubleTime (void)
 		g_ClockStart = SDL_GetPerformanceCounter ();
 		}
 
-	/*CurrentTime = SDL_GetPerformanceCounter ();*/
-	Uint64 CurrentTime = SDL_GetPerformanceCounter ();
+	Uint64	CurrentTime = SDL_GetPerformanceCounter ();
 	return (double)(CurrentTime - g_ClockStart) / (double)(g_PerformanceFrequency);
 	}
 
@@ -47,10 +45,12 @@ void Platform_Sleep (int msec)
 #endif
 
 #if XASH_MESSAGEBOX == MSGBOX_SDL
+
 void Platform_MessageBox (const char *title, const char *message, qboolean parentMainWindow)
 	{
 	SDL_ShowSimpleMessageBox (SDL_MESSAGEBOX_ERROR, title, message, parentMainWindow ? host.hWnd : NULL);
 	}
+
 #endif
 
 // [FWGS, 01.02.25]
@@ -85,7 +85,7 @@ static const char *SDLash_CategoryToString (int category)
 // [FWGS, 01.11.25]
 static void SDLCALL SDLash_LogOutputFunction (void *userdata, int category, SDL_LogPriority priority, const char *message)
 	{
-	const char *str = "";
+	const char	*str = "";
 
 	switch (priority)
 		{
@@ -114,14 +114,17 @@ static void SDLCALL SDLash_LogOutputFunction (void *userdata, int category, SDL_
 void SDLash_Init (void)
 	{
 #if XASH_IOS
-	char *path = SDL_GetBasePath ();
+
+	char	*path = SDL_GetBasePath ();
+
 	if (path != NULL)
 		{
-		char buf[MAX_VA_STRING];
+		char	buf[MAX_VA_STRING];
 
 		Q_snprintf (buf, sizeof (buf), "%s%s/extras.pk3", path, host.default_gamedir);
 		setenv ("XASH3D_EXTRAS_PAK1", buf, true);
 		}
+
 #endif
 
 	SDL_LogSetOutputFunction (SDLash_LogOutputFunction, NULL);
@@ -134,10 +137,12 @@ void SDLash_Init (void)
 		SDL_LogSetAllPriority (SDL_LOG_PRIORITY_ERROR);
 
 #if XASH_WIN32
+
 	SDL_SetHint (SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitor");
 	// TODO: disabled for now
 	// try to test it better when we'll come back to highdpi support issue
 	// SDL_SetHint( SDL_HINT_WINDOWS_DPI_SCALING, "1" );
+
 #endif
 
 	SDL_SetHint (SDL_HINT_ANDROID_BLOCK_ON_PAUSE, "0");
@@ -168,6 +173,11 @@ void SDLash_Init (void)
 #endif
 
 	SDL_SetHint (SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+
+	// [FWGS, 01.09.26]
+#ifdef SDL_HINT_MOUSE_RELATIVE_SCALING
+	SDL_SetHint (SDL_HINT_MOUSE_RELATIVE_SCALING, "0");
+#endif
 
 	// NOTE: setting this hint makes no sense, as of course
 	// it doesn't make warps magically work in normal, non-relative mode

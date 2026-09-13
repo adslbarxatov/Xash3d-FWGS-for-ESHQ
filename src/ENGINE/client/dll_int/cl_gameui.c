@@ -21,7 +21,7 @@ GNU General Public License for more details
 #include "server.h"	// !!svgame.hInstance
 #include "vid_common.h"
 
-static void 	UI_UpdateUserinfo (void);
+static void		UI_UpdateUserinfo (void);
 
 gameui_static_t	gameui;
 
@@ -84,8 +84,6 @@ void UI_MouseMove (int x, int y)
 // [FWGS, 01.07.26]
 void UI_SetActiveMenu (qboolean fActive)
 	{
-	/*movie_state_t *cin_state;*/
-
 	if (!gameui.hInstance)
 		{
 		if (!fActive)
@@ -99,7 +97,6 @@ void UI_SetActiveMenu (qboolean fActive)
 	if (!fActive)
 		{
 		// close logo when menu is shutdown
-		/*cin_state = AVI_GetState (CIN_LOGO);*/
 		movie_state_t *cin_state = AVI_GetState (CIN_LOGO);
 		AVI_CloseVideo (cin_state);
 		}
@@ -353,13 +350,10 @@ static float GAME_EXPORT UI_GetLogoLength (void)
 // [FWGS, 01.07.26]
 static void UI_UpdateUserinfo (void)
 	{
-	/*player_info_t *player;*/
-
 	if (!host.userinfo_changed)
 		return;
 
-	/*player = &gameui.playerinfo;*/
-	player_info_t *player = &gameui.playerinfo;
+	player_info_t	*player = &gameui.playerinfo;
 
 	Q_strncpy (player->userinfo, cls.userinfo, sizeof (player->userinfo));
 	Q_strncpy (player->name, Info_ValueForKey (player->userinfo, "name"), sizeof (player->name));
@@ -439,10 +433,8 @@ static void UI_ToOldGameInfo (GAMEINFO *out, const gameinfo2_t *in)
 // [FWGS, 01.07.26]
 static void UI_GetModsInfo (void)
 	{
-	/*int i;*/
-
 	gameui.modsInfo = Mem_Calloc (gameui.mempool, sizeof (*gameui.modsInfo) * FI->numgames);
-	/*for (i = 0; i < FI->numgames; i++)*/
+
 	for (int i = 0; i < FI->numgames; i++)
 		UI_ConvertGameInfo (&gameui.modsInfo[i], FI->games[i]);
 	}
@@ -457,7 +449,7 @@ draw hudsprite routine
 static void PIC_DrawGeneric (float x, float y, float width, float height, const wrect_t *prc)
 	{
 	float	s1, s2, t1, t2;
-	int	w, h;
+	int		w, h;
 
 	// assume we get sizes from image
 	R_GetTextureParms (&w, &h, gameui.ds.gl_texturenum);
@@ -761,14 +753,11 @@ drawing string like a console string
 ***/
 static int GAME_EXPORT UI_DrawConsoleString (int x, int y, const char *string)
 	{
-	/*int	drawLen;*/
-
 	// silent ignore
 	if (!string || !*string)
 		return 0;
 
-	/*drawLen = Con_DrawString (x, y, string, gameui.ds.textColor);*/
-	int drawLen = Con_DrawString (x, y, string, gameui.ds.textColor);
+	int	drawLen = Con_DrawString (x, y, string, gameui.ds.textColor);
 	MakeRGBA (gameui.ds.textColor, 255, 255, 255, 255);
 
 	// exclude color prexfixes
@@ -838,7 +827,7 @@ for drawing playermodel previews
 ***/
 static void GAME_EXPORT pfnRenderScene (const ref_viewpass_t *rvp)
 	{
-	ref_viewpass_t copy;
+	ref_viewpass_t	copy;
 
 	// to avoid division by zero
 	if (!rvp || (rvp->fov_x <= 0.0f) || (rvp->fov_y <= 0.0f))
@@ -917,6 +906,7 @@ static void *pfnKeyGetState (const char *name)
 	{
 	if (clgame.dllFuncs.KB_Find)
 		return clgame.dllFuncs.KB_Find (name);
+
 	return NULL;
 	}
 
@@ -966,16 +956,12 @@ static GAMEINFO **GAME_EXPORT pfnGetGamesList (int *numGames)
 
 	if (!gameui.oldModsInfo)
 		{
-		/*int i;
-
-		// [FWGS, 01.12.24]*/
 		if (!gameui.modsInfo)
 			UI_GetModsInfo ();
 
 		// first allocate array of pointers
 		gameui.oldModsInfo = Mem_Calloc (gameui.mempool, sizeof (*gameui.oldModsInfo) * FI->numgames);
 
-		/*for (i = 0; i < FI->numgames; i++)*/
 		for (int i = 0; i < FI->numgames; i++)
 			{
 			gameui.oldModsInfo[i] = Mem_Calloc (gameui.mempool, sizeof (*gameui.oldModsInfo[i]));
@@ -995,7 +981,7 @@ release prev search on a next call
 ***/
 char **GAME_EXPORT CL_GetFilesList (const char *pattern, int *numFiles, int gamedironly)
 	{
-	static search_t *t = NULL;
+	static search_t	*t = NULL;
 	if (t)
 		Mem_Free (t);	// release prev search
 
@@ -1034,7 +1020,7 @@ static int GAME_EXPORT pfnCheckGameDll (void)
 #ifdef XASH_INTERNAL_GAMELIBS
 	return true;
 #else
-	string dllpath;
+	string	dllpath;
 
 	if (svgame.hInstance)
 		return true;
@@ -1067,6 +1053,7 @@ static void GAME_EXPORT pfnHostEndGame (const char *szFinalMessage)
 	{
 	if (!szFinalMessage)
 		szFinalMessage = "";
+
 	Host_EndGame (false, "%s", szFinalMessage);
 	}
 
@@ -1146,13 +1133,10 @@ static void GAME_EXPORT pfnCon_DefaultColor (int r, int g, int b)
 // [FWGS, 01.07.26]
 static void GAME_EXPORT pfnSetCursor (void *hCursor)
 	{
-	/*uintptr_t cursor;*/
-
 	if (!gameui.use_extended_api)
 		return;	// ignore original Xash menus
 
-	/*cursor = (uintptr_t)hCursor;*/
-	uintptr_t cursor = (uintptr_t)hCursor;
+	uintptr_t	cursor = (uintptr_t)hCursor;
 	if ((cursor < dc_user) || (cursor > dc_last))
 		return;
 
@@ -1261,6 +1245,12 @@ static void pfnEnableTextInput (int enable)
 	Key_EnableTextInput (enable, false);
 	}
 
+// [FWGS, 01.09.26]
+static void pfnSetTextInputRect (int x, int y, int w, int h)
+	{
+	Key_SetTextInputRect (x, y, w, h);
+	}
+
 // [FWGS, 01.04.25]
 static int pfnGetRenderers (unsigned int num, char *short_name, size_t size1, char *long_name, size_t size2)
 	{
@@ -1308,7 +1298,7 @@ static gameinfo2_t *pfnGetModInfo (int gi_version, int i)
 // [FWGS, 01.12.24]
 static int pfnIsCvarReadOnly (const char *name)
 	{
-	convar_t *cv = Cvar_FindVar (name);
+	convar_t	*cv = Cvar_FindVar (name);
 
 	if (!cv)
 		return -1;
@@ -1316,7 +1306,8 @@ static int pfnIsCvarReadOnly (const char *name)
 	return FBitSet (cv->flags, FCVAR_READ_ONLY) ? 1 : 0;
 	}
 
-static ui_extendedfuncs_t gExtendedfuncs =
+// [FWGS, 01.09.26]
+static ui_extendedfuncs_t	gExtendedfuncs =
 	{
 	pfnEnableTextInput,
 	Con_UtfProcessChar,
@@ -1332,6 +1323,7 @@ static ui_extendedfuncs_t gExtendedfuncs =
 	pfnGetGameInfo,
 	pfnGetModInfo,
 	pfnIsCvarReadOnly,
+	pfnSetTextInputRect,
 	};
 
 // [FWGS, 01.09.24]
@@ -1384,7 +1376,7 @@ qboolean UI_LoadProgs (void)
 
 	if (!(gameui.hInstance = COM_LoadLibrary (dllpath, false, false)))
 		{
-		string path = OS_LIB_PREFIX "menu." OS_LIB_EXT;
+		string	path = OS_LIB_PREFIX "menu." OS_LIB_EXT;
 
 		FS_AllowDirectPaths (true);
 

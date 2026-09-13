@@ -16,18 +16,22 @@ GNU General Public License for more details
 // [FWGS, 01.03.26]
 #include "..\library_suffix\build.h"
 #include <inttypes.h>
-#include <fcntl.h>
 
-// [FWGS, 01.11.25]
-#if !XASH_WIN32
+// [FWGS, 01.09.26]
+#if XASH_LINUX
+	#include <fcntl.h>
+
+	/*// [FWGS, 01.11.25]
+	if !XASH_WIN32*/
 	#include <dirent.h>
-#else
-	#include <io.h>
+	/*else
+	#include <io.h>*/
 #endif
 
-// [FWGS, 01.03.26]
+// [FWGS, 01.09.26]
 #include "common.h"
 #include "client.h"
+#include "platform/platform.h"
 
 /***
 ==========================================================
@@ -43,8 +47,8 @@ static bloomfilter_t id;
 
 static bloomfilter_t BloomFilter_Process (const char *buffer, int size)
 	{
-	dword crc32;
-	bloomfilter_t value = 0;
+	dword	crc32;
+	bloomfilter_t	value = 0;
 
 	if ((size <= 0) || (size > 512))
 		return 0;
@@ -68,12 +72,13 @@ static bloomfilter_t BloomFilter_ProcessStr (const char *buffer)
 
 uint BloomFilter_Weight (bloomfilter_t value)
 	{
-	int weight = 0;
+	int	weight = 0;
 
 	while (value)
 		{
 		if (value & 1)
 			weight++;
+
 		value = value >> 1;
 #if _MSC_VER == 1200
 		value &= 0x7FFFFFFFFFFFFFFF;
@@ -84,10 +89,9 @@ uint BloomFilter_Weight (bloomfilter_t value)
 	}
 
 // [FWGS, 01.07.26]
-/*qboolean BloomFilter_ContainsString (bloomfilter_t filter, const char *str)*/
 MAYBE_UNUSED static qboolean BloomFilter_ContainsString (bloomfilter_t filter, const char *str)
 	{
-	bloomfilter_t value = BloomFilter_ProcessStr (str);
+	bloomfilter_t	value = BloomFilter_ProcessStr (str);
 
 	return (filter & value) == value;
 	}
@@ -100,15 +104,14 @@ IDENTIFICATION
 #define MAXBITS_GEN 30
 #define MAXBITS_CHECK MAXBITS_GEN + 6
 
-static qboolean ID_ProcessFile (bloomfilter_t *value, const char *path);
+// [FWGS, 01.09.26]
+/*static qboolean ID_ProcessFile (bloomfilter_t *value, const char *path);*/
 
 // [FWGS, 01.07.26]
 static void ID_BloomFilter_f (void)
 	{
-	bloomfilter_t value = 0;
-	/*int i;*/
+	bloomfilter_t	value = 0;
 
-	/*for (i = 1; i < Cmd_Argc (); i++)*/
 	for (int i = 1; i < Cmd_Argc (); i++)
 		value |= BloomFilter_ProcessStr (Cmd_Argv (i));
 
@@ -121,11 +124,10 @@ static qboolean ID_VerifyHEX (const char *hex)
 	uint	chars = 0;
 	char	prev = 0;
 	qboolean	monotonic = true;	// detect 11:22...
-	/*int			weight = 0;*/
 
 	while (*hex++)
 		{
-		char ch = Q_tolower (*hex);
+		char	ch = Q_tolower (*hex);
 
 		if (((ch >= 'a') && (ch <= 'f')) || ((ch >= '0') && (ch <= '9')))
 			{
@@ -144,7 +146,7 @@ static qboolean ID_VerifyHEX (const char *hex)
 	if (monotonic)
 		return false;
 
-	int weight = 0;
+	int	weight = 0;
 	while (chars)
 		{
 		if (chars & 1)
@@ -174,7 +176,6 @@ static void ID_VerifyHEX_f (void)
 static qboolean ID_ProcessCPUInfo (bloomfilter_t *value)
 	{
 	int		cpuinfofd = open ("/proc/cpuinfo", O_RDONLY);
-	/*char buffer[1024], *pbuf, *pbuf2;*/
 	char	buffer[1024];
 	int		ret;
 
@@ -188,20 +189,17 @@ static qboolean ID_ProcessCPUInfo (bloomfilter_t *value)
 		}
 
 	close (cpuinfofd);
-
 	buffer[ret] = 0;
 
 	if (!ret)
 		return false;
 
-	/*pbuf = Q_stristr (buffer, "Serial");*/
-	char *pbuf = Q_stristr (buffer, "Serial");
+	char	*pbuf = Q_stristr (buffer, "Serial");
 	if (!pbuf)
 		return false;
 	pbuf += 6;
 
-	/*pbuf2 = Q_strchrnul (pbuf, '\n');*/
-	char *pbuf2 = Q_strchrnul (pbuf, '\n');
+	char	*pbuf2 = Q_strchrnul (pbuf, '\n');
 	*pbuf2 = 0;
 
 	if (!ID_VerifyHEX (pbuf))
@@ -211,12 +209,13 @@ static qboolean ID_ProcessCPUInfo (bloomfilter_t *value)
 	return true;
 	}
 
-// [FWGS, 01.07.26]
+// [FWGS, 01.09.26] removed ID_ValidateNetDevice, ID_ProcessNetDevices,
+// ID_CheckNetDevices
+
+/*// [FWGS, 01.07.26]
 static qboolean ID_ValidateNetDevice (const char *dev)
 	{
-	const char *prefix = "/sys/class/net";
-	/*byte *pfile;
-	int assignType;*/
+	const char	*prefix = "/sys/class/net";
 
 	// These devices are fake, their mac address is generated each boot,
 	// while assign_type is 0
@@ -224,14 +223,12 @@ static qboolean ID_ValidateNetDevice (const char *dev)
 		!Q_strnicmp (dev, "ifb", sizeof ("ifb")))
 		return false;
 
-	/*pfile = FS_LoadDirectFile (va ("%s/%s/addr_assign_type", prefix, dev), NULL);*/
-	byte *pfile = FS_LoadDirectFile (va ("%s/%s/addr_assign_type", prefix, dev), NULL);
+	byte	*pfile = FS_LoadDirectFile (va ("%s/%s/addr_assign_type", prefix, dev), NULL);
 
 	// if NULL, it may be old kernel
 	if (pfile)
 		{
-		/*assignType = Q_atoi ((char *)pfile);*/
-		int assignType = Q_atoi ((char *)pfile);
+		int	assignType = Q_atoi ((char *)pfile);
 		Mem_Free (pfile);
 
 		// check is MAC address is constant
@@ -244,10 +241,10 @@ static qboolean ID_ValidateNetDevice (const char *dev)
 
 static int ID_ProcessNetDevices (bloomfilter_t *value)
 	{
-	const char *prefix = "/sys/class/net";
-	DIR *dir;
-	struct dirent *entry;
-	int count = 0;
+	const char	*prefix = "/sys/class/net";
+	DIR		*dir;
+	struct	dirent *entry;
+	int		count = 0;
 
 	if (!(dir = opendir (prefix)))
 		return 0;
@@ -269,12 +266,12 @@ static int ID_ProcessNetDevices (bloomfilter_t *value)
 
 static int ID_CheckNetDevices (bloomfilter_t value)
 	{
-	const char *prefix = "/sys/class/net";
+	const char	*prefix = "/sys/class/net";
 
-	DIR *dir;
-	struct dirent *entry;
-	int count = 0;
-	bloomfilter_t filter = 0;
+	DIR		*dir;
+	struct dirent	*entry;
+	int		count = 0;
+	bloomfilter_t	filter = 0;
 
 	if (!(dir = opendir (prefix)))
 		return 0;
@@ -295,19 +292,20 @@ static int ID_CheckNetDevices (bloomfilter_t value)
 	return count;
 	}
 
-// [FWGS, 01.07.24]
+// [FWGS, 01.07.24]*/
+
 static void ID_TestCPUInfo_f (void)
 	{
-	bloomfilter_t value = 0;
+	bloomfilter_t	value = 0;
 
 	if (ID_ProcessCPUInfo (&value))
 		Msg ("Got %016"PRIX64"\n", value);
-
 	else
 		Msg ("Could not get serial\n");
 	}
 
-#endif
+// [FWGS, 01.09.26]
+/*endif*/
 
 static qboolean ID_ProcessFile (bloomfilter_t *value, const char *path)
 	{
@@ -339,13 +337,14 @@ static qboolean ID_ProcessFile (bloomfilter_t *value, const char *path)
 	return true;
 	}
 
-#if !XASH_WIN32
+// [FWGS, 01.09.26]
+/*if !XASH_WIN32*/
 
 static int ID_ProcessFiles (bloomfilter_t *value, const char *prefix, const char *postfix)
 	{
-	DIR *dir;
-	struct dirent *entry;
-	int count = 0;
+	DIR		*dir;
+	struct dirent	*entry;
+	int		count = 0;
 
 	if (!(dir = opendir (prefix)))
 		return 0;
@@ -357,16 +356,17 @@ static int ID_ProcessFiles (bloomfilter_t *value, const char *prefix, const char
 
 		count += ID_ProcessFile (value, va ("%s/%s/%s", prefix, entry->d_name, postfix));
 		}
+
 	closedir (dir);
 	return count;
 	}
 
 static int ID_CheckFiles (bloomfilter_t value, const char *prefix, const char *postfix)
 	{
-	DIR *dir;
-	struct dirent *entry;
-	int count = 0;
-	bloomfilter_t filter = 0;
+	DIR		*dir;
+	struct dirent	*entry;
+	int		count = 0;
+	bloomfilter_t	filter = 0;
 
 	if (!(dir = opendir (prefix)))
 		return 0;
@@ -384,12 +384,108 @@ static int ID_CheckFiles (bloomfilter_t value, const char *prefix, const char *p
 	return count;
 	}
 
-#else
+/*else*/
+#endif
+
+#if XASH_POSIX
+
+// [FWGS, 01.09.26]
+#define MAX_NETDEVICES 16
+
+// [FWGS, 01.09.26]
+static qboolean ID_IsReservedMAC (uint64_t mac)
+	{
+	byte	first = (mac >> 40) & 0xff;
+
+	// no address at all
+	if (mac == 0)
+		return true;
+
+	// group and local bits of the first octet, see https://www.rfc-editor.org/rfc/rfc9542#section-2.1.1
+	if (FBitSet (first, 0x01) || FBitSet (first, 0x02))
+		return true;
+
+	// IANA OUI, see https://www.iana.org/assignments/ethernet-numbers/ethernet-numbers.xhtml
+	// and https://www.rfc-editor.org/rfc/rfc9568#section-7.3
+	if ((mac >> 24) == 0x00005e)
+		return true;
+
+	return false;
+	}
+
+// [FWGS, 01.09.26]
+static void ID_FormatMAC (char *out, size_t size, uint64_t mac)
+	{
+	// format exactly like /sys/class/net/ */address contents, so ids generated by older versions stay valid
+	Q_snprintf (out, size, "%02x:%02x:%02x:%02x:%02x:%02x\n",
+		(uint)((mac >> 40) & 0xffu),
+		(uint)((mac >> 32) & 0xffu),
+		(uint)((mac >> 24) & 0xffu),
+		(uint)((mac >> 16) & 0xffu),
+		(uint)((mac >> 8) & 0xffu),
+		(uint)(mac & 0xffu));
+	}
+
+// [FWGS, 01.09.26]
+static int ID_ProcessNetDevices (bloomfilter_t *value)
+	{
+	uint64_t	macs[MAX_NETDEVICES];
+	int	total = Posix_GetNetDeviceAddresses (macs, MAX_NETDEVICES);
+	int	count = 0;
+
+	for (int i = 0; i < total && BloomFilter_Weight (*value) < MAXBITS_GEN; i++)
+		{
+		char	buf[32];
+
+		if (ID_IsReservedMAC (macs[i]))
+			continue;
+
+		ID_FormatMAC (buf, sizeof (buf), macs[i]);
+
+		if (!ID_VerifyHEX (buf))
+			continue;
+
+		*value |= BloomFilter_ProcessStr (buf);
+		count++;
+		}
+
+	return count;
+	}
+
+// [FWGS, 01.09.26]
+static int ID_CheckNetDevices (bloomfilter_t value)
+	{
+	uint64_t	macs[MAX_NETDEVICES];
+	int	total = Posix_GetNetDeviceAddresses (macs, MAX_NETDEVICES);
+	int	count = 0;
+
+	for (int i = 0; i < total; i++)
+		{
+		char	buf[32];
+
+		if (ID_IsReservedMAC (macs[i]))
+			continue;
+
+		ID_FormatMAC (buf, sizeof (buf), macs[i]);
+
+		if (!ID_VerifyHEX (buf))
+			continue;
+
+		bloomfilter_t filter = BloomFilter_ProcessStr (buf);
+		count += (value & filter) == filter;
+		}
+
+	return count;
+	}
+
+#endif
+
+#if XASH_WIN32
 
 // [FWGS, 01.04.25]
 static int ID_GetKeyData (HKEY hRootKey, char *subKey, char *value, LPBYTE data, DWORD cbData)
 	{
-	HKEY hKey;
+	HKEY	hKey;
 
 	if (RegOpenKeyExA (hRootKey, subKey, 0, KEY_QUERY_VALUE, &hKey) != ERROR_SUCCESS)
 		return 0;
@@ -407,7 +503,7 @@ static int ID_GetKeyData (HKEY hRootKey, char *subKey, char *value, LPBYTE data,
 // [FWGS, 01.04.25]
 static int ID_SetKeyData (HKEY hRootKey, char *subKey, DWORD dwType, char *value, LPBYTE data, DWORD cbData)
 	{
-	HKEY hKey;
+	HKEY	hKey;
 	if (RegCreateKeyA (hRootKey, subKey, &hKey) != ERROR_SUCCESS)
 		return 0;
 
@@ -434,7 +530,7 @@ static int ID_RunWMIC (char *buffer, const wchar_t *cmdline)
 	wchar_t	*cmdline_copy;
 
 	// [FWGS, 01.11.25]
-	const int cmdline_size = wcslen (cmdline) * sizeof (*cmdline);
+	const int	cmdline_size = wcslen (cmdline) * sizeof (*cmdline);
 
 	PROCESS_INFORMATION	pi = { 0 };
 	SECURITY_ATTRIBUTES	saAttr =
@@ -449,7 +545,7 @@ static int ID_RunWMIC (char *buffer, const wchar_t *cmdline)
 	SetHandleInformation (g_IN_Wr, HANDLE_FLAG_INHERIT, 0);
 
 	// [FWGS, 01.11.25]
-	STARTUPINFOW si =
+	STARTUPINFOW	si =
 		{
 		.cb = sizeof (STARTUPINFOW),
 		.dwFlags = STARTF_USESTDHANDLES,
@@ -524,13 +620,10 @@ static int ID_CheckWMIC (bloomfilter_t value, const wchar_t *cmdline)
 	pbuf = COM_ParseFile (buffer, token, sizeof (token));	// header
 	while ((pbuf = COM_ParseFile (pbuf, token, sizeof (token))))
 		{
-		/*bloomfilter_t filter;*/
-
 		if (!ID_VerifyHEX (token))
 			continue;
 
-		/*filter = BloomFilter_ProcessStr (token);*/
-		bloomfilter_t filter = BloomFilter_ProcessStr (token);
+		bloomfilter_t	filter = BloomFilter_ProcessStr (token);
 		count += (filter & value) == filter;
 		}
 
@@ -550,15 +643,15 @@ int PSVita_GetPSID (char *buf, const size_t buflen);
 
 static bloomfilter_t ID_GenerateRawId (void)
 	{
-	bloomfilter_t value = 0;
-	int count = 0;
+	bloomfilter_t	value = 0;
+	int	count = 0;
 
 	// [FWGS, 01.04.26]
 #if XASH_LINUX
 
 #if XASH_ANDROID
 	{
-	const char *androidid = Android_GetAndroidID ();
+	const char	*androidid = Android_GetAndroidID ();
 	if (androidid && ID_VerifyHEX (androidid))
 		{
 		value |= BloomFilter_ProcessStr (androidid);
@@ -572,8 +665,23 @@ static bloomfilter_t ID_GenerateRawId (void)
 
 	count += ID_ProcessCPUInfo (&value);
 	count += ID_ProcessFiles (&value, "/sys/block", "device/cid");
-	count += ID_ProcessNetDevices (&value);
 
+#endif
+
+	// [FWGS, 01.09.26]
+#if XASH_OSX
+	char	buf[64];
+
+	if (Apple_GetSerialNumber (buf, sizeof (buf)))
+		{
+		value |= BloomFilter_ProcessStr (buf);
+		count++;
+		}
+#endif
+
+	// [FWGS, 01.09.26]
+#if XASH_POSIX
+	count += ID_ProcessNetDevices (&value);
 #endif
 
 	// [FWGS, 01.05.25]
@@ -603,15 +711,15 @@ static bloomfilter_t ID_GenerateRawId (void)
 
 static uint ID_CheckRawId (bloomfilter_t filter)
 	{
-	bloomfilter_t value = 0;
-	int count = 0;
+	bloomfilter_t	value = 0;
+	int	count = 0;
 
 	// [FWGS, 01.04.26]
 #if XASH_LINUX
 
 #if XASH_ANDROID
 	{
-	const char *androidid = Android_GetAndroidID ();
+	const char	*androidid = Android_GetAndroidID ();
 	if (androidid && ID_VerifyHEX (androidid))
 		{
 		value = BloomFilter_ProcessStr (androidid);
@@ -628,11 +736,29 @@ static uint ID_CheckRawId (bloomfilter_t filter)
 		}
 #endif
 
-	count += ID_CheckNetDevices (filter);
+	// [FWGS, 01.09.26]
+	/*count += ID_CheckNetDevices (filter);*/
 	count += ID_CheckFiles (filter, "/sys/block", "device/cid");
 	if (ID_ProcessCPUInfo (&value))
 		count += (filter & value) == value;
 
+#endif
+
+	// [FWGS, 01.09.26]
+#if XASH_OSX
+	char	buf[64];
+
+	if (Apple_GetSerialNumber (buf, sizeof (buf)))
+		{
+		value = BloomFilter_ProcessStr (buf);
+		count += (filter & value) == value;
+		value = 0;
+		}
+#endif
+
+	// [FWGS, 01.09.26]
+#if XASH_POSIX
+	count += ID_CheckNetDevices (filter);
 #endif
 
 	// [FWGS, 01.05.25]
@@ -651,7 +777,7 @@ static uint ID_CheckRawId (bloomfilter_t filter)
 
 #if XASH_PSVITA
 	{
-	char data[16];
+	char	data[16];
 	PSVita_GetPSID (data, sizeof (data));
 	value = BloomFilter_Process (data, sizeof (data));
 	count += (filter & value) == value;
@@ -667,8 +793,8 @@ static uint ID_CheckRawId (bloomfilter_t filter)
 
 static void ID_Check (void)
 	{
-	uint weight = BloomFilter_Weight (id);
-	uint mincount = weight >> 2;
+	uint	weight = BloomFilter_Weight (id);
+	uint	mincount = weight >> 2;
 
 	if (mincount < 1)
 		mincount = 1;
@@ -687,8 +813,8 @@ static void ID_Check (void)
 void ID_GetMD5ForAddress (char *key, netadr_t adr, size_t size)
 	{
 	MD5Context_t	ctx;
-	byte			buf[32], md5[16];
-	size_t			bufsize = 0;
+	byte		buf[32], md5[16];
+	size_t		bufsize = 0;
 
 	switch (NET_NetadrType (&adr))
 		{
@@ -722,6 +848,7 @@ void ID_Init (void)
 	{
 	Cmd_AddRestrictedCommand ("bloomfilter", ID_BloomFilter_f, "print bloomfilter raw value of arguments set");
 	Cmd_AddRestrictedCommand ("verifyhex", ID_VerifyHEX_f, "check if id source seems to be fake");
+
 #if XASH_LINUX
 	Cmd_AddRestrictedCommand ("testcpuinfo", ID_TestCPUInfo_f, "try read cpu serial");
 #endif
@@ -736,7 +863,7 @@ void ID_Init (void)
 
 #elif XASH_WIN32
 	{
-	CHAR szBuf[MAX_PATH];
+	CHAR	szBuf[MAX_PATH];
 	ID_GetKeyData (HKEY_CURRENT_USER, "Software\\" XASH_ENGINE_NAME "\\", "xash_id", szBuf, MAX_PATH);
 
 	sscanf (szBuf, "%016"PRIX64, &id);
@@ -746,7 +873,7 @@ void ID_Init (void)
 #else
 	{
 	// [FWGS, 01.03.26]
-	const char *home = getenv ("HOME");
+	const char	*home = getenv ("HOME");
 	if (!COM_StringEmptyOrNULL (home))
 		{
 		FILE *cfg = fopen (va ("%s/.config/.xash_id", home), "r");
@@ -770,7 +897,7 @@ void ID_Init (void)
 #endif
 	if (!id)
 		{
-		const char *buf = (const char *)FS_LoadFile (".xash_id", NULL, false);
+		const char	*buf = (const char *)FS_LoadFile (".xash_id", NULL, false);
 
 		if (buf)
 			{
@@ -788,17 +915,17 @@ void ID_Init (void)
 	Android_SaveID (va ("%016"PRIX64, id ^SYSTEM_XOR_MASK));
 #elif XASH_WIN32
 	{
-	CHAR Buf[MAX_PATH];
+	CHAR	Buf[MAX_PATH];
 	sprintf (Buf, "%016"PRIX64, id ^SYSTEM_XOR_MASK);
 	ID_SetKeyData (HKEY_CURRENT_USER, "Software\\" XASH_ENGINE_NAME "\\", REG_SZ, "xash_id", Buf, Q_strlen (Buf));
 	}
 #else
 	{
 	// [FWGS, 01.03.26]
-	const char *home = getenv ("HOME");
+	const char	*home = getenv ("HOME");
 	if (!COM_StringEmptyOrNULL (home))
 		{
-		FILE *cfg = fopen (va ("%s/.config/.xash_id", home), "w");
+		FILE	*cfg = fopen (va ("%s/.config/.xash_id", home), "w");
 		if (!cfg)
 			cfg = fopen (va ("%s/.local/.xash_id", home), "w");
 		if (!cfg)

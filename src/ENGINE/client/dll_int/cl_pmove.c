@@ -106,11 +106,9 @@ CL_SetIdealPitch [FWGS, 01.07.26]
 void CL_SetIdealPitch (void)
 	{
 	float	angleval, sinval, cosval;
-	/*int			i, j, step, dir, steps;*/
 	int		i, dir, steps;
 	float	z[MAX_FORWARD];
 	vec3_t		top, bottom;
-	/*pmtrace_t	tr;*/
 
 	if (cl.local.onground == -1)
 		return;
@@ -122,7 +120,7 @@ void CL_SetIdealPitch (void)
 	// 160 or so units to see what's below
 	for (i = 0; i < MAX_FORWARD; i++)
 		{
-		pmtrace_t tr;
+		pmtrace_t	tr;
 
 		top[0] = cl.simorg[0] + cosval * (i + 3.0f) * 12.0f;
 		top[1] = cl.simorg[1] + sinval * (i + 3.0f) * 12.0f;
@@ -146,11 +144,9 @@ void CL_SetIdealPitch (void)
 	dir = 0;
 	steps = 0;
 
-	/*for (j = 1; j < i; j++)*/
 	for (int j = 1; j < i; j++)
 		{
-		/*step = z[j] - z[j - 1];*/
-		int step = z[j] - z[j - 1];
+		int	step = z[j] - z[j - 1];
 		if ((step > -ON_EPSILON) && (step < ON_EPSILON))
 			continue;
 
@@ -169,6 +165,7 @@ void CL_SetIdealPitch (void)
 
 	if (steps < 2)
 		return;
+
 	cl.local.idealpitch = -dir * cl_idealpitchscale.value;
 	}
 
@@ -256,16 +253,8 @@ This sets up the first phase
 ***/
 void GAME_EXPORT CL_SetUpPlayerPrediction (int dopred, int bIncludeLocalClient)
 	{
-	/*entity_state_t		*state;
-	predicted_player_t	*player;
-	cl_entity_t			*ent;
-	int		i;
-
-	for (i = 0; i < MAX_CLIENTS; i++)*/
 	for (int i = 0; i < MAX_CLIENTS; i++)
 		{
-		/*state = &cl.frames[cl.parsecountmod].playerstate[i];
-		player = &cls.predicted_players[i];*/
 		entity_state_t	*state = &cl.frames[cl.parsecountmod].playerstate[i];
 		predicted_player_t	*player = &cls.predicted_players[i];
 		player->active = false;
@@ -293,8 +282,7 @@ void GAME_EXPORT CL_SetUpPlayerPrediction (int dopred, int bIncludeLocalClient)
 			}
 		else
 			{
-			/*ent = CL_GetEntityByIndex (i + 1);*/
-			cl_entity_t *ent = CL_GetEntityByIndex (i + 1);
+			cl_entity_t	*ent = CL_GetEntityByIndex (i + 1);
 			CL_ComputePlayerOrigin (ent);
 
 			VectorCopy (ent->origin, player->origin);
@@ -321,7 +309,7 @@ void CL_ClipPMoveToEntity (physent_t *pe, const vec3_t start, vec3_t mins, vec3_
 
 static void CL_CopyEntityToPhysEnt (physent_t *pe, entity_state_t *state, qboolean visent)
 	{
-	model_t *mod = CL_ModelHandle (state->modelindex);
+	model_t	*mod = CL_ModelHandle (state->modelindex);
 
 	pe->player = 0;
 	if ((state->number >= 1) && (state->number <= cl.maxclients))
@@ -348,14 +336,17 @@ static void CL_CopyEntityToPhysEnt (physent_t *pe, entity_state_t *state, qboole
 	VectorCopy (state->mins, pe->mins);
 	VectorCopy (state->maxs, pe->maxs);
 
+	// [FWGS, 01.09.26]
 	if (state->solid == SOLID_BBOX)
 		{
-		if (FBitSet (mod->flags, STUDIO_TRACE_HITBOX))
+		/*if (FBitSet (mod->flags, STUDIO_TRACE_HITBOX))*/
+		if ((mod != NULL) && FBitSet (mod->flags, STUDIO_TRACE_HITBOX))
 			pe->studiomodel = mod;
 		}
 	else
 		{
-		if (pe->solid != SOLID_BSP && (mod != NULL) && (mod->type == mod_studio))
+		/*if (pe->solid != SOLID_BSP && (mod != NULL) && (mod->type == mod_studio))*/
+		if ((state->solid != SOLID_BSP) && (mod != NULL) && (mod->type == mod_studio))
 			pe->studiomodel = mod;
 		else
 			pe->model = mod;
@@ -412,18 +403,11 @@ collect solid entities
 ***/
 static void CL_AddLinksToPmove (frame_t *frame)
 	{
-	/*entity_state_t	*state;
-	model_t			*model;
-	physent_t		*pe;
-	int		i;*/
-
 	if (!frame->valid)
 		return;
 
-	/*for (i = 0; i < frame->num_entities; i++)*/
 	for (int i = 0; i < frame->num_entities; i++)
 		{
-		/*state = &cls.packet_entities[(frame->first_entity + i) % cls.num_client_entities];*/
 		entity_state_t	*state = &cls.packet_entities[(frame->first_entity + i) % cls.num_client_entities];
 		model_t		*model;
 		physent_t	*pe;
@@ -492,7 +476,7 @@ Builds all the pmove physents for the current frame
 ***/
 void CL_SetSolidEntities (void)
 	{
-	physent_t *pe = clgame.pmove->physents;
+	physent_t	*pe = clgame.pmove->physents;
 
 	// setup physents
 	clgame.pmove->numvisent = 1;
@@ -528,19 +512,11 @@ pmove must be setup with world and solid entity hulls before calling
 ***/
 void GAME_EXPORT CL_SetSolidPlayers (int playernum)
 	{
-	/*entity_state_t		*state;
-	predicted_player_t	*player;
-	physent_t			*pe;
-	int					i;*/
-
 	if (!cl_solid_players.value)
 		return;
 
-	/*for (i = 0; i < MAX_CLIENTS; i++)*/
 	for (int i = 0; i < MAX_CLIENTS; i++)
 		{
-		/*state = &cl.frames[cl.parsecountmod].playerstate[i];
-		player = &cls.predicted_players[i];*/
 		entity_state_t	*state = &cl.frames[cl.parsecountmod].playerstate[i];
 		predicted_player_t	*player = &cls.predicted_players[i];
 		physent_t	*pe;
@@ -587,10 +563,6 @@ CL_WaterEntity [FWGS, 01.07.26]
 ***/
 int GAME_EXPORT CL_WaterEntity (const float *rgflPos)
 	{
-	/*physent_t	*pe;
-	hull_t		*hull;
-	vec3_t		test, offset;
-	int			i, oldhull;*/
 	int	oldhull;
 
 	if (!rgflPos)
@@ -599,10 +571,8 @@ int GAME_EXPORT CL_WaterEntity (const float *rgflPos)
 	oldhull = clgame.pmove->usehull;
 
 	// ESHQ: отменено изменение из 4529, нарушающее корректный поиск текстуры
-	/*for (i = 0; i < clgame.pmove->numphysent; i++)*/
 	for (int i = 0; i < clgame.pmove->numphysent; i++)
 		{
-		/*pe = &clgame.pmove->physents[i];*/
 		physent_t	*pe = &clgame.pmove->physents[i];
 		hull_t	*hull;
 		vec3_t	test, offset;
@@ -650,7 +620,7 @@ a simple engine traceline
 ***/
 pmtrace_t CL_TraceLine (vec3_t start, vec3_t end, int flags)
 	{
-	int	old_usehull;
+	int		old_usehull;
 	pmtrace_t	tr;
 
 	old_usehull = clgame.pmove->usehull;
@@ -690,10 +660,8 @@ returns water brush where inside pos
 ***/
 cl_entity_t *CL_GetWaterEntity (const float *rgflPos)
 	{
-	/*int	entnum;*/
-	int entnum = CL_WaterEntity (rgflPos);
+	int	entnum = CL_WaterEntity (rgflPos);
 
-	/*entnum = CL_WaterEntity (rgflPos);*/
 	if (entnum <= 0)
 		return NULL;	// world or not water
 
@@ -772,8 +740,6 @@ CL_InitClientMove [FWGS, 01.07.26]
 ***/
 void CL_InitClientMove (void)
 	{
-	/*int	i;*/
-
 	Pmove_Init ();
 
 	clgame.pmove->server = false;	// running at client
@@ -781,7 +747,6 @@ void CL_InitClientMove (void)
 	clgame.pmove->runfuncs = false;
 
 	// enumerate client hulls
-	/*for (i = 0; i < MAX_MAP_HULLS; i++)*/
 	for (int i = 0; i < MAX_MAP_HULLS; i++)
 		{
 		if (clgame.dllFuncs.pfnGetHullBounds (i, host.player_mins[i], host.player_maxs[i]))
@@ -968,7 +933,7 @@ Runs prediction code for user cmd
 static void CL_RunUsercmd (local_state_t *from, local_state_t *to, usercmd_t *u, qboolean runfuncs, double *time,
 	unsigned int random_seed)
 	{
-	usercmd_t cmd;
+	usercmd_t	cmd;
 
 	if (u->msec > 50)
 		{
@@ -1108,9 +1073,9 @@ void CL_PredictMovement (qboolean repredicting)
 	for (i = 1; (i < CL_UPDATE_MASK) && (cls.netchan.incoming_acknowledged + i < 
 		cls.netchan.outgoing_sequence + stoppoint); i++)
 		{
-		uint current_command;
-		uint current_command_mod;
-		qboolean runfuncs;
+		uint	current_command;
+		uint	current_command_mod;
+		qboolean	runfuncs;
 
 		current_command = cls.netchan.incoming_acknowledged + i;
 		current_command_mod = current_command & CL_UPDATE_MASK;
@@ -1192,7 +1157,7 @@ void CL_PredictMovement (qboolean repredicting)
 
 	if (FBitSet (to->client.flags, FL_ONGROUND))
 		{
-		cl_entity_t *ent = CL_GetEntityByIndex (cl.local.lastground);
+		cl_entity_t	*ent = CL_GetEntityByIndex (cl.local.lastground);
 		ent = CL_GetEntityByIndex (cl.local.lastground);
 
 		cl.local.onground = cl.local.lastground;
@@ -1200,7 +1165,7 @@ void CL_PredictMovement (qboolean repredicting)
 
 		if (ent)
 			{
-			vec3_t delta;
+			vec3_t	delta;
 
 			delta[0] = ent->curstate.origin[0] - ent->prevstate.origin[0];
 			delta[1] = ent->curstate.origin[1] - ent->prevstate.origin[1];

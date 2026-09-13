@@ -75,12 +75,9 @@ find the specified variable by name
 ***/
 convar_t *Cvar_FindVar (const char *var_name)
 	{
-	/*convar_t *var;*/
-
 	if (!var_name)
 		return NULL;
 
-	/*var = BaseCmd_Find (HM_CVAR, var_name);*/
 	convar_t	*var = BaseCmd_Find (HM_CVAR, var_name);
 
 	// HACKHACK: HL25 compatibility
@@ -149,7 +146,7 @@ static qboolean Cvar_UpdateInfo (convar_t *var, const char *value, qboolean noti
 		if (Host_IsDedicated ())
 			{
 			// g-cont. this is a very strange behavior...
-			char *info = SV_Serverinfo ();
+			char	*info = SV_Serverinfo ();
 
 			Info_SetValueForKey (info, var->name, value, MAX_SERVERINFO_STRING),
 				SV_BroadcastCommand ("fullserverinfo \"%s\"\n", info);
@@ -196,10 +193,7 @@ deal with userinfo etc.
 ***/
 static const char *Cvar_ValidateString (convar_t *var, const char *value)
 	{
-	/*const char	*pszValue;*/
 	static char	szNew[MAX_STRING];
-
-	/*pszValue = value;*/
 	const char	*pszValue = value;
 	szNew[0] = 0;
 
@@ -237,7 +231,7 @@ static const char *Cvar_ValidateString (convar_t *var, const char *value)
 		int		len = 0;
 
 		// step through the string, only copying back in characters that are printable
-		while (*pszValue && len < MAX_STRING)
+		while (*pszValue && (len < MAX_STRING))
 			{
 			if (*pszValue == ' ')
 				{
@@ -294,15 +288,10 @@ unlink the variable
 static int Cvar_UnlinkVar (const char *var_name, uint32_t group)
 	{
 	int		count = 0;
-	/*convar_t	**prev;
-	convar_t	*var;
-
-	prev = &cvar_vars;*/
 	convar_t	**prev = &cvar_vars;
 
 	while (1)
 		{
-		/*var = *prev;*/
 		convar_t	*var = *prev;
 		if (!var)
 			break;
@@ -373,14 +362,11 @@ Cvar_LookupVars [FWGS, 01.07.26]
 ***/
 void Cvar_LookupVars (int checkbit, void *buffer, void *ptr, setpair_t callback)
 	{
-	/*convar_t *var;*/
-
 	// nothing to process?
 	if (!callback)
 		return;
 
 	// force checkbit to 0 for lookup all cvars
-	/*for (var = cvar_vars; var; var = var->next)*/
 	for (convar_t *var = cvar_vars; var; var = var->next)
 		{
 		if (checkbit && !FBitSet (var->flags, checkbit))
@@ -437,7 +423,7 @@ convar_t *Cvar_Get (const char *name, const char *value, uint32_t flags, const c
 			if (!COM_StringEmpty (var->desc))
 				{
 				// directly set value
-				size_t len = Q_strlen (value) + 1;
+				size_t	len = Q_strlen (value) + 1;
 				var->string = Mem_Realloc (cvar_pool, var->string, len);
 				Q_strncpy (var->string, value, len);
 
@@ -456,7 +442,7 @@ convar_t *Cvar_Get (const char *name, const char *value, uint32_t flags, const c
 
 		if (FBitSet (var->flags, FCVAR_ALLOCATED) && Q_strcmp (var_desc, var->desc))
 			{
-			size_t len = Q_strlen (var_desc) + 1;
+			size_t	len = Q_strlen (var_desc) + 1;
 
 			if (!FBitSet (flags, FCVAR_GLCONFIG))
 				Con_Reportf ("%s change description from %s to %s\n", var->name, var->desc, var_desc);
@@ -650,8 +636,6 @@ Cvar_Set2 [FWGS, 01.07.26]
 ***/
 static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 	{
-	/*convar_t	*var;
-	qboolean	dll_variable = false;*/
 	qboolean	force = false;
 
 	if (!Cvar_ValidateVarName (var_name, false))
@@ -660,7 +644,6 @@ static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 		return NULL;
 		}
 
-	/*var = Cvar_FindVar (var_name);*/
 	convar_t	*var = Cvar_FindVar (var_name);
 	if (!var)
 		{
@@ -687,7 +670,6 @@ static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 
 	// use this check to prevent acessing for unexisting fields
 	// for cvar_t: latched_string, description, etc
-	/*dll_variable = FBitSet (var->flags, FCVAR_EXTDLL);*/
 	qboolean	dll_variable = FBitSet (var->flags, FCVAR_EXTDLL);
 
 	// check value
@@ -809,8 +791,6 @@ Cvar_Set [FWGS, 01.07.26]
 ***/
 void GAME_EXPORT Cvar_Set (const char *var_name, const char *value)
 	{
-	/*convar_t *var;*/
-
 	if (!var_name)
 		{
 		// there is an error in C code if this happens
@@ -818,7 +798,6 @@ void GAME_EXPORT Cvar_Set (const char *var_name, const char *value)
 		return;
 		}
 
-	/*var = Cvar_FindVar (var_name);*/
 	convar_t	*var = Cvar_FindVar (var_name);
 	if (!var)
 		{
@@ -864,8 +843,6 @@ Cvar_VariableValue [FWGS, 01.07.26]
 ***/
 float GAME_EXPORT Cvar_VariableValue (const char *var_name)
 	{
-	/*convar_t	*var;*/
-
 	if (!var_name)
 		{
 		// there is an error in C code if this happens
@@ -873,7 +850,6 @@ float GAME_EXPORT Cvar_VariableValue (const char *var_name)
 		return 0.0f;
 		}
 
-	/*var = Cvar_FindVar (var_name);*/
 	convar_t	*var = Cvar_FindVar (var_name);
 	if (!var)
 		return 0.0f;
@@ -888,9 +864,6 @@ Cvar_VariableInteger [FWGS, 01.07.26]
 ***/
 int Cvar_VariableInteger (const char *var_name)
 	{
-	/*convar_t *var;
-
-	var = Cvar_FindVar (var_name);*/
 	convar_t	*var = Cvar_FindVar (var_name);
 	if (!var)
 		return 0;
@@ -905,8 +878,6 @@ Cvar_VariableString [FWGS, 01.07.26]
 ***/
 const char *Cvar_VariableString (const char *var_name)
 	{
-	/*convar_t *var;*/
-
 	if (!var_name)
 		{
 		// there is an error in C code if this happens
@@ -914,7 +885,6 @@ const char *Cvar_VariableString (const char *var_name)
 		return "";
 		}
 
-	/*var = Cvar_FindVar (var_name);*/
 	convar_t	*var = Cvar_FindVar (var_name);
 	if (!var)
 		return "";
@@ -944,10 +914,7 @@ Any testing variables will be reset to the safe values
 ***/
 void Cvar_SetCheatState (void)
 	{
-	/*convar_t *var;*/
-
 	// set all default vars to the safe value
-	/*for (var = cvar_vars; var; var = var->next)*/
 	for (convar_t *var = cvar_vars; var; var = var->next)
 		{
 		// can't process dll cvars - missed def_string
@@ -997,12 +964,10 @@ static int ShouldSetCvar_splitstr_handler (char *prev, char *next, void *userdat
 static qboolean Cvar_ShouldSetCvar (convar_t *v, qboolean isPrivileged)
 	{
 	const char	*prefixes[] = { "cl_", "gl_", "m_", "r_", "hud_", "joy_", "con_", "scr_" };
-	/*int i;*/
 
 	if (isPrivileged)
 		return true;
 
-	/*if (FBitSet (v->flags, FCVAR_PRIVILEGED))*/
 	if (FBitSet (v->flags, FCVAR_PRIVILEGED) || (v->name[0] == '@'))
 		return false;
 
@@ -1019,7 +984,6 @@ static qboolean Cvar_ShouldSetCvar (convar_t *v, qboolean isPrivileged)
 	if (FBitSet (v->flags, FCVAR_FILTERABLE))
 		return false;
 
-	/*for (i = 0; i < HLARRAYSIZE (prefixes); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (prefixes); i++)
 		{
 		if (!Q_strnicmp (v->name, prefixes[i], Q_strlen (prefixes[i])))
@@ -1088,9 +1052,6 @@ with the specified flag set to true
 ***/
 void Cvar_WriteVariables (file_t *f, int group)
 	{
-	/*convar_t *var;
-
-	for (var = cvar_vars; var; var = var->next)*/
 	for (convar_t *var = cvar_vars; var; var = var->next)
 		{
 		if (FBitSet (var->flags, group))
@@ -1107,22 +1068,19 @@ Toggles a cvar for easy single key binding
 ***/
 static void Cvar_Toggle_f (void)
 	{
-	/*int	v;*/
-
 	if (Cmd_Argc () != 2)
 		{
 		Con_Printf (S_USAGE "toggle <variable>\n");
 		return;
 		}
 
-	/*v = !Cvar_VariableInteger (Cmd_Argv (1));*/
 	int	v = !Cvar_VariableInteger (Cmd_Argv (1));
 	Cvar_Set (Cmd_Argv (1), v ? "1" : "0");
 	}
 
 /***
 ============
-Cvar_Set_f [FWGS, 01.07.26]
+Cvar_Set_f [FWGS, 01.09.26]
 
 Allows setting and defining of arbitrary cvars from console, even if they
 weren't declared in C code
@@ -1130,10 +1088,9 @@ weren't declared in C code
 ***/
 static void Cvar_Set_f (void)
 	{
-	/*int		i, c, l = 0, len;*/
-	char	combined[MAX_CMD_TOKENS];
+	/*char	combined[MAX_CMD_TOKENS];*/
+	char	combined[MAX_STRING];
 	int		l = 0;
-	/*c = Cmd_Argc ();*/
 	int		c = Cmd_Argc ();
 
 	if (c < 3)
@@ -1144,15 +1101,23 @@ static void Cvar_Set_f (void)
 
 	combined[0] = 0;
 
-	/*for (i = 2; i < c; i++)*/
 	for (int i = 2; i < c; i++)
 		{
-		/*len = Q_strlen (Cmd_Argv (i) + 1);*/
-		int	len = Q_strlen (Cmd_Argv (i) + 1);
-		if (l + len >= MAX_CMD_TOKENS - 2)
+		/*int	len = Q_strlen (Cmd_Argv (i) + 1);
+		if (l + len >= MAX_CMD_TOKENS - 2)*/
+		const char	*arg = Cmd_Argv (i);
+
+		if (COM_StringEmpty (arg))
+			continue;
+
+		int	len = Q_strlen (arg) + 1;
+		if (l + len >= sizeof (combined))
 			break;
 
-		Q_strncat (combined, Cmd_Argv (i), sizeof (combined));
+		/*Q_strncat (combined, Cmd_Argv (i), sizeof (combined));
+		if (i != c - 1)
+			Q_strncat (combined, " ", sizeof (combined));*/
+		Q_strncat (combined, arg, sizeof (combined));
 		if (i != c - 1)
 			Q_strncat (combined, " ", sizeof (combined));
 
@@ -1187,7 +1152,6 @@ Cvar_List_f [FWGS, 01.07.26]
 ***/
 static void Cvar_List_f (void)
 	{
-	/*convar_t	*var;*/
 	const char	*match = NULL;
 	int			count = 0;
 	size_t		matchlen = 0;
@@ -1198,12 +1162,9 @@ static void Cvar_List_f (void)
 		matchlen = Q_strlen (match);
 		}
 
-	/*// [FWGS, 01.02.25]
-	for (var = cvar_vars; var; var = var->next)*/
 	for (convar_t *var = cvar_vars; var; var = var->next)
 		{
 		char	value[MAX_VA_STRING];
-		/*char	*p;*/
 
 		if (var->name[0] == '@')
 			continue;	// never shows system cvars
@@ -1211,7 +1172,6 @@ static void Cvar_List_f (void)
 		if (match && !Q_strnicmpext (match, var->name, matchlen))
 			continue;
 
-		/*p = Q_strchr (var->string, '^');*/
 		char	*p = Q_strchr (var->string, '^');
 		if (IsColorString (p))
 			Q_snprintf (value, sizeof (value), "\"%s\"", var->string);
@@ -1253,12 +1213,9 @@ unlink all cvars with specified flag
 ***/
 void Cvar_Unlink (uint32_t group)
 	{
-	/*int	count;*/
-
 	if (!Cvar_ValidateUnlinkGroup (group))
 		return;
 
-	/*count = Cvar_UnlinkVar (NULL, group);*/
 	int	count = Cvar_UnlinkVar (NULL, group);
 	Con_Reportf ("unlink %i cvars\n", count);
 	}
@@ -1268,19 +1225,12 @@ pending_cvar_t *Cvar_PrepareToUnlink (uint32_t group)
 	{
 	pending_cvar_t	*list = NULL;
 	pending_cvar_t	*tail = NULL;
-	/*convar_t	*cv;*/
 
-	/*for (cv = cvar_vars; cv != NULL; cv = cv->next)*/
 	for (convar_t *cv = cvar_vars; cv != NULL; cv = cv->next)
 		{
-		/*size_t	namelen;
-		pending_cvar_t	*p;*/
-
 		if (!FBitSet (cv->flags, group))
 			continue;
 
-		/*namelen = Q_strlen (cv->name) + 1;
-		p = Mem_Malloc (cvar_pool, sizeof (*list) + namelen);*/
 		size_t	namelen = Q_strlen (cv->name) + 1;
 		pending_cvar_t	*p = Mem_Malloc (cvar_pool, sizeof (*list) + namelen);
 
@@ -1363,10 +1313,7 @@ Reads in all archived cvars
 ***/
 void Cvar_Init (void)
 	{
-	/*// [FWGS, 01.02.25]
-	cvar_pool = Mem_AllocPool ("Console Variables");*/
 	cvar_pool = Mem_AllocPoolExt ("Console Variables", MEM_SMALL_ALLOC_OPT);
-
 	cvar_vars = NULL;
 	cvar_active_filter_quirks = NULL;
 
@@ -1397,9 +1344,6 @@ Cvar_PostFSInit [FWGS, 01.07.26]
 ***/
 void Cvar_PostFSInit (void)
 	{
-	/*int i;
-
-	for (i = 0; i < HLARRAYSIZE (cvar_filter_quirks); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (cvar_filter_quirks); i++)
 		{
 		if (!Q_stricmp (cvar_filter_quirks[i].gamedir, GI->gamefolder))
@@ -1416,10 +1360,10 @@ void Cvar_PostFSInit (void)
 
 void Test_RunCvar (void)
 	{
-	convar_t *test_privileged = Cvar_Get ("test_privileged", "0", FCVAR_PRIVILEGED, "bark bark");
-	convar_t *test_unprivileged = Cvar_Get ("test_unprivileged", "0", 0, "meow meow");
-	convar_t *hud_filtered = Cvar_Get ("hud_filtered", "0", 0, "dummy description");
-	convar_t *filtered2 = Cvar_Get ("filtered2", "0", FCVAR_FILTERABLE, "filtered2");
+	convar_t	*test_privileged = Cvar_Get ("test_privileged", "0", FCVAR_PRIVILEGED, "bark bark");
+	convar_t	*test_unprivileged = Cvar_Get ("test_unprivileged", "0", 0, "meow meow");
+	convar_t	*hud_filtered = Cvar_Get ("hud_filtered", "0", 0, "dummy description");
+	convar_t	*filtered2 = Cvar_Get ("filtered2", "0", FCVAR_FILTERABLE, "filtered2");
 
 	Cbuf_AddText ("test_privileged 1; test_unprivileged 1; hud_filtered 1; filtered2 1\n");
 	Cbuf_Execute ();

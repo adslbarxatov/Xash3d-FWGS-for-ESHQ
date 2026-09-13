@@ -41,17 +41,16 @@ static int Sys_ModuleName (HANDLE process, char *name, void *address, int len)
 	{
 	static HMODULE	*moduleArray;
 	static unsigned int	moduleCount;
-	/*DWORD       bytesRequired;*/
 
 	if (len < 3)
 		return 0;
 
-	DWORD bytesRequired;
+	DWORD	bytesRequired;
 	if (!moduleArray && EnumProcessModules (process, NULL, 0, &bytesRequired))
 		{
 		if (bytesRequired)
 			{
-			LPBYTE moduleArrayBytes = (LPBYTE)LocalAlloc (LPTR, bytesRequired);
+			LPBYTE	moduleArrayBytes = (LPBYTE)LocalAlloc (LPTR, bytesRequired);
 
 			if (moduleArrayBytes && EnumProcessModules (process, (HMODULE *)moduleArrayBytes, bytesRequired, &bytesRequired))
 				{
@@ -63,7 +62,7 @@ static int Sys_ModuleName (HANDLE process, char *name, void *address, int len)
 
 	for (int i = 0; i < moduleCount; i++)
 		{
-		MODULEINFO info;
+		MODULEINFO	info;
 		GetModuleInformation (process, moduleArray[i], &info, sizeof (MODULEINFO));
 
 		if (address > info.lpBaseOfDll && (DWORD64)address < (DWORD64)info.lpBaseOfDll + (DWORD64)info.SizeOfImage)
@@ -73,7 +72,6 @@ static int Sys_ModuleName (HANDLE process, char *name, void *address, int len)
 	return Q_snprintf (name, len, "???");
 	}
 
-// [FWGS, 01.05.25]
 static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 	{
 	char	message[8192];	// match *nix Sys_Crash
@@ -90,8 +88,8 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 	SymInitialize (process, NULL, TRUE);
 
 #ifdef _M_IX86
-	DWORD image = IMAGE_FILE_MACHINE_I386;
-	STACKFRAME64 stackframe =
+	DWORD	image = IMAGE_FILE_MACHINE_I386;
+	STACKFRAME64	stackframe =
 		{
 		.AddrPC.Offset = context.Eip,
 		.AddrPC.Mode = AddrModeFlat,
@@ -101,8 +99,8 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 		.AddrStack.Mode = AddrModeFlat,
 		};
 #elif _M_X64
-	DWORD image = IMAGE_FILE_MACHINE_AMD64;
-	STACKFRAME64 stackframe =
+	DWORD	image = IMAGE_FILE_MACHINE_AMD64;
+	STACKFRAME64	stackframe =
 		{
 		.AddrPC.Offset = context.Rip,
 		.AddrPC.Mode = AddrModeFlat,
@@ -112,8 +110,8 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 		.AddrStack.Mode = AddrModeFlat,
 		};
 #elif _M_IA64
-	DWORD image = IMAGE_FILE_MACHINE_IA64;
-	STACKFRAME64 stackframe =
+	DWORD	image = IMAGE_FILE_MACHINE_IA64;
+	STACKFRAME64	stackframe =
 		{
 		.AddrPC.Offset = context.StIIP,
 		.AddrPC.Mode = AddrModeFlat,
@@ -125,8 +123,8 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 		.AddrStack.Mode = AddrModeFlat,
 		};
 #elif _M_ARM
-	DWORD image = IMAGE_FILE_MACHINE_ARMNT;
-	STACKFRAME64 stackframe =
+	DWORD	image = IMAGE_FILE_MACHINE_ARMNT;
+	STACKFRAME64	stackframe =
 		{
 		.AddrPC.Offset = context.Pc,
 		.AddrPC.Mode = AddrModeFlat,
@@ -136,8 +134,8 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 		.AddrStack.Mode = AddrModeFlat,
 		};
 #elif _M_ARM64
-	DWORD image = IMAGE_FILE_MACHINE_ARM64;
-	STACKFRAME64 stackframe =
+	DWORD	image = IMAGE_FILE_MACHINE_ARM64;
+	STACKFRAME64	stackframe =
 		{
 		.AddrPC.Offset = context.Pc,
 		.AddrPC.Mode = AddrModeFlat,
@@ -150,7 +148,7 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 	#error
 #endif
 
-	int len = Q_snprintf (message, sizeof (message), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s-%s, %s-%s)\n",
+	int	len = Q_snprintf (message, sizeof (message), "Ver: " XASH_ENGINE_NAME " " XASH_VERSION " (build %i-%s-%s, %s-%s)\n",
 		Q_buildnum (), g_buildcommit, g_buildbranch, Q_buildos (), Q_buildarch ());
 
 	len += Q_snprintf (message + len, sizeof (message) - len, "Crash: address %p, code %p\n",
@@ -176,13 +174,12 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 
 	for (size_t i = 0; i < 25; i++)
 		{
-		char buffer[sizeof (SYMBOL_INFO) + MAX_SYM_NAME * sizeof (TCHAR)];
-		PSYMBOL_INFO symbol = (PSYMBOL_INFO)buffer;
+		char	buffer[sizeof (SYMBOL_INFO) + MAX_SYM_NAME * sizeof (TCHAR)];
+		PSYMBOL_INFO	symbol = (PSYMBOL_INFO)buffer;
 
-		BOOL result = StackWalk64 (image, process, thread,
-			&stackframe, &context, NULL,
+		BOOL	result = StackWalk64 (image, process, thread, &stackframe, &context, NULL,
 			SymFunctionTableAccess64, SymGetModuleBase64, NULL);
-		DWORD64 displacement = 0;
+		DWORD64	displacement = 0;
 
 		if (!result)
 			break;
@@ -190,7 +187,9 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 		symbol->SizeOfStruct = sizeof (SYMBOL_INFO);
 		symbol->MaxNameLen = MAX_SYM_NAME;
 
-		len += Q_snprintf (message + len, sizeof (message) - len, "%2d: %p",
+		// [FWGS, 01.09.26]
+		/*len += Q_snprintf (message + len, sizeof (message) - len, "%2d: %p",*/
+		len += Q_snprintf (message + len, sizeof (message) - len, "%2zu: %p",
 			i, (void *)stackframe.AddrPC.Offset);
 		if (SymFromAddr (process, stackframe.AddrPC.Offset, &displacement, symbol))
 			{
@@ -214,13 +213,12 @@ static void Sys_StackTrace (PEXCEPTION_POINTERS pInfo)
 #endif
 
 	Sys_PrintLog (message);
-
 	SymCleanup (process);
 	}
 
 static void Sys_GetProcessName (char *processName, size_t bufferSize)
 	{
-	char fullpath[MAX_PATH];
+	char	fullpath[MAX_PATH];
 
 	GetModuleBaseName (GetCurrentProcess (), NULL, fullpath, sizeof (fullpath) - 1);
 	COM_FileBase (fullpath, processName, bufferSize);
@@ -228,19 +226,13 @@ static void Sys_GetProcessName (char *processName, size_t bufferSize)
 
 static void Sys_GetMinidumpFileName (const char *processName, char *mdmpFileName, size_t bufferSize)
 	{
-	time_t currentUtcTime = time (NULL);
-	struct tm *currentLocalTime = localtime (&currentUtcTime);
+	time_t	currentUtcTime = time (NULL);
+	struct tm	*currentLocalTime = localtime (&currentUtcTime);
 
 	// [FWGS, 01.02.25]
 	Q_snprintf (mdmpFileName, bufferSize, "%s_%s_crash_%d%.2d%.2d_%.2d%.2d%.2d.mdmp",
-		processName,
-		g_buildcommit,
-		currentLocalTime->tm_year + 1900,
-		currentLocalTime->tm_mon + 1,
-		currentLocalTime->tm_mday,
-		currentLocalTime->tm_hour,
-		currentLocalTime->tm_min,
-		currentLocalTime->tm_sec);
+		processName, g_buildcommit, currentLocalTime->tm_year + 1900, currentLocalTime->tm_mon + 1,
+		currentLocalTime->tm_mday, currentLocalTime->tm_hour, currentLocalTime->tm_min, currentLocalTime->tm_sec);
 	}
 
 // [FWGS, 01.05.25]
@@ -253,24 +245,24 @@ static qboolean Sys_WriteMinidump (PEXCEPTION_POINTERS exceptionInfo, MINIDUMP_T
 	Sys_GetMinidumpFileName (processName, mdmpFileName, sizeof (mdmpFileName));
 
 	SetLastError (NOERROR);
-	HANDLE fileHandle = CreateFile (mdmpFileName, GENERIC_WRITE, FILE_SHARE_WRITE,
+	HANDLE	fileHandle = CreateFile (mdmpFileName, GENERIC_WRITE, FILE_SHARE_WRITE,
 		NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	HRESULT errorCode = HRESULT_FROM_WIN32 (GetLastError ());
+	HRESULT	errorCode = HRESULT_FROM_WIN32 (GetLastError ());
 	if (!SUCCEEDED (errorCode))
 		{
 		CloseHandle (fileHandle);
 		return false;
 		}
 
-	MINIDUMP_EXCEPTION_INFORMATION minidumpInfo =
+	MINIDUMP_EXCEPTION_INFORMATION	minidumpInfo =
 		{
 		.ThreadId = GetCurrentThreadId (),
 		.ExceptionPointers = exceptionInfo,
 		.ClientPointers = FALSE
 		};
 
-	qboolean status = MiniDumpWriteDump (GetCurrentProcess (), GetCurrentProcessId (), fileHandle,
+	qboolean	status = MiniDumpWriteDump (GetCurrentProcess (), GetCurrentProcessId (), fileHandle,
 		minidumpType, &minidumpInfo, NULL, NULL);
 
 	CloseHandle (fileHandle);
@@ -279,7 +271,7 @@ static qboolean Sys_WriteMinidump (PEXCEPTION_POINTERS exceptionInfo, MINIDUMP_T
 
 #endif
 
-static LPTOP_LEVEL_EXCEPTION_FILTER  oldFilter;
+static LPTOP_LEVEL_EXCEPTION_FILTER	oldFilter;
 
 // [FWGS, 01.05.25]
 static long _stdcall Sys_Crash (PEXCEPTION_POINTERS pInfo)
@@ -297,7 +289,7 @@ static long _stdcall Sys_Crash (PEXCEPTION_POINTERS pInfo)
 #if DBGHELP
 		if (Sys_CheckParm ("-minidumps"))
 			{
-			int minidumpFlags = MiniDumpWithDataSegs |
+			int	minidumpFlags = MiniDumpWithDataSegs |
 				MiniDumpWithCodeSegs |
 				MiniDumpWithHandleData |
 				MiniDumpWithFullMemory |

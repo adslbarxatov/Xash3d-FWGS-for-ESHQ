@@ -27,7 +27,6 @@ double Platform_DoubleTime (void)
 	{
 	static Uint64	g_PerformanceFrequency;
 	static Uint64	g_ClockStart;
-	/*Uint64 CurrentTime;*/
 
 	if (!g_PerformanceFrequency)
 		{
@@ -37,8 +36,7 @@ double Platform_DoubleTime (void)
 		return 0.0;
 		}
 
-	/*CurrentTime = SDL_GetPerformanceCounter ();*/
-	Uint64 CurrentTime = SDL_GetPerformanceCounter ();
+	Uint64	CurrentTime = SDL_GetPerformanceCounter ();
 	return (double)(CurrentTime - g_ClockStart) / (double)(g_PerformanceFrequency);
 	}
 
@@ -67,17 +65,28 @@ static const char *SDLash_CategoryToString (int category)
 	{
 	switch (category)
 		{
-		case SDL_LOG_CATEGORY_APPLICATION: return "App";
-		case SDL_LOG_CATEGORY_ERROR: return "Error";
-		case SDL_LOG_CATEGORY_ASSERT: return "Assert";
-		case SDL_LOG_CATEGORY_SYSTEM: return "System";
-		case SDL_LOG_CATEGORY_AUDIO: return "Audio";
-		case SDL_LOG_CATEGORY_VIDEO: return "Video";
-		case SDL_LOG_CATEGORY_RENDER: return "Render";
-		case SDL_LOG_CATEGORY_INPUT: return "Input";
-		case SDL_LOG_CATEGORY_TEST: return "Test";
-		case SDL_LOG_CATEGORY_GPU: return "GPU";
-		default: return "Unknown";
+		case SDL_LOG_CATEGORY_APPLICATION:
+			return "App";
+		case SDL_LOG_CATEGORY_ERROR:
+			return "Error";
+		case SDL_LOG_CATEGORY_ASSERT:
+			return "Assert";
+		case SDL_LOG_CATEGORY_SYSTEM:
+			return "System";
+		case SDL_LOG_CATEGORY_AUDIO:
+			return "Audio";
+		case SDL_LOG_CATEGORY_VIDEO:
+			return "Video";
+		case SDL_LOG_CATEGORY_RENDER:
+			return "Render";
+		case SDL_LOG_CATEGORY_INPUT:
+			return "Input";
+		case SDL_LOG_CATEGORY_TEST:
+			return "Test";
+		case SDL_LOG_CATEGORY_GPU:
+			return "GPU";
+		default:
+			return "Unknown";
 		}
 	}
 
@@ -101,12 +110,8 @@ static void SDLCALL SDLash_LogOutputFunction (void *userdata, int category, SDL_
 		}
 	}
 
-// [FWGS, 01.07.26]
-/*void SDLash_Init (const char *basedir)*/
 void SDLash_Init (void)
 	{
-	/*(void)basedir;*/
-
 	// TODO: initial state, to be filled from gameinfo!
 	SDL_SetAppMetadata (XASH_ENGINE_NAME, XASH_VERSION, "su.xash.engine");
 	SDL_SetAppMetadataProperty (SDL_PROP_APP_METADATA_TYPE_STRING, "game");
@@ -128,6 +133,9 @@ void SDLash_Init (void)
 
 	SDL_SetHint (SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
 	SDL_SetHint (SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+
+	// [FWGS, 01.09.26]
+	SDL_SetHint (SDL_HINT_MOUSE_RELATIVE_SYSTEM_SCALE, "0");
 
 	SDLash_InitCursors ();
 	}

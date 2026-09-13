@@ -95,8 +95,6 @@ static void Sys_FlushLogfile (void)
 // [FWGS, 01.07.26]
 void Sys_InitLog (void)
 	{
-	/*const char *mode;*/
-
 	if (Sys_CheckParm ("-log"))
 		{
 		if (!Sys_GetParmFromCmdLine ("-log", s_ld.log_path) || !isalnum ((byte)s_ld.log_path[0]))
@@ -111,9 +109,6 @@ void Sys_InitLog (void)
 
 	const char	*mode;
 	if (host.change_game && (host.type != HOST_DEDICATED))
-	/*	mode = "a";
-	else
-		mode = "w";*/
 		mode = "a+";
 	else
 		mode = "w+";
@@ -126,7 +121,7 @@ void Sys_InitLog (void)
 	// create log if needed
 	if (s_ld.log_active)
 		{
-		const char *basedir = getenv ("XASH3D_BASEDIR");
+		const char	*basedir = getenv ("XASH3D_BASEDIR");
 
 		if (!COM_StringEmptyOrNULL (basedir) && (s_ld.log_path[0] != '/'))
 			{
@@ -158,7 +153,6 @@ void Sys_InitLog (void)
 		}
 	}
 
-// [FWGS, 01.02.25]
 void Sys_CloseLog (const char *finalmsg)
 	{
 	// flush to stdout to ensure all data was written
@@ -193,16 +187,16 @@ void Sys_CloseLog (const char *finalmsg)
 	fprintf (s_ld.logfile, "Stopped with reason \"%s\" at %s\n", finalmsg, Q_timestamp (TIME_FULL));
 	fputs ("================================================================================\n", s_ld.logfile);
 	fclose (s_ld.logfile);
+	
+	// [FWGS, 01.09.26]
 	s_ld.logfile = NULL;
+	s_ld.logfileno = -1;
 	}
 
 // [FWGS, 01.07.26]
-/*// [FWGS, 22.01.25]
-if XASH_COLORIZE_CONSOLE*/
-
 static qboolean Sys_WriteEscapeSequenceForColorcode (int fd, int c)
 	{
-	static const char *q3ToAnsi[8] =
+	static const char	*q3ToAnsi[8] =
 		{
 		"\033[1;30m",	// COLOR_BLACK
 		"\033[1;31m",	// COLOR_RED
@@ -214,27 +208,15 @@ static qboolean Sys_WriteEscapeSequenceForColorcode (int fd, int c)
 		"\033[0m",		// COLOR_WHITE
 		};
 
-	const char *esc = q3ToAnsi[c];
+	const char	*esc = q3ToAnsi[c];
 
 	return write (fd, esc, c == 7 ? 4 : 7) < 0 ? false : true;
 	}
 
 // [FWGS, 01.07.26]
-/*else
-
-// [FWGS, 22.01.25]
-static qboolean Sys_WriteEscapeSequenceForColorcode (int fd, int c)
-	{
-	return true;
-	}
-
-endif*/
-
-// [FWGS, 01.07.26]
-/*static void Sys_PrintLogfile (const int fd, const char *logtime, size_t logtime_len, const char *msg, const int colorize)*/
 static void Sys_PrintLogfile (const int fd, const char *logtime, size_t logtime_len, const char *msg, qboolean colorize)
 	{
-	const char *p = msg;
+	const char	*p = msg;
 
 	if (logtime_len != 0)
 		{
@@ -278,8 +260,6 @@ static void Sys_PrintLogfile (const int fd, const char *logtime, size_t logtime_
 
 			msg = p + 2;
 
-			/*if (colorize)
-				Sys_WriteEscapeSequenceForColorcode (fd, ColorIndex (p[1]));*/
 			Sys_WriteEscapeSequenceForColorcode (fd, ColorIndex (p[1]));
 			}
 		else
@@ -292,17 +272,12 @@ static void Sys_PrintLogfile (const int fd, const char *logtime, size_t logtime_
 		}
 
 	// flush the color
-	/*if (colorize)
-		Sys_WriteEscapeSequenceForColorcode (fd, 7);*/
 	Sys_WriteEscapeSequenceForColorcode (fd, 7);
 	}
 
 // [FWGS, 01.07.26]
-/*static void Sys_PrintStdout (const char *logtime, size_t logtime_len, const char *msg)*/
 static void Sys_WriteLogfile (int fd, const char *logtime, size_t logtime_len, const char *msg)
 	{
-	/*if XASH_MOBILE_PLATFORM
-	static char buf[MAX_PRINT_MSG];*/
 	if (logtime_len != 0)
 		{
 		if (write (fd, logtime, logtime_len) < 0)
@@ -311,33 +286,26 @@ static void Sys_WriteLogfile (int fd, const char *logtime, size_t logtime_len, c
 			}
 		}
 
-	/*// strip color codes
-	COM_StripColors (msg, buf);*/
 	if (write (fd, msg, Q_strlen (msg)) < 0)
 		{
 		// not critical for us
 		}
 	}
 
-/*// [FWGS, 01.09.25] platform-specific output*/
-
 // [FWGS, 01.07.26]
 static void Sys_PrintStdout (const char *logtime, size_t logtime_len, const char *msg, const char *stripped)
 	{
 #if XASH_ANDROID && !XASH_DEDICATED
-	/*__android_log_write (ANDROID_LOG_INFO, "Xash", buf);*/
 	__android_log_write (ANDROID_LOG_INFO, "Xash", stripped);
 #endif
 
 #if TARGET_OS_IOS
 	void IOS_Log (const char *);
-	/*IOS_Log (buf);*/
 	IOS_Log (stripped);
 #endif
 
 #if XASH_NSWITCH && NSWITCH_DEBUG
 	// just spew it to stderr normally in debug mode
-	/*fprintf (stderr, "%s %s", logtime, buf);*/
 	fprintf (stderr, "%s %s", logtime, stripped);
 #endif
 
@@ -345,11 +313,8 @@ static void Sys_PrintStdout (const char *logtime, size_t logtime_len, const char
 	// spew to stderr only in developer mode
 	if (host_developer.value)
 		fprintf (stderr, "%s %s", logtime, stripped);
-		/*fprintf (stderr, "%s %s", logtime, buf);*/
 #endif
 
-	/*elif !XASH_WIN32	// Wcon does the job
-	Sys_PrintLogfile (STDOUT_FILENO, logtime, logtime_len, msg, XASH_COLORIZE_CONSOLE);*/
 #if !XASH_MOBILE_PLATFORM && !XASH_WIN32	// Wcon does the job
 	Sys_PrintLogfile (STDOUT_FILENO, logtime, logtime_len, XASH_COLORIZE_CONSOLE ? msg : stripped, XASH_COLORIZE_CONSOLE);
 	Sys_FlushStdout ();
@@ -361,25 +326,16 @@ static void Sys_PrintStdout (const char *logtime, size_t logtime_len, const char
 // [FWGS, 01.07.26]
 void Sys_PrintLog (const char *pMsg)
 	{
-	/*time_t		crt_time;
-	const struct tm	*crt_tm;
-	char		logtime[32] = "";*/
 	static char	lastchar;
-	/*qboolean	print_time = false;
-	size_t		len, logtime_len = 0;*/
-
 	const struct tm	*crt_tm = NULL;
+
 	if (!lastchar || (lastchar == '\n'))
 		{
 		time_t	crt_time;
 		if (time (&crt_time) >= 0)
-			/*{*/
 			crt_tm = localtime (&crt_time);
-			/*print_time = (crt_tm != NULL);
-			}*/
 		}
 
-	/*if (print_time)*/
 	char	logtime[32] = "";
 	size_t	logtime_len = 0;
 	if (crt_tm != NULL)
@@ -389,12 +345,12 @@ void Sys_PrintLog (const char *pMsg)
 		}
 
 #if !XASH_WIN32 && !XASH_COLORIZE_CONSOLE
-	qboolean need_strip = true;		// stdout sink can't render ^N, must strip first
+	qboolean need_strip = true;	// stdout sink can't render ^N, must strip first
 #else
 	qboolean need_strip = (s_ld.logfile != NULL) || XRcon_IsActive ();
 #endif
 
-	const char *log_msg = pMsg;
+	const char	*log_msg = pMsg;
 	if (need_strip)
 		{
 		static char stripped[MAX_PRINT_MSG];
@@ -403,11 +359,9 @@ void Sys_PrintLog (const char *pMsg)
 		}
 
 	// spew to stdout
-	/*Sys_PrintStdout (logtime, logtime_len, pMsg);*/
 	Sys_PrintStdout (logtime, logtime_len, pMsg, log_msg);
 	
-	/*len = Q_strlen (pMsg);*/
-	size_t len = Q_strlen (pMsg);
+	size_t	len = Q_strlen (pMsg);
 
 	// save last char to detect when line was not ended
 	lastchar = len > 0 ? pMsg[len - 1] : 0;
@@ -415,7 +369,6 @@ void Sys_PrintLog (const char *pMsg)
 	// spew to engine.log
 	if (s_ld.logfile)
 		{
-		/*if (s_ld.log_time && print_time)*/
 		if (s_ld.log_time && (crt_tm != NULL))
 			{
 			logtime_len = strftime (logtime, sizeof (logtime), "[%Y:%m:%d|%H:%M:%S] ", crt_tm);	// full time
@@ -427,7 +380,6 @@ void Sys_PrintLog (const char *pMsg)
 			logtime_len = 0;
 			}
 
-		/*Sys_PrintLogfile (s_ld.logfileno, logtime, logtime_len, pMsg, false);*/
 		Sys_WriteLogfile (s_ld.logfileno, logtime, logtime_len, log_msg);
 		Sys_FlushLogfile ();
 		}
@@ -442,11 +394,8 @@ CONSOLE PRINT
 // [FWGS, 01.07.26]
 static void Con_Printfv (qboolean debug, const char *szFmt, va_list args)
 	{
-	static char buffer[MAX_PRINT_MSG];
-	/*qboolean add_newline;
-
-	add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;*/
-	qboolean add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;
+	static char	buffer[MAX_PRINT_MSG];
+	qboolean	add_newline = Q_vsnprintf (buffer, sizeof (buffer), szFmt, args) < 0;
 
 	// hlrally spam
 	if (debug && !Q_strcmp (buffer, "0\n"))
@@ -464,7 +413,7 @@ Con_Printf [FWGS, 01.08.24]
 ***/
 void GAME_EXPORT Con_Printf (const char *szFmt, ...)
 	{
-	va_list args;
+	va_list	args;
 
 	if (!host.allow_console)
 		return;
@@ -481,7 +430,7 @@ Con_DPrintf [FWGS, 01.08.24]
 ***/
 void GAME_EXPORT Con_DPrintf (const char *szFmt, ...)
 	{
-	va_list args;
+	va_list	args;
 
 	if (host_developer.value < DEV_NORMAL)
 		return;
@@ -498,7 +447,7 @@ Con_Reportf [FWGS, 01.08.24]
 ***/
 void Con_Reportf (const char *szFmt, ...)
 	{
-	va_list args;
+	va_list	args;
 
 	if (host_developer.value < DEV_EXTENDED)
 		return;
@@ -509,6 +458,7 @@ void Con_Reportf (const char *szFmt, ...)
 	}
 
 #if XASH_MESSAGEBOX == MSGBOX_STDERR
+
 void Platform_MessageBox (const char *title, const char *message, qboolean parentMainWindow)
 	{
 	fprintf (stderr,
@@ -516,4 +466,5 @@ void Platform_MessageBox (const char *title, const char *message, qboolean paren
 		"%s: %s\n"
 		"======================================\n", title, message);
 	}
+
 #endif

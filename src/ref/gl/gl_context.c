@@ -33,7 +33,7 @@ static void R_ClearScreen (void)
 
 static const byte *R_GetTextureOriginalBuffer (unsigned int idx)
 	{
-	gl_texture_t *glt = R_GetTexture (idx);
+	gl_texture_t	*glt = R_GetTexture (idx);
 
 	if (!glt || !glt->original || !glt->original->buffer)
 		return NULL;
@@ -88,12 +88,9 @@ static qboolean Mod_LooksLikeWaterTexture (const char *name)
 // [FWGS, 01.07.26]
 static void Mod_BrushUnloadTextures (model_t *mod)
 	{
-	/*int i;
-
-	for (i = 0; i < mod->numtextures; i++)*/
 	for (int i = 0; i < mod->numtextures; i++)
 		{
-		texture_t *tx = mod->textures[i];
+		texture_t	*tx = mod->textures[i];
 
 		if (!tx)
 			continue;	// free slot
@@ -140,7 +137,7 @@ static void Mod_UnloadTextures (model_t *mod)
 
 static qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte *buf, size_t buffersize)
 	{
-	qboolean loaded = false;
+	qboolean	loaded = false;
 
 	if (!create)
 		{
@@ -183,48 +180,30 @@ static qboolean Mod_ProcessRenderData (model_t *mod, qboolean create, const byte
 // [FWGS, 01.07.26]
 static intptr_t GL_RefGetParm (int parm, int arg)
 	{
-	/*gl_texture_t *glt;*/
-
 	switch (parm)
 		{
 		case PARM_TEX_WIDTH:
-			/*glt = R_GetTexture (arg);
-			return glt->width;*/
 			return R_GetTexture (arg)->width;
 
 		case PARM_TEX_HEIGHT:
-			/*glt = R_GetTexture (arg);
-			return glt->height;*/
 			return R_GetTexture (arg)->height;
 
 		case PARM_TEX_SRC_WIDTH:
-			/*glt = R_GetTexture (arg);
-			return glt->srcWidth;*/
 			return R_GetTexture (arg)->srcWidth;
 
 		case PARM_TEX_SRC_HEIGHT:
-			/*glt = R_GetTexture (arg);
-			return glt->srcHeight;*/
 			return R_GetTexture (arg)->srcHeight;
 
 		case PARM_TEX_GLFORMAT:
-			/*glt = R_GetTexture (arg);
-			return glt->format;*/
 			return R_GetTexture (arg)->format;
 
 		case PARM_TEX_ENCODE:
-			/*glt = R_GetTexture (arg);
-			return glt->encode;*/
 			return R_GetTexture (arg)->encode;
 
 		case PARM_TEX_MIPCOUNT:
-			/*glt = R_GetTexture (arg);
-			return glt->numMips;*/
 			return R_GetTexture (arg)->numMips;
 
 		case PARM_TEX_DEPTH:
-			/*glt = R_GetTexture (arg);
-			return glt->depth;*/
 			return R_GetTexture (arg)->depth;
 
 		case PARM_TEX_SKYBOX:
@@ -239,18 +218,12 @@ static intptr_t GL_RefGetParm (int parm, int arg)
 			return tr.lightmapTextures[arg];
 
 		case PARM_TEX_TARGET:
-			/*glt = R_GetTexture (arg);
-			return glt->target;*/
 			return R_GetTexture (arg)->target;
 
 		case PARM_TEX_TEXNUM:
-			/*glt = R_GetTexture (arg);
-			return glt->texnum;*/
 			return R_GetTexture (arg)->texnum;
 
 		case PARM_TEX_FLAGS:
-			/*glt = R_GetTexture (arg);
-			return glt->flags;*/
 			return R_GetTexture (arg)->flags;
 
 		case PARM_TEX_MEMORY:
@@ -296,7 +269,7 @@ static intptr_t GL_RefGetParm (int parm, int arg)
 
 static void R_GetDetailScaleForTexture (int texture, float *xScale, float *yScale)
 	{
-	gl_texture_t *glt = R_GetTexture (texture);
+	gl_texture_t	*glt = R_GetTexture (texture);
 
 	if (xScale)
 		*xScale = glt->xscale;
@@ -307,7 +280,7 @@ static void R_GetDetailScaleForTexture (int texture, float *xScale, float *yScal
 // [FWGS, 01.05.26]
 static void R_SetDetailScaleForTexture (int texture, float xScale, float yScale)
 	{
-	gl_texture_t *glt = R_GetTexture (texture);
+	gl_texture_t	*glt = R_GetTexture (texture);
 
 	glt->xscale = xScale;
 	glt->yscale = yScale;
@@ -315,7 +288,7 @@ static void R_SetDetailScaleForTexture (int texture, float xScale, float yScale)
 
 static void R_GetExtraParmsForTexture (int texture, byte *red, byte *green, byte *blue, byte *density)
 	{
-	gl_texture_t *glt = R_GetTexture (texture);
+	gl_texture_t	*glt = R_GetTexture (texture);
 
 	if (red)
 		*red = glt->fogParams[0];
@@ -355,7 +328,7 @@ static const char *GL_TextureName (unsigned int texnum)
 
 static const byte *GL_TextureData (unsigned int texnum)
 	{
-	rgbdata_t *pic = R_GetTexture (texnum)->original;
+	rgbdata_t	*pic = R_GetTexture (texnum)->original;
 
 	if (pic != NULL)
 		return pic->buffer;
@@ -406,14 +379,11 @@ R_SetupSky [FWGS, 01.07.26]
 ***/
 static void GAME_EXPORT R_SetupSky (int *skyboxTextures)
 	{
-	/*int i;*/
-
 	R_UnloadSkybox ();
 
 	if (!skyboxTextures)
 		return;
 
-	/*for (i = 0; i < SKYBOX_MAX_SIDES; i++)*/
 	for (int i = 0; i < SKYBOX_MAX_SIDES; i++)
 		tr.skyboxTextures[i] = skyboxTextures[i];
 	}
@@ -422,7 +392,7 @@ static qboolean R_SetDisplayTransform (ref_screen_rotation_t rotate, int offset_
 	float scale_x, float scale_y)
 	{
 	// [FWGS, 01.11.25]
-	qboolean ret = true;
+	qboolean	ret = true;
 	tr.rotation = rotate;
 
 	if (offset_x || offset_y)
@@ -463,7 +433,7 @@ static void GAME_EXPORT VGUI_SetupDrawing (qboolean rect)
 // [FWGS, 01.07.24]
 static void GAME_EXPORT R_OverrideTextureSourceSize (unsigned int texnum, uint srcWidth, uint srcHeight)
 	{
-	gl_texture_t *tx = R_GetTexture (texnum);
+	gl_texture_t	*tx = R_GetTexture (texnum);
 
 	tx->srcWidth = srcWidth;
 	tx->srcHeight = srcHeight;
@@ -487,16 +457,12 @@ static const char *R_GetConfigName (void)
 // [FWGS, 01.07.26]
 static void R_NewMap (void)
 	{
-	/*texture_t *tx;
-	int i;*/
-
 	tr.worldmodel = gp_cl->models[1];
 
 	R_ClearDecals ();	// clear all level decals
 	R_StudioResetPlayerModels ();
 
 	// clear out efrags in case the level hasn't been reloaded
-	/*for (i = 0; i < WORLDMODEL->numleafs; i++)*/
 	for (int i = 0; i < WORLDMODEL->numleafs; i++)
 		WORLDMODEL->leafs[i + 1].efrags = NULL;
 
@@ -505,14 +471,12 @@ static void R_NewMap (void)
 	pglDisable (GL_FOG);
 
 	// clearing texture chains
-	/*for (i = 0; i < WORLDMODEL->numtextures; i++)*/
 	for (int i = 0; i < WORLDMODEL->numtextures; i++)
 		{
 		if (!WORLDMODEL->textures[i])
 			continue;
 
-		/*tx = WORLDMODEL->textures[i];*/
-		texture_t *tx = WORLDMODEL->textures[i];
+		texture_t	*tx = WORLDMODEL->textures[i];
 
 		if (!Q_strncmp (tx->name, "sky", 3) && (tx->width == (tx->height * 2)))
 			tr.skytexturenum = i;
@@ -569,7 +533,7 @@ static void R_FillTriAPI (triangleapi_t *api)
 	}
 
 // [FWGS, 01.05.26]
-const ref_interface_t gReffuncs =
+const ref_interface_t	gReffuncs =
 	{
 	R_Init,
 	R_Shutdown,
@@ -597,6 +561,10 @@ const ref_interface_t gReffuncs =
 	GL_ProcessTexture,
 	R_SetupSky,
 	R_Set2DMode,
+
+	// [FWGS, 01.09.26]
+	R_Set2DOffset,
+
 	R_DrawStretchPic,
 	CL_FillRGBA,
 	R_WorldToScreen,

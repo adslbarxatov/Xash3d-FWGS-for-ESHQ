@@ -42,10 +42,16 @@ typedef struct keyname_s
 //
 // as no limit is imposed by client.dll API, this can be safely extended
 // if needed
-static enginekey_t keys[265];
+static enginekey_t	keys[265];
+
+// [FWGS, 01.09.26] where the menu or the client edits the text, in render coordinates
+static struct
+	{
+	int	x, y, w, h;
+	} key_textinput_rect;
 
 // [FWGS, 01.04.26]
-static const keyname_t keynames[] =
+static const keyname_t	keynames[] =
 	{
 	{ "TAB",		K_TAB,			"" },
 	{ "ENTER",		K_ENTER,		"" },
@@ -193,8 +199,6 @@ to be configured even if they don't have defined names
 ***/
 static int Key_StringToKeynum (const char *str)
 	{
-	/*int i;*/
-
 	if (!str || !str[0])
 		return -1;
 
@@ -213,7 +217,6 @@ static int Key_StringToKeynum (const char *str)
 		}
 
 	// scan for a text match
-	/*for (i = 0; i < HLARRAYSIZE (keynames); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (keynames); i++)
 		{
 		if (!Q_stricmp (str, keynames[i].name))
@@ -233,7 +236,7 @@ or a 0x11 hex string) for the given keynum
 ***/
 const char *Key_KeynumToString (int keynum)
 	{
-	static char tinystr[16];
+	static char	tinystr[16];
 
 	if (keynum == -1)
 		return "<KEY NOT FOUND>";
@@ -257,7 +260,6 @@ const char *Key_KeynumToString (int keynum)
 		}
 
 	Q_snprintf (tinystr, sizeof (tinystr), "0x%x", keynum);
-
 	return tinystr;
 	}
 
@@ -303,23 +305,17 @@ Key_GetKey [FWGS, 01.07.26]
 ***/
 static int Key_GetKey (const char *pBinding)
 	{
-	/*int			i, len;
-	const char	*p;*/
-
 	if (!pBinding)
 		return -1;
 
-	/*len = Q_strlen (pBinding);*/
-	int len = Q_strlen (pBinding);
+	int	len = Q_strlen (pBinding);
 
-	/*for (i = 0; i < HLARRAYSIZE (keys); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (keys); i++)
 		{
 		if (!keys[i].binding)
 			continue;
 
-		/*p = keys[i].binding;*/
-		const char *p = keys[i].binding;
+		const char	*p = keys[i].binding;
 		if (*p == '+')
 			p++;
 
@@ -337,7 +333,7 @@ Key_LookupBinding [FWGS, 01.03.26]
 ***/
 const char *Key_LookupBinding (const char *pBinding)
 	{
-	int key = Key_GetKey (pBinding);
+	int	key = Key_GetKey (pBinding);
 	if (key == -1)
 		return NULL;
 
@@ -351,16 +347,13 @@ Key_Unbind_f [FWGS, 01.07.26]
 ***/
 static void Key_Unbind_f (void)
 	{
-	/*int	b;*/
-
 	if (Cmd_Argc () != 2)
 		{
 		Con_Printf (S_USAGE "unbind <key> : remove commands from a key\n");
 		return;
 		}
 
-	/*b = Key_StringToKeynum (Cmd_Argv (1));*/
-	int b = Key_StringToKeynum (Cmd_Argv (1));
+	int	b = Key_StringToKeynum (Cmd_Argv (1));
 	if (b == -1)
 		{
 		Con_Printf ("\"%s\" isn't a valid key\n", Cmd_Argv (1));
@@ -383,9 +376,6 @@ Key_Unbindall_f [FWGS, 01.07.26]
 ***/
 static void Key_Unbindall_f (void)
 	{
-	/*int	i;
-
-	for (i = 0; i < HLARRAYSIZE (keys); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (keys); i++)
 		{
 		if (keys[i].binding)
@@ -404,10 +394,7 @@ Key_Reset_f [FWGS, 01.07.26]
 ***/
 static void Key_Reset_f (void)
 	{
-	/*int			i;*/
-
 	// clear all keys first
-	/*for (i = 0; i < HLARRAYSIZE (keys); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (keys); i++)
 		{
 		if (keys[i].binding)
@@ -415,7 +402,6 @@ static void Key_Reset_f (void)
 		}
 
 	// apply default values
-	/*for (i = 0; i < HLARRAYSIZE (keynames); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (keynames); i++)
 		Key_SetBinding (keynames[i].keynum, keynames[i].binding);
 	}
@@ -427,19 +413,14 @@ Key_Bind_f [FWGS, 01.07.26]
 ***/
 static void Key_Bind_f (void)
 	{
-	/*char	cmd[1024];
-	int		i, c, b;
-
-	c = Cmd_Argc ();*/
-	int c = Cmd_Argc ();
+	int	c = Cmd_Argc ();
 	if (c < 2)
 		{
 		Con_Printf (S_USAGE "bind <key> [command] : attach a command to a key\n");
 		return;
 		}
 
-	/*b = Key_StringToKeynum (Cmd_Argv (1));*/
-	int b = Key_StringToKeynum (Cmd_Argv (1));
+	int	b = Key_StringToKeynum (Cmd_Argv (1));
 	if (b == -1)
 		{
 		Con_Printf ("\"%s\" isn't a valid key\n", Cmd_Argv (1));
@@ -456,10 +437,9 @@ static void Key_Bind_f (void)
 		}
 
 	// copy the rest of the command line
-	char cmd[1024];
-	cmd[0] = 0;	// start out with a null string
+	char	cmd[1024];
+	cmd[0] = 0;		// start out with a null string
 
-	/*for (i = 2; i < c; i++)*/
 	for (int i = 2; i < c; i++)
 		{
 		Q_strncat (cmd, Cmd_Argv (i), sizeof (cmd));
@@ -479,22 +459,17 @@ Writes lines containing "bind key value"
 ***/
 void Key_WriteBindings (file_t *f)
 	{
-	/*int	i;
-	string newCommand;*/
-
 	if (!f)
 		return;
 
 	FS_Printf (f, "unbindall\n");
 
-	/*// [FWGS, 01.04.26]
-	for (i = 0; i < HLARRAYSIZE (keys); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (keys); i++)
 		{
 		if (COM_StringEmptyOrNULL (keys[i].binding))
 			continue;
 
-		string newCommand;
+		string	newCommand;
 		Cmd_Escape (newCommand, keys[i].binding, sizeof (newCommand));
 
 		// NOTE: as TheKingFireS figured out, some particular mods (like CoF) do not
@@ -512,10 +487,6 @@ Key_Bindlist_f [FWGS, 01.07.26]
 ***/
 static void Key_Bindlist_f (void)
 	{
-	/*int	i;
-
-	// [FWGS, 01.04.26]
-	for (i = 0; i < HLARRAYSIZE (keys); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (keys); i++)
 		{
 		if (COM_StringEmptyOrNULL (keys[i].binding))
@@ -537,15 +508,13 @@ qboolean Cmd_GetKeysList (const char *s, char *completedname, int length, qboole
 	size_t	i, numkeys;
 	string	keys_strings[HLARRAYSIZE (keys)];
 	string	matchbuf;
-	/*int		len;*/
 
 	// compare keys list with current keyword
-	/*len = Q_strlen (s);*/
-	int len = Q_strlen (s);
+	int		len = Q_strlen (s);
 
 	for (i = 0, numkeys = 0; i < HLARRAYSIZE (keys); i++)
 		{
-		const char *keyname = Key_KeynumToString (i);
+		const char	*keyname = Key_KeynumToString (i);
 
 		if ((*s == '*') || !Q_strnicmp (keyname, s, len))
 			Q_strncpy (keys_strings[numkeys++], keyname, sizeof (keys_strings[0]));
@@ -596,8 +565,6 @@ Key_Init [FWGS, 01.07.26]
 ***/
 void Key_Init (void)
 	{
-	/*int	i;*/
-
 	// register our functions
 	Cmd_AddRestrictedCommand ("bind", Key_Bind_f,
 		"binds a command to the specified key in bindmap");
@@ -613,7 +580,6 @@ void Key_Init (void)
 		"write help.txt that contains all console cvars and cmds");
 
 	// setup default binding. "unbindall" from config.cfg will be reset it
-	/*for (i = 0; i < HLARRAYSIZE (keynames); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (keynames); i++)
 		Key_SetBinding (keynames[i].keynum, keynames[i].binding);
 
@@ -627,16 +593,9 @@ Key_AddKeyCommands [FWGS, 01.07.26]
 ***/
 static void Key_AddKeyCommands (int key, const char *kb, qboolean down)
 	{
-	/*char	button[1024];
-	char	*buttonPtr;
-	char	cmd[1024];
-	int		i;*/
-
 	if (!kb)
 		return;
-	/*buttonPtr = button;*/
 
-	/*for (i = 0; ; i++)*/
 	char	button[1024];
 	char	*buttonPtr = button;
 
@@ -647,7 +606,7 @@ static void Key_AddKeyCommands (int key, const char *kb, qboolean down)
 			*buttonPtr = '\0';
 			if (button[0] == '+')
 				{
-				char cmd[1024];
+				char	cmd[1024];
 
 				// button commands add keynum as a parm
 				if (down)
@@ -751,8 +710,6 @@ Called by the system for both key up and key down events
 ***/
 void GAME_EXPORT Key_Event (int key, int down)
 	{
-	/*const char *kb;*/
-
 	key = Key_Rotate (key);
 
 	if (OSK_KeyEvent (key, down))
@@ -762,9 +719,7 @@ void GAME_EXPORT Key_Event (int key, int down)
 	if (!keys[key].down && !down)
 		return;
 
-	/*// [FWGS, 01.04.26]
-	kb = keys[key].binding;*/
-	const char *kb = keys[key].binding;
+	const char	*kb = keys[key].binding;
 	keys[key].down = down ? true : false;
 
 #ifdef HACKS_RELATED_HLMODS
@@ -792,8 +747,16 @@ void GAME_EXPORT Key_Event (int key, int down)
 				keys[key].repeats = 0;
 				}
 
+			// [FWGS, 01.09.26]
+			/*return;
+			// handled in client.dll*/
+
+			// deliver keys regardless of whether the client.dll handled them or not
+			// reproduces GoldSrc behavior, where keys are passed even if the client.dll claims to have handled them
+			// this is needed for Cry of fear's Computer interface input, for more context,
+			// see https://github.com/FWGS/xash3d-fwgs/issues/1923
+			VGui_KeyEvent (key, down);
 			return;
-			// handled in client.dll
 			}
 		}
 
@@ -842,12 +805,22 @@ void GAME_EXPORT Key_Event (int key, int down)
 					Cvar_DirectSet (&r_showtextures, "0");
 					return;
 					}
-				else if (host.mouse_visible && (cls.state != ca_cinematic))
+
+				// [FWGS, 01.09.26]
+				/*else if (host.mouse_visible && (cls.state != ca_cinematic))
 					{
 					clgame.dllFuncs.pfnKey_Event (down, key, keys[key].binding);
 					return;	// handled in client.dll
 					}
-				break;
+				break;*/
+				// Note: we don't offer the client key handling here since reaching
+				// this line proves the client already declined handling it.
+				// this prevents accidentally declining a key the client asked the engine
+				// to handle. For more context, see https://github.com/FWGS/xash3d-fwgs/issues/1943
+				// call escape immediately within the engine, since the client may not handle it
+				// (Natural Selection doesn't. See https://github.com/FWGS/xash3d-fwgs/issues/528)
+				CL_Escape_f ();
+				return;
 
 			// [FWGS, 01.03.25]
 			default:
@@ -907,6 +880,55 @@ void GAME_EXPORT Key_Event (int key, int down)
 
 /***
 ================
+Key_GetTextInputRect [FWGS, 01.09.26]
+================
+***/
+static void Key_GetTextInputRect (int *x, int *y, int *w, int *h)
+	{
+	if (Con_GetInputRect (x, y, w, h))
+		return;
+
+	if ((key_textinput_rect.w > 0) && (key_textinput_rect.h > 0))
+		{
+		*x = key_textinput_rect.x;
+		*y = key_textinput_rect.y;
+		*w = key_textinput_rect.w;
+		*h = key_textinput_rect.h;
+		return;
+		}
+
+	// nobody told us where the text is edited, keep the whole screen visible
+	*x = *y = 0;
+	*w = refState.width;
+	*h = refState.height;
+	}
+
+/***
+================
+Key_SetTextInputRect [FWGS, 01.09.26]
+================
+***/
+void Key_SetTextInputRect (int x, int y, int w, int h)
+	{
+	if ((key_textinput_rect.x == x) && (key_textinput_rect.y == y) && (key_textinput_rect.w == w) &&
+		(key_textinput_rect.h == h))
+		return;
+
+	key_textinput_rect.x = x;
+	key_textinput_rect.y = y;
+	key_textinput_rect.w = w;
+	key_textinput_rect.h = h;
+
+	// text is already edited somewhere else now, let the platform know immediately
+	if (host.textmode && !osk_enable.value)
+		{
+		Key_GetTextInputRect (&x, &y, &w, &h);
+		Platform_EnableTextInput (true, x, y, w, h);
+		}
+	}
+
+/***
+================
 Key_EnableTextInput
 ================
 ***/
@@ -918,10 +940,22 @@ void Key_EnableTextInput (qboolean enable, qboolean force)
 		return;
 		}
 
+	// [FWGS, 01.09.26]
 	if (enable && (!host.textmode || force))
-		Platform_EnableTextInput (true);
+		/*Platform_EnableTextInput (true);*/
+		{
+		int	x, y, w, h;
+
+		Key_GetTextInputRect (&x, &y, &w, &h);
+		Platform_EnableTextInput (true, x, y, w, h);
+		}
 	else if (!enable && (host.textmode || force))
-		Platform_EnableTextInput (false);
+		/*Platform_EnableTextInput (false);*/
+		{
+		// don't reuse this rect for whoever enables the text input next
+		memset (&key_textinput_rect, 0, sizeof (key_textinput_rect));
+		Platform_EnableTextInput (false, 0, 0, 0, 0);
+		}
 
 	host.textmode = enable;
 	}
@@ -935,28 +969,33 @@ void GAME_EXPORT Key_SetKeyDest (int key_dest)
 	{
 	IN_ToggleClientMouse (key_dest, cls.key_dest);
 
+	// [FWGS, 01.09.26]
 	switch (key_dest)
 		{
 		case key_game:
-			Key_EnableTextInput (false, false);
+			/*Key_EnableTextInput (false, false);*/
 			cls.key_dest = key_game;
+			Key_EnableTextInput (false, false);
 			break;
 
 		case key_menu:
-			Key_EnableTextInput (false, false);
+			/*Key_EnableTextInput (false, false);*/
 			cls.key_dest = key_menu;
+			Key_EnableTextInput (false, false);
 			break;
 
 		case key_console:
+			cls.key_dest = key_console;
 #if !XASH_NSWITCH && !XASH_PSVITA	// if we don't disable this, pops up the keyboard during load
 			Key_EnableTextInput (true, false);
 #endif			
-			cls.key_dest = key_console;
+			/*cls.key_dest = key_console;*/
 			break;
 
 		case key_message:
-			Key_EnableTextInput (true, false);
+			/*Key_EnableTextInput (true, false);*/
 			cls.key_dest = key_message;
+			Key_EnableTextInput (true, false);
 			break;
 
 		default:
@@ -967,31 +1006,33 @@ void GAME_EXPORT Key_SetKeyDest (int key_dest)
 
 /***
 ===================
-Key_ClearStates [FWGS, 01.07.26]
+Key_ClearStates
 ===================
 ***/
 void GAME_EXPORT Key_ClearStates (void)
 	{
-	/*int	i;
-
-	// [FWGS, 01.02.25]*/
 	// don't clear keys during changelevel
 	if (cls.changelevel)
 		return;
 
-	/*// [FWGS, 01.04.26]
-	for (i = 0; i < HLARRAYSIZE (keys); i++)*/
+	// [FWGS, 01.09.26]
 	for (int i = 0; i < HLARRAYSIZE (keys); i++)
 		{
-		if ((i >= K_MOUSE1) && (i <= K_MOUSE5))
+		/*if ((i >= K_MOUSE1) && (i <= K_MOUSE5))
 			IN_MouseEvent (i - K_MOUSE1, false);
 		else
+			Key_Event (i, false);*/
+		if ((i < K_MOUSE1) || (i > K_MOUSE5))
 			Key_Event (i, false);
+		// checks internally whether a key has been pressed or not
 
 		keys[i].down = 0;
 		keys[i].repeats = 0;
 		keys[i].gamedown = 0;
 		}
+
+	// [FWGS, 01.09.26] ensure that only actual mouse buttons are released
+	IN_ClearMouseState ();
 
 	if (clgame.hInstance)
 		clgame.dllFuncs.IN_ClearStates ();
@@ -999,17 +1040,18 @@ void GAME_EXPORT Key_ClearStates (void)
 
 /***
 ===================
-CL_CharEvent
+CL_CharEvent [FWGS, 01.09.26]
 
 Normal keyboard characters, already shifted / capslocked / etc
 ===================
 ***/
 void CL_CharEvent (int key)
 	{
-	// the console key should never be used as a char
-	if (key == '`' || key == '~') return;
+	/*// the console key should never be used as a char
+	if ((key == '`') || (key == '~'))
+		return;*/
 
-	if (cls.key_dest == key_console && !Con_Visible ())
+	if ((cls.key_dest == key_console) && !Con_Visible ())
 		{
 		if (((char)key == '`') || ((char)key == '?'))
 			return;	// don't pass '`' when we open the console

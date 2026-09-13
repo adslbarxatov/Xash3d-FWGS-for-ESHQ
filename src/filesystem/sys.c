@@ -16,7 +16,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
 
-#define _GNU_SOURCE 1
+#define _GNU_SOURCE		1
 
 #include "..\library_suffix\build.h"
 #include <fcntl.h>
@@ -47,15 +47,15 @@ GNU General Public License for more details
 #include "common/com_strings.h"
 
 #if !defined( O_BINARY )
-#define O_BINARY 0
+#define O_BINARY	0
 #endif
 
 #if !defined( O_TEXT )
-#define O_TEXT 0
+#define O_TEXT	0
 #endif
 
 #if !defined( MFD_NOEXEC_SEAL )
-#define MFD_NOEXEC_SEAL 8U
+#define MFD_NOEXEC_SEAL		8U
 #endif
 
 #if !defined( S_ISREG )
@@ -99,7 +99,7 @@ void stringlistfreecontents (stringlist_t *list)
 
 void stringlistappend (stringlist_t *list, const char *text)
 	{
-	size_t textlen;
+	size_t	textlen;
 
 	if (!Q_strcmp (text, ".") || !Q_strcmp (text, ".."))
 		return;	// ignore the virtual directories
@@ -125,7 +125,7 @@ void stringlistsort (stringlist_t *list)
 			{
 			if (Q_strcmp (list->strings[i], list->strings[j]) > 0)
 				{
-				char *temp = list->strings[i];
+				char	*temp = list->strings[i];
 				list->strings[i] = list->strings[j];
 				list->strings[j] = temp;
 				}
@@ -146,12 +146,14 @@ MAYBE_UNUSED static void listlowercase (stringlist_t *list)
 void listdirectory (stringlist_t *list, const char *path, qboolean dirs_only)
 	{
 #if XASH_WIN32
-	char pattern[4096];
+	char	pattern[4096];
+
 	Q_snprintf (pattern, sizeof (pattern), "%s/*", path);
 
 	// ask for the directory listing handle
-	struct _finddata_t n_file = { 0 };
-	intptr_t hFile = _findfirst (pattern, &n_file);
+	struct _finddata_t	n_file = { 0 };
+	intptr_t	hFile = _findfirst (pattern, &n_file);
+
 	if (hFile == -1)
 		return;
 
@@ -168,31 +170,30 @@ void listdirectory (stringlist_t *list, const char *path, qboolean dirs_only)
 		}
 
 	_findclose (hFile);
-#else	// !XASH_WIN32
-	DIR *dir = opendir (path);
-
+#else
+	DIR		*dir = opendir (path);
 	if (!dir)
 		return;
 
 	// iterate through the directory
-	struct dirent *entry;
+	struct dirent	*entry;
 	while ((entry = readdir (dir)))
 		{
 #if HAVE_DIRENT_D_TYPE
-		if (dirs_only && entry->d_type != DT_DIR && entry->d_type != DT_LNK && entry->d_type != DT_UNKNOWN)
+		if (dirs_only && (entry->d_type != DT_DIR) && (entry->d_type != DT_LNK) && (entry->d_type != DT_UNKNOWN))
 			continue;
-#endif	// HAVE_DIRENT_D_TYPE
+#endif
 
 		stringlistappend (list, entry->d_name);
 		}
 
 	closedir (dir);
-#endif	// !XASH_WIN32
+#endif
 
 #if XASH_DOS4GW
 	// convert names to lowercase because 8.3 always in CAPS
 	listlowercase (list);
-#endif // XASH_DOS4GW
+#endif
 	}
 
 /***
@@ -205,10 +206,12 @@ Converts input UTF-8 string to wide char string
 MAYBE_UNUSED static const wchar_t *FS_PathToWideChar (const char *path)
 	{
 #if XASH_WIN32
-	static wchar_t pathBuffer[MAX_PATH];
+	static wchar_t	pathBuffer[MAX_PATH];
+
 	MultiByteToWideChar (CP_UTF8, 0, path, -1, pathBuffer, MAX_PATH);
 	return pathBuffer;
 #endif
+
 	return L"";
 	}
 
@@ -226,13 +229,15 @@ void FS_CreatePath (char *path)
 		if (*ofs == '/' || *ofs == '\\')
 			{
 			// create the directory
-			char save = *ofs;
+			char	save = *ofs;
 			*ofs = 0;
+
 #if XASH_WIN32
 			_mkdir (path);	// use _wmkdir maybe?
-#else	// !XASH_WIN32
+#else
 			mkdir (path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-#endif	// !XASH_WIN32
+#endif
+
 			*ofs = save;
 			}
 		}
@@ -248,10 +253,12 @@ Internal function used to determine filetime
 int FS_SysFileTime (const char *filename)
 	{
 #if XASH_WIN32
-	struct _stat buf;
+	struct _stat	buf;
+
 	if (_wstat (FS_PathToWideChar (filename), &buf) < 0)
 #else
-	struct stat buf;
+	struct stat		buf;
+
 	if (stat (filename, &buf) < 0)
 #endif
 		return -1;
@@ -269,12 +276,14 @@ Look for a file in the filesystem only
 qboolean FS_SysFileExists (const char *path)
 	{
 #if XASH_WIN32
-	struct _stat buf;
+	struct _stat	buf;
+
 	if (_wstat (FS_PathToWideChar (path), &buf) < 0)
-#else	// !XASH_WIN32
-	struct stat buf;
+#else
+	struct stat		buf;
+
 	if (stat (path, &buf) < 0)
-#endif	// !XASH_WIN32
+#endif
 		return false;
 
 	return S_ISREG (buf.st_mode);
@@ -290,10 +299,12 @@ Look for a existing folder
 qboolean FS_SysFolderExists (const char *path)
 	{
 #if XASH_WIN32
-	struct _stat buf;
+	struct _stat	buf;
+
 	if (_wstat (FS_PathToWideChar (path), &buf) < 0)
 #else
-	struct stat buf;
+	struct stat		buf;
+
 	if (stat (path, &buf) < 0)
 #endif
 		return false;
@@ -311,10 +322,12 @@ Check if filesystem entry exists at all, don't mind the type
 qboolean FS_SysFileOrFolderExists (const char *path)
 	{
 #if XASH_WIN32
-	struct _stat buf;
+	struct _stat	buf;
+
 	return _wstat (FS_PathToWideChar (path), &buf) >= 0;
 #else
-	struct stat buf;
+	struct stat		buf;
+
 	return stat (path, &buf) >= 0;
 #endif
 	}
@@ -328,10 +341,10 @@ Internal function used to create a file_t and open the relevant non-packed file 
 ***/
 file_t *FS_SysOpen (const char *filepath, const char *mode)
 	{
-	file_t *file;
-	int mod, opt, fd = -1;
-	qboolean memfile = false;
-	uint ind;
+	file_t	*file;
+	int		mod, opt, fd = -1;
+	qboolean	memfile = false;
+	uint	ind;
 
 	// Parse the mode string
 	switch (mode[0])
@@ -398,9 +411,9 @@ file_t *FS_SysOpen (const char *filepath, const char *mode)
 		{
 #if XASH_WIN32
 		fd = _wopen (FS_PathToWideChar (filepath), mod | opt, 0666);
-#else	// !XASH_WIN32
+#else
 		fd = open (filepath, mod | opt, 0666);
-#endif	// !XASH_WIN32
+#endif
 		}
 
 	if (fd < 0)
@@ -422,10 +435,6 @@ file_t *FS_SysOpen (const char *filepath, const char *mode)
 	file->searchpath = NULL;
 	file->real_length = lseek (file->handle, 0, SEEK_END);
 
-	// uncomment do disable write
-	//if( opt & O_CREAT )
-	//	return NULL;
-
 	// For files opened in append mode, we start at the end of the file
 	if (opt & O_APPEND)
 		file->position = file->real_length;
@@ -442,33 +451,38 @@ FS_OpenHandle
 ***/
 file_t *FS_OpenHandle (searchpath_t *searchpath, int handle, fs_offset_t offset, fs_offset_t len)
 	{
-	file_t *file = (file_t *)Mem_Calloc (fs_mempool, sizeof (file_t));
+	file_t	*file = (file_t *)Mem_Calloc (fs_mempool, sizeof (file_t));
 
 #ifdef XASH_REDUCE_FD
 	file->backup_position = offset;
 	file->backup_path = copystring (syspath);
 	file->backup_options = O_RDONLY | O_BINARY;
 	file->handle = -1;
-#else	// !XASH_REDUCE_FD
+#else
+
 #ifdef HAVE_DUP
 	file->handle = dup (handle);
-#else	// !HAVE_DUP
+#else
 	file->handle = open (searchpath->filename, O_RDONLY | O_BINARY);
-#endif	// !HAVE_DUP
+#endif
 
 	if (file->handle < 0)
 		{
-		Con_Printf (S_ERROR "%s: couldn't create fd for %s:0x%lx: %s\n", __func__, searchpath->filename, (long)offset, strerror (errno));
+		Con_Printf (S_ERROR "%s: couldn't create fd for %s:0x%lx: %s\n", __func__,
+			searchpath->filename, (long)offset, strerror (errno));
 		Mem_Free (file);
 		return NULL;
 		}
 
 	if (lseek (file->handle, offset, SEEK_SET) == -1)
 		{
+		// [FWGS, 01.09.26]
+		close (file->handle);
 		Mem_Free (file);
 		return NULL;
 		}
-#endif	// !XASH_REDUCE_FD
+
+#endif
 
 	file->real_length = len;
 	file->offset = offset;
@@ -492,10 +506,10 @@ int FS_SetCurrentDirectory (const char *path)
 #if XASH_WIN32
 	if (!SetCurrentDirectoryW (FS_PathToWideChar (path)))
 		{
-		const DWORD fm_flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK;
-		DWORD errorcode;
-		wchar_t wide_buf[1024];
-		char buf[1024];
+		const DWORD	fm_flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK;
+		DWORD	errorcode;
+		wchar_t	wide_buf[1024];
+		char	buf[1024];
 
 		FormatMessageW (fm_flags, NULL, GetLastError (), 0, wide_buf, sizeof (wide_buf) / sizeof (wide_buf[0]), NULL);
 		Q_UTF16ToUTF8 (buf, sizeof (buf), wide_buf, sizeof (wide_buf) / sizeof (wide_buf[0]));

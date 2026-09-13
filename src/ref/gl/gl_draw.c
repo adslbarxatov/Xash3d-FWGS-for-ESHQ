@@ -22,10 +22,8 @@ R_GetImageParms [FWGS, 01.07.26]
 ***/
 void R_GetTextureParms (int *w, int *h, int texnum)
 	{
-	/*gl_texture_t *glt;*/
-	gl_texture_t *glt = R_GetTexture (texnum);
+	gl_texture_t	*glt = R_GetTexture (texnum);
 
-	/*glt = R_GetTexture (texnum);*/
 	if (w)
 		*w = glt->srcWidth;
 	if (h)
@@ -68,10 +66,7 @@ GL_UpdateTexture [FWGS, 01.07.26]
 ***/
 void GL_UpdateTexture (int texnum, int cols, int rows, int width, int height, const byte *buffer, pixformat_t fmt)
 	{
-	/*byte	*raw = NULL;
-	gl_texture_t	*tex;
-	GLenum	gl_format;*/
-	GLenum gl_format;
+	GLenum	gl_format;
 
 	switch (fmt)
 		{
@@ -106,7 +101,7 @@ void GL_UpdateTexture (int texnum, int cols, int rows, int width, int height, co
 		height = NearestPOW (height, false);
 		}
 
-	byte *raw;
+	byte	*raw;
 	if ((cols != width) || (rows != height))
 		{
 		raw = GL_ResampleTexture (buffer, cols, rows, width, height, false);
@@ -123,8 +118,7 @@ void GL_UpdateTexture (int texnum, int cols, int rows, int width, int height, co
 	if (rows > glConfig.max_2d_texture_size)
 		gEngfuncs.Host_Error ("%s: size %i exceeds hardware limits\n", __func__, rows);
 
-	/*tex = R_GetTexture (texnum);*/
-	gl_texture_t *tex = R_GetTexture (texnum);
+	gl_texture_t	*tex = R_GetTexture (texnum);
 	GL_Bind (GL_KEEP_UNIT, texnum);
 
 	if ((cols == tex->width) && (rows == tex->height))
@@ -143,19 +137,17 @@ void GL_UpdateTexture (int texnum, int cols, int rows, int width, int height, co
 
 /***
 ===============
-R_Set2DMode [FWGS, 01.07.26]
+R_Set2DMode
 ===============
 ***/
 void R_Set2DMode (qboolean enable)
 	{
 	if (enable)
 		{
-		/*matrix4x4 projection_matrix, worldview_matrix;*/
-
 		if (glState.in2DMode)
 			return;
 
-		matrix4x4 projection_matrix;
+		matrix4x4	projection_matrix;
 
 		// set 2D virtual screen size
 		switch (tr.rotation)
@@ -186,10 +178,13 @@ void R_Set2DMode (qboolean enable)
 
 		pglMatrixMode (GL_MODELVIEW);
 
-		matrix4x4 worldview_matrix;
+		matrix4x4	worldview_matrix;
 		Matrix4x4_LoadIdentity (worldview_matrix);
-		GL_LoadMatrix (worldview_matrix);
 
+		// [FWGS, 01.09.26]
+		Matrix4x4_ConcatTranslate (worldview_matrix, glState.offset2D[0], glState.offset2D[1], 0.0f);
+
+		GL_LoadMatrix (worldview_matrix);
 		GL_Cull (GL_NONE);
 
 		pglDepthMask (GL_FALSE);
@@ -226,4 +221,25 @@ void R_Set2DMode (qboolean enable)
 
 		GL_Cull (GL_FRONT);
 		}
+	}
+
+
+/***
+===============
+R_Set2DOffset [FWGS, 01.09.26]
+===============
+***/
+void R_Set2DOffset (float x, float y)
+	{
+	Vector2Set (glState.offset2D, x, y);
+
+	if (!glState.in2DMode)
+		return;
+
+	matrix4x4	worldview_matrix;
+	Matrix4x4_LoadIdentity (worldview_matrix);
+	Matrix4x4_ConcatTranslate (worldview_matrix, x, y, 0.0f);
+
+	pglMatrixMode (GL_MODELVIEW);
+	GL_LoadMatrix (worldview_matrix);
 	}

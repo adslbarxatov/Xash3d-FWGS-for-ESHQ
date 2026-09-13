@@ -72,7 +72,7 @@ static void FindNextChunk (const char *filename, const char *name)
 	{
 	while (1)
 		{
-		ptrdiff_t remaining = iff_end - iff_lastChunk;
+		ptrdiff_t	remaining = iff_end - iff_lastChunk;
 
 		if (remaining < 8)
 			{
@@ -97,11 +97,11 @@ static void FindNextChunk (const char *filename, const char *name)
 			// Otherwise this warning becomes misleading because some idiot programs like
 			// CoolEdit (i.e. Adobe Audition) don't always respect pad byte. The file isn't
 			// actually truncated, it just can't be reliably parsed as a whole
-			if (IsFourCC (iff_lastChunk, "RIFF")
-				|| IsFourCC (iff_lastChunk, "fmt ")
-				|| IsFourCC (iff_lastChunk, "cue ")
-				|| IsFourCC (iff_lastChunk, "LIST")
-				|| IsFourCC (iff_lastChunk, "data"))
+			if (IsFourCC (iff_lastChunk, "RIFF") ||
+				IsFourCC (iff_lastChunk, "fmt ") ||
+				IsFourCC (iff_lastChunk, "cue ") ||
+				IsFourCC (iff_lastChunk, "LIST") ||
+				IsFourCC (iff_lastChunk, "data"))
 				{
 				Con_DPrintf ("%s: '%s' truncated by %td bytes\n", __func__, filename, iff_chunkLen - remaining);
 				}
@@ -172,12 +172,11 @@ static qboolean StreamFindNextChunk (file_t *file, const char *name, int *last_c
 
 /***
 =============
-Sound_LoadWAV [FWGS, 01.07.26]
+Sound_LoadWAV
 =============
 ***/
 qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesize)
 	{
-	/*int			samples, fmt;*/
 	qboolean	mpeg_stream = false;
 
 	if (!buffer || (filesize <= 0))
@@ -207,8 +206,7 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 
 	iff_dataPtr += 8;
 
-	/*fmt = GetLittleShort ();*/
-	int fmt = GetLittleShort ();
+	int	fmt = GetLittleShort ();
 	if (fmt != 1)
 		{
 		if (fmt != 85)
@@ -279,8 +277,7 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 
 	iff_dataPtr += 4;
-	/*samples = GetLittleLong () / sound.width;*/
-	int samples = GetLittleLong () / sound.width;
+	int	samples = GetLittleLong () / sound.width;
 
 	if (sound.samples)
 		{
@@ -320,7 +317,16 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		return Sound_LoadMPG (name, buffer + hdr_size, filesize - hdr_size);
 		}
 
-	// Load the data
+	// [FWGS, 01.09.26]
+	if (FBitSet (sound.flags, SOUND_LOOPED) && (sound.loopstart >= sound.samples))
+		{
+		Con_DPrintf (S_WARN "%s: %s has bad loop start %u (%u samples total), disabling looping\n",
+			__func__, name, sound.loopstart, sound.samples);
+		ClearBits (sound.flags, SOUND_LOOPED);
+		sound.loopstart = 0;
+		}
+
+	// load the data
 	sound.size = sound.samples * sound.width * sound.channels;
 	sound.wav = Mem_Malloc (host.soundpool, sound.size);
 
@@ -329,8 +335,9 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	// swap 16-bit samples from little endian to native
 	if (sound.width == 2)
 		{
-		short *p = (short *)sound.wav;
-		int count = sound.size / 2;
+		short	*p = (short *)sound.wav;
+		int	count = sound.size / 2;
+
 		for (int i = 0; i < count; i++)
 			p[i] = LittleShort (p[i]);
 		}
@@ -338,13 +345,10 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 	// now convert 8-bit sounds to signed
 	if (sound.width == 1)
 		{
-		/*int	i, j;*/
-		signed char *pData = (signed char *)sound.wav;
+		signed char	*pData = (signed char *)sound.wav;
 
-		/*for (i = 0; i < sound.samples; i++)*/
 		for (int i = 0; i < sound.samples; i++)
 			{
-			/*for (j = 0; j < sound.channels; j++)*/
 			for (int j = 0; j < sound.channels; j++)
 				{
 				*pData = (byte)((int)((byte)*pData) - 128);
@@ -354,23 +358,20 @@ qboolean Sound_LoadWAV (const char *name, const byte *buffer, fs_offset_t filesi
 		}
 
 	// silence known-broken WAVs that contain stray non-zero samples masquerading as silence
-	/*if (Q_stristr (name, "null.wav"))*/
 	if (Q_stristr (name, "null.wav") || Q_stristr (name, "_period.wav") || Q_stristr (name, "_comma.wav"))
 		{
-		static const uint32_t broken_crcs[] =
+		static const uint32_t	broken_crcs[] =
 			{
 			0x14a36f29,	// common/null.wav (HL1/Q1)
 			0x005a43ab,	// vox/_period.wav (HL1)
 			0x7749ed15,	// vox/_comma.wav (HL1)
 			};
 
-		uint32_t crc;
+		uint32_t	crc;
 		CRC32_Init (&crc);
 		CRC32_ProcessBuffer (&crc, buffer, filesize);
 		crc = CRC32_Final (crc);
 
-		/*if (crc == 0x14a36f29)	// common/null.wav (Half-Life)
-			memset (sound.wav, 0, sound.size);*/
 		for (size_t i = 0; i < HLARRAYSIZE (broken_crcs); i++)
 			{
 			if (crc == broken_crcs[i])
@@ -394,7 +395,6 @@ stream_t *Stream_OpenWAV (const char *filename)
 	stream_t	*stream;
 	int 	last_chunk = 0;
 	char	chunkName[4];
-	/*int			iff_data;*/
 	file_t	*file;
 	short	t;
 
@@ -430,8 +430,7 @@ stream_t *Stream_OpenWAV (const char *filename)
 		}
 
 	// get "fmt " chunk
-	/*iff_data = FS_Tell (file);*/
-	int iff_data = FS_Tell (file);
+	int	iff_data = FS_Tell (file);
 	last_chunk = iff_data;
 	if (!StreamFindNextChunk (file, "fmt ", &last_chunk))
 		{
@@ -498,14 +497,11 @@ assume stream is valid
 ***/
 int Stream_ReadWAV (stream_t *stream, int bytes, void *buffer)
 	{
-	/*int	remaining;*/
-
 	// invalid file
 	if (!stream->file)
 		return 0;
 
-	/*remaining = stream->size - stream->pos;*/
-	int remaining = stream->size - stream->pos;
+	int	remaining = stream->size - stream->pos;
 	if (remaining <= 0)
 		return 0;
 	if (bytes > remaining)
@@ -516,8 +512,9 @@ int Stream_ReadWAV (stream_t *stream, int bytes, void *buffer)
 
 	if (stream->width == 2)
 		{
-		short *p = (short *)buffer;
-		int count = bytes / 2;
+		short	*p = (short *)buffer;
+		int	count = bytes / 2;
+
 		for (int i = 0; i < count; i++)
 			p[i] = LittleShort (p[i]);
 		}

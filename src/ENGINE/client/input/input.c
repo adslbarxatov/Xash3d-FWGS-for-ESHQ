@@ -28,13 +28,12 @@ GNU General Public License for more details
 #include "platform/platform.h"
 
 // [FWGS, 01.07.26]
-static qboolean in_mouseactive;	// false when not focus app
-static qboolean in_mouseinitialized;
-/*static qboolean in_mouse_suspended;*/
+static qboolean	in_mouseactive;	// false when not focus app
+static qboolean	in_mouseinitialized;
 
 static struct
 	{
-	int x, y;
+	int	x, y;
 	} in_lastvalidpos;
 
 static qboolean in_mouse_savedpos;
@@ -42,7 +41,7 @@ static int	in_mstate = 0;
 
 static struct inputstate_s
 	{
-	float lastpitch, lastyaw;
+	float	lastpitch, lastyaw;
 	} inputstate;
 
 CVAR_DEFINE_AUTO (m_pitch, "0.022", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
@@ -77,7 +76,7 @@ Returns a bit mask representing connected devices or, at least, enabled
 ***/
 uint IN_CollectInputDevices (void)
 	{
-	uint ret = 0;
+	uint	ret = 0;
 
 	if (!m_ignore.value)	// no way to check is mouse connected, so use cvar only
 		ret |= INPUT_DEVICE_MOUSE;
@@ -107,7 +106,7 @@ player is connected to the server
 ***/
 void IN_LockInputDevices (qboolean lock)
 	{
-	extern convar_t joy_enable;	// private to input system
+	extern convar_t	joy_enable;	// private to input system
 
 	if (lock)
 		{
@@ -225,8 +224,8 @@ void IN_ToggleClientMouse (int newstate, int oldstate)
 // [FWGS, 01.06.25]
 void IN_SetRelativeMouseMode (qboolean set)
 	{
-	static qboolean s_bRawInput;
-	qboolean verbose = m_grab_debug.value ? true : false;
+	static qboolean	s_bRawInput;
+	qboolean	verbose = m_grab_debug.value ? true : false;
 
 	if (set && !s_bRawInput)
 		{
@@ -269,8 +268,8 @@ void IN_SetRelativeMouseMode (qboolean set)
 // [FWGS, 01.06.25]
 void IN_SetMouseGrab (qboolean set)
 	{
-	static qboolean s_bMouseGrab;
-	qboolean verbose = m_grab_debug.value ? true : false;
+	static qboolean	s_bMouseGrab;
+	qboolean	verbose = m_grab_debug.value ? true : false;
 
 	if (set && !s_bMouseGrab)
 		{
@@ -280,7 +279,6 @@ void IN_SetMouseGrab (qboolean set)
 		if (verbose)
 			Con_Printf ("%s: true\n", __func__);
 		}
-
 	else if (!set && s_bMouseGrab)
 		{
 		Platform_SetMouseGrab (false);
@@ -294,7 +292,7 @@ void IN_SetMouseGrab (qboolean set)
 // [FWGS, 01.03.25]
 static void IN_CheckMouseState (qboolean active)
 	{
-	qboolean use_raw_input;
+	qboolean	use_raw_input;
 
 #if XASH_WIN32
 	use_raw_input = (m_rawinput.value && clgame.client_dll_uses_sdl) || (clgame.dllFuncs.pfnLookEvent != NULL);
@@ -331,6 +329,7 @@ void IN_ActivateMouse (void)
 	IN_CheckMouseState (true);
 	if (clgame.dllFuncs.IN_ActivateMouse)
 		clgame.dllFuncs.IN_ActivateMouse ();
+
 	in_mouseactive = true;
 	}
 
@@ -349,17 +348,18 @@ void IN_DeactivateMouse (void)
 	IN_CheckMouseState (false);
 	if (clgame.dllFuncs.IN_DeactivateMouse)
 		clgame.dllFuncs.IN_DeactivateMouse ();
+
 	in_mouseactive = false;
 	}
 
 /***
 ================
-IN_MouseMove [FWGS, 01.07.26]
+IN_MouseMove [FWGS, 01.09.26]
 ================
 ***/
 static void IN_MouseMove (void)
 	{
-	/*int x, y;*/
+	static int	oldx, oldy;
 
 	if (!in_mouseinitialized)
 		return;
@@ -372,8 +372,16 @@ static void IN_MouseMove (void)
 		}
 
 	// find mouse movement
-	int x, y;
+	int	x, y;
 	Platform_GetMousePos (&x, &y);
+
+	// touchscreen moves the cursor on its own, don't drag it back to where the mouse is left
+	if ((x == oldx) && (y == oldy))
+		return;
+
+	oldx = x;
+	oldy = y;
+
 	VGui_MouseMove (x, y);
 
 	// if the menu is visible, move the menu cursor
@@ -419,6 +427,23 @@ void IN_MouseEvent (int key, int down)
 	}
 
 /***
+===========
+IN_ClearMouseState [FWGS, 01.09.26]
+
+mouse button releases are handled here to ensure that only actual
+mouse button clicks are released
+===========
+***/
+void IN_ClearMouseState (void)
+	{
+	for (int i = 0; i <= K_MOUSE5 - K_MOUSE1; i++)
+		{
+		if (FBitSet (in_mstate, BIT (i)))	// is this an actual mouse button click?
+			IN_MouseEvent (i, false);
+		}
+	}
+
+/***
 ==============
 IN_MWheelEvent
 
@@ -427,7 +452,7 @@ direction is negative for wheel down, otherwise wheel up
 ***/
 void IN_MWheelEvent (int y)
 	{
-	int b = y > 0 ? K_MWHEELUP : K_MWHEELDOWN;
+	int	b = (y > 0) ? K_MWHEELUP : K_MWHEELDOWN;
 
 	VGui_MWheelEvent (y);
 
@@ -498,7 +523,7 @@ Common function for engine joystick movement
 
 static void IN_JoyAppendMove (usercmd_t *cmd, float forwardmove, float sidemove)
 	{
-	static uint moveflags = T_ | S_;
+	static uint	moveflags = T_ | S_;
 
 	if (forwardmove)
 		cmd->forwardmove = forwardmove * cl_forwardspeed.value;
@@ -576,7 +601,7 @@ static void IN_CollectInput (float *forward, float *side, float *pitch, float *y
 	{
 	if (includeMouse)
 		{
-		float x, y;
+		float	x, y;
 		Platform_MouseMove (&x, &y);
 		*pitch += y * m_pitch.value;
 		*yaw -= x * m_yaw.value;
@@ -611,20 +636,16 @@ Called from cl_main.c after generating command in client
 ***/
 void IN_EngineAppendMove (float frametime, usercmd_t *cmd, qboolean active)
 	{
-	/*float	forward, side, pitch, yaw;*/
-
 	if (clgame.dllFuncs.pfnLookEvent)
 		return;
 
 	if ((cls.key_dest != key_game) || cl.paused || cl.intermission)
 		return;
 
-	/*forward = side = pitch = yaw = 0;*/
-
 	if (active)
 		{
-		float forward = 0, side = 0, pitch = 0, yaw = 0;
-		float sensitivity = 1;
+		float	forward = 0, side = 0, pitch = 0, yaw = 0;
+		float	sensitivity = 1;
 
 		IN_CollectInput (&forward, &side, &pitch, &yaw, false);
 		IN_JoyAppendMove (cmd, forward, side);
@@ -647,7 +668,7 @@ static void IN_Commands (void)
 
 	if (clgame.dllFuncs.pfnLookEvent)
 		{
-		float forward = 0, side = 0, pitch = 0, yaw = 0;
+		float	forward = 0, side = 0, pitch = 0, yaw = 0;
 
 		IN_CollectInput (&forward, &side, &pitch, &yaw, in_mouseinitialized && !m_ignore.value);
 		if (cls.key_dest == key_game)
