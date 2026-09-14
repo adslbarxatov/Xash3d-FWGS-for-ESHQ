@@ -214,25 +214,18 @@ static char *GL_PrintInfoLog (GLhandleARB object, qboolean program)
 // [FWGS, 01.07.26]
 static GLuint GL2_GenerateShader (gl2wrap_prog_t *prog, GLenum type)
 	{
-	/*char	*shader, shader_buf[MAX_SHADERLEN + 1];*/
 	char	shader_buf[MAX_SHADERLEN + 1];
 	char	tmp[256];
-	/*int		i;
-	GLint	status, len;
-	GLuint	id, loc;
-	int		version = gl2wrap_config.version;*/
 	GLint	status;
 	const int	version = gl2wrap_config.version;
+	char	*shader = shader_buf;
 
-	/*shader = shader_buf;*/
-	char *shader = shader_buf;
 	shader[0] = 0;
 
 	Q_snprintf (shader, MAX_SHADERLEN, "#version %d%s\n", version, (version >= 300) && (version < 330) ? " es" : "");
 	Q_snprintf (tmp, sizeof (tmp), "#define VER %d\n", version);
 	Q_strncat (shader, tmp, MAX_SHADERLEN);
 
-	/*for (i = 0; i < GL2_FLAG_MAX; ++i)*/
 	for (int i = 0; i < GL2_FLAG_MAX; ++i)
 		{
 		Q_snprintf (tmp, sizeof (tmp), "#define %s %d\n", gl2wrap_flag_name[i], FBitSet (prog->flags, BIT (i)));
@@ -241,9 +234,7 @@ static GLuint GL2_GenerateShader (gl2wrap_prog_t *prog, GLenum type)
 
 	if (version >= 310)
 		{
-		/*loc = 0;
-		for (i = 0; i < GL2_ATTR_MAX; ++i)*/
-		GLuint loc = 0;
+		GLuint	loc = 0;
 		for (int i = 0; i < GL2_ATTR_MAX; ++i)
 			{
 			if (FBitSet (prog->flags, BIT (i)))
@@ -264,10 +255,9 @@ static GLuint GL2_GenerateShader (gl2wrap_prog_t *prog, GLenum type)
 	else
 		Q_strncat (shader, gl2wrap_vert_src, MAX_SHADERLEN);
 
-	/*id = pglCreateShaderObjectARB (type);
-	len = Q_strlen (shader);*/
-	GLuint id = pglCreateShaderObjectARB (type);
-	GLint len = Q_strlen (shader);
+	GLuint	id = pglCreateShaderObjectARB (type);
+	GLint	len = Q_strlen (shader);
+
 	pglShaderSourceARB (id, 1, (void *)&shader, &len);
 	pglCompileShaderARB (id);
 	pglGetObjectParameterivARB (id, GL_OBJECT_COMPILE_STATUS_ARB, &status);
@@ -288,11 +278,8 @@ static GLuint GL2_GenerateShader (gl2wrap_prog_t *prog, GLenum type)
 // [FWGS, 01.07.26]
 static gl2wrap_prog_t *GL2_GetProg (const GLuint flags)
 	{
-	/*int		i, loc;
-	GLuint	status = 0, vp, fp, glprog;
-	gl2wrap_prog_t	*prog;*/
-	int i;
-	GLuint status = 0;
+	int		i;
+	GLuint	status = 0;
 
 	// try to find existing prog matching this feature set
 	if (gl2wrap.cur_prog && (gl2wrap.cur_prog->flags == flags))
@@ -315,27 +302,22 @@ static gl2wrap_prog_t *GL2_GetProg (const GLuint flags)
 	// new prog; generate shaders
 	gEngfuncs.Con_DPrintf (S_NOTE "%s: Generating progs for 0x%04x\n", __func__, flags);
 
-	/*prog = &gl2wrap.progs[i];*/
-	gl2wrap_prog_t *prog = &gl2wrap.progs[i];
+	gl2wrap_prog_t	*prog = &gl2wrap.progs[i];
 	prog->flags = flags;
 
-	/*vp = GL2_GenerateShader (prog, GL_VERTEX_SHADER_ARB);
-	fp = GL2_GenerateShader (prog, GL_FRAGMENT_SHADER_ARB);*/
-	GLuint vp = GL2_GenerateShader (prog, GL_VERTEX_SHADER_ARB);
-	GLuint fp = GL2_GenerateShader (prog, GL_FRAGMENT_SHADER_ARB);
+	GLuint	vp = GL2_GenerateShader (prog, GL_VERTEX_SHADER_ARB);
+	GLuint	fp = GL2_GenerateShader (prog, GL_FRAGMENT_SHADER_ARB);
 	if (!vp || !fp)
 		{
 		prog->flags = 0;
 		return NULL;
 		}
 
-	/*glprog = pglCreateProgramObjectARB ();*/
-	GLuint glprog = pglCreateProgramObjectARB ();
+	GLuint	glprog = pglCreateProgramObjectARB ();
 	pglAttachObjectARB (glprog, vp);
 	pglAttachObjectARB (glprog, fp);
 
-	/*loc = 0;*/
-	int loc = 0;
+	int	loc = 0;
 	for (i = 0; i < GL2_ATTR_MAX; ++i)
 		{
 		if (FBitSet (flags, BIT (i)))
@@ -358,7 +340,7 @@ static gl2wrap_prog_t *GL2_GetProg (const GLuint flags)
 	pglDeleteObjectARB (vp);
 	pglDeleteObjectARB (fp);
 
-	/// TODO: detect arb/core shaders in engine
+	// TODO: detect arb/core shaders in engine
 	if (pglGetProgramiv)
 		pglGetProgramiv (glprog, GL_OBJECT_LINK_STATUS_ARB, &status);
 	else
@@ -399,8 +381,6 @@ static gl2wrap_prog_t *GL2_GetProg (const GLuint flags)
 			{
 			if (gl2wrap_config.vao_mandatory || gl2wrap_config.incremental)
 				{
-				/*int j;
-				for (j = 0; j < gl2wrap_config.cycle_buffers; j++)*/
 				for (int j = 0; j < gl2wrap_config.cycle_buffers; j++)
 					{
 					pglBindVertexArray (prog->vao_begin[j]);
@@ -429,9 +409,10 @@ static gl2wrap_prog_t *GL2_GetProg (const GLuint flags)
 	}
 
 static void GL2_UpdateMVP (gl2wrap_prog_t *prog);
+
 static gl2wrap_prog_t *GL2_SetProg (const GLuint flags)
 	{
-	gl2wrap_prog_t *prog = NULL;
+	gl2wrap_prog_t	*prog = NULL;
 
 	if (flags && (prog = GL2_GetProg (flags)))
 		{
@@ -468,14 +449,10 @@ static gl2wrap_prog_t *GL2_SetProg (const GLuint flags)
 // [FWGS, 01.07.26]
 static void GL2_InitTriQuads (void)
 	{
-	/*int i;
-	for (i = 0; i < (!!pglDrawRangeElementsBaseVertex ? 1 : 4); i++)*/
 	for (int i = 0; i < (!!pglDrawRangeElementsBaseVertex ? 1 : 4); i++)
 		{
-		/*int j;*/
-		GLushort triquads_array[TRIQUADS_SIZE];
+		GLushort	triquads_array[TRIQUADS_SIZE];
 
-		/*for (j = 0; j < TRIQUADS_SIZE / 6; j++)*/
 		for (int j = 0; j < TRIQUADS_SIZE / 6; j++)
 			{
 			triquads_array[j * 6] = j * 4 + i;
@@ -494,13 +471,9 @@ static void GL2_InitTriQuads (void)
 	rpglBindBufferARB (GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	}
 
-/*// [FWGS, 01.05.24]
-static void GL2_InitIncrementalBuffer (int i, GLuint size)*/
-
 // [FWGS, 01.07.26]
 static void GL2_FreeIncrementalBufferAttr (int i, int valid_mappings)
 	{
-	/*int j;*/
 	if (gl2wrap.attrbufobj[i])
 		{
 		if (gl2wrap_config.buf_storage)
@@ -527,22 +500,21 @@ static void GL2_FreeIncrementalBufferAttr (int i, int valid_mappings)
 // [FWGS, 01.07.26]
 static qboolean GL2_InitIncrementalBuffer (int i, GLuint size)
 	{
-	int valid_j = 0;
+	int	valid_j = 0;
 
 	gl2wrap.attrbufobj[i] = Mem_Calloc (r_temppool, gl2wrap_config.cycle_buffers * sizeof (GLuint));
 	if (gl2wrap_config.buf_storage)
 		gl2wrap.mappings[i] = Mem_Calloc (r_temppool, gl2wrap_config.cycle_buffers * sizeof (void *));
 	pglGenBuffersARB (gl2wrap_config.cycle_buffers, gl2wrap.attrbufobj[i]);
 
-	/*for (j = 0; j < gl2wrap_config.cycle_buffers; j++)*/
 	for (int j = 0; j < gl2wrap_config.cycle_buffers; j++)
 		{
 		rpglBindBufferARB (GL_ARRAY_BUFFER_ARB, gl2wrap.attrbufobj[i][j]);
 		if (gl2wrap_config.buf_storage)
 			{
-			/*GLuint flags = GL_MAP_WRITE_BIT | MB (!gl2wrap_config.coherent, FLUSH_EXPLICIT) |*/
-			const GLuint flags = GL_MAP_WRITE_BIT | MB (!gl2wrap_config.coherent, FLUSH_EXPLICIT) |
+			const GLuint	flags = GL_MAP_WRITE_BIT | MB (!gl2wrap_config.coherent, FLUSH_EXPLICIT) |
 				GL_MAP_PERSISTENT_BIT | MB (gl2wrap_config.coherent, COHERENT);
+
 			pglBufferStorage (GL_ARRAY_BUFFER_ARB, size, NULL, GL_MAP_WRITE_BIT |
 				MB (gl2wrap_config.coherent, COHERENT) | GL_MAP_PERSISTENT_BIT);
 			gl2wrap.mappings[i][j] = pglMapBufferRange (GL_ARRAY_BUFFER_ARB, 0, size, flags);
@@ -585,13 +557,11 @@ static qboolean GL2_InitProgs (void)
 		BIT (GL2_ATTR_POS) | BIT (GL2_ATTR_TEXCOORD0) | BIT (GL2_FLAG_ALPHA_TEST) | BIT (GL2_FLAG_FOG),	// out = tex0 * ucolor + FEAT_ALPHA_TEST + FEAT_FOG
 		};
 
-	const size_t precache_progs_count = sizeof (precache_progs) / sizeof (precache_progs[0]);
-	/*int i;*/
+	const size_t	precache_progs_count = sizeof (precache_progs) / sizeof (precache_progs[0]);
 
 	gEngfuncs.Con_DPrintf (S_NOTE "GL2_InitProgs: Pre-generating %u progs, version %d...\n",
 		(uint)(precache_progs_count), gl2wrap_config.version);
 
-	/*for (i = 0; i < (int)(precache_progs_count); ++i)*/
 	for (int i = 0; i < (int)(precache_progs_count); ++i)
 		if (!GL2_GetProg (precache_progs[i]))
 			return false;
@@ -602,7 +572,6 @@ static qboolean GL2_InitProgs (void)
 // [FWGS, 01.07.26]
 int GL2_ShimInit (void)
 	{
-	/*int		i;*/
 	GLuint	total;
 
 	if (gl2wrap_init)
@@ -668,6 +637,7 @@ int GL2_ShimInit (void)
 		gl2wrap_config.cycle_buffers = 4;
 	if (!gl2wrap_config.vao_mandatory)
 		gl2wrap_config.cycle_buffers = 1;
+
 	gEngfuncs.Con_Printf (S_NOTE "GL2_ShimInit: config: %s%s%s%s%s%s%sCYCLE=%d VER=%d\n",
 		gl2wrap_config.buf_storage ? "BUF_STOR " : "",
 		gl2wrap_config.buf_storage && gl2wrap_config.coherent ? "COHERENT " : "",
@@ -690,11 +660,10 @@ int GL2_ShimInit (void)
 
 	total = 0;
 
-	/*for (i = 0; i < GL2_ATTR_MAX; ++i)*/
 init_attrbufs:
 	for (int i = 0; i < GL2_ATTR_MAX; ++i)
 		{
-		GLuint size = GL2_MAX_VERTS * gl2wrap_attr_size[i] * sizeof (GLfloat);
+		GLuint	size = GL2_MAX_VERTS * gl2wrap_attr_size[i] * sizeof (GLfloat);
 		if (!gl2wrap_config.buf_storage)
 			{
 			gl2wrap.attrbuf[i] = Mem_Calloc (r_temppool, size);
@@ -702,7 +671,6 @@ init_attrbufs:
 
 		if (gl2wrap_config.incremental)
 			{
-			/*GL2_InitIncrementalBuffer (i, size);*/
 			if (!GL2_InitIncrementalBuffer (i, size))
 				{
 				for (int k = 0; k < i; k++)
@@ -729,9 +697,6 @@ init_attrbufs:
 				pglGenBuffersARB (gl2wrap_config.cycle_buffers, gl2wrap.attrbufobj[i]);
 				if (gl2wrap_config.supports_mapbuffer)
 					{
-					/*int j;
-
-					for (j = 0; j < gl2wrap_config.cycle_buffers; j++)*/
 					for (int j = 0; j < gl2wrap_config.cycle_buffers; j++)
 						{
 						rpglBindBufferARB (GL_ARRAY_BUFFER_ARB, gl2wrap.attrbufobj[i][j]);
@@ -772,8 +737,6 @@ init_attrbufs:
 // [FWGS, 01.07.26]
 void GL2_ShimShutdown (void)
 	{
-	/*int i;*/
-
 	if (!gl2wrap_init)
 		return;
 
@@ -782,7 +745,6 @@ void GL2_ShimShutdown (void)
 	GL2_FreeArrays ();
 	pglDeleteBuffersARB ((!!pglDrawRangeElementsBaseVertex ? 1 : 4), gl2wrap.triquads_ibo);
 
-	/*for (i = 0; i < MAX_PROGS; ++i)*/
 	for (int i = 0; i < MAX_PROGS; ++i)
 		{
 		if (gl2wrap.progs[i].flags)
@@ -796,13 +758,10 @@ void GL2_ShimShutdown (void)
 			}
 		}
 
-	/*for (i = 0; i < GL2_ATTR_MAX; ++i)*/
 	for (int i = 0; i < GL2_ATTR_MAX; ++i)
 		{
-		/*int j;*/
 		if (gl2wrap_config.buf_storage)
 			{
-			/*for (j = 0; j < gl2wrap_config.cycle_buffers; j++)*/
 			for (int j = 0; j < gl2wrap_config.cycle_buffers; j++)
 				{
 				pglBindBufferARB (GL_ARRAY_BUFFER_ARB, gl2wrap.attrbufobj[i][j]);
@@ -829,8 +788,6 @@ void GL2_ShimShutdown (void)
 // [FWGS, 01.07.26]
 static void GL2_ResetPersistentBuffer (void)
 	{
-	/*int i;*/
-
 #ifdef QUAD_BATCH
 	GL2_FlushPrims ();
 #endif
@@ -840,17 +797,14 @@ static void GL2_ResetPersistentBuffer (void)
 		{
 		gl2wrap.attrbufcycle = (gl2wrap.attrbufcycle + 1) % gl2wrap_config.cycle_buffers;
 
-		/*for (i = 0; i < GL2_ATTR_MAX; ++i)*/
 		for (int i = 0; i < GL2_ATTR_MAX; ++i)
 			{
-			/*int size = GL2_MAX_VERTS * gl2wrap_attr_size[i] * sizeof (GLfloat);*/
-			const int size = GL2_MAX_VERTS * gl2wrap_attr_size[i] * sizeof (GLfloat);
+			const int	size = GL2_MAX_VERTS * gl2wrap_attr_size[i] * sizeof (GLfloat);
 
 			rpglBindBufferARB (GL_ARRAY_BUFFER_ARB, gl2wrap.attrbufobj[i][gl2wrap.attrbufcycle]);
 			if (gl2wrap_config.buf_storage)
 				{
-				/*GLuint flags = GL_MAP_WRITE_BIT | MB (!gl2wrap_config.coherent, FLUSH_EXPLICIT) |*/
-				const GLuint flags = GL_MAP_WRITE_BIT | MB (!gl2wrap_config.coherent, FLUSH_EXPLICIT) |
+				const GLuint	flags = GL_MAP_WRITE_BIT | MB (!gl2wrap_config.coherent, FLUSH_EXPLICIT) |
 					GL_MAP_PERSISTENT_BIT | MB (gl2wrap_config.coherent, COHERENT);
 
 				pglUnmapBufferARB (GL_ARRAY_BUFFER_ARB);
@@ -859,7 +813,7 @@ static void GL2_ResetPersistentBuffer (void)
 				}
 			else
 				{
-				void *mem = pglMapBufferRange (GL_ARRAY_BUFFER_ARB, 0, size, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+				void	*mem = pglMapBufferRange (GL_ARRAY_BUFFER_ARB, 0, size, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
 				(void)mem;
 				pglUnmapBufferARB (GL_ARRAY_BUFFER_ARB);
 				}
@@ -877,15 +831,14 @@ void GL2_ShimEndFrame (void)
 // [FWGS, 01.07.26]
 static void APIENTRY GL2_Begin (GLenum prim)
 	{
-	/*int i;*/
 	if (gl2wrap.begin + MAX_BEGINEND_VERTS > GL2_MAX_VERTS)
 		GL2_ResetPersistentBuffer ();
 
 #ifdef QUAD_BATCH
 	if (gl2wrap.prim == GL_QUADS && gl2wrap_quad.active)
 		{
-		GLuint flags = gl2wrap.cur_flags;
-		GLuint flags2 = gl2wrap.cur_flags;
+		GLuint	flags = gl2wrap.cur_flags;
+		GLuint	flags2 = gl2wrap.cur_flags;
 
 		if (gl2wrap_quad.flags != flags || prim != GL_QUADS)
 			GL2_FlushPrims ();
@@ -913,25 +866,19 @@ When buffer storage not supported, we still may use cached VAO, but map/unmap it
 ***/
 static void GL2_UpdateIncrementalBuffer (gl2wrap_prog_t *prog, int count)
 	{
-	/*int i;*/
-
 	if (!gl2wrap_config.buf_storage)
 		{
-		/*for (i = 0; i < GL2_ATTR_MAX; i++)*/
 		for (int i = 0; i < GL2_ATTR_MAX; i++)
 			{
 			if (prog->attridx[i] >= 0)
 				{
-				/*void *mem;
-				GLuint flags = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT |*/
-				const GLuint flags = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT |
+				const GLuint	flags = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT |
 					MB (gl2wrap_config.async, UNSYNCHRONIZED) |
 					MB (gl2wrap_config.force_flush, FLUSH_EXPLICIT);
 
 				rpglBindBufferARB (GL_ARRAY_BUFFER_ARB, gl2wrap.attrbufobj[i][gl2wrap.attrbufcycle]);
-				/*mem = pglMapBufferRange (GL_ARRAY_BUFFER_ARB, gl2wrap_attr_size[i] * 4 * gl2wrap.begin,
-					gl2wrap_attr_size[i] * 4 * count, flags);*/
-				void *mem = pglMapBufferRange (GL_ARRAY_BUFFER_ARB, gl2wrap_attr_size[i] * 4 * gl2wrap.begin,
+
+				void	*mem = pglMapBufferRange (GL_ARRAY_BUFFER_ARB, gl2wrap_attr_size[i] * 4 * gl2wrap.begin,
 					gl2wrap_attr_size[i] * 4 * count, flags);
 
 				memcpy (mem, gl2wrap.attrbuf[i] + gl2wrap_attr_size[i] * gl2wrap.begin, gl2wrap_attr_size[i] * 4 * count);
@@ -944,7 +891,6 @@ static void GL2_UpdateIncrementalBuffer (gl2wrap_prog_t *prog, int count)
 	else if (!gl2wrap_config.coherent)
 		{
 		// non-coherent buffers anyway require unmapping or flushing after write
-		/*for (i = 0; i < GL2_ATTR_MAX; i++)*/
 		for (int i = 0; i < GL2_ATTR_MAX; i++)
 			{
 			if (prog->attridx[i] >= 0)
@@ -959,12 +905,10 @@ static void GL2_UpdateIncrementalBuffer (gl2wrap_prog_t *prog, int count)
 // [FWGS, 01.07.26]
 static void GL2_FlushPrims (void)
 	{
-	/*int i;*/
-	int startindex = 0;
-	GLuint flags = gl2wrap.cur_flags;
-	/*GLint count = gl2wrap.end - gl2wrap.begin;*/
-	const GLint count = gl2wrap.end - gl2wrap.begin;
-	gl2wrap_prog_t *prog;
+	int		startindex = 0;
+	GLuint	flags = gl2wrap.cur_flags;
+	const GLint		count = gl2wrap.end - gl2wrap.begin;
+	gl2wrap_prog_t	*prog;
 
 	if (!gl2wrap.prim || !count)
 		goto leave_label;	// end without begin
@@ -978,7 +922,6 @@ static void GL2_FlushPrims (void)
 	// disable all vertex attrib pointers
 	if (!gl2wrap_config.vao_mandatory)
 		{
-		/*for (i = 0; i < GL2_ATTR_MAX; ++i)*/
 		for (int i = 0; i < GL2_ATTR_MAX; ++i)
 			pglDisableVertexAttribArrayARB (i);
 		}
@@ -1001,16 +944,17 @@ static void GL2_FlushPrims (void)
 		if (gl2wrap_config.vao_mandatory)
 			pglBindVertexArray (prog->vao_begin[gl2wrap.attrbufcycle]);
 
-		/*for (i = 0; i < GL2_ATTR_MAX; ++i)*/
 		for (int i = 0; i < GL2_ATTR_MAX; ++i)
 			{
 			if (prog->attridx[i] >= 0)
 				{
 				if ((gl2wrap_config.vao_mandatory && !gl2wrap_config.supports_mapbuffer) || !gl2wrap_config.vao_mandatory)
 					pglEnableVertexAttribArrayARB (prog->attridx[i]);
+
 				if (gl2wrap_config.vao_mandatory)
 					{
 					pglBindBufferARB (GL_ARRAY_BUFFER_ARB, gl2wrap.attrbufobj[i][gl2wrap.attrbufcycle]);
+
 					if (gl2wrap_config.supports_mapbuffer)
 						{
 						if (gl2wrap_attr_size[i] * 4 * count > MAX_BEGINEND_VERTS)
@@ -1022,7 +966,7 @@ static void GL2_FlushPrims (void)
 							}
 						else
 							{
-							GLuint flags = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT |
+							GLuint	flags = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT |
 								MB (gl2wrap_config.async, UNSYNCHRONIZED) | MB (gl2wrap_config.force_flush, FLUSH_EXPLICIT);
 							void *mem = pglMapBufferRange (GL_ARRAY_BUFFER_ARB, 0, gl2wrap_attr_size[i] * 4 * count, flags);
 							memcpy (mem, gl2wrap.attrbuf[i] + gl2wrap_attr_size[i] * gl2wrap.begin,
@@ -1031,18 +975,23 @@ static void GL2_FlushPrims (void)
 							}
 						}
 					else
+						{
 						pglBufferDataARB (GL_ARRAY_BUFFER_ARB, gl2wrap_attr_size[i] * 4 * count,
 							gl2wrap.attrbuf[i] + gl2wrap_attr_size[i] * gl2wrap.begin, GL_STREAM_DRAW_ARB);
+						}
 
 					if (gl2wrap_config.vao_mandatory && !gl2wrap_config.supports_mapbuffer)
 						pglVertexAttribPointerARB (prog->attridx[i], gl2wrap_attr_size[i], GL_FLOAT, GL_FALSE, 0, 0);
 
 					}
 				else	// if vao is not mandatory, try use client pointers here
+					{
 					pglVertexAttribPointerARB (prog->attridx[i], gl2wrap_attr_size[i], GL_FLOAT, GL_FALSE, 0,
 						gl2wrap.attrbuf[i] + gl2wrap_attr_size[i] * gl2wrap.begin);
+					}
 				}
 			}
+
 		gl2wrap.attrbufcycle = (gl2wrap.attrbufcycle + 1) % gl2wrap_config.cycle_buffers;
 		}
 
@@ -1105,11 +1054,10 @@ leave_label:
 // [FWGS, 01.07.26]
 static void APIENTRY GL2_End (void)
 	{
-	/*int i;*/
 #ifdef QUAD_BATCH
 	if (gl2wrap.prim == GL_QUADS)
 		{
-		GLuint flags = gl2wrap.cur_flags;
+		GLuint	flags = gl2wrap.cur_flags;
 
 		// enable alpha test and fog if needed
 		gl2wrap_quad.flags = flags;
@@ -1128,25 +1076,18 @@ static void (APIENTRY *rpglTexImage2D)(GLenum target, GLint level, GLint interna
 static void APIENTRY GL2_TexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width,
 	GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels)
 	{
-	void *data = (void *)pixels;
-	if (pixels && format == GL_RGBA && (
-		internalformat == GL_RGB ||
-		internalformat == GL_RGB8 ||
-		internalformat == GL_RGB5 ||
-		internalformat == GL_LUMINANCE ||
-		internalformat == GL_LUMINANCE8 ||
-		internalformat == GL_LUMINANCE4))	// strip alpha from texture
-		{
-		/*unsigned char *in = data, *out;
-		int i = 0, size = width * height * 4;*/
-		unsigned char *in = data;
-		const int size = width * height * 4;
-		unsigned char *out = (unsigned char *)malloc (size);
+	void	*data = (void *)pixels;
 
-		/*data = out = (unsigned char *)malloc (size);*/
+	if (pixels && (format == GL_RGBA) && ((internalformat == GL_RGB) || (internalformat == GL_RGB8) ||
+		(internalformat == GL_RGB5) || (internalformat == GL_LUMINANCE) || (internalformat == GL_LUMINANCE8) ||
+		(internalformat == GL_LUMINANCE4)))		// strip alpha from texture
+		{
+		unsigned char	*in = data;
+		const int	size = width * height * 4;
+		unsigned char	*out = (unsigned char *)malloc (size);
+
 		data = out;
 
-		/*for (i = 0; i < size; i += 4, in += 4, out += 4)*/
 		for (int i = 0; i < size; i += 4, in += 4, out += 4)
 			{
 			memcpy (out, in, 3);
@@ -1155,21 +1096,22 @@ static void APIENTRY GL2_TexImage2D (GLenum target, GLint level, GLint internalf
 
 		internalformat = format;
 		}
-	if (internalformat == GL_LUMINANCE8_ALPHA8 || internalformat == GL_RGB || internalformat == GL_RGB8 ||
-		internalformat == GL_RGB5)
+	if ((internalformat == GL_LUMINANCE8_ALPHA8) || (internalformat == GL_RGB) || (internalformat == GL_RGB8) ||
+		(internalformat == GL_RGB5))
 		internalformat = GL_RGBA;
+
 	rpglTexImage2D (target, level, internalformat, width, height, border, format, type, data);
 	if (data != pixels)
 		free (data);
 	}
 
 static void (APIENTRY *rpglTexParameteri)(GLenum target, GLenum pname, GLint param);
+
 static void APIENTRY GL2_TexParameteri (GLenum target, GLenum pname, GLint param)
 	{
 	if (pname == GL_TEXTURE_BORDER_COLOR)
-		{
 		return;	// not supported by opengl es
-		}
+	
 	if (((pname == GL_TEXTURE_WRAP_S) || (pname == GL_TEXTURE_WRAP_T)) && (param == GL_CLAMP))
 		{
 		param = GL_CLAMP_TO_EDGE;
@@ -1179,6 +1121,7 @@ static void APIENTRY GL2_TexParameteri (GLenum target, GLenum pname, GLint param
 	}
 
 GLboolean (APIENTRY *rpglIsEnabled)(GLenum e);
+
 static GLboolean APIENTRY GL2_IsEnabled (GLenum e)
 	{
 	if (e == GL_FOG)
@@ -1188,20 +1131,22 @@ static GLboolean APIENTRY GL2_IsEnabled (GLenum e)
 
 static void APIENTRY GL2_Vertex3f (GLfloat x, GLfloat y, GLfloat z)
 	{
-	GLfloat *p = gl2wrap.attrbuf[GL2_ATTR_POS] + gl2wrap.end * 3;
+	GLfloat	*p = gl2wrap.attrbuf[GL2_ATTR_POS] + gl2wrap.end * 3;
 	*p++ = x;
 	*p++ = y;
 	*p++ = z;
 
 	if (FBitSet (gl2wrap.cur_flags, BIT (GL2_ATTR_COLOR)))
 		{
-		GLfloat *p = gl2wrap.attrbuf[GL2_ATTR_COLOR] + gl2wrap.end * 4;
+		GLfloat	*p = gl2wrap.attrbuf[GL2_ATTR_COLOR] + gl2wrap.end * 4;
+
 		SetBits (gl2wrap.cur_flags, BIT (GL2_ATTR_COLOR));
 		*p++ = gl2wrap.color[0];
 		*p++ = gl2wrap.color[1];
 		*p++ = gl2wrap.color[2];
 		*p++ = gl2wrap.color[3];
 		}
+
 	++gl2wrap.end;
 
 	if (gl2wrap.prim == GL_QUADS)
@@ -1214,7 +1159,8 @@ static void APIENTRY GL2_Vertex3f (GLfloat x, GLfloat y, GLfloat z)
 		}
 	else if (gl2wrap.end - gl2wrap.begin >= MAX_BEGINEND_VERTS)
 		{
-		GLenum prim = gl2wrap.prim;
+		GLenum	prim = gl2wrap.prim;
+
 		gEngfuncs.Con_DPrintf (S_ERROR "GL2_Vertex3f: Vertex buffer overflow!\n");
 		GL2_FlushPrims ();
 		GL2_Begin (prim);
@@ -1274,7 +1220,8 @@ static void APIENTRY GL2_Color4ubv (const GLubyte *v)
 static void APIENTRY GL2_TexCoord2f (GLfloat u, GLfloat v)
 	{
 	// by spec glTexCoord always updates texunit 0
-	GLfloat *p = gl2wrap.attrbuf[GL2_ATTR_TEXCOORD0] + gl2wrap.end * 2;
+	GLfloat	*p = gl2wrap.attrbuf[GL2_ATTR_TEXCOORD0] + gl2wrap.end * 2;
+
 	SetBits (gl2wrap.cur_flags, BIT (GL2_ATTR_TEXCOORD0));
 	*p++ = u;
 	*p++ = v;
@@ -1282,7 +1229,7 @@ static void APIENTRY GL2_TexCoord2f (GLfloat u, GLfloat v)
 
 static void APIENTRY GL2_MultiTexCoord2f (GLenum tex, GLfloat u, GLfloat v)
 	{
-	GLfloat *p;
+	GLfloat	*p;
 
 	// assume there can only be two
 	if (tex == GL_TEXTURE0_ARB)
@@ -1295,6 +1242,7 @@ static void APIENTRY GL2_MultiTexCoord2f (GLenum tex, GLfloat u, GLfloat v)
 		p = gl2wrap.attrbuf[GL2_ATTR_TEXCOORD1] + gl2wrap.end * 2;
 		SetBits (gl2wrap.cur_flags, BIT (GL2_ATTR_TEXCOORD1));
 		}
+
 	*p++ = u;
 	*p++ = v;
 	}
@@ -1384,7 +1332,8 @@ static void APIENTRY GL2_MatrixMode (GLenum m)
 
 static void APIENTRY GL2_LoadIdentity (void)
 	{
-	float *m = (float *)gl2wrap_matrix.current;
+	float	*m = (float *)gl2wrap_matrix.current;
+
 	m[1] = m[2] = m[3] = m[4] = 0.0f;
 	m[6] = m[7] = m[8] = m[9] = 0.0f;
 	m[11] = m[12] = m[13] = m[14] = 0.0f;
@@ -1394,13 +1343,13 @@ static void APIENTRY GL2_LoadIdentity (void)
 
 static void APIENTRY GL2_Ortho (double l, double r, double b, double t, double n, double f)
 	{
-	GLfloat m0 = 2 / (r - l);
-	GLfloat m5 = 2 / (t - b);
-	GLfloat m10 = -2 / (f - n);
-	GLfloat m12 = -(r + l) / (r - l);
-	GLfloat m13 = -(t + b) / (t - b);
-	GLfloat m14 = -(f + n) / (f - n);
-	float *m = gl2wrap_matrix.current;
+	GLfloat	m0 = 2 / (r - l);
+	GLfloat	m5 = 2 / (t - b);
+	GLfloat	m10 = -2 / (f - n);
+	GLfloat	m12 = -(r + l) / (r - l);
+	GLfloat	m13 = -(t + b) / (t - b);
+	GLfloat	m14 = -(f + n) / (f - n);
+	float	*m = gl2wrap_matrix.current;
 
 	m[12] += m12 * m[0] + m13 * m[4] + m14 * m[8];
 	m[13] += m12 * m[1] + m13 * m[5] + m14 * m[9];
@@ -1474,22 +1423,22 @@ Array drawing
 ***/
 typedef struct gl2wrap_arraypointer_s
 	{
-	const void *userptr;
-	GLint size;
-	GLenum type;
-	GLsizei stride;
-	GLuint vbo, *vbo_fb, vbo_cycle;
+	const void	*userptr;
+	GLint	size;
+	GLenum	type;
+	GLsizei	stride;
+	GLuint	vbo, *vbo_fb, vbo_cycle;
 	} gl2wrap_arraypointer_t;
 
 static struct
 	{
-	gl2wrap_arraypointer_t ptr[GL2_ATTR_MAX];
-	unsigned int flags;
+	gl2wrap_arraypointer_t	ptr[GL2_ATTR_MAX];
+	unsigned int	flags;
 	//unsigned int vbo_flags;
-	GLuint stream_buffer;
-	void *stream_pointer;
-	size_t stream_counter;
-	GLuint vao_dynamic;
+	GLuint	stream_buffer;
+	void	*stream_pointer;
+	size_t	stream_counter;
+	GLuint	vao_dynamic;
 	} gl2wrap_arrays;
 
 static void GL2_SetPointer (int idx, GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
@@ -1536,13 +1485,15 @@ static unsigned int GL2_GetArrIdx (GLenum array)
 
 static void APIENTRY GL2_EnableClientState (GLenum array)
 	{
-	unsigned int idx = GL2_GetArrIdx (array);
+	unsigned int	idx = GL2_GetArrIdx (array);
+
 	SetBits (gl2wrap_arrays.flags, BIT (idx));
 	}
 
 static void APIENTRY GL2_DisableClientState (GLenum array)
 	{
-	unsigned int idx = GL2_GetArrIdx (array);
+	unsigned int	idx = GL2_GetArrIdx (array);
+
 	ClearBits (gl2wrap_arrays.flags, BIT (idx));
 	}
 
@@ -1565,14 +1516,17 @@ static void GL2_UploadBufferData (gl2wrap_prog_t *prog, int size, GLuint start, 
 
 	rpglBindBufferARB (GL_ARRAY_BUFFER_ARB, gl2wrap_arrays.ptr[attr].vbo_fb[gl2wrap_arrays.ptr[attr].vbo_cycle]);
 	gl2wrap_arrays.ptr[attr].vbo_cycle = (gl2wrap_arrays.ptr[attr].vbo_cycle + 1) % gl2wrap_config.cycle_buffers;
-	pglBufferDataARB (GL_ARRAY_BUFFER_ARB, end * stride, gl2wrap_arrays.ptr[attr].userptr, GL_STREAM_DRAW_ARB);
+	
+	// [FWGS, 01.09.26]
+	/*pglBufferDataARB (GL_ARRAY_BUFFER_ARB, end * stride, gl2wrap_arrays.ptr[attr].userptr, GL_STREAM_DRAW_ARB);*/
+	pglBufferDataARB (GL_ARRAY_BUFFER_ARB, (end + 1) * stride, gl2wrap_arrays.ptr[attr].userptr, GL_STREAM_DRAW_ARB);
 	pglVertexAttribPointerARB (prog->attridx[attr], gl2wrap_arrays.ptr[attr].size, gl2wrap_arrays.ptr[attr].type,
 		attr == GL2_ATTR_COLOR, gl2wrap_arrays.ptr[attr].stride, 0);
 	}
 
 /***
 ===========================
-UpdatePersistentArrayBuffer [FWGS, 01.07.26]
+UpdatePersistentArrayBuffer
 
 Persistent array always mapped to stream_pointer with BufferStorage
 just memcopy it into and flush when overflowed
@@ -1583,8 +1537,7 @@ static void GL2_UpdatePersistentArrayBuffer (gl2wrap_prog_t *prog, int size, int
 	{
 	if (gl2wrap_arrays.stream_counter + size > GL2_MAX_VERTS * 64)
 		{
-		/*GLuint flags = GL_MAP_WRITE_BIT | MB (!gl2wrap_config.coherent, FLUSH_EXPLICIT) |*/
-		const GLuint flags = GL_MAP_WRITE_BIT | MB (!gl2wrap_config.coherent, FLUSH_EXPLICIT) |
+		const GLuint	flags = GL_MAP_WRITE_BIT | MB (!gl2wrap_config.coherent, FLUSH_EXPLICIT) |
 			GL_MAP_PERSISTENT_BIT | MB (gl2wrap_config.coherent, COHERENT);
 
 		pglUnmapBufferARB (GL_ARRAY_BUFFER_ARB);
@@ -1592,7 +1545,9 @@ static void GL2_UpdatePersistentArrayBuffer (gl2wrap_prog_t *prog, int size, int
 		gl2wrap_arrays.stream_pointer = pglMapBufferRange (GL_ARRAY_BUFFER_ARB, 0,
 			GL2_MAX_VERTS * 64, flags);
 
-		size = end * stride, offset = 0;
+		// [FWGS, 01.09.26]
+		/*size = end * stride, offset = 0;*/
+		size = (end + 1) * stride, offset = 0;
 		}
 
 	memcpy (((char *)gl2wrap_arrays.stream_pointer) + gl2wrap_arrays.stream_counter,
@@ -1607,7 +1562,7 @@ static void GL2_UpdatePersistentArrayBuffer (gl2wrap_prog_t *prog, int size, int
 
 /***
 ===========================
-UpdateIncrementalArrayBuffer [FWGS, 01.07.26]
+UpdateIncrementalArrayBuffer
 
 Like persistent buffer, but map every time when copying data when BufferStorage unavailiable
 ===========================
@@ -1615,22 +1570,22 @@ Like persistent buffer, but map every time when copying data when BufferStorage 
 static void GL2_UpdateIncrementalArrayBuffer (gl2wrap_prog_t *prog, int size, int offset, GLuint start,
 	GLuint end, int stride, int attr)
 	{
-	/*void *mem;*/
-	qboolean inv = false;
-	/*GLuint flags = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | MB (inv, INVALIDATE_BUFFER) |*/
-	const GLuint flags = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | MB (inv, INVALIDATE_BUFFER) |
+	qboolean	inv = false;
+	const GLuint	flags = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | MB (inv, INVALIDATE_BUFFER) |
 		MB (gl2wrap_config.async, UNSYNCHRONIZED) | MB (gl2wrap_config.force_flush, FLUSH_EXPLICIT);
 
+	// [FWGS, 01.09.26]
 	if (gl2wrap_arrays.stream_counter + size > GL2_MAX_VERTS * 64)
 		{
-		size = end * stride;
+		/*size = end * stride;*/
+		size = (end + 1) * stride;
 		offset = 0;
 		gl2wrap_arrays.stream_counter = 0;
 		inv = true;
 		}
 
-	/*mem = pglMapBufferRange (GL_ARRAY_BUFFER_ARB, gl2wrap_arrays.stream_counter, size, flags);*/
-	void *mem = pglMapBufferRange (GL_ARRAY_BUFFER_ARB, gl2wrap_arrays.stream_counter, size, flags);
+	void	*mem = pglMapBufferRange (GL_ARRAY_BUFFER_ARB, gl2wrap_arrays.stream_counter, size, flags);
+
 	memcpy (mem, ((char *)gl2wrap_arrays.ptr[attr].userptr) + offset, size);
 	if (gl2wrap_config.force_flush)
 		pglFlushMappedBufferRange (GL_ARRAY_BUFFER_ARB, 0, size);
@@ -1650,8 +1605,7 @@ Prepare BufferStorage
 ***/
 static void GL2_AllocArrayPersistenStorage (void)
 	{
-	/*GLuint flags = GL_MAP_WRITE_BIT | MB (!gl2wrap_config.coherent, FLUSH_EXPLICIT) |*/
-	const GLuint flags = GL_MAP_WRITE_BIT | MB (!gl2wrap_config.coherent, FLUSH_EXPLICIT) |
+	const GLuint	flags = GL_MAP_WRITE_BIT | MB (!gl2wrap_config.coherent, FLUSH_EXPLICIT) |
 		GL_MAP_PERSISTENT_BIT | MB (gl2wrap_config.coherent, COHERENT);
 
 	pglGenBuffersARB (1, &gl2wrap_arrays.stream_buffer);
@@ -1680,6 +1634,7 @@ static void GL2_FreeArrays (void)
 	{
 	if (gl2wrap_arrays.vao_dynamic)
 		pglDeleteVertexArrays (1, &gl2wrap_arrays.vao_dynamic);
+
 	if (gl2wrap_arrays.stream_pointer)
 		{
 		pglBindBufferARB (GL_ARRAY_BUFFER_ARB, gl2wrap_arrays.stream_buffer);
@@ -1693,7 +1648,7 @@ static void GL2_FreeArrays (void)
 
 /***
 ======================
-SetupArrays [FWGS, 01.07.26]
+SetupArrays
 
 If vao usage mandatory, use persistent/incremental buffers when possible
 else just set client pointers to default VAO
@@ -1702,9 +1657,7 @@ Usage of client pointers is forbidden with non-default VAO and unavailiable in C
 ***/
 static void GL2_SetupArrays (GLuint start, GLuint end)
 	{
-	/*gl2wrap_prog_t	*prog;*/
 	unsigned int	flags = gl2wrap_arrays.flags;
-	/*int				i;*/
 
 	if (!flags)
 		return;	// Legacy pointers not used
@@ -1718,8 +1671,7 @@ static void GL2_SetupArrays (GLuint start, GLuint end)
 	if (gl2wrap_state.fog)
 		SetBits (flags, BIT (GL2_FLAG_FOG));
 
-	/*prog = GL2_SetProg (flags);*/
-	gl2wrap_prog_t *prog = GL2_SetProg (flags);	// | GL2_ATTR_TEXCOORD0);
+	gl2wrap_prog_t	*prog = GL2_SetProg (flags);	// | GL2_ATTR_TEXCOORD0);
 	if (!prog)
 		return;
 
@@ -1730,7 +1682,6 @@ static void GL2_SetupArrays (GLuint start, GLuint end)
 		pglBindVertexArray (gl2wrap_arrays.vao_dynamic);
 		}
 
-	/*for (i = 0; i < GL2_ATTR_MAX; i++)*/
 	for (int i = 0; i < GL2_ATTR_MAX; i++)
 		{
 		if (prog->attridx[i] < 0)
@@ -1745,8 +1696,7 @@ static void GL2_SetupArrays (GLuint start, GLuint end)
 			if (gl2wrap_config.vao_mandatory && !gl2wrap_arrays.ptr[i].vbo)
 				{
 				// detect stride by type
-				/*int stride = gl2wrap_arrays.ptr[i].stride, size, offset;*/
-				int stride = gl2wrap_arrays.ptr[i].stride;
+				int	stride = gl2wrap_arrays.ptr[i].stride;
 				if (stride == 0)
 					{
 					if (gl2wrap_arrays.ptr[i].type == GL_UNSIGNED_BYTE)
@@ -1766,15 +1716,16 @@ static void GL2_SetupArrays (GLuint start, GLuint end)
 					continue;
 					}
 
-				/*size = (end - start) * stride;
-				offset = start * stride;*/
-				int size = (end - start) * stride;
-				int offset = start * stride;
+				// [FWGS, 01.09.26]
+				/*int	size = (end - start) * stride;*/
+				int	size = (end - start + 1) * stride;
+				int	offset = start * stride;
 
-				// Logical buffer start can lie before real buffer start
+				// [FWGS, 01.09.26] logical buffer start can lie before real buffer start
 				// but attrib pointer cannot have negative buffer offset
 				if (gl2wrap_arrays.stream_counter < offset)
-					size = end * stride, offset = 0;
+					/*size = end * stride, offset = 0;*/
+					size = (end + 1) * stride, offset = 0;
 
 				if ((!gl2wrap_config.buf_storage && !gl2wrap_config.incremental) || (size > GL2_MAX_VERTS * 32))
 					{
@@ -1822,9 +1773,15 @@ static void APIENTRY GL2_DrawRangeElements (GLenum mode, GLuint start, GLuint en
 		rpglDrawElements (mode, count, type, indices);
 	}
 
+// [FWGS, 01.09.26]
 static void APIENTRY GL2_DrawArrays (GLenum mode, GLint first, GLsizei count)
 	{
-	GL2_SetupArrays (0, count);
+	/*GL2_SetupArrays (0, count);*/
+	if (count <= 0)
+		return;
+
+	// vertices referenced are [first, first + count - 1], and first may be nonzero
+	GL2_SetupArrays (0, first + count - 1);
 	rpglDrawArrays (mode, first, count);
 	}
 

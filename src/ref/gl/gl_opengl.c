@@ -78,8 +78,6 @@ CVAR_DEFINE_AUTO (r_ripple_updatetime, "0.05", FCVAR_GLCONFIG,
 	"how fast ripple simulation is");
 CVAR_DEFINE_AUTO (r_ripple_spawntime, "0.1", FCVAR_GLCONFIG,
 	"how fast new ripples spawn");
-
-// [FWGS, 01.03.25]
 CVAR_DEFINE_AUTO (r_large_lightmaps, "0", FCVAR_GLCONFIG | FCVAR_LATCH,
 	"enable larger lightmap atlas textures (might break custom renderer mods)");
 
@@ -97,7 +95,7 @@ glwstate_t	glw_state;
 #endif
 
 // [FWGS, 22.01.25]
-static const dllfunc_t opengl_110funcs[] =
+static const dllfunc_t	opengl_110funcs[] =
 	{
 	{ GL_CALL (glClearColor) },
 	{ GL_CALL (glClear) },
@@ -226,7 +224,7 @@ static const dllfunc_t opengl_110funcs[] =
 	};
 
 // [FWGS, 22.01.25]
-static const dllfunc_t debugoutputfuncs[] =
+static const dllfunc_t	debugoutputfuncs[] =
 	{
 	{ GL_CALL (glDebugMessageControlARB) },
 	{ GL_CALL (glDebugMessageInsertARB) },
@@ -235,7 +233,7 @@ static const dllfunc_t debugoutputfuncs[] =
 	};
 
 // [FWGS, 22.01.25]
-static const dllfunc_t multitexturefuncs[] =
+static const dllfunc_t	multitexturefuncs[] =
 	{
 	{ GL_CALL (glMultiTexCoord1f) },
 	{ GL_CALL (glMultiTexCoord2f) },
@@ -248,8 +246,7 @@ static const dllfunc_t multitexturefuncs[] =
 	};
 
 // [FWGS, 01.07.26]
-/*static const dllfunc_t texture3dextfuncs[] =*/
-static const dllfunc_t texture3dextfuncs[] MAYBE_UNUSED =
+static const dllfunc_t	texture3dextfuncs[] MAYBE_UNUSED =
 	{
 	{ GL_CALL (glTexImage3D) },
 	{ GL_CALL (glTexSubImage3D) },
@@ -257,8 +254,7 @@ static const dllfunc_t texture3dextfuncs[] MAYBE_UNUSED =
 	};
 
 // [FWGS, 01.07.26]
-/*static const dllfunc_t texturecompressionfuncs[] =*/
-static const dllfunc_t texturecompressionfuncs[] MAYBE_UNUSED =
+static const dllfunc_t	texturecompressionfuncs[] MAYBE_UNUSED =
 	{
 	{ GL_CALL (glCompressedTexImage3DARB) },
 	{ GL_CALL (glCompressedTexImage2DARB) },
@@ -270,7 +266,7 @@ static const dllfunc_t texturecompressionfuncs[] MAYBE_UNUSED =
 	};
 
 // [FWGS, 22.01.25]
-static const dllfunc_t vbofuncs[] =
+static const dllfunc_t	vbofuncs[] =
 	{
 	{ GL_CALL (glBindBufferARB) },
 	{ GL_CALL (glDeleteBuffersARB) },
@@ -285,22 +281,19 @@ static const dllfunc_t vbofuncs[] =
 	};
 
 // [FWGS, 01.07.26]
-/*static const dllfunc_t multisampletexfuncs[] =*/
-static const dllfunc_t multisampletexfuncs[] MAYBE_UNUSED =
+static const dllfunc_t	multisampletexfuncs[] MAYBE_UNUSED =
 	{
 	{ GL_CALL (glTexImage2DMultisample) },
 	};
 
 // [FWGS, 01.07.26]
-/*static const dllfunc_t drawrangeelementsfuncs[] =*/
-static const dllfunc_t drawrangeelementsfuncs[] MAYBE_UNUSED =
+static const dllfunc_t	drawrangeelementsfuncs[] MAYBE_UNUSED =
 	{
 	{ GL_CALL (glDrawRangeElements) },
 	};
 
 // [FWGS, 01.07.26]
-/*static const dllfunc_t drawrangeelementsextfuncs[] =*/
-static const dllfunc_t drawrangeelementsextfuncs[] MAYBE_UNUSED =
+static const dllfunc_t	drawrangeelementsextfuncs[] MAYBE_UNUSED =
 	{
 	{ GL_CALL (glDrawRangeElementsEXT) },
 	};
@@ -313,7 +306,7 @@ static const dllfunc_t drawrangeelementsextfuncs[] MAYBE_UNUSED =
 #if !XASH_GL_STATIC
 
 // [FWGS, 22.01.25]
-static const dllfunc_t mapbufferrangefuncs[] =
+static const dllfunc_t	mapbufferrangefuncs[] =
 	{
 	{ GL_CALL (glMapBufferRange) },
 	{ GL_CALL (glFlushMappedBufferRange) },
@@ -323,20 +316,19 @@ static const dllfunc_t mapbufferrangefuncs[] =
 	};
 
 // [FWGS, 22.01.25]
-static const dllfunc_t drawrangeelementsbasevertexfuncs[] =
+static const dllfunc_t	drawrangeelementsbasevertexfuncs[] =
 	{
 	{ GL_CALL (glDrawRangeElementsBaseVertex) },
 	};
 
 // [FWGS, 22.01.25]
-static const dllfunc_t bufferstoragefuncs[] =
+static const dllfunc_t	bufferstoragefuncs[] =
 	{
 	{ GL_CALL (glBufferStorage) },
 	};
 
 // [FWGS, 01.07.26]
-/*static const dllfunc_t shaderobjectsfuncs[] =*/
-static const dllfunc_t shaderobjectsfuncs[] MAYBE_UNUSED =
+static const dllfunc_t	shaderobjectsfuncs[] MAYBE_UNUSED =
 	{
 	{ GL_CALL (glDeleteObjectARB) },
 	{ GL_CALL (glGetHandleARB) },
@@ -404,7 +396,7 @@ Commented out lines left there intentionally to prevent usage on core/gles
 ***/
 
 // [FWGS, 22.01.25]
-static const dllfunc_t shaderobjectsfuncs_gles[] =
+static const dllfunc_t	shaderobjectsfuncs_gles[] =
 	{
 	{ "glDeleteShader" , (void **)&pglDeleteObjectARB },
 	//{ "glGetHandleARB" , (void **)&pglGetHandleARB },
@@ -465,7 +457,7 @@ static const dllfunc_t shaderobjectsfuncs_gles[] =
 	};
 
 // [FWGS, 22.01.25]
-static const dllfunc_t vaofuncs[] =
+static const dllfunc_t	vaofuncs[] =
 	{
 	{ GL_CALL (glBindVertexArray) },
 	{ GL_CALL (glDeleteVertexArrays) },
@@ -474,8 +466,7 @@ static const dllfunc_t vaofuncs[] =
 	};
 
 // [FWGS, 01.07.26]
-/*static const dllfunc_t multitexturefuncs_es[] =*/
-static const dllfunc_t multitexturefuncs_es[] MAYBE_UNUSED =
+static const dllfunc_t	multitexturefuncs_es[] MAYBE_UNUSED =
 	{
 	{ GL_CALL (glActiveTexture) },
 	{ GL_CALL (glActiveTextureARB) },
@@ -484,8 +475,7 @@ static const dllfunc_t multitexturefuncs_es[] MAYBE_UNUSED =
 	};
 
 // [FWGS, 01.07.26]
-/*static const dllfunc_t multitexturefuncs_es2[] =*/
-static const dllfunc_t multitexturefuncs_es2[] MAYBE_UNUSED =
+static const dllfunc_t	multitexturefuncs_es2[] MAYBE_UNUSED =
 	{
 	{ GL_CALL (glActiveTexture) },
 	{ GL_CALL (glActiveTextureARB) },
@@ -553,22 +543,17 @@ GL_CheckExtension [FWGS, 01.07.26]
 static qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, size_t num_funcs, const char *cvarname,
 	int r_ext, float minver)
 	{
-	/*size_t		i;
-	cvar_t		*parm = NULL;
-	const char	*extensions_string;
-	char		desc[MAX_VA_STRING];
-	float		glver = (float)glConfig.version_major + glConfig.version_minor / 10.0f;*/
-	const float glver = (float)glConfig.version_major + glConfig.version_minor / 10.0f;
+	const float	glver = (float)glConfig.version_major + glConfig.version_minor / 10.0f;
 
 	gEngfuncs.Con_Reportf ("%s: %s ", __func__, name);
 	GL_SetExtension (r_ext, true);
 
-	cvar_t *parm = NULL;
+	cvar_t	*parm = NULL;
 
 	// system config disable extensions
 	if (cvarname)
 		{
-		char desc[MAX_VA_STRING];
+		char	desc[MAX_VA_STRING];
 		Q_snprintf (desc, sizeof (desc), CVAR_GLCONFIG_DESCRIPTION, name);
 		parm = gEngfuncs.Cvar_Get (cvarname, "1", FCVAR_GLCONFIG | FCVAR_READ_ONLY, desc);
 		}
@@ -580,7 +565,6 @@ static qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, siz
 		return false;	// nothing to process at
 		}
 
-	/*extensions_string = glConfig.extensions_string;*/
 	const char *extensions_string = glConfig.extensions_string;
 
 	if (((name[2] == '_') || (name[3] == '_')) && !Q_strstr (extensions_string, name) &&
@@ -595,7 +579,6 @@ static qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, siz
 	// clear exports
 	ClearExports (funcs, num_funcs);
 
-	/*for (i = 0; i < num_funcs; i++)*/
 	for (size_t i = 0; i < num_funcs; i++)
 		{
 		// functions are cleared before all the extensions are evaluated
@@ -606,9 +589,9 @@ static qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, siz
 			size_t	j = 0;
 
 #if XASH_GLES
-			const char *suffixes[] = { "", "EXT", "OES" };
+			const char	*suffixes[] = { "", "EXT", "OES" };
 #else
-			const char *suffixes[] = { "", "EXT" };
+			const char	*suffixes[] = { "", "EXT" };
 #endif
 
 			// HACK: fix ARB names
@@ -626,7 +609,7 @@ static qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, siz
 
 			for (; j < sizeof (suffixes) / sizeof (suffixes[0]); j++)
 				{
-				void *f;
+				void	*f;
 
 				Q_strncat (name, suffixes[j], sizeof (name));
 
@@ -685,14 +668,10 @@ GL_SetDefaultTexState [FWGS, 01.07.26]
 ***/
 static void GL_SetDefaultTexState (void)
 	{
-	/*
-	int	i;*/
-
 	memset (glState.currentTextures, -1, MAX_TEXTURE_UNITS * sizeof (*glState.currentTextures));
 	memset (glState.texCoordArrayMode, 0, MAX_TEXTURE_UNITS * sizeof (*glState.texCoordArrayMode));
 	memset (glState.genSTEnabled, 0, MAX_TEXTURE_UNITS * sizeof (*glState.genSTEnabled));
 
-	/*for (i = 0; i < MAX_TEXTURE_UNITS; i++)*/
 	for (int i = 0; i < MAX_TEXTURE_UNITS; i++)
 		{
 		glState.currentTextureTargets[i] = GL_NONE;
@@ -723,7 +702,6 @@ GL_SetDefaults
 static void GL_SetDefaults (void)
 	{
 	pglFinish ();
-
 	pglClearColor (0.5f, 0.5f, 0.5f, 1.0f);
 
 	pglDisable (GL_DEPTH_TEST);
@@ -834,8 +812,6 @@ static void R_RenderInfo_f (void)
 // [FWGS, 01.07.26]
 static void GL_InitExtensionsGLES (void)
 	{
-	/*int extid;*/
-
 	// intialize wrapper type
 #if XASH_NANOGL
 	glConfig.context = CONTEXT_TYPE_GLES_1_X;
@@ -852,7 +828,6 @@ static void GL_InitExtensionsGLES (void)
 
 	glConfig.hardware_type = GLHW_GENERIC;
 
-	/*for (extid = GL_OPENGL_110 + 1; extid < GL_EXTCOUNT; extid++)*/
 	for (int extid = GL_OPENGL_110 + 1; extid < GL_EXTCOUNT; extid++)
 		{
 		switch (extid)
@@ -1169,7 +1144,6 @@ static void GL_InitExtensionsBigGL (void)
 
 #endif
 
-// [FWGS, 01.07.26]
 void GL_InitExtensions (void)
 	{
 	char	value[MAX_VA_STRING];
@@ -1190,14 +1164,12 @@ void GL_InitExtensions (void)
 	pglGetIntegerv (GL_MINOR_VERSION, &minor);
 	if (!major && glConfig.version_string)
 		{
-		const char *str = glConfig.version_string;
-		/*float ver;*/
+		const char	*str = glConfig.version_string;
 
 		while (*str && ((*str < '0') || (*str > '9')))
 			str++;
 
-		/*ver = Q_atof (str);*/
-		float ver = Q_atof (str);
+		float	ver = Q_atof (str);
 		if (ver)
 			{
 			glConfig.version_major = ver;
@@ -1219,22 +1191,17 @@ void GL_InitExtensions (void)
 		pglGetIntegerv (GL_NUM_EXTENSIONS, &n);
 		if (n && pglGetStringi)
 			{
-			/*int i, len = 1;
-			char *str;*/
-			int len = 1;
+			int	len = 1;
 
-			/*for (i = 0; i < n; i++)*/
 			for (int i = 0; i < n; i++)
 				len += Q_strlen ((const char *)pglGetStringi (GL_EXTENSIONS, i)) + 1;
 
-			/*str = (char *)Mem_Calloc (r_temppool, len);*/
-			char *str = (char *)Mem_Calloc (r_temppool, len);
+			char	*str = (char *)Mem_Calloc (r_temppool, len);
 			glConfig.extensions_string = str;
 
-			/*for (i = 0; i < n; i++)*/
 			for (int i = 0; i < n; i++)
 				{
-				int l = Q_strncpy (str, pglGetStringi (GL_EXTENSIONS, i), len);
+				int	l = Q_strncpy (str, pglGetStringi (GL_EXTENSIONS, i), len);
 				str += l;
 				*str++ = ' ';
 				len -= l + 1;
@@ -1255,7 +1222,8 @@ void GL_InitExtensions (void)
 	if (glConfig.max_2d_texture_size <= 0)
 		glConfig.max_2d_texture_size = 256;
 
-#if !XASH_GL4ES		// GL4ES doesn't provide glDebugMessage functions, even as stubs
+#if !XASH_GL4ES
+	// GL4ES doesn't provide glDebugMessage functions, even as stubs
 	// enable gldebug if allowed
 	if (GL_Support (GL_DEBUG_OUTPUT))
 		{
@@ -1276,8 +1244,10 @@ void GL_InitExtensions (void)
 	if (GL_Support (GL_TEXTURE_2D_RECT_EXT))
 		pglGetIntegerv (GL_MAX_RECTANGLE_TEXTURE_SIZE_EXT, &glConfig.max_2d_rectangle_size);
 
+	// [FWGS, 01.09.26]
 	Q_snprintf (value, sizeof (value), "%i", glConfig.max_2d_texture_size);
-	gEngfuncs.Cvar_Get ("gl_max_size", value, 0, "opengl texture max dims");
+	/*gEngfuncs.Cvar_Get ("gl_max_size", value, 0, "opengl texture max dims");*/
+	gEngfuncs.Cvar_Get ("gl_max_size", value, 0, "opengl texture max dims (compatibility cvar, does nothing)");
 	gEngfuncs.Cvar_SetValue ("gl_anisotropy", bound (0, gl_texture_anisotropy.value, glConfig.max_texture_anisotropy));
 
 	if (GL_Support (GL_TEXTURE_COMPRESSION_EXT))
@@ -1311,7 +1281,7 @@ void GL_ClearExtensions (void)
 
 /***
 =================
-GL_InitCommands [FWGS, 01.05.26]
+GL_InitCommands
 =================
 ***/
 static void GL_InitCommands (void)
@@ -1325,6 +1295,10 @@ static void GL_InitCommands (void)
 	gEngfuncs.Cvar_RegisterVariable (&r_traceglow);
 	gEngfuncs.Cvar_RegisterVariable (&r_studio_sort_textures);
 	gEngfuncs.Cvar_RegisterVariable (&r_studio_drawelements);
+
+	// [FWGS, 01.09.26]
+	gEngfuncs.Cvar_RegisterVariable (&r_studio_builtin_renderer);
+
 	gEngfuncs.Cvar_RegisterVariable (&r_ripple);
 	gEngfuncs.Cvar_RegisterVariable (&r_ripple_updatetime);
 	gEngfuncs.Cvar_RegisterVariable (&r_ripple_spawntime);
@@ -1377,7 +1351,7 @@ register VBO cvars and get default value
 static void R_CheckVBO (void)
 	{
 	qboolean	disable = false;
-	int			flags = 0;
+	int		flags = 0;
 
 	// some bad GLES1 implementations breaks dlights completely
 	if (glConfig.max_texture_units < 3)
@@ -1449,9 +1423,15 @@ qboolean R_Init (void)
 
 	// [FWGS, 01.05.26]
 	tr.texgammatable = (byte *)ENGINE_GET_PARM (PARM_GET_TEXGAMMATABLE_PTR);
-	tr.lightgammatable = (uint *)ENGINE_GET_PARM (PARM_GET_LIGHTGAMMATABLE_PTR);
+	
+	// [FWGS, 01.09.26]
+	/*tr.lightgammatable = (uint *)ENGINE_GET_PARM (PARM_GET_LIGHTGAMMATABLE_PTR);
 	tr.screengammatable = (uint *)ENGINE_GET_PARM (PARM_GET_SCREENGAMMATABLE_PTR);
-	tr.lineargammatable = (uint *)ENGINE_GET_PARM (PARM_GET_LINEARGAMMATABLE_PTR);
+	tr.lineargammatable = (uint *)ENGINE_GET_PARM (PARM_GET_LINEARGAMMATABLE_PTR);*/
+	tr.lightgammatable = (uint16_t *)ENGINE_GET_PARM (PARM_GET_LIGHTGAMMATABLE_PTR);
+	tr.screengammatable = (uint16_t *)ENGINE_GET_PARM (PARM_GET_SCREENGAMMATABLE_PTR);
+	tr.lineargammatable = (uint16_t *)ENGINE_GET_PARM (PARM_GET_LINEARGAMMATABLE_PTR);
+
 	tr.elights = (dlight_t *)ENGINE_GET_PARM (PARM_GET_ELIGHTS_PTR);
 
 	// [FWGS, 01.05.26]
@@ -1531,8 +1511,7 @@ void GL_CheckForErrors_ (const char *filename, const int fileline)
 		return;
 
 	// [FWGS, 01.07.26]
-	/*int err = pglGetError ();*/
-	int err = pglGetError ();
+	int	err = pglGetError ();
 	if (err == GL_NO_ERROR)
 		return;
 
@@ -1541,8 +1520,8 @@ void GL_CheckForErrors_ (const char *filename, const int fileline)
 
 void GL_SetupAttributes (int safegl)
 	{
-	int context_flags = 0;
-	int samples = 0;
+	int	context_flags = 0;
+	int	samples = 0;
 
 	// [FWGS, 01.12.24]
 #if XASH_GLES
@@ -1715,7 +1694,7 @@ static void *APIENTRY GL4ES_GetProcAddress (const char *name)
 void GL_OnContextCreated (void)
 	{
 	// [FWGS, 01.12.24]
-	int colorBits[3];
+	int	colorBits[3];
 
 #if XASH_NANOGL
 	nanoGL_Init ();

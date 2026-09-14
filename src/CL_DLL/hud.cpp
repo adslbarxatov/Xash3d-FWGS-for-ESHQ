@@ -392,7 +392,7 @@ int CHud::GetSpriteIndex (const char *SpriteName)
 
 void CHud::VidInit (void)
 	{
-	int j;
+	int	j;
 	m_scrinfo.iSize = sizeof (m_scrinfo);
 	GetScreenInfo (&m_scrinfo);
 
@@ -431,12 +431,12 @@ void CHud::VidInit (void)
 			m_rgszSpriteNames = new char[m_iSpriteCount * MAX_SPRITE_NAME_LENGTH];
 
 			p = m_pSpriteList;
-			int index = 0;
+			int	index = 0;
 			for (j = 0; j < m_iSpriteCountAllRes; j++)
 				{
 				if (p->iRes == m_iRes)
 					{
-					char sz[256];
+					char	sz[256];
 					sprintf (sz, "sprites/%s.spr", p->szSprite);
 					m_rghSprites[index] = SPR_Load (sz);
 					m_rgrcRects[index] = p->rc;
@@ -474,12 +474,12 @@ void CHud::VidInit (void)
 		m_rgszSpriteNames = new char[m_iSpriteCount * MAX_SPRITE_NAME_LENGTH];
 
 		p = m_pSpriteList;
-		int index = 0;
+		int	index = 0;
 		for (j = 0; j < m_iSpriteCountAllRes; j++)
 			{
 			if (p->iRes == m_iRes)
 				{
-				char sz[256];
+				char	sz[256];
 				sprintf (sz, "sprites/%s.spr", p->szSprite);
 				m_rghSprites[index] = SPR_Load (sz);
 				m_rgrcRects[index] = p->rc;

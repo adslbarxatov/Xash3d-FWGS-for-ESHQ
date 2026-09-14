@@ -222,11 +222,11 @@ typedef struct cl_enginefuncs_s
 	const char *(*pfnGetLevelName)(void);
 	void	(*pfnGetScreenFade)(struct screenfade_s *fade);
 	void	(*pfnSetScreenFade)(struct screenfade_s *fade);
-	void *(*VGui_GetPanel)(void);
+	void	*(*VGui_GetPanel)(void);
 	void	(*VGui_ViewportPaintBackground)(int extents[4]);
 
-	byte *(*COM_LoadFile)(const char *path, int usehunk, int *pLength);
-	char *(*COM_ParseFile)(char *data, char *token);
+	byte	*(*COM_LoadFile)(const char *path, int usehunk, int *pLength);
+	char	*(*COM_ParseFile)(char *data, char *token);
 	void	(*COM_FreeFile)(void *buffer);
 
 	struct triangleapi_s	*pTriAPI;
@@ -269,13 +269,13 @@ typedef struct cl_enginefuncs_s
 	void	(*pfnSetMouseEnable)(qboolean fEnable);
 
 	// undocumented interface starts here
-	struct cvar_s *(*pfnGetFirstCvarPtr)(void);
-	void *(*pfnGetFirstCmdFunctionHandle)(void);
-	void *(*pfnGetNextCmdFunctionHandle)(void *cmdhandle);
+	struct cvar_s	*(*pfnGetFirstCvarPtr)(void);
+	void	*(*pfnGetFirstCmdFunctionHandle)(void);
+	void	*(*pfnGetNextCmdFunctionHandle)(void *cmdhandle);
 	const char *(*pfnGetCmdFunctionName)(void *cmdhandle);
 	float	(*pfnGetClientOldTime)(void);
 	float	(*pfnGetGravity)(void);
-	struct model_s *(*pfnGetModelByIndex)(int index);
+	struct model_s	*(*pfnGetModelByIndex)(int index);
 
 	void	(*pfnSetFilterMode)(int mode);	// same as gl_texsort in original Quake
 	void	(*pfnSetFilterColor)(float red, float green, float blue);
@@ -283,7 +283,7 @@ typedef struct cl_enginefuncs_s
 	void	*(*pfnSequenceGet)(const char *fileName, const char *entryName);
 	void	(*pfnSPR_DrawGeneric)(int frame, int x, int y, const wrect_t *prc, int blendsrc, int blenddst, 
 		int width, int height);
-	void *(*pfnSequencePickSentence)(const char *groupName, int pickMethod, int *entryPicked);
+	void	*(*pfnSequencePickSentence)(const char *groupName, int pickMethod, int *entryPicked);
 	int		(*pfnDrawString)(int x, int y, const char *str, int r, int g, int b);
 	int		(*pfnDrawStringReverse)(int x, int y, const char *str, int r, int g, int b);
 

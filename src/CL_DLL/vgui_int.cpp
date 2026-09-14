@@ -17,11 +17,8 @@
 #include "hud.h"
 #include "cl_util.h"
 #include "camera.h"
-/*include "kbutton. h"*/
 #include "cvardef.h"
-/*include "usercmd.h"*/
 #include "const.h"
-/*include "camera.h"*/
 #include "in_defs.h"
 #include "vgui_TeamFortressViewport.h"
 #include "vgui_ControlConfigPanel.h"
@@ -58,7 +55,7 @@ namespace
 				{
 				Panel::paintBackground ();
 
-				int wide, tall;
+				int	wide, tall;
 				getPaintSize (wide, tall);
 
 				drawSetColor (0, 0, 255, 0);
@@ -75,16 +72,17 @@ void VGui_ViewportPaintBackground (int extents[4])
 	gEngfuncs.VGui_ViewportPaintBackground (extents);
 	}
 
-void *VGui_GetPanel ()
+// ESHQ: заглушено, поскольку больше не поддерживается движком
+/*void *VGui_GetPanel ()
 	{
 	return (Panel *)gEngfuncs.VGui_GetPanel ();
-	}
+	}*/
 
 void VGui_Startup ()
 	{
-	Panel *root = (Panel *)VGui_GetPanel ();
+	/*Panel	*root = (Panel *)VGui_GetPanel ();
 	root->setBgColor (128, 128, 0, 0);
-	root->setLayout (new BorderLayout (0));
+	root->setLayout (new BorderLayout (0));*/
 
 	if (gViewPort != NULL)
 		{
@@ -93,8 +91,8 @@ void VGui_Startup ()
 		}
 	else
 		{
-		gViewPort = new TeamFortressViewport (0, 0, root->getWide (), root->getTall ());
-		gViewPort->setParent (root);
+		/*gViewPort = new TeamFortressViewport (0, 0, root->getWide (), root->getTall ());
+		gViewPort->setParent (root);*/
 		}
 	}
 
