@@ -50,7 +50,6 @@ ALLOC_CHECK (3) WARN_UNUSED_RESULT;
 #define Mem_Calloc( pool, size )		_Mem_Alloc( pool, size, true, __FILE__, __LINE__ )
 #define Mem_Realloc( pool, ptr, size )	_Mem_Realloc( pool, ptr, size, true, __FILE__, __LINE__ )
 #define Mem_Free( mem )					_Mem_Free( mem, __FILE__, __LINE__ )
-/*define Mem_AllocPool( name )			gEngfuncs._Mem_AllocPool( name, __FILE__, __LINE__ )*/
 #define Mem_AllocPool( name )			gEngfuncs._Mem_AllocPool( name, 0, __FILE__, __LINE__ )
 #define Mem_AllocPoolExt( name, flags )	gEngfuncs._Mem_AllocPool( name, flags, __FILE__, __LINE__ )
 #define Mem_FreePool( pool )			gEngfuncs._Mem_FreePool( pool, __FILE__, __LINE__ )
@@ -93,5 +92,13 @@ void R_UpdateSurfaceCachedLight (msurface_t *surf);
 // ref_image.c
 //
 byte *GL_ResampleTexture (const byte *source, int in_w, int in_h, int out_w, int out_h, qboolean isNormalMap);
+
+//
+// ref_skybox.c [FWGS, 01.10.26]
+//
+extern const int r_skyTexOrder[SKYBOX_MAX_SIDES];
+extern const int vec_to_st[SKYBOX_MAX_SIDES][3];
+int R_SkyboxAxisFromDir (const vec3_t dir);
+qboolean R_SkyboxProject (const vec3_t dir, int axis, float *s, float *t);
 
 #endif

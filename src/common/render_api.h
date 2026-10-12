@@ -17,7 +17,6 @@ GNU General Public License for more details
 #define RENDER_API_H
 
 // [FWGS, 01.09.26]
-/*include <stdint.h>*/
 #include <stdint.h>		// intptr_t
 #include <stddef.h>		// size_t
 #include "lightstyle.h"
@@ -138,7 +137,6 @@ typedef enum
 	CONTEXT_TYPE_GL = 0,	// Compatibility profile
 	CONTEXT_TYPE_GLES_1_X,
 	CONTEXT_TYPE_GLES_2_X,
-	/*CONTEXT_TYPE_GL_CORE*/
 	CONTEXT_TYPE_GL_CORE,
 	CONTEXT_TYPE_SOFTWARE,	// not a context by itself, just software renderer
 	} gl_context_type_t;
@@ -224,9 +222,9 @@ typedef struct render_api_s
 	// Texture tools
 	int		(*GL_FindTexture)(const char* name);
 	const char* (*GL_TextureName)(unsigned int texnum);
-	const byte* (*GL_TextureData)(unsigned int texnum); // may be NULL
+	const byte* (*GL_TextureData)(unsigned int texnum);		// may be NULL
 	int		(*GL_LoadTexture)(const char* name, const byte* buf, size_t size, int flags);
-	int		(*GL_CreateTexture)(const char* name, int width, int height, const void* buffer, texFlags_t flags);	// FWGS
+	int		(*GL_CreateTexture)(const char* name, int width, int height, const void* buffer, texFlags_t flags);
 	int		(*GL_LoadTextureArray)(const char** names, int flags);
 	int		(*GL_CreateTextureArray)(const char* name, int width, int height, int depth, const void* buffer, texFlags_t flags);
 	void	(*GL_FreeTexture)(unsigned int texnum);
@@ -234,7 +232,7 @@ typedef struct render_api_s
 	// Decals manipulating (draw & remove)
 	void	(*DrawSingleDecal)(struct decal_s* pDecal, struct msurface_s* fa);
 	float	*(*R_DecalSetupVerts)(struct decal_s *pDecal, struct msurface_s *surf, int texture, int *outCount);
-	void	(*R_EntityRemoveDecals)(struct model_s* mod); // remove all the decals from specified entity (BSP only)
+	void	(*R_EntityRemoveDecals)(struct model_s* mod);	// remove all the decals from specified entity (BSP only)
 
 	// [FWGS, 01.07.25] AVIkit support
 	struct movie_state_s	*(*AVI_LoadVideo)(const char *filename, qboolean load_audio);
@@ -259,7 +257,7 @@ typedef struct render_api_s
 	void	(*GL_TexMatrixIdentity)(void);
 	void	(*GL_CleanUpTextureUnits)(int last);	// pass 0 for clear all the texture units
 	void	(*GL_TexGen)(unsigned int coord, unsigned int mode);
-	void	(*GL_TextureTarget)(unsigned int target); // change texture unit mode without bind texture
+	void	(*GL_TextureTarget)(unsigned int target);	// change texture unit mode without bind texture
 	void	(*GL_TexCoordArrayMode)(unsigned int texmode);
 	void	*(*GL_GetProcAddress)(const char *name);
 	void	(*GL_UpdateTexSize)(int texnum, int width, int height, int depth); // recalc statistics
@@ -268,8 +266,8 @@ typedef struct render_api_s
 
 	// Misc renderer functions
 	void		(*GL_DrawParticles)(const struct ref_viewpass_s* rvp, qboolean trans_pass, float frametime);
-	void		(*EnvShot)(const float* vieworg, const char* name, qboolean skyshot, int shotsize); // store skybox into gfx\env folder
-	int			(*SPR_LoadExt)(const char* szPicName, unsigned int texFlags); // extended version of SPR_Load
+	void		(*EnvShot)(const float* vieworg, const char* name, qboolean skyshot, int shotsize);	// store skybox into gfx\env folder
+	int			(*SPR_LoadExt)(const char* szPicName, unsigned int texFlags);	// extended version of SPR_Load
 	struct colorVec	(*LightVec)(const float* start, const float* end, float* lightspot, float* lightvec);
 	struct mstudiotex_s				*(*StudioGetTexture)(struct cl_entity_s *e);
 	const struct ref_overview_s		*(*GetOverviewParms)(void);
@@ -277,7 +275,7 @@ typedef struct render_api_s
 	int			(*pfnSaveFile)(const char* filename, const void* data, int len);
 	void		(*R_Reserved0)(void);	// for potential interface expansion without broken compatibility
 
-	// [FWGS, 01.01.24] static allocations
+	// static allocations
 	void		*(*pfnMemAlloc)(size_t cb, const char *filename, const int fileline) ALLOC_CHECK (1);
 	void		(*pfnMemFree)(void* mem, const char* filename, const int fileline);
 
@@ -285,7 +283,7 @@ typedef struct render_api_s
 	char		**(*pfnGetFilesList)(const char *pattern, int *numFiles, int gamedironly);
 	unsigned int	(*pfnFileBufferCRC32)(const void *buffer, const int length);
 	int			(*COM_CompareFileTime)(const char *filename1, const char *filename2, int *iCompare);
-	void		(*Host_Error)(const char* error, ...); // cause Host Error
+	void		(*Host_Error)(const char* error, ...);	// cause Host Error
 	void		*(*pfnGetModel)(int modelindex);
 	float		(*pfnTime)(void);				// Sys_DoubleTime
 	void		(*Cvar_Set)(const char *name, const char *value);
@@ -293,6 +291,9 @@ typedef struct render_api_s
 
 	// a1ba: changed long to int
 	void		(*SetRandomSeed)(int lSeed);		// set custom seed for RANDOM_FLOAT\RANDOM_LONG for predictable random
+
+	// [FWGS, 01.10.26]
+	void		(*R_ClearAllDecals)(qboolean includePermanent);
 
 	// ONLY ADD NEW FUNCTIONS TO THE END OF THIS STRUCT. INTERFACE VERSION IS FROZEN AT 37
 	} render_api_t;

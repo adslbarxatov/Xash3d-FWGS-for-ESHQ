@@ -29,9 +29,11 @@ GNU General Public License for more details
 
 #if XASH_FFMPEG_DLOPEN
 
-// [FWGS, 15.04.26] using typeof gives more resilience to function declaration changes
-// but it's only available in GCC and standardized in C23
-#if defined(__GNUC__) || __STDC_VERSION__ >= 202311L
+// [FWGS, 01.10.26] using typeof gives more resilience to function declaration changes
+/*// but it's only available in GCC and standardized in C23
+if defined(__GNUC__) || __STDC_VERSION__ >= 202311L*/
+// but it's not available on every compiler
+#if XASH_HAVE_TYPEOF
 
 #define SUPPORTED_AVU_VERSION_MAJOR LIBAVUTIL_VERSION_MAJOR
 #define SUPPORTED_AVF_VERSION_MAJOR LIBAVFORMAT_VERSION_MAJOR
@@ -40,7 +42,7 @@ GNU General Public License for more details
 #define SUPPORTED_SWS_VERSION_MAJOR LIBSWSCALE_VERSION_MAJOR
 
 #define F( func ) \
-	typedef typeof( func ) func##_t; \
+	typedef XASH_TYPEOF( func ) func##_t; \
 	func##_t *p##func
 
 // [FWGS, 15.04.26] libavutil
@@ -95,21 +97,21 @@ F (sws_scale);
 
 #else
 
-// [FWGS, 15.04.26] the following symbols were taken from ffmpeg public headers
+// [FWGS, 01.10.26] the following symbols were taken from ffmpeg public headers
 // on each major ffmpeg uprgade, they must be validated
 // ffmpeg guarantees API and ABI compatibility between major versions
 // so complain if this gets compiled against unsupported yet version
 // the same check will be done in runtime to ensure compatibility
-/*define SUPPORTED_AVU_VERSION_MAJOR 59
-define SUPPORTED_AVF_VERSION_MAJOR 61
-define SUPPORTED_AVC_VERSION_MAJOR 61
-define SUPPORTED_SWR_VERSION_MAJOR 5
-define SUPPORTED_SWS_VERSION_MAJOR 8*/
-#define SUPPORTED_AVU_VERSION_MAJOR		60
-#define SUPPORTED_AVF_VERSION_MAJOR		62
-#define SUPPORTED_AVC_VERSION_MAJOR		62
-#define SUPPORTED_SWR_VERSION_MAJOR		6
-#define SUPPORTED_SWS_VERSION_MAJOR		9
+/*define SUPPORTED_AVU_VERSION_MAJOR		60
+define SUPPORTED_AVF_VERSION_MAJOR		62
+define SUPPORTED_AVC_VERSION_MAJOR		62
+define SUPPORTED_SWR_VERSION_MAJOR		6
+define SUPPORTED_SWS_VERSION_MAJOR		9*/
+#define SUPPORTED_AVU_VERSION_MAJOR		61
+#define SUPPORTED_AVF_VERSION_MAJOR		63
+#define SUPPORTED_AVC_VERSION_MAJOR		63
+#define SUPPORTED_SWR_VERSION_MAJOR		7
+#define SUPPORTED_SWS_VERSION_MAJOR		10
 
 // [FWGS, 01.11.25]
 #if SUPPORTED_AVU_VERSION_MAJOR != LIBAVUTIL_VERSION_MAJOR

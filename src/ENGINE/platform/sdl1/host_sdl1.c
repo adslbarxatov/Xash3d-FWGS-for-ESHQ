@@ -379,12 +379,6 @@ SDLash_MouseEvent [FWGS, 01.07.26]
 ***/
 static void SDLash_MouseEvent (SDL_MouseButtonEvent button)
 	{
-	/*int down;
-
-	if (button.state == SDL_RELEASED)
-		down = 0;
-	else
-		down = 1;*/
 	const int down = (button.state != SDL_RELEASED);
 
 	switch (button.button)
@@ -468,12 +462,16 @@ static void SDLash_EventHandler (SDL_Event *event)
 			SDLash_KeyEvent (event->key);
 			break;
 
+		// [FWGS, 01.10.26]
 		case SDL_QUIT:
-			Sys_Quit ("caught SDL_QUIT");
+			/*Sys_Quit ("caught SDL_QUIT");*/
+			CL_RequestQuit ("caught SDL_QUIT");
 			break;
+
 		case SDL_VIDEORESIZE:
 			VID_SaveWindowSize (event->resize.w, event->resize.h, false);
 			break;
+
 		case SDL_ACTIVEEVENT:
 			SDLash_ActiveEvent (event->active.gain);
 			break;

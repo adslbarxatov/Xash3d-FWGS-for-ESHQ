@@ -64,8 +64,10 @@ extern poolhandle_t sndpool;
 // [FWGS, 15.04.26]
 extern int			idsp_room;
 extern snd_globals_t	snd;
-
 extern convar_t		s_musicvolume;
+
+// [FWGS, 01.10.26]
+extern convar_t		s_musicfadetime;
 extern convar_t		s_lerping;
 extern convar_t		s_test;		// cvar to test new effects
 extern convar_t		s_samplecount;
@@ -170,10 +172,11 @@ static inline void SND_CloseMouth (const channel_t *ch)
 	}
 
 //
-// s_stream.c [FWGS, 01.03.26]
+// s_stream.c [FWGS, 01.10.26]
 //
 void S_StreamBackgroundTrack (void);
 void S_PrintBackgroundTrackState (void);
+void S_FadeOutBackgroundTrack (float seconds);
 void S_MusicFade (float fade_percent);
 
 //

@@ -16,9 +16,9 @@ without written permission from Valve LLC
 
 #ifdef HLDEMO_BUILD
 #define INTERFACE_VERSION	001
-#else  // !HLDEMO_BUILD, i.e., regular version of HL
-#define INTERFACE_VERSION		140
-#endif // !HLDEMO_BUILD
+#else	// !HLDEMO_BUILD, i.e., regular version of HL
+#define INTERFACE_VERSION	140
+#endif	// !HLDEMO_BUILD
 
 #include <stdio.h>
 #include "custom.h"
@@ -67,23 +67,23 @@ typedef enum
 // Returned by TraceLine
 typedef struct
 	{
-	int	fAllSolid;		// if true, plane is not valid
+	int	fAllSolid;			// if true, plane is not valid
 	int	fStartSolid;		// if true, the initial point was in a solid area
 	int	fInOpen;
 	int	fInWater;
 	float	flFraction;		// time completed, 1.0 = didn't hit anything
 	vec3_t	vecEndPos;		// final position
 	float	flPlaneDist;
-	vec3_t	vecPlaneNormal;		// surface normal at impact
-	edict_t *pHit;			// entity the surface is on
-	int	iHitgroup;		// 0 == generic, non zero is specific body part
+	vec3_t	vecPlaneNormal;	// surface normal at impact
+	edict_t	*pHit;			// entity the surface is on
+	int	iHitgroup;			// 0 == generic, non zero is specific body part
 	} TraceResult;
 
 // CD audio status
 typedef struct
 	{
-	int	fPlaying;// is sound playing right now?
-	int	fWasPlaying;// if not, CD is paused if WasPlaying is true.
+	int	fPlaying;		// is sound playing right now?
+	int	fWasPlaying;	// if not, CD is paused if WasPlaying is true.
 	int	fInitialized;
 	int	fEnabled;
 	int	fPlayLooping;
@@ -92,10 +92,8 @@ typedef struct
 	int	fPlayTrack;
 	} CDStatus;
 
-// FWGS
 typedef unsigned int	CRC32_t;
-
-typedef struct delta_s delta_t;
+typedef struct delta_s	delta_t;
 struct entity_state_s;
 
 // Engine hands this to DLLs for functionality callbacks
@@ -184,15 +182,19 @@ typedef struct enginefuncs_s
 	int	(*pfnRegUserMsg)(const char *pszName, int iSize);
 	void	(*pfnAnimationAutomove)(const edict_t *pEdict, float flTime);
 	void	(*pfnGetBonePosition)(const edict_t *pEdict, int iBone, float *rgflOrigin, float *rgflAngles);
-	unsigned long (*pfnFunctionFromName)(const char *pName);
-	const char *(*pfnNameForFunction)(unsigned long function);
+	
+	// [FWGS, 01.10.26]
+	/*unsigned long (*pfnFunctionFromName)(const char *pName);
+	const char *(*pfnNameForFunction)(unsigned long function);*/
+	void	*(*pfnFunctionFromName)(const char *pName);
+	const char	*(*pfnNameForFunction)(void *function);
 	
 	// JOHN: engine callbacks so game DLL can print messages to individual clients
 	void	(*pfnClientPrintf)(edict_t *pEdict, PRINT_TYPE ptype, const char *szMsg);
 	
 	void	(*pfnServerPrint)(const char *szMsg);
 	const char *(*pfnCmd_Args)(void);		// these 3 added 
-	const char *(*pfnCmd_Argv)(int argc);		// so game DLL can easily 
+	const char *(*pfnCmd_Argv)(int argc);	// so game DLL can easily 
 	int	(*pfnCmd_Argc)(void);		// access client 'cmd' strings
 	void	(*pfnGetAttachment)(const edict_t *pEdict, int iAttachment, float *rgflOrigin, float *rgflAngles);
 	void	(*pfnCRC32_Init)(CRC32_t *pulCRC);
@@ -206,18 +208,18 @@ typedef struct enginefuncs_s
 	void	(*pfnCrosshairAngle)(const edict_t *pClient, float pitch, float yaw);
 	byte *(*pfnLoadFileForMe)(const char *filename, int *pLength);
 	void	(*pfnFreeFile)(void *buffer);
-	void	(*pfnEndSection)(const char *pszSectionName); // trigger_endsection
+	void	(*pfnEndSection)(const char *pszSectionName);	// trigger_endsection
 	int	(*pfnCompareFileTime)(const char *filename1, const char *filename2, int *iCompare);
 	void	(*pfnGetGameDir)(char *szGetGameDir);
 	void	(*pfnCvar_RegisterVariable)(cvar_t *variable);
 	void	(*pfnFadeClientVolume)(const edict_t *pEdict, int fadePercent, int fadeOutSeconds, int holdTime,
 		int fadeInSeconds);
 	void	(*pfnSetClientMaxspeed)(const edict_t *pEdict, float fNewMaxspeed);
-	edict_t *(*pfnCreateFakeClient)(const char *netname); // returns NULL if fake client can't be created
+	edict_t *(*pfnCreateFakeClient)(const char *netname);	// returns NULL if fake client can't be created
 	void	(*pfnRunPlayerMove)(edict_t *fakeclient, const float *viewangles, float forwardmove,
 		float sidemove, float upmove, unsigned short buttons, byte impulse, byte msec);
 	int	(*pfnNumberOfEntities)(void);
-	char *(*pfnGetInfoKeyBuffer)(edict_t *e);			// passing in NULL gets the serverinfo
+	char *(*pfnGetInfoKeyBuffer)(edict_t *e);		// passing in NULL gets the serverinfo
 	const char *(*pfnInfoKeyValue)(const char *infobuffer, const char *key);
 	void	(*pfnSetKeyValue)(char *infobuffer, char *key, char *value);
 	void	(*pfnSetClientKeyValue)(int clientIndex, char *infobuffer, char *key, char *value);
@@ -278,13 +280,12 @@ typedef struct enginefuncs_s
 	void	(*pfnAddServerCommand)(const char *cmd_name, void (*function) (void));
 
 	// For voice communications, set which clients hear eachother.
-	// NOTE: these functions take player entity indices (starting at 1).
+	// NOTE: these functions take player entity indices (starting at 1)
 	qboolean (*pfnVoice_GetClientListening)(int iReceiver, int iSender);
 	qboolean (*pfnVoice_SetClientListening)(int iReceiver, int iSender, qboolean bListen);
 
 	const char *(*pfnGetPlayerAuthId)		(edict_t *e);
 
-	// FWGS
 	void *(*pfnSequenceGet)				(const char *fileName, const char *entryName);
 	void *(*pfnSequencePickSentence)		(const char *groupName, int pickMethod, int *picked);
 	int		(*pfnGetFileSize)						(const char *filename);
@@ -302,7 +303,7 @@ typedef struct enginefuncs_s
 	void	(*pfnQueryClientCvarValue2)(const edict_t *player, const char *cvarName, int requestID);
 	int		(*pfnCheckParm)(char *parm, char **ppnext);
 
-	// FWGS: added in 8279
+	// added in 8279
 	edict_t *(*pfnPEntityOfEntIndexAllEntities)(int iEntIndex);
 
 	void	(*pfnWriteAchievementsScript)(byte Mode, int NewLevel);	// ESHQ: добавление поддержки для достижений
@@ -331,7 +332,7 @@ typedef struct
 typedef struct
 	{
 	int			id;			// Ordinal ID of this entity (used for entity <--> pointer conversions)
-	edict_t *pent;		// Pointer to the in-game entity
+	edict_t		*pent;		// Pointer to the in-game entity
 
 	int			location;	// Offset from the base data of this entity
 	int			size;		// Byte size of this entity's data
@@ -349,25 +350,25 @@ typedef struct
 
 typedef struct saverestore_s
 	{
-	char *pBaseData;		// Start of all entity save data
-	char *pCurrentData;	// Current buffer pointer for sequential access
+	char	*pBaseData;		// Start of all entity save data
+	char	*pCurrentData;	// Current buffer pointer for sequential access
 	int		size;			// Current data size
 	int		bufferSize;		// Total space for data
 	int		tokenSize;		// Size of the linear list of tokens
 	int		tokenCount;		// Number of elements in the pTokens table
-	char **pTokens;		// Hash table of entity strings (sparse)
+	char	**pTokens;		// Hash table of entity strings (sparse)
 	int		currentIndex;	// Holds a global entity table ID
 	int		tableCount;		// Number of elements in the entity table
 	int		connectionCount;	// Number of elements in the levelList[]
-	ENTITYTABLE *pTable;	// Array of ENTITYTABLE elements (1 for each entity)
+	ENTITYTABLE		*pTable;	// Array of ENTITYTABLE elements (1 for each entity)
 	LEVELLIST		levelList[MAX_LEVEL_CONNECTIONS];	// List of connections from this level
 
 	// smooth transition
 	int		fUseLandmark;
-	char		szLandmarkName[20];		// landmark we'll spawn near in next level
-	vec3_t		vecLandmarkOffset;		// for landmark transitions
-	float		time;
-	char		szCurrentMapName[32];	// To check global entities
+	char	szLandmarkName[20];		// landmark we'll spawn near in next level
+	vec3_t	vecLandmarkOffset;		// for landmark transitions
+	float	time;
+	char	szCurrentMapName[32];	// To check global entities
 	} SAVERESTOREDATA;
 
 typedef enum _fieldtypes
@@ -394,7 +395,6 @@ typedef enum _fieldtypes
 	FIELD_TYPECOUNT,	// MUST BE LAST
 	} FIELDTYPE;
 
-// FWGS
 #ifndef offsetof
 #ifdef __GNUC__
 #define offsetof(s,m) __builtin_offsetof(s,m)
@@ -418,7 +418,7 @@ typedef enum _fieldtypes
 typedef struct
 	{
 	FIELDTYPE	fieldType;
-	const char *fieldName;
+	const char	*fieldName;
 	int			fieldOffset;
 	short		fieldSize;
 	short		flags;
@@ -437,7 +437,7 @@ struct netadr_s;
 
 typedef struct
 	{
-	// Initialize/shutdown the game (one-time call after loading of game.dll)
+	// initialize/shutdown the game (one-time call after loading of game.dll)
 	void	(*pfnGameInit)(void);
 	int		(*pfnSpawn)(edict_t *pent);
 	void	(*pfnThink)(edict_t *pent);
@@ -475,7 +475,7 @@ typedef struct
 	// Returns string describing current .dll.  E.g., TeamFotrress 2, Half-Life
 	const char *(*pfnGetGameDescription)(void);
 
-	// Notify dll about a player customization.
+	// Notify dll about a player customization
 	void	(*pfnPlayerCustomization)(edict_t *pEntity, customization_t *pCustom);
 
 	// Spectator funcs
@@ -483,7 +483,7 @@ typedef struct
 	void	(*pfnSpectatorDisconnect)(edict_t *pEntity);
 	void	(*pfnSpectatorThink)(edict_t *pEntity);
 
-	// Notify game .dll that engine is going to shut down. Allows mod authors to set a breakpoint.
+	// Notify game .dll that engine is going to shut down. Allows mod authors to set a breakpoint
 	void	(*pfnSys_Error)(const char *error_string);
 
 	void	(*pfnPM_Move)(struct playermove_s *ppmove, qboolean server);
@@ -500,14 +500,14 @@ typedef struct
 	void	(*pfnCmdStart)(const edict_t *player, const struct usercmd_s *cmd, unsigned int random_seed);
 	void	(*pfnCmdEnd)(const edict_t *player);
 
-	// Return 1 if the packet is valid.  Set response_buffer_size if you want to send a response packet.  Incoming, it holds the max
+	// Return 1 if the packet is valid.  Set response_buffer_size if you want to send a response packet. Incoming, it holds the max
 	// size of the response_buffer, so you must zero it out if you choose not to respond
 	int	(*pfnConnectionlessPacket)(const struct netadr_s *net_from, const char *args, char *response_buffer, int *response_buffer_size);
 
 	// Enumerates player hulls.  Returns 0 if the hull number doesn't exist, 1 otherwise
 	int	(*pfnGetHullBounds)	(int hullnumber, float *mins, float *maxs);
 
-	// Create baselines for certain "unplaced" items.
+	// Create baselines for certain "unplaced" items
 	void	(*pfnCreateInstancedBaselines) (void);
 
 	// One of the pfnForceUnmodified files failed the consistency check for the specified player
@@ -526,8 +526,8 @@ extern DLL_FUNCTIONS		gEntityInterface;
 
 typedef struct
 	{
-	// Called right before the object's memory is freed. 
-	// Calls its destructor.
+	// Called right before the object's memory is freed.
+	// Calls its destructor
 	void	(*pfnOnFreeEntPrivateData)(edict_t *pEnt);
 	void	(*pfnGameShutdown)(void);
 	int		(*pfnShouldCollide)(edict_t *pentTouched, edict_t *pentOther);
@@ -536,8 +536,8 @@ typedef struct
 	} NEW_DLL_FUNCTIONS;
 typedef int	(*NEW_DLL_FUNCTIONS_FN)(NEW_DLL_FUNCTIONS *pFunctionTable, int *interfaceVersion);
 
-// Pointers will be null if the game DLL doesn't support this API.
-extern NEW_DLL_FUNCTIONS		gNewDLLFunctions;
+// Pointers will be null if the game DLL doesn't support this API
+extern NEW_DLL_FUNCTIONS	gNewDLLFunctions;
 
 typedef int	(*APIFUNCTION)(DLL_FUNCTIONS *pFunctionTable, int interfaceVersion);
 typedef int	(*APIFUNCTION2)(DLL_FUNCTIONS *pFunctionTable, int *interfaceVersion);

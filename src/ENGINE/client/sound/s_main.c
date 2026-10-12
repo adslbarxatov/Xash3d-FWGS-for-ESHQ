@@ -57,6 +57,11 @@ static CVAR_DEFINE (s_volume, "volume", "0.7", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
 	"sound volume");
 CVAR_DEFINE (s_musicvolume, "MP3Volume", "1.0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
 	"background music volume");
+
+// [FWGS, 01.10.26]
+CVAR_DEFINE (s_musicfadetime, "MP3FadeTime", "2.0", FCVAR_ARCHIVE | FCVAR_FILTERABLE,
+	"background music fade out time in seconds for \"cd fadeout\" command");
+
 static CVAR_DEFINE (s_mixahead, "_snd_mixahead", "0.12", FCVAR_FILTERABLE, 
 	"how much sound to mix ahead of time");
 static CVAR_DEFINE_AUTO (s_show, "0", FCVAR_ARCHIVE | FCVAR_FILTERABLE, 
@@ -92,15 +97,11 @@ static int S_AdjustLoopedSamplePosition (const wavdata_t *source, int current_sa
 	// check if looping is enabled and we've exceeeded the sample boundary
 	if (enable_looping && FBitSet (source->flags, SOUND_LOOPED) && (current_sample >= source->samples))
 		{
-		/*// adjust position relative to loop start
-		current_sample -= source->loop_start;*/
 		int	loop_start = Q_min (source->loop_start, source->samples);
 		int	loop_range = source->samples - loop_start;
 
 		// apply modulo to wrap within loop bounds
-		/*int	loop_range = source->samples - source->loop_start;*/
 		if (loop_range > 0)
-			/*current_sample = source->loop_start + (current_sample % loop_range);*/
 			current_sample = loop_start + ((current_sample - loop_start) % loop_range);
 		else
 			current_sample = source->samples;
@@ -845,7 +846,7 @@ void S_RestoreSound (const vec3_t pos, int ent, int chan, sound_t handle, float 
 		// link all words and load the first word
 		// NOTE: sentence names stored in the cache lookup are
 		// prepended with a '!'.  Sentence names stored in the
-		// sentence file do not have a leading '!'.
+		// sentence file do not have a leading '!'
 		VOX_LoadSound (target_chan, S_SkipSoundChar (sfx->name));
 		Q_strncpy (target_chan->name, sfx->name, sizeof (target_chan->name));
 
@@ -2075,6 +2076,9 @@ qboolean S_Init (void)
 	{
 	Cvar_RegisterVariable (&s_volume);
 	Cvar_RegisterVariable (&s_musicvolume);
+
+	// [FWGS, 01.10.26]
+	Cvar_RegisterVariable (&s_musicfadetime);
 	Cvar_RegisterVariable (&s_mixahead);
 	Cvar_RegisterVariable (&s_show);
 	Cvar_RegisterVariable (&s_lerping);

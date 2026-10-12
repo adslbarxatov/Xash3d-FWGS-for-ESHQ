@@ -182,9 +182,40 @@ typedef struct
 	uint		num_beam_entities;
 	} draw_list_t;
 
+// [FWGS, 01.10.26]
+typedef enum
+	{
+	RT_COLOR_TEXTURE = BIT (0),		// otherwise a color renderbuffer
+	RT_DEPTH = BIT (1),		// depth, plus stencil when the context has it
+	} rt_flags_t;
+
+// [FWGS, 01.10.26] viewmodel is drawn into this fraction of the depth range so it never clips into walls
+#define VIEWMODEL_DEPTH_RANGE	0.3f
+
+// [FWGS, 01.10.26]
 typedef struct
 	{
-	int		defaultTexture;   	// use for bad textures
+	GLuint	fbo;
+	GLuint	color;		// color renderbuffer, when not RT_COLOR_TEXTURE
+	GLuint	depth;
+	int		texnum;		// color texture, when RT_COLOR_TEXTURE
+	int		width;
+	int		height;
+	int		samples;
+	} gl_rendertarget_t;
+
+// [FWGS, 01.10.26]
+typedef struct
+	{
+	gl_rendertarget_t	msaa;	// 3D passes when multisampling, resolved into scene
+	gl_rendertarget_t	scene;	// 3D passes, sized by r_scene_scale
+	gl_rendertarget_t	screen;	// 2D pass, sized like the window
+	qboolean			failed;
+	} gl_rendertargets_t;
+
+typedef struct
+	{
+	int		defaultTexture;		// use for bad textures
 	int		particleTexture;
 	int		whiteTexture;
 	int		grayTexture;
@@ -236,16 +267,16 @@ typedef struct
 	// [FWGS, 01.09.26]
 	dlight_t	*elights;
 	byte		*texgammatable;
-	/*uint		*lightgammatable;
-	uint		*lineargammatable;
-	uint		*screengammatable;*/
 	uint16_t	*lightgammatable;
 	uint16_t	*lineargammatable;
 	uint16_t	*screengammatable;
 
 	uint		max_entities;
 
-	ref_screen_rotation_t rotation;
+	ref_screen_rotation_t	rotation;
+
+	// [FWGS, 01.10.26]
+	gl_rendertargets_t		targets;
 	} gl_globals_t;
 
 typedef struct
@@ -331,6 +362,35 @@ void DrawSingleDecal (decal_t *pDecal, msurface_t *fa);
 void R_EntityRemoveDecals (model_t *mod);
 void DrawDecalsBatch (void);
 void R_ClearDecals (void);
+
+//
+// gl_fbo.c [FWGS, 01.10.26]
+//
+#if !XASH_GLES || !XASH_GL_STATIC
+
+void GL_CheckRenderTargets (void);
+void GL_FreeRenderTargets (void);
+void GL_GetSceneTargetSize (int *width, int *height);
+void GL_BindSceneTarget (void);
+void GL_BindScreenTarget (void);
+void GL_BindWindowTarget (void);
+void GL_PresentScreenTarget (void);
+
+#else
+
+static inline void GL_CheckRenderTargets (void) {}
+static inline void GL_FreeRenderTargets (void) {}
+static inline void GL_BindSceneTarget (void) {}
+static inline void GL_BindScreenTarget (void) {}
+static inline void GL_BindWindowTarget (void) {}
+static inline void GL_PresentScreenTarget (void) {}
+static inline void GL_GetSceneTargetSize (int *width, int *height)
+	{
+	*width = gpGlobals->width;
+	*height = gpGlobals->height;
+	}
+
+#endif
 
 //
 // gl_draw.c [FWGS, 01.09.26]
@@ -457,7 +517,7 @@ void R_AnimateRipples (void);
 qboolean R_UploadRipples (texture_t *image);
 
 //
-// renderer exports [FWGS, 01.05.26]
+// renderer exports
 //
 qboolean R_Init (void);
 void R_Shutdown (void);
@@ -488,7 +548,10 @@ void R_DrawViewModel (void);
 void R_DecalShoot (int textureIndex, int entityIndex, int modelIndex, vec3_t pos, int flags, float scale);
 void R_DecalRemoveAll (int texture);
 int R_CreateDecalList (decallist_t *pList);
-void R_ClearAllDecals (void);
+
+// [FWGS, 01.10.26]
+/*void R_ClearAllDecals (void);*/
+void R_ClearAllDecals (qboolean includePermanent);
 byte *Mod_GetCurrentVis (void);
 void Mod_SetOrthoBounds (const float *mins, const float *maxs);
 
@@ -525,6 +588,7 @@ void TriCullFace (TRICULLSTYLE mode);
  GL STATE MACHINE
 =======================================================================
 ***/
+
 enum
 	{
 	GL_OPENGL_110 = 0,		// base
@@ -555,6 +619,11 @@ enum
 	GL_BUFFER_STORAGE_EXT,
 	GL_MAP_BUFFER_RANGE_EXT,
 	GL_DRAW_RANGE_ELEMENTS_BASE_VERTEX_EXT,
+
+	// [FWGS, 01.10.26]
+	GL_FRAMEBUFFER_OBJECT_EXT,
+	GL_FRAMEBUFFER_BLIT_EXT,
+	GL_FRAMEBUFFER_MULTISAMPLE_EXT,
 
 	GL_EXTCOUNT,		// must be last
 	};
@@ -602,8 +671,8 @@ typedef struct
 	int		stencil_bits;
 	int		msaasamples;
 
-	int version_major;
-	int version_minor;
+	int		version_major;
+	int		version_minor;
 
 	gl_context_type_t	context;
 	gles_wrapper_t	wrapper;
@@ -637,6 +706,9 @@ typedef struct
 	// [FWGS, 01.09.26]
 	qboolean	stencilEnabled;
 	qboolean	in2DMode;
+
+	// [FWGS, 01.10.26]
+	qboolean	sceneTargetDrawn;
 	vec2_t		offset2D;
 
 	// [FWGS, 05.04.26]
@@ -726,6 +798,12 @@ static inline int GL_MaxTextureUnits (void)
 	return Q_min (glConfig.max_texture_units, MAX_TEXTURE_UNITS);
 	}
 
+// [FWGS, 01.10.26]
+static inline qboolean GL_RenderTargetsActive (void)
+	{
+	return (tr.targets.screen.fbo != 0);
+	}
+
 // [FWGS, 15.04.26]
 #define WORLDMODEL (tr.worldmodel)
 
@@ -736,6 +814,9 @@ extern convar_t gl_check_errors;
 extern convar_t gl_texture_lodbias;
 extern convar_t gl_texture_nearest;
 extern convar_t gl_lightmap_nearest;
+
+// [FWGS, 01.10.26]
+extern convar_t gl_fbo_nearest;
 extern convar_t gl_keeptjunctions;
 extern convar_t gl_round_down;
 extern convar_t gl_wireframe;
@@ -769,6 +850,9 @@ extern convar_t r_ripple;
 extern convar_t r_ripple_updatetime;
 extern convar_t r_ripple_spawntime;
 extern convar_t r_large_lightmaps;	// [FWGS, 01.03.25]
+
+// [FWGS, 01.10.26]
+extern convar_t r_scene_scale;
 
 //
 // engine callbacks

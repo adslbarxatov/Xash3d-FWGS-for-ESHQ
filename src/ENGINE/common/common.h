@@ -284,7 +284,7 @@ typedef struct soundlist_e
 	double		forcedEnd;
 	} soundlist_t;
 
-// [FWGS, 25.12.24]
+// [FWGS, 01.10.26]
 typedef enum bugcomp_e
 	{
 	// reverts fix for pfnPEntityOfEntIndex for bug compatibility with GoldSrc
@@ -299,6 +299,15 @@ typedef enum bugcomp_e
 
 	// returns full path to the game directory in server's pfnGetGameDir call
 	BUGCOMP_GET_GAME_DIR_FULL_PATH = BIT (3),
+
+	// don't spawn entities with "Not in Deathmatch" spawnflag in deathmatch, like in GoldSrc
+	BUGCOMP_SPAWNFLAG_NOT_DEATHMATCH = BIT (4),
+
+	// keep platform text input enabled during gameplay, for mods that read text events on their own
+	BUGCOMP_ALWAYS_ENABLE_TEXT_INPUT = BIT (5),
+
+	// keep BSP texture names in their original case, like in GoldSrc
+	BUGCOMP_PRESERVE_TEXTURE_NAME_CASE = BIT (6),
 	} bugcomp_t;
 
 typedef struct host_parm_s
@@ -319,7 +328,9 @@ typedef struct host_parm_s
 	int				downloadcount;		// how many files remain to downloading
 	char			deferred_cmd[128];	// deferred commands
 
+	// [FWGS, 01.10.26]
 	host_redirect_t	rd;		// remote console
+	float			window_insets[4];	// safe area insets: left, top, right, bottom fractions of the window
 	void			*hWnd;	// main window
 
 	// [FWGS, 01.03.26] command line parms
@@ -391,7 +402,6 @@ void Memory_Init (void);
 void _Mem_Free (void *data, const char *filename, int fileline);
 void *_Mem_Realloc (poolhandle_t poolptr, void *memptr, size_t size, qboolean clear, const char *filename, int fileline) ALLOC_CHECK (3) WARN_UNUSED_RESULT;
 void *_Mem_Alloc (poolhandle_t poolptr, size_t size, qboolean clear, const char *filename, int fileline) ALLOC_CHECK (2) MALLOC_LIKE (_Mem_Free, 1) WARN_UNUSED_RESULT;
-/*poolhandle_t _Mem_AllocPool (const char *name, const char *filename, int fileline) WARN_UNUSED_RESULT;*/
 poolhandle_t _Mem_AllocPool (const char *name, unsigned int flags, const char *filename, int fileline) WARN_UNUSED_RESULT;
 
 // [FWGS, 01.07.26] pool flags
@@ -415,7 +425,6 @@ void Mem_Stats_f (void);
 	*ptr = NULL; }
 
 // [FWGS, 01.07.26]
-/*define Mem_AllocPool( name ) _Mem_AllocPool( name, __FILE__, __LINE__ )*/
 #define Mem_AllocPool( name ) _Mem_AllocPool( name, 0, __FILE__, __LINE__ )
 #define Mem_AllocPoolExt( name, flags ) _Mem_AllocPool( name, flags, __FILE__, __LINE__ )
 
@@ -691,7 +700,6 @@ byte COM_Nibble (char c);
 int COM_SaveFile (const char *filename, const void *data, int len);
 byte *COM_LoadFileForMe (const char *filename, int *pLength) MALLOC_LIKE (free, 1);
 qboolean COM_IsSafeFileToDownload (const char *filename);
-/*cvar_t *pfnCVarGetPointer (const char *szVarName);*/
 int pfnDrawConsoleString (int x, int y, char *string);
 void pfnDrawSetTextColor (float r, float g, float b);
 void pfnDrawConsoleStringLen (const char *pText, int *length, int *height);
@@ -759,7 +767,10 @@ int CSCR_LoadDefaultCVars (const char *scriptfilename);
 //
 // hpak.c
 //
-const char *COM_ResourceTypeFromIndex (int index);	// [FWGS, 01.02.25]
+const char *COM_ResourceTypeFromIndex (int index);
+
+// [FWGS, 01.10.26]
+const char *COM_DownloadCachePath (char *buf, size_t size, const char *path, qboolean incomplete);
 void HPAK_Init (void);
 qboolean HPAK_GetDataPointer (const char *filename, struct resource_s *pRes, byte **buffer, int *size);
 qboolean HPAK_ResourceForHash (const char *filename, byte *hash, struct resource_s *pRes);
@@ -897,8 +908,9 @@ byte *LZSS_Compress (byte *pInput, int inputLength, uint *pOutputSize);
 uint LZSS_Decompress (const byte *pInput, byte *pOutput, size_t input_len, size_t output_len);
 void GL_FreeImage (const char *name);
 
-// [FWGS, 01.03.26]
+// [FWGS, 01.10.26]
 void VID_Init (void);
+void VID_UpdateWindowInsets (void);
 void UI_SetActiveMenu (qboolean fActive);
 void UI_ShowConnectionWarning (void);
 void Cmd_Null_f (void);

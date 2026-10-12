@@ -55,18 +55,29 @@ typedef enum
 
 platform_orientation_t Platform_GetDisplayOrientation (void);
 
-// [FWGS, 15.04.26] legacy iOS port functions
+// [FWGS, 01.10.26] legacy iOS port functions
 #if XASH_IOS
 	int IOS_GetArgs (char ***argv);
 	const char *IOS_GetDocsDir (void);
 	const char *IOS_GetExecDir (void);
 	void IOS_LaunchDialog (void);
+	void IOS_GetWindowInsets (void *window, float insets[4]);
 #endif
 
 #if XASH_WIN32 || XASH_LINUX
 	#define XASH_PLATFORM_HAVE_STATUS 1
 #else
 	#undef XASH_PLATFORM_HAVE_STATUS
+#endif
+
+// [FWGS, 01.10.26] walks the direct dependency list of a game library image loaded from disk
+#if XASH_LIB == LIB_STATIC || XASH_ANDROID || XASH_IOS || XASH_PSVITA || XASH_NSWITCH
+	static inline qboolean Platform_CheckLibraryDirectDependency (const byte *data, size_t size, const char *depname)
+		{
+		return false;
+		}
+#else
+	qboolean Platform_CheckLibraryDirectDependency (const byte *data, size_t size, const char *depname);
 #endif
 
 // [FWGS, 01.09.26]
@@ -100,6 +111,9 @@ platform_orientation_t Platform_GetDisplayOrientation (void);
 	void Android_SaveID (const char *id);
 	void Android_Init (void);
 	void *Android_GetNativeObject (const char *name);
+
+	// [FWGS, 01.10.26]
+	void Android_GetWindowInsets (float insets[4]);
 	int Android_GetKeyboardHeight (void);
 	void Android_Shutdown (void);
 #endif
@@ -333,7 +347,6 @@ static inline void Platform_MouseMove (float *x, float *y)
 // [FWGS, 01.09.26] rect is the area where the text is edited, in render coordinates, so the platform
 // might keep it visible when it shows the on-screen keyboard over the game
 #if (XASH_SDL >= 2) || XASH_PSVITA || XASH_DOS || XASH_USE_EVDEV
-/*void Platform_EnableTextInput (qboolean enable);*/
 void Platform_EnableTextInput (qboolean enable, int x, int y, int w, int h);
 #else
 static inline void Platform_EnableTextInput (qboolean enable, int x, int y, int w, int h) {}
@@ -346,7 +359,6 @@ static inline void Platform_EnableTextInput (qboolean enable, int x, int y, int 
 #if XASH_SDL >= 2
 int Platform_TranslateKeyLayout (int keynum);
 #else
-/*static inline void Platform_EnableTextInput (qboolean enable) {}*/
 static inline int Platform_TranslateKeyLayout (int keynum) { return keynum; }
 #endif
 
@@ -567,6 +579,22 @@ qboolean VoiceCapture_Lock (qboolean lock);
 #else
 	#define INLINE_RAISE(x) raise(x)
 	#define INLINE_NANOSLEEP1() sleep(1)
+#endif
+
+// [FWGS, 01.10.26] safe area insets as fractions of the window size: left, top, right, bottom
+#if XASH_SDL == 3
+void Platform_GetWindowInsets (void *window, float insets[4]);
+#else
+static inline void Platform_GetWindowInsets (void *window, float insets[4])
+	{
+#if XASH_IOS && XASH_SDL == 2
+	IOS_GetWindowInsets (window, insets);
+#elif XASH_ANDROID && XASH_SDL == 2
+	Android_GetWindowInsets (insets);
+#else
+	insets[0] = insets[1] = insets[2] = insets[3] = 0.0f;
+#endif
+	}
 #endif
 
 #endif

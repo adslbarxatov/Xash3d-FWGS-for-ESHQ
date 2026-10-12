@@ -38,7 +38,7 @@ extern "C" {
 #define MOBILITY_API_VERSION 2
 #define MOBILITY_CLIENT_EXPORT "HUD_MobilityInterface"
 
-#define VIBRATE_NORMAL (1U << 0) // just vibrate for given "life"
+#define VIBRATE_NORMAL (1U << 0)	// just vibrate for given "life"
 
 #define TOUCH_FL_HIDE			(1U << 0)
 #define TOUCH_FL_NOEDIT			(1U << 1)
@@ -50,6 +50,12 @@ extern "C" {
 #define TOUCH_FL_DRAW_ADDITIVE	(1U << 7)
 #define TOUCH_FL_STROKE			(1U << 8)
 #define TOUCH_FL_PRECISION		(1U << 9)
+
+// [FWGS, 01.10.26] opt-in circular movement stick and thumb rendering for _joy
+#define TOUCH_FL_STICK			(1U << 11)
+
+// [FWGS, 01.10.26] +command alternates between +command and -command on each press
+#define TOUCH_FL_COMMAND_LATCH	(1U << 12)
 
 // [FWGS, 01.12.24] flags for COM_ParseFileSafe
 #define PFILE_IGNOREBRACKET		(1<<0)

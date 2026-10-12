@@ -274,6 +274,10 @@ typedef struct
 	resource_t	resourcelist[MAX_RESOURCES];
 	int			num_resources;
 
+	// [FWGS, 01.10.26]
+	int			num_sent_resources;
+	byte		sent_resources_hash[16];
+
 	short		sound_index[MAX_SOUNDS];
 	short		decal_index[MAX_DECALS];
 
@@ -728,6 +732,10 @@ extern convar_t hud_fontrender;
 extern convar_t hud_scale;
 extern convar_t hud_scale_minimal_width;
 extern convar_t r_showtextures;
+
+// [FWGS, 01.10.26]
+extern convar_t r_showtextures_zoom;
+
 extern convar_t cl_bmodelinterp;
 extern convar_t cl_lw;	// local weapons
 extern convar_t cl_charset;
@@ -759,20 +767,25 @@ extern client_textmessage_t cl_textmessage[MAX_TEXTCHANNELS];
 // =================================================
 
 //
-// cl_cmds.c [FWGS, 01.02.24]
+// cl_cmds.c [FWGS, 01.10.26]
 //
 void CL_Quit_f (void);
+void CL_RequestQuit (const char *reason);
 void CL_GenericShot_f (void);
-void CL_PlayCDTrack_f (void);
+/*void CL_PlayCDTrack_f (void);*/
+void CL_CD_f (void);
+void CL_MP3_f (void);
 void CL_LevelShot_f (void);
 void CL_SetSky_f (void);
 void SCR_Viewpos_f (void);
 void CL_WavePlayLen_f (void);
 
 //
-// cl_custom.c [FWGS, 01.05.26]
+// cl_custom.c [FWGS, 01.10.26]
 //
 qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource);
+void CL_ResourcePath (char *filepath, size_t size, const resource_t *pResource);
+qboolean CL_HasResourceFile (const resource_t *pResource, const char *filepath);
 void CL_AddToResourceList (resource_t *pResource, resource_t *pList);
 void CL_RemoveFromResourceList (resource_t *pResource);
 void CL_MoveToOnHandList (resource_t *pResource);
@@ -1245,10 +1258,12 @@ void UI_ConnectionProgress_ParseServerInfo (const char *server);
 char **GAME_EXPORT CL_GetFilesList (const char *pattern, int *numFiles, int gamedironly);
 
 //
-// cl_mobile.c
+// cl_mobile.c [FWGS, 01.10.26]
 //
 qboolean Mobile_Init (void);
 void Mobile_Shutdown (void);
+void Mobile_ShakeVibrate (float amplitude, float frequency, float time);
+void Mobile_StopVibration (void);
 
 //
 // cl_securedstub.c

@@ -151,6 +151,14 @@ typedef enum engineAxis_e
 	MAX_AXES,
 	} engineAxis_t;
 
+// [FWGS, 01.10.26]
+typedef enum engineTouchpad_e
+	{
+	JOY_TOUCHPAD_LEFT = 0,
+	JOY_TOUCHPAD_RIGHT,
+	MAX_TOUCHPADS,
+	} engineTouchpad_t;
+
 // [FWGS, 01.03.25]
 typedef enum joy_calibration_state_s
 	{
@@ -162,11 +170,16 @@ typedef enum joy_calibration_state_s
 
 qboolean Joy_IsActive (void);
 
-// [FWGS, 01.03.25]
-void Joy_SetCapabilities (qboolean have_gyro);
+// [FWGS, 01.10.26]
+/*void Joy_SetCapabilities (qboolean have_gyro);*/
+void Joy_SetCapabilities (qboolean have_gyro, int num_touchpads);
+
 void Joy_SetCalibrationState (joy_calibration_state_t state);
 void Joy_AxisMotionEvent (engineAxis_t engineAxis, short value);
 void Joy_GyroEvent (vec3_t data);
+
+// [FWGS, 01.10.26]
+void Joy_TouchpadEvent (engineTouchpad_t pad, qboolean down, float x, float y, float pressure);
 void Joy_FinalizeMove (float *fw, float *side, float *dpitch, float *dyaw);
 
 // [FWGS, 15.04.26]
