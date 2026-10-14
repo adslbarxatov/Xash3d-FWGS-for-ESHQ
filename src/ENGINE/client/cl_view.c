@@ -131,13 +131,14 @@ static void V_SetRefParams (ref_params_t *fd)
 	{
 	memset (fd, 0, sizeof (ref_params_t));
 
-	// probably this is not needs
 	VectorCopy (refState.vieworg, fd->vieworg);
 	VectorCopy (refState.viewangles, fd->viewangles);
 
+	// [FWGS, 01.10.26] compute view vectors from angles each frame
+	AngleVectors (fd->viewangles, fd->forward, fd->right, fd->up);
+
 	fd->frametime = host.frametime;
 	fd->time = cl.time;
-
 	fd->intermission = cl.intermission;
 	fd->paused = (cl.paused != 0);
 	fd->spectator = (cls.spectator != 0);
@@ -420,6 +421,12 @@ void V_RenderView (void)
 	do
 		{
 		clgame.dllFuncs.pfnCalcRefdef (&rp);
+
+		// [FWGS, 01.10.26] client dll may replace viewmodel in pfnCalcRefdef, so set animtime again
+		// V_SetupViewModel did it only for the model known before this call
+		if (clgame.viewent.model && (clgame.viewent.model->type == mod_studio))
+			clgame.viewent.curstate.animtime = cl.local.weaponstarttime;
+
 		V_GetRefParams (&rp, &rvp);
 		V_RefApplyOverview (&rvp);
 
@@ -581,7 +588,6 @@ void V_PostRender (void)
 		R_ShowTree ();
 		
 		// [FWGS, 01.09.26]
-		/*Con_DrawConsole ();*/
 		UI_UpdateMenu (host.realtime);
 		Con_DrawVersion ();
 		Con_DrawConsole ();

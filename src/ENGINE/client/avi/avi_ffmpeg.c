@@ -267,9 +267,7 @@ byte *AVI_GetVideoFrame (movie_state_t *Avi, int target)
 // [FWGS, 01.07.26]
 static void AVI_StreamAudio (movie_state_t *Avi)
 	{
-	/*int buffer_samples, file_samples, file_bytes;
-	rawchan_t *ch = NULL;*/
-	rawchan_t *ch;
+	rawchan_t	*ch;
 
 	// keep the same semantics, when S_RAW_SOUND_SOUNDTRACK doesn't play if S_StartStreaming wasn't enabled
 	qboolean disable_stream = Avi->entnum == S_RAW_SOUND_SOUNDTRACK ? !snd.streaming : false;
@@ -294,11 +292,8 @@ static void AVI_StreamAudio (movie_state_t *Avi)
 		int file_samples = buffer_samples * ((float)Avi->rate / SOUND_DMA_SPEED);
 		int file_bytes;
 
-		size_t copy;
+		size_t	copy;
 
-		/*buffer_samples = ch->max_samples - (ch->s_rawend - snd.soundtime);
-
-		file_samples = buffer_samples * ((float)Avi->rate / SOUND_DMA_SPEED);*/
 		if (file_samples <= 1)
 			return;	// no more samples need
 
@@ -328,10 +323,8 @@ static void AVI_StreamAudio (movie_state_t *Avi)
 // [FWGS, 01.07.26]
 static void AVI_HandleAudio (movie_state_t *Avi, const AVFrame *frame)
 	{
-	int samples = frame->nb_samples;
-	size_t len = samples * pav_get_bytes_per_sample (Avi->s_fmt) * Avi->channels;
-	/*int outsamples;
-	uint8_t *ptr;*/
+	int		samples = frame->nb_samples;
+	size_t	len = samples * pav_get_bytes_per_sample (Avi->s_fmt) * Avi->channels;
 
 	// allocate data
 	if (!Avi->cached_audio)
@@ -357,19 +350,17 @@ static void AVI_HandleAudio (movie_state_t *Avi, const AVFrame *frame)
 			}
 		}
 
-	/*ptr = Avi->cached_audio + Avi->cached_audio_len;
-	outsamples = pswr_convert (Avi->swr_ctx, &ptr, samples, (void *)frame->data, samples);*/
-	uint8_t *ptr = Avi->cached_audio + Avi->cached_audio_len;
-	int outsamples = pswr_convert (Avi->swr_ctx, &ptr, samples, (void *)frame->data, samples);
+	uint8_t	*ptr = Avi->cached_audio + Avi->cached_audio_len;
+	int		outsamples = pswr_convert (Avi->swr_ctx, &ptr, samples, (void *)frame->data, samples);
 
 	Avi->cached_audio_len += outsamples * pav_get_bytes_per_sample (Avi->s_fmt) * Avi->channels;
 	}
 
 qboolean AVI_Think (movie_state_t *Avi)
 	{
-	qboolean decoded = false;
-	qboolean flushing = false;
-	qboolean redraw = false;
+	qboolean	decoded = false;
+	qboolean	flushing = false;
+	qboolean	redraw = false;
 
 	// [FWGS, 01.03.26]
 	if (!Avi->video_ctx)
@@ -390,7 +381,7 @@ qboolean AVI_Think (movie_state_t *Avi)
 
 	while (1)	// try to get multiple decoded frames to keep up when we're running at low fps
 		{
-		int res;
+		int	res;
 
 		AVI_StreamAudio (Avi);	// always flush audio buffers
 
@@ -467,9 +458,9 @@ qboolean AVI_Think (movie_state_t *Avi)
 	// [FWGS, 01.05.26]
 	if (Avi->texture == 0)
 		{
-		int cinTexture = SCR_GetCinematicTexture ();
-		int w = Avi->w >= 0 ? Avi->w : refState.width;
-		int h = Avi->h >= 0 ? Avi->h : refState.height;
+		int	cinTexture = SCR_GetCinematicTexture ();
+		int	w = Avi->w >= 0 ? Avi->w : refState.width;
+		int	h = Avi->h >= 0 ? Avi->h : refState.height;
 
 		if (redraw)
 			ref.dllFuncs.GL_UpdateTexture (cinTexture, Avi->xres, Avi->yres, Avi->xres, Avi->yres, Avi->dst, PF_BGRA_32);
@@ -489,9 +480,7 @@ qboolean AVI_Think (movie_state_t *Avi)
 // [FWGS, 01.07.26]
 void AVI_OpenVideo (movie_state_t *Avi, const char *filename, qboolean load_audio, int quiet)
 	{
-	/*byte *dst[4];
-	int dst_linesize[4];*/
-	int ret;
+	int	ret;
 
 	if (Avi->active)
 		AVI_CloseVideo (Avi);
@@ -554,8 +543,8 @@ void AVI_OpenVideo (movie_state_t *Avi, const char *filename, qboolean load_audi
 		return;
 		}
 
-	byte *dst[4];
-	int dst_linesize[4];
+	byte	*dst[4];
+	int		dst_linesize[4];
 	if ((ret = pav_image_alloc (dst, dst_linesize, Avi->xres, Avi->yres, AV_PIX_FMT_BGR0, 1)) < 0)
 		{
 		AVI_SpewAvError (quiet, "av_image_alloc", ret);
@@ -697,6 +686,9 @@ static dll_info_t libavutil_info =
 	{
 	#if XASH_WIN32
 		.name = "avutil-" S (SUPPORTED_AVU_VERSION_MAJOR) ".dll",
+	// [FWGS, 01.10.26]
+	#elif XASH_ANDROID
+		.name = "libavutil.so",
 	#else
 		.name = "libavutil.so." S (SUPPORTED_AVU_VERSION_MAJOR),
 	#endif
@@ -708,6 +700,9 @@ static dll_info_t libavformat_info =
 	{
 	#if XASH_WIN32
 		.name = "avformat-" S (SUPPORTED_AVF_VERSION_MAJOR) ".dll",
+	// [FWGS, 01.10.26]
+	#elif XASH_ANDROID
+		.name = "libavformat.so",
 	#else
 		.name = "libavformat.so." S (SUPPORTED_AVF_VERSION_MAJOR),
 	#endif
@@ -719,6 +714,9 @@ static dll_info_t libavcodec_info =
 	{
 	#if XASH_WIN32
 		.name = "avcodec-" S (SUPPORTED_AVC_VERSION_MAJOR) ".dll",
+	// [FWGS, 01.10.26]
+	#elif XASH_ANDROID
+		.name = "libavcodec.so",
 	#else
 		.name = "libavcodec.so." S (SUPPORTED_AVC_VERSION_MAJOR),
 	#endif
@@ -730,6 +728,9 @@ static dll_info_t libswresample_info =
 	{
 	#if XASH_WIN32
 		.name = "swresample-" S (SUPPORTED_SWR_VERSION_MAJOR) ".dll",
+	// [FWGS, 01.10.26]
+	#elif XASH_ANDROID
+		.name = "libswresample.so",
 	#else
 		.name = "libswresample.so." S (SUPPORTED_SWR_VERSION_MAJOR),
 	#endif
@@ -741,6 +742,9 @@ static dll_info_t libswscale_info =
 	{
 	#if XASH_WIN32
 		.name = "swscale-" S (SUPPORTED_SWS_VERSION_MAJOR) ".dll",
+	// [FWGS, 01.10.26]
+	#elif XASH_ANDROID
+		.name = "libswscale.so",
 	#else
 		.name = "libswscale.so." S (SUPPORTED_SWS_VERSION_MAJOR),
 	#endif
@@ -792,7 +796,7 @@ static void AVI_UnloadFFmpeg (void)
 
 static qboolean AVI_ValidateFFmpegVersion (void)
 	{
-	uint ver;
+	uint	ver;
 
 	// print version we're compiled with and which version we're running with
 	ver = pavutil_version ();
@@ -904,7 +908,6 @@ static qboolean AVI_LoadFFmpeg (void)
 
 static void AVI_UnloadFFmpeg (void)
 	{
-
 	}
 
 #endif
@@ -956,9 +959,9 @@ void AVI_Shutdown (void)
 
 movie_state_t *AVI_LoadVideo (const char *filename, qboolean load_audio)
 	{
-	movie_state_t *Avi;
+	movie_state_t	*Avi;
 	string		path;
-	const char *fullpath;
+	const char	*fullpath;
 
 	// fast reject
 	if (!avi_initialized)

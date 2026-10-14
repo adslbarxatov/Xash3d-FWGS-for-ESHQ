@@ -17,6 +17,56 @@ GNU General Public License for more details
 #include "client.h"
 #include "net_encode.h"
 
+/***
+=====================
+CL_ResourcePath [FWGS, 01.10.26]
+=====================
+***/
+void CL_ResourcePath (char *filepath, size_t size, const resource_t *pResource)
+	{
+	if (pResource->type == t_sound)
+		Q_snprintf (filepath, size, DEFAULT_SOUNDPATH "%s", pResource->szFileName);
+	else
+		Q_strncpy (filepath, pResource->szFileName, size);
+	}
+
+/***
+=====================
+CL_HasResourceFile [FWGS, 01.10.26]
+=====================
+***/
+qboolean CL_HasResourceFile (const resource_t *pResource, const char *filepath)
+	{
+	char	cachepath[MAX_SYSPATH];
+
+	// only the download cache is ours to verify and refetch, whatever the game
+	// itself provides is none of the server's business
+	COM_DownloadCachePath (cachepath, sizeof (cachepath), filepath, false);
+
+	FS_AllowDirectPaths (true);
+
+	fs_offset_t	size = FS_FileSize (cachepath, false);
+	FS_AllowDirectPaths (false);
+
+	// FIXME: proof of concept, we only catch files shorter than the server's copy,
+	// i.e. leftovers of an interrupted download.
+	// A complete file of a different size still passes. GoldSrc never compares sizes at all.
+	//
+	// comparing against a wrapped nDownloadSize (it's sent as a signed 24-bit value, see
+	// SV_SendResource) is harmless here, as wrapping only ever makes it smaller
+	if ((size >= 0) && (size < pResource->nDownloadSize))
+		{
+		Con_Printf (S_WARN "%s is %ld bytes but server reports %d, downloading it again\n",
+			cachepath, (long)size, pResource->nDownloadSize);
+
+		FS_AllowDirectPaths (true);
+		FS_Delete (cachepath);
+		FS_AllowDirectPaths (false);
+		}
+
+	return FS_FileExists (filepath, false);
+	}
+
 qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource)
 	{
 	char	filepath[MAX_QPATH];
@@ -38,10 +88,12 @@ qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource)
 		return true;
 		}
 
-	if (pResource->type == t_sound)
+	// [FWGS, 01.10.26]
+	/*if (pResource->type == t_sound)
 		Q_snprintf (filepath, sizeof (filepath), DEFAULT_SOUNDPATH "%s", pResource->szFileName);
 	else 
-		Q_strncpy (filepath, pResource->szFileName, sizeof (filepath));
+		Q_strncpy (filepath, pResource->szFileName, sizeof (filepath));*/
+	CL_ResourcePath (filepath, sizeof (filepath), pResource);
 
 	if (!COM_IsSafeFileToDownload (filepath))
 		{
@@ -62,8 +114,9 @@ qboolean CL_CheckFile (sizebuf_t *msg, resource_t *pResource)
 		return true;
 		}
 
-	// don't request downloads from local client it's silly
-	if (Host_IsLocalClient () || FS_FileExists (filepath, false))
+	// [FWGS, 01.10.26] don't request downloads from local client it's silly
+	/*if (Host_IsLocalClient () || FS_FileExists (filepath, false))*/
+	if (Host_IsLocalClient () || CL_HasResourceFile (pResource, filepath))
 		return true;
 
 	if (cls.demoplayback)
@@ -134,9 +187,6 @@ void CL_MoveToOnHandList (resource_t *pResource)
 // [FWGS, 01.07.26]
 static void CL_ClearResourceList (resource_t *pList)
 	{
-	/*resource_t *p, *n;
-
-	for (p = pList->pNext; (p != pList) && p; p = n)*/
 	for (resource_t *p = pList->pNext, *n; p != pList && p; p = n)
 		{
 		n = p->pNext;

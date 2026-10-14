@@ -359,7 +359,7 @@ static void CL_CreateResourceList (void)
 
 /***
 ==================
-CL_UpdateLogo [FWGS, 01.07.26]
+CL_UpdateLogo
 
 repackage the clan logo and upload it to the server
 ==================
@@ -384,6 +384,11 @@ static void CL_UpdateLogo (void)
 		if (!COM_CreateCustomization (&player->customdata, pResource, cl.playernum, 0, NULL, NULL))
 			Con_Printf ("Unable to create custom decal\n");
 		}
+
+	// [FWGS, 01.10.26]
+	if ((cl.num_resources == cl.num_sent_resources) && !memcmp (cl.sent_resources_hash, cl.resourcelist[0].rgucMD5_hash,
+		sizeof (cl.sent_resources_hash)))
+		return;
 
 	CL_SendResourceList (cl.resourcelist, cl.num_resources);
 	}
@@ -546,7 +551,7 @@ static float CL_LerpPoint (void)
 
 	if ((f == 0.0) || cls.timedemo)
 		{
-		double fgap = cl_clientframetime ();
+		double	fgap = cl_clientframetime ();
 		cl.time = cl.mtime[0];
 
 		// maybe don't need for Xash demos
@@ -559,13 +564,13 @@ static float CL_LerpPoint (void)
 	if (cl_interp.value <= 0.001)
 		return 1.0f;
 
-	double frac = (cl.time - cl.mtime[0]) / cl_interp.value;
+	double	frac = (cl.time - cl.mtime[0]) / cl_interp.value;
 	return frac;
 	}
 
 /***
 ===============
-CL_DriftInterpolationAmount [FWGS, 01.07.26]
+CL_DriftInterpolationAmount
 
 Drift interpolation value (this is used for server unlag system)
 ===============
@@ -582,7 +587,9 @@ static int CL_DriftInterpolationAmount (int goal)
 		cl.local.interp_amount += diff;
 		}
 
-	int	msec = cl.local.interp_amount * 1000.0f;
+	// [FWGS, 01.10.26]
+	/*int	msec = cl.local.interp_amount * 1000.0f;*/
+	int	msec = Q_rint (cl.local.interp_amount * 1000.0f);
 	msec = bound (0, msec, 100);
 
 	return msec;
@@ -590,7 +597,7 @@ static int CL_DriftInterpolationAmount (int goal)
 
 /***
 ===============
-CL_ComputeClientInterpolationAmount [FWGS, 01.09.26]
+CL_ComputeClientInterpolationAmount
 
 Validate interpolation cvars, calc interpolation window
 ===============
@@ -598,51 +605,38 @@ Validate interpolation cvars, calc interpolation window
 static void CL_ComputeClientInterpolationAmount (usercmd_t *cmd)
 	{
 	const float	epsilon = 0.001f;	// to avoid float invalid comparision
-	/*float	min_interp;
-	float	max_interp = MAX_EX_INTERP;
-	float	interpolation_time;*/
 
 	if (cl_updaterate.value < MIN_UPDATERATE)
 		{
-		/*Con_Printf ("cl_updaterate minimum is %f, resetting to default (20)\n", MIN_UPDATERATE);*/
 		Con_Printf ("cl_updaterate minimum is %g, resetting to default (%s)\n", MIN_UPDATERATE, cl_updaterate.def_string);
 		Cvar_Reset ("cl_updaterate");
 		}
 
 	if (cl_updaterate.value > MAX_UPDATERATE)
 		{
-		/*Con_Printf ("cl_updaterate clamped at maximum (%f)\n", MAX_UPDATERATE);
-		Cvar_SetValue ("cl_updaterate", MAX_UPDATERATE);*/
 		Con_Printf ("cl_updaterate clamped at maximum (%g)\n", MAX_UPDATERATE);
 		Cvar_DirectSetValue (&cl_updaterate, MAX_UPDATERATE);
 		}
 
-	/*if (cls.spectator)
-		max_interp = 0.2f;
-
-	min_interp = 1.0f / cl_updaterate.value;
-	interpolation_time = cl_interp.value * 1000.0;*/
 	float	min_interp = 1.0f / cl_updaterate.value;
 	float	max_interp = cls.spectator ? 0.2f : MAX_EX_INTERP;
 	float	interpolation_time = cl_interp.value;
 
-	/*if ((cl_interp.value + epsilon) < min_interp)*/
 	if ((cl_interp.value + epsilon) < min_interp)
 		{
 		Con_Printf ("ex_interp forced up to %.1f msec\n", min_interp * 1000.f);
-		/*Cvar_SetValue ("ex_interp", min_interp);*/
 		Cvar_DirectSetValue (&cl_interp, min_interp);
 		}
-	/*else if ((cl_interp.value - epsilon) > max_interp)*/
 	else if ((cl_interp.value - epsilon) > max_interp)
 		{
 		Con_Printf ("ex_interp forced down to %.1f msec\n", max_interp * 1000.f);
-		/*Cvar_SetValue ("ex_interp", max_interp);*/
 		Cvar_DirectSetValue (&cl_interp, max_interp);
 		}
 
+	// [FWGS, 01.10.26]
 	interpolation_time = bound (min_interp, interpolation_time, max_interp);
-	cmd->lerp_msec = CL_DriftInterpolationAmount (interpolation_time * 1000);
+	/*cmd->lerp_msec = CL_DriftInterpolationAmount (interpolation_time * 1000);*/
+	cmd->lerp_msec = CL_DriftInterpolationAmount (Q_rint (interpolation_time * 1000.0f));
 	}
 
 /***
@@ -754,7 +748,7 @@ CLIENT MOVEMENT COMMUNICATION
 
 /***
 ===============
-CL_ProcessShowTexturesCmds [FWGS, 01.07.25]
+CL_ProcessShowTexturesCmds
 
 navigate around texture atlas
 ===============
@@ -774,6 +768,13 @@ static qboolean CL_ProcessShowTexturesCmds (usercmd_t *cmd)
 
 	if (released & (IN_LEFT | IN_MOVELEFT))
 		Cvar_SetValue ("r_showtextures", Q_max (1, r_showtextures.value - 1));
+
+	// [FWGS, 01.10.26]
+	if (released & IN_FORWARD)
+		Cvar_SetValue ("r_showtextures_zoom", Q_min (SHOWTEXTURES_ZOOM_MAX, r_showtextures_zoom.value + SHOWTEXTURES_ZOOM_STEP));
+
+	if (released & IN_BACK)
+		Cvar_SetValue ("r_showtextures_zoom", Q_max (SHOWTEXTURES_ZOOM_MIN, r_showtextures_zoom.value - SHOWTEXTURES_ZOOM_STEP));
 
 	oldbuttons = cmd->buttons;
 	return true;
@@ -1267,13 +1268,35 @@ static void CL_BeginUpload_f (void)
 
 /***
 ==================
-CL_Quit_f [FWGS, 22.01.25]
+CL_Quit_f [FWGS, 01.10.26]
 ==================
 ***/
 void CL_Quit_f (void)
 	{
 	CL_Disconnect ();
-	Sys_Quit ("command");
+	/*Sys_Quit ("command");*/
+	Sys_Quit (Cmd_Argc () > 1 ? Cmd_Argv (1) : "command");
+	}
+
+/***
+==================
+CL_RequestQuit [FWGS, 01.10.26]
+
+Called when the OS asks the game to quit (window close button, Cmd+Q on macOS...)
+Show the quit confirmation dialog if the menu supports it, so the game can't be closed
+by an accidental key press, otherwise quit immediately
+==================
+***/
+void CL_RequestQuit (const char *reason)
+	{
+	if (Cmd_Exists ("menu_quit"))
+		{
+		Con_Reportf ("%s: quit requested (%s), passing to the menu\n", __func__, reason);
+		Cbuf_AddText ("menu_quit\n");
+		return;
+		}
+
+	Sys_Quit (reason);
 	}
 
 /***
@@ -1454,10 +1477,10 @@ static void CL_SendConnectPacket (connprotocol_t proto, int challenge)
 
 		if (FBitSet (extensions, NET_EXT_NETCHAN_COOKIE))
 			{
-			uint64_t a = COM_RandomLong (0, 0xFFFF);
-			uint64_t b = COM_RandomLong (0, 0xFFFF);
-			uint64_t c = COM_RandomLong (0, 0xFFFF);
-			uint64_t d = COM_RandomLong (0, 0xFFFF);
+			uint64_t	a = COM_RandomLong (0, 0xFFFF);
+			uint64_t	b = COM_RandomLong (0, 0xFFFF);
+			uint64_t	c = COM_RandomLong (0, 0xFFFF);
+			uint64_t	d = COM_RandomLong (0, 0xFFFF);
 			cls.netchan_pending_cookie = (a << 48) | (b << 32) | (c << 16) | d;
 			Info_SetValueForKeyf (protinfo, "cookie", sizeof (protinfo), "%016"PRIx64, cls.netchan_pending_cookie);
 			}
@@ -1481,7 +1504,7 @@ static int CL_GetTestFragmentSize (void)
 	{
 	// it turns out, even if we pass the bandwidth test, it doesn't mean we can use such large fragments
 	// as a temporary solution, use smaller fragment sizes
-	const int fragmentSizes[CL_TEST_RETRIES] = { 1400, 1200, 1000, 800, 508 };
+	const int	fragmentSizes[CL_TEST_RETRIES] = { 1400, 1200, 1000, 800, 508 };
 
 	if ((cls.bandwidth_test.retry >= 0) && (cls.bandwidth_test.retry < CL_TEST_RETRIES))
 		return bound (FRAGMENT_MIN_SIZE, fragmentSizes[cls.bandwidth_test.retry], FRAGMENT_MAX_SIZE);
@@ -3859,7 +3882,6 @@ CL_Escape_f [FWGS, 01.09.26]
 Escape to menu from game
 =================
 ***/
-/*static void CL_Escape_f (void)*/
 void CL_Escape_f (void)
 	{
 	if (cls.key_dest == key_menu)
@@ -4047,12 +4069,21 @@ static void CL_InitLocal (void)
 	// [FWGS, 01.07.25]
 	Cmd_AddRestrictedCommand ("ui_queryserver", CL_QueryServer_f,
 		"query server info from console");
-	Cmd_AddCommand ("cd", CL_PlayCDTrack_f,
+
+	// [FWGS, 01.10.26]
+	/*Cmd_AddCommand ("cd", CL_PlayCDTrack_f,
 		"Play cd-track (not real cd-player of course)");
 	Cmd_AddCommand ("mp3", CL_PlayCDTrack_f,
 		"Play mp3-track (based on virtual cd-player)");
 	Cmd_AddCommand ("waveplaylen", CL_WavePlayLen_f,
-		"Get approximate length of wave file");
+		"Get approximate length of wave file");*/
+	Cmd_AddCommand ("cd", CL_CD_f,
+		"Play cd-track (not real cd-player of course)");
+	Cmd_AddCommand ("mp3", CL_MP3_f,
+		"Play mp3-track (based on virtual cd-player)");
+	Cmd_AddRestrictedCommand ("waveplaylen",
+		CL_WavePlayLen_f, "Get approximate length of wave file");
+
 	Cmd_AddRestrictedCommand ("setinfo", CL_SetInfo_f,
 		"examine or change the userinfo string (alias of userinfo)");
 	Cmd_AddRestrictedCommand ("userinfo", CL_SetInfo_f,
@@ -4341,9 +4372,6 @@ void CL_Shutdown (void)
 	cls.initialized = false;
 
 	// [FWGS, 01.09.26]
-	/*// for client-side VGUI support we use other order
-	if (FI && FI->GameInfo && !FI->GameInfo->internal_vgui_support)
-		VGui_Shutdown ();*/
 	VGui_Shutdown ();
 
 	if (g_fsapi.Delete)
