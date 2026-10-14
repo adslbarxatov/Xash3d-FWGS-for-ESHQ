@@ -50,7 +50,11 @@ static struct
 	int	x, y, w, h;
 	} key_textinput_rect;
 
-// [FWGS, 01.04.26]
+// [FWGS, 01.10.26] real platform text input state, might differ from host.textmode
+// with BUGCOMP_ALWAYS_ENABLE_TEXT_INPUT
+static qboolean key_textinput_enabled;
+
+// [FWGS, 01.10.26]
 static const keyname_t	keynames[] =
 	{
 	{ "TAB",		K_TAB,			"" },
@@ -144,8 +148,10 @@ static const keyname_t	keynames[] =
 	{ "PADDLE3",	K_PADDLE3_BUTTON,	"" },
 	{ "PADDLE4",	K_PADDLE4_BUTTON,	"" },
 	{ "TOUCHPAD",	K_TOUCHPAD,		"" },
-	{ "AUX26",		K_AUX26,		"" },	// generic
-	{ "AUX27",		K_AUX27,		"" },
+	/*{ "AUX26",		K_AUX26,		"" },	// generic
+	{ "AUX27",		K_AUX27,		"" },*/
+	{ "MISC2_BUTTON",	K_MISC2_BUTTON,	"" },
+	{ "AUX27",		K_AUX27,		"" },	// generic
 	{ "AUX28",		K_AUX28,		"" },
 	{ "AUX29",		K_AUX29,		"" },
 	{ "AUX30",		K_AUX30,		"" },
@@ -747,11 +753,7 @@ void GAME_EXPORT Key_Event (int key, int down)
 				keys[key].repeats = 0;
 				}
 
-			// [FWGS, 01.09.26]
-			/*return;
-			// handled in client.dll*/
-
-			// deliver keys regardless of whether the client.dll handled them or not
+			// [FWGS, 01.09.26] deliver keys regardless of whether the client.dll handled them or not
 			// reproduces GoldSrc behavior, where keys are passed even if the client.dll claims to have handled them
 			// this is needed for Cry of fear's Computer interface input, for more context,
 			// see https://github.com/FWGS/xash3d-fwgs/issues/1923
@@ -806,14 +808,7 @@ void GAME_EXPORT Key_Event (int key, int down)
 					return;
 					}
 
-				// [FWGS, 01.09.26]
-				/*else if (host.mouse_visible && (cls.state != ca_cinematic))
-					{
-					clgame.dllFuncs.pfnKey_Event (down, key, keys[key].binding);
-					return;	// handled in client.dll
-					}
-				break;*/
-				// Note: we don't offer the client key handling here since reaching
+				// [FWGS, 01.09.26] Note: we don't offer the client key handling here since reaching
 				// this line proves the client already declined handling it.
 				// this prevents accidentally declining a key the client asked the engine
 				// to handle. For more context, see https://github.com/FWGS/xash3d-fwgs/issues/1943
@@ -856,7 +851,7 @@ void GAME_EXPORT Key_Event (int key, int down)
 	// key up events only perform actions if the game key binding is
 	// a button command (leading + sign).  These will be processed even in
 	// console mode and menu mode, to keep the character from continuing
-	// an action started before a mode switch.
+	// an action started before a mode switch
 	if (!down)
 		{
 		Key_AddKeyCommands (key, kb, down);
@@ -905,7 +900,7 @@ static void Key_GetTextInputRect (int *x, int *y, int *w, int *h)
 
 /***
 ================
-Key_SetTextInputRect [FWGS, 01.09.26]
+Key_SetTextInputRect
 ================
 ***/
 void Key_SetTextInputRect (int x, int y, int w, int h)
@@ -919,8 +914,9 @@ void Key_SetTextInputRect (int x, int y, int w, int h)
 	key_textinput_rect.w = w;
 	key_textinput_rect.h = h;
 
-	// text is already edited somewhere else now, let the platform know immediately
-	if (host.textmode && !osk_enable.value)
+	// [FWGS, 01.10.26] text is already edited somewhere else now, let the platform know immediately
+	/*if (host.textmode && !osk_enable.value)*/
+	if (key_textinput_enabled && !osk_enable.value)
 		{
 		Key_GetTextInputRect (&x, &y, &w, &h);
 		Platform_EnableTextInput (true, x, y, w, h);
@@ -940,23 +936,37 @@ void Key_EnableTextInput (qboolean enable, qboolean force)
 		return;
 		}
 
-	// [FWGS, 01.09.26]
-	if (enable && (!host.textmode || force))
-		/*Platform_EnableTextInput (true);*/
+	// [FWGS, 01.10.26]
+	/*if (enable && (!host.textmode || force))*/
+	// some mods (like Natural Selection) pull text events out of the platform event queue
+	// on their own and expect them to always arrive during the gameplay, like they do in GoldSrc
+	qboolean	enable_platform = enable || (cls.key_dest == key_game && FBitSet (host.bugcomp, BUGCOMP_ALWAYS_ENABLE_TEXT_INPUT));
+
+	if (!enable && (host.textmode || force))
+		{
+		// don't reuse this rect for whoever enables the text input next
+		memset (&key_textinput_rect, 0, sizeof (key_textinput_rect));
+		}
+
+	// [FWGS, 01.10.26] host.textmode is compared against here to pick up the new rect when the engine
+	// leaves the text mode but the platform text input is kept running
+	if (enable_platform && (!key_textinput_enabled || (host.textmode != enable) || force))
 		{
 		int	x, y, w, h;
 
 		Key_GetTextInputRect (&x, &y, &w, &h);
 		Platform_EnableTextInput (true, x, y, w, h);
 		}
-	else if (!enable && (host.textmode || force))
-		/*Platform_EnableTextInput (false);*/
+	/*else if (!enable && (host.textmode || force))*/
+	else if (!enable_platform && (key_textinput_enabled || force))
 		{
-		// don't reuse this rect for whoever enables the text input next
-		memset (&key_textinput_rect, 0, sizeof (key_textinput_rect));
+		/*// don't reuse this rect for whoever enables the text input next
+		memset (&key_textinput_rect, 0, sizeof (key_textinput_rect));*/
 		Platform_EnableTextInput (false, 0, 0, 0, 0);
 		}
 
+	// [FWGS, 01.10.26]
+	key_textinput_enabled = enable_platform;
 	host.textmode = enable;
 	}
 
@@ -973,13 +983,11 @@ void GAME_EXPORT Key_SetKeyDest (int key_dest)
 	switch (key_dest)
 		{
 		case key_game:
-			/*Key_EnableTextInput (false, false);*/
 			cls.key_dest = key_game;
 			Key_EnableTextInput (false, false);
 			break;
 
 		case key_menu:
-			/*Key_EnableTextInput (false, false);*/
 			cls.key_dest = key_menu;
 			Key_EnableTextInput (false, false);
 			break;
@@ -989,11 +997,9 @@ void GAME_EXPORT Key_SetKeyDest (int key_dest)
 #if !XASH_NSWITCH && !XASH_PSVITA	// if we don't disable this, pops up the keyboard during load
 			Key_EnableTextInput (true, false);
 #endif			
-			/*cls.key_dest = key_console;*/
 			break;
 
 		case key_message:
-			/*Key_EnableTextInput (true, false);*/
 			cls.key_dest = key_message;
 			Key_EnableTextInput (true, false);
 			break;
@@ -1018,10 +1024,6 @@ void GAME_EXPORT Key_ClearStates (void)
 	// [FWGS, 01.09.26]
 	for (int i = 0; i < HLARRAYSIZE (keys); i++)
 		{
-		/*if ((i >= K_MOUSE1) && (i <= K_MOUSE5))
-			IN_MouseEvent (i - K_MOUSE1, false);
-		else
-			Key_Event (i, false);*/
 		if ((i < K_MOUSE1) || (i > K_MOUSE5))
 			Key_Event (i, false);
 		// checks internally whether a key has been pressed or not
@@ -1047,10 +1049,6 @@ Normal keyboard characters, already shifted / capslocked / etc
 ***/
 void CL_CharEvent (int key)
 	{
-	/*// the console key should never be used as a char
-	if ((key == '`') || (key == '~'))
-		return;*/
-
 	if ((cls.key_dest == key_console) && !Con_Visible ())
 		{
 		if (((char)key == '`') || ((char)key == '?'))

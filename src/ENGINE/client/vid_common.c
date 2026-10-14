@@ -20,12 +20,13 @@ GNU General Public License for more details
 #include "vid_common.h"
 #include "platform/platform.h"
 
+// [FWGS, 01.10.26]
 static CVAR_DEFINE_AUTO (vid_mode, "0", FCVAR_RENDERINFO,
 	"current video mode index (used only for storage)");
 static CVAR_DEFINE_AUTO (vid_rotate, "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"screen rotation (0-3)");
-static CVAR_DEFINE_AUTO (vid_scale, "1.0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
-	"pixel scale");
+/*static CVAR_DEFINE_AUTO (vid_scale, "1.0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
+	"pixel scale");*/
 
 // [FWGS, 01.03.26]
 CVAR_DEFINE_AUTO (vid_maximized, "0", FCVAR_RENDERINFO,
@@ -43,6 +44,10 @@ CVAR_DEFINE (vid_width, "vid_width", "0", FCVAR_READ_ONLY,
 CVAR_DEFINE (vid_height, "vid_height", "0", FCVAR_READ_ONLY,
 	"actual window viewport size");
 
+// [FWGS, 01.10.26]
+static CVAR_DEFINE (vid_window_insets, "_window_insets", "", FCVAR_PRIVILEGED,
+	"override window safe area insets for testing: left top right bottom, in pixels");
+
 glwstate_t	glw_state;
 
 // [FWGS, 01.05.24] removed VID_StartupGamma
@@ -55,7 +60,7 @@ R_SaveVideoMode [FWGS, 01.03.26]
 ***/
 void R_SaveVideoMode (int w, int h, int render_w, int render_h, qboolean maximized)
 	{
-	string temp;
+	string	temp;
 
 	if (!w || !h || !render_w || !render_h)
 		{
@@ -106,12 +111,10 @@ VID_GetModeString [FWGS, 01.07.26]
 ***/
 const char *VID_GetModeString (int vid_mode)
 	{
-	/*vidmode_t *vidmode;*/
 	if ((vid_mode < 0) || (vid_mode >= R_MaxVideoModes ()))
 		return NULL;
 
-	/*if (!(vidmode = R_GetVideoMode (vid_mode)))*/
-	vidmode_t *vidmode = R_GetVideoMode (vid_mode);
+	vidmode_t	*vidmode = R_GetVideoMode (vid_mode);
 	if (!vidmode)
 		return NULL;
 
@@ -153,25 +156,27 @@ notify ref dll about screen transformations
 ***/
 void VID_SetDisplayTransform (int *render_w, int *render_h)
 	{
-	uint rotate = vid_rotate.value;
+	uint	rotate = vid_rotate.value;
 
 	// [FWGS, 01.11.25]
 	if ((rotate < REF_ROTATE_NONE) || (rotate > REF_ROTATE_CCW))
 		rotate = REF_ROTATE_NONE;
 
-	if (ref.dllFuncs.R_SetDisplayTransform (rotate, 0, 0, vid_scale.value, vid_scale.value))
+	// [FWGS, 01.10.26]
+	/*if (ref.dllFuncs.R_SetDisplayTransform (rotate, 0, 0, vid_scale.value, vid_scale.value))*/
+	if (ref.dllFuncs.R_SetDisplayTransform (rotate, 0, 0, 1.0f, 1.0f))
 		{
 		if (rotate & 1)
 			{
-			int swap = *render_w;
+			int	swap = *render_w;
 
 			*render_w = *render_h;
 			*render_h = swap;
 			}
 
-		// [FWGS, 01.11.25]
+		/*// [FWGS, 01.11.25]
 		*render_h /= vid_scale.value;
-		*render_w /= vid_scale.value;
+		*render_w /= vid_scale.value;*/
 		ref.rotation = rotate;
 		}
 	else
@@ -185,17 +190,13 @@ void VID_SetDisplayTransform (int *render_w, int *render_h)
 // [FWGS, 01.07.26]
 static void VID_Mode_f (void)
 	{
-	int w, h;
+	int	w, h;
 
 	switch (Cmd_Argc ())
 		{
 		case 2:
 			{
-			/*vidmode_t *vidmode;
-			vidmode = R_GetVideoMode (Q_atoi (Cmd_Argv (1)));
-
-			// [FWGS, 01.03.26]*/
-			vidmode_t *vidmode = R_GetVideoMode (Q_atoi (Cmd_Argv (1)));
+			vidmode_t	*vidmode = R_GetVideoMode (Q_atoi (Cmd_Argv (1)));
 			if (!vidmode)
 				{
 				Con_Printf (S_ERROR "unable to set mode, backend returned null\n");
@@ -222,18 +223,63 @@ static void VID_Mode_f (void)
 	R_ChangeDisplaySettings (w, h, bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1));
 	}
 
-// [FWGS, 01.03.26]
+// [FWGS, 01.10.26]
+static void VID_ValidateWindowInsets (float *insets)
+	{
+	for (int i = 0; i < 4; i++)
+		{
+		if (IS_NAN (insets[i]) || (insets[i] < 0) || (insets[i] >= 1))
+			{
+			memset (insets, 0, sizeof (float) * 4);
+			return;
+			}
+		}
+
+	if ((insets[0] + insets[2] >= 1) || (insets[1] + insets[3] >= 1))
+		memset (insets, 0, sizeof (float) * 4);
+	}
+
+/***
+==================
+VID_UpdateWindowInsets [FWGS, 01.10.26]
+
+refresh cached window safe area insets, called once per frame
+==================
+***/
+void VID_UpdateWindowInsets (void)
+	{
+	if (FBitSet (vid_window_insets.flags, FCVAR_CHANGED) && !COM_StringEmpty (vid_window_insets.string) &&
+		(refState.width > 0) && (refState.height > 0))
+		{
+		Q_atov (host.window_insets, vid_window_insets.string, 4);
+		host.window_insets[0] /= refState.width;
+		host.window_insets[1] /= refState.height;
+		host.window_insets[2] /= refState.width;
+		host.window_insets[3] /= refState.height;
+		}
+	else
+		{
+		Platform_GetWindowInsets (host.hWnd, host.window_insets);
+		}
+
+	VID_ValidateWindowInsets (host.window_insets);
+	}
+
 void VID_Init (void)
 	{
 	Cvar_RegisterVariable (&window_width);
 	Cvar_RegisterVariable (&window_height);
 	Cvar_RegisterVariable (&vid_mode);
 	Cvar_RegisterVariable (&vid_rotate);
-	Cvar_RegisterVariable (&vid_scale);
+
+	// [FWGS, 01.10.26]
+	/*Cvar_RegisterVariable (&vid_scale);*/
 	Cvar_RegisterVariable (&vid_fullscreen);
 	Cvar_RegisterVariable (&vid_maximized);
 	Cvar_RegisterVariable (&vid_width);
 	Cvar_RegisterVariable (&vid_height);
+	Cvar_RegisterVariable (&vid_window_insets);
+
 	Cvar_Get ("_window_xpos", "-1", FCVAR_RENDERINFO, "deprecated cvar");
 	Cvar_Get ("_window_ypos", "-1", FCVAR_RENDERINFO, "deprecated cvar");
 
@@ -247,3 +293,27 @@ void VID_Init (void)
 	V_Init ();	// init gamma
 	R_Init ();	// init renderer
 	}
+
+// [FWGS, 01.10.26]
+#if XASH_ENGINE_TESTS
+
+#include "tests.h"
+
+void Test_RunWindowInsets (void)
+	{
+	float	insets[4] = { 0.05f, 0, 0.05f, 0.02f };
+
+	VID_ValidateWindowInsets (insets);
+	TASSERT (insets[0] == 0.05f && insets[3] == 0.02f);
+	insets[0] = -1;
+	VID_ValidateWindowInsets (insets);
+	TASSERT (insets[0] == 0 && insets[3] == 0);
+	insets[0] = insets[2] = 0.5f;
+	VID_ValidateWindowInsets (insets);
+	TASSERT (insets[0] == 0 && insets[2] == 0);
+	insets[1] = UintAsFloat (0x7fc00000);
+	VID_ValidateWindowInsets (insets);
+	TASSERT (insets[1] == 0);
+	}
+
+#endif

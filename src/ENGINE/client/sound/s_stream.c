@@ -18,13 +18,16 @@ GNU General Public License for more details
 #include "client.h"
 #include "soundlib.h"	// [FWGS, 01.02.25]
 
-// [FWGS, 01.03.26]
+// [FWGS, 01.10.26]
 static struct
 	{
 	string		current;	// a currently playing track
 	string		loopName;	// may be empty
 	stream_t	*stream;
 	int			source;		// may be game, menu, etc
+
+	double		fade_end;	// when nonzero, the track is fading out and stops at this time
+	float		fade_time;
 	} s_bgTrack;
 
 // [FWGS, 01.03.26] controlled by game dlls
@@ -66,23 +69,25 @@ void S_MusicFade (float fade_percent)
 
 /***
 =================
-S_GetMusicVolume [FWGS, 01.07.26]
+S_GetMusicVolume
 =================
 ***/
 float S_GetMusicVolume (void)
 	{
-	/*float scale = 1.0f;*/
-
 	// we return zero volume to keep sounds running
 	if ((host.status == HOST_NOFOCUS) && (snd_mute_losefocus.value != 0.0f))
 		return 0.0f;
 
-	float scale = 1.0f;
+	float	scale = 1.0f;
 	if ((cls.key_dest != key_menu) && (musicfade.percent != 0))
 		{
 		scale = bound (0.0f, musicfade.percent / 100.0f, 1.0f);
 		scale = 1.0f - scale;
 		}
+
+	// [FWGS, 01.10.26]
+	if (s_bgTrack.fade_end != 0.0)
+		scale *= bound (0.0f, (s_bgTrack.fade_end - host.realtime) / s_bgTrack.fade_time, 1.0f);
 
 	return s_musicvolume.value * scale;
 	}
@@ -157,6 +162,28 @@ void S_StopBackgroundTrack (void)
 
 /***
 =================
+S_FadeOutBackgroundTrack [FWGS, 01.10.26]
+
+fade the music out during specified time, then stop it
+=================
+***/
+void S_FadeOutBackgroundTrack (float seconds)
+	{
+	if (!s_bgTrack.stream)
+		return;
+
+	if (seconds <= 0.0f)
+		{
+		S_StopBackgroundTrack ();
+		return;
+		}
+
+	s_bgTrack.fade_time = seconds;
+	s_bgTrack.fade_end = host.realtime + seconds;
+	}
+
+/***
+=================
 S_StreamSetPause [FWGS, 15.04.26]
 =================
 ***/
@@ -202,21 +229,22 @@ qboolean S_StreamGetCurrentState (char *currentTrack, size_t currentTrackSize, c
 
 /***
 =================
-S_StreamBackgroundTrack [FWGS, 01.07.26]
+S_StreamBackgroundTrack
 =================
 ***/
 void S_StreamBackgroundTrack (void)
 	{
-	/*int		bufferSamples;
-	int		fileSamples;*/
 	byte	raw[MAX_RAW_SAMPLES];
-	/*int		r, fileBytes;
-	rawchan_t	*ch = NULL;
-
-	// [FWGS, 15.04.26]*/
 
 	if (!snd.initialized || !s_bgTrack.stream || snd.streaming)
 		return;
+
+	// [FWGS, 01.10.26]
+	if ((s_bgTrack.fade_end != 0.0) && (host.realtime >= s_bgTrack.fade_end))
+		{
+		S_StopBackgroundTrack ();
+		return;
+		}
 
 	// don't bother playing anything if musicvolume is 0
 	if (!s_musicvolume.value || cl.paused || snd.stream_paused)
@@ -235,8 +263,7 @@ void S_StreamBackgroundTrack (void)
 		return;
 		}
 
-	/*ch = S_FindRawChannel (S_RAW_SOUND_BACKGROUNDTRACK, true);*/
-	rawchan_t *ch = S_FindRawChannel (S_RAW_SOUND_BACKGROUNDTRACK, true);
+	rawchan_t	*ch = S_FindRawChannel (S_RAW_SOUND_BACKGROUNDTRACK, true);
 	Assert (ch != NULL);
 
 	// see how many samples should be copied into the raw buffer
@@ -245,22 +272,18 @@ void S_StreamBackgroundTrack (void)
 
 	while (ch->s_rawend < snd.soundtime + ch->max_samples)
 		{
-		const stream_t *info = s_bgTrack.stream;
-
-		/*bufferSamples = ch->max_samples - (ch->s_rawend - snd.soundtime);*/
-		int bufferSamples = ch->max_samples - (ch->s_rawend - snd.soundtime);
+		const stream_t	*info = s_bgTrack.stream;
+		int		bufferSamples = ch->max_samples - (ch->s_rawend - snd.soundtime);
 
 		// decide how much data needs to be read from the file
-		/*fileSamples = bufferSamples * ((float)info->rate / SOUND_DMA_SPEED);*/
-		int fileSamples = bufferSamples * ((float)info->rate / SOUND_DMA_SPEED);
+		int	fileSamples = bufferSamples * ((float)info->rate / SOUND_DMA_SPEED);
 
 		// no more samples need
 		if (fileSamples <= 1)
 			return;
 
 		// our max buffer size
-		/*fileBytes = fileSamples * (info->width * info->channels);*/
-		int fileBytes = fileSamples * (info->width * info->channels);
+		int	fileBytes = fileSamples * (info->width * info->channels);
 		if (fileBytes > sizeof (raw))
 			{
 			fileBytes = sizeof (raw);
@@ -268,8 +291,7 @@ void S_StreamBackgroundTrack (void)
 			}
 
 		// read
-		/*r = FS_ReadStream (s_bgTrack.stream, fileBytes, raw);*/
-		int r = FS_ReadStream (s_bgTrack.stream, fileBytes, raw);
+		int	r = FS_ReadStream (s_bgTrack.stream, fileBytes, raw);
 		if (r < fileBytes)
 			{
 			fileBytes = r;

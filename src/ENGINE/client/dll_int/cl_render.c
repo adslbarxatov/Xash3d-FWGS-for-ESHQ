@@ -208,8 +208,6 @@ intptr_t CL_RenderGetParm (const int parm, const int arg, const qboolean checkRe
 					return cl.local.health;
 
 				// [FWGS, 01.05.26]
-				/*case PARM_LOCAL_GAME:
-					return Host_IsLocalGame ();*/
 				case PARM_SINGLEPLAYER_GAME:
 					return Host_IsSinglePlayerGame ();
 
@@ -304,7 +302,6 @@ static render_api_t gRenderAPI =
 	AVI_GetVideoFrame,
 
 	// [FWGS, 01.05.26]
-	/*NULL,				// R_UploadStretchRaw*/
 	pfnAVI_UploadRawFrame,	// AVI_UploadRawFrame
 
 	AVI_FreeVideo,
@@ -347,39 +344,6 @@ static render_api_t gRenderAPI =
 	};
 
 // [FWGS, 01.05.26] removed R_FillRenderAPIFromRef
-/*static void R_FillRenderAPIFromRef (render_api_t *to, const ref_interface_t *from)
-	{
-	to->GetDetailScaleForTexture = from->GetDetailScaleForTexture;
-	to->GetExtraParmsForTexture = from->GetExtraParmsForTexture;
-	to->GetFrameTime = from->GetFrameTime;
-	to->R_SetCurrentEntity = from->R_SetCurrentEntity;
-	to->R_SetCurrentModel = from->R_SetCurrentModel;
-	to->GL_FindTexture = from->GL_FindTexture;
-	to->GL_TextureName = from->GL_TextureName;
-	to->GL_TextureData = from->GL_TextureData;
-	to->GL_LoadTexture = from->GL_LoadTexture;
-	to->GL_CreateTexture = from->GL_CreateTexture;
-	to->GL_LoadTextureArray = from->GL_LoadTextureArray;
-	to->GL_CreateTextureArray = from->GL_CreateTextureArray;
-	to->GL_FreeTexture = from->GL_FreeTexture;
-	to->DrawSingleDecal = from->DrawSingleDecal;
-	to->R_DecalSetupVerts = from->R_DecalSetupVerts;
-	to->R_EntityRemoveDecals = from->R_EntityRemoveDecals;
-	to->AVI_UploadRawFrame = from->AVI_UploadRawFrame;
-	to->GL_Bind = from->GL_Bind;
-	to->GL_SelectTexture = from->GL_SelectTexture;
-	to->GL_LoadTextureMatrix = from->GL_LoadTextureMatrix;
-	to->GL_TexMatrixIdentity = from->GL_TexMatrixIdentity;
-	to->GL_CleanUpTextureUnits = from->GL_CleanUpTextureUnits;
-	to->GL_TexGen = from->GL_TexGen;
-	to->GL_TextureTarget = from->GL_TextureTarget;
-	to->GL_TexCoordArrayMode = from->GL_TexCoordArrayMode;
-	to->GL_UpdateTexSize = from->GL_UpdateTexSize;
-	to->GL_DrawParticles = from->GL_DrawParticles;
-	to->LightVec = from->LightVec;
-	to->StudioGetTexture = from->StudioGetTexture;
-	to->GL_GetProcAddress = from->R_GetProcAddress;
-	}*/
 
 /***
 ===============
@@ -394,8 +358,6 @@ qboolean R_InitRenderAPI (void)
 	memset (&clgame.drawFuncs, 0, sizeof (clgame.drawFuncs));
 
 	// [FWGS, 01.05.26]
-	/*// fill missing functions from renderer
-	R_FillRenderAPIFromRef (&gRenderAPI, &ref.dllFuncs);*/
 	gRenderAPI.GetDetailScaleForTexture = ref.dllFuncs.R_GetDetailScaleForTexture;
 	gRenderAPI.GL_FindTexture = ref.dllFuncs.GL_FindTexture;
 	gRenderAPI.GL_TextureName = ref.dllFuncs.GL_TextureName;
@@ -403,6 +365,9 @@ qboolean R_InitRenderAPI (void)
 	gRenderAPI.GL_LoadTexture = ref.dllFuncs.GL_LoadTexture;
 	gRenderAPI.GL_FreeTexture = ref.dllFuncs.GL_FreeTexture;
 	gRenderAPI.GL_Bind = ref.dllFuncs.GL_Bind;
+
+	// [FWGS, 01.10.26]
+	gRenderAPI.R_ClearAllDecals = ref.dllFuncs.R_ClearAllDecals;
 
 	ref.dllFuncs.R_FillRenderAPI (&gRenderAPI);
 

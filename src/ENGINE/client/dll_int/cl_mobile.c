@@ -20,11 +20,14 @@ GNU General Public License for more details
 #include "input.h"
 #include "platform/platform.h"
 
-// [FWGS, 01.08.24]
 static CVAR_DEFINE_AUTO (vibration_length, "1.0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 	"vibration length");
 static CVAR_DEFINE_AUTO (vibration_enable, "1", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
 	"enable vibration");
+
+// [FWGS, 01.10.26]
+static CVAR_DEFINE_AUTO (vibration_shake, "1.0", FCVAR_ARCHIVE | FCVAR_PRIVILEGED,
+	"screen shake vibration strength, 0 to disable");
 
 static cl_font_t g_scaled_font;
 static float g_font_scale;
@@ -37,6 +40,37 @@ static void pfnVibrate (float life, char flags)
 
 	// here goes platform-specific backends
 	Platform_Vibrate (life * vibration_length.value, flags);
+	}
+
+/***
+=============
+Mobile_ShakeVibrate [FWGS, 01.10.26]
+=============
+***/
+void Mobile_ShakeVibrate (float amplitude, float frequency, float time)
+	{
+	if (!vibration_enable.value || (vibration_shake.value <= 0.0f))
+		return;
+
+	// screen shake amplitude is 4.12 fixed point, frequency is 8.8 fixed point
+	float	strength = bound (0.0f, amplitude * (1.0f / 16.0f) * vibration_shake.value, 1.0f);
+	float	mix = bound (0.0f, frequency * (1.0f / 256.0f), 1.0f);
+
+	// low frequency shakes are jerks for the heavy motor, high frequency shakes are rumbles for the light motor
+	int	low_freq = strength * (1.0f - mix) * 0xFFFF;
+	int	high_freq = strength * mix * 0xFFFF;
+
+	Platform_Vibrate2 (time, low_freq, high_freq, 0);
+	}
+
+/***
+=============
+Mobile_StopVibration [FWGS, 01.10.26]
+=============
+***/
+void Mobile_StopVibration (void)
+	{
+	Platform_Vibrate2 (0.0f, 0, 0, 0);
 	}
 
 static void Vibrate_f (void)
@@ -69,12 +103,10 @@ static int pfnDrawScaledCharacter (int x, int y, int number, int r, int g, int b
 	if ((fabs (g_font_scale - scale) > 0.1f) ||
 		(g_scaled_font.hFontTexture != cls.creditsFont.hFontTexture))
 		{
-		/*int i;*/
-
 		g_scaled_font = cls.creditsFont;
 		g_scaled_font.scale *= scale;
 		g_scaled_font.charHeight *= scale;
-		/*for (i = 0; i < HLARRAYSIZE (g_scaled_font.charWidths); i++)*/
+
 		for (int i = 0; i < HLARRAYSIZE (g_scaled_font.charWidths); i++)
 			g_scaled_font.charWidths[i] *= scale;
 
@@ -123,15 +155,16 @@ static const mobile_engfuncs_t gMobileEngfuncs =
 	pfnParseFileSafe
 	};
 
-// [FWGS, 01.09.24]
 qboolean Mobile_Init (void)
 	{
-	pfnMobilityInterface ExportToClient;
+	pfnMobilityInterface	ExportToClient;
 
 	Cmd_AddCommand ("vibrate", Vibrate_f, "Vibrate for specified time");
 
+	// [FWGS, 01.10.26]
 	Cvar_RegisterVariable (&vibration_length);
 	Cvar_RegisterVariable (&vibration_enable);
+	Cvar_RegisterVariable (&vibration_shake);
 
 	// find mobility interface
 	if ((ExportToClient = COM_GetProcAddress (clgame.hInstance, MOBILITY_CLIENT_EXPORT)))

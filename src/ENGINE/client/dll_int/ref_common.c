@@ -39,6 +39,11 @@ CVAR_DEFINE_AUTO (gl_vsync, "1", FCVAR_ARCHIVE,
 	"enable vertical syncronization");
 CVAR_DEFINE_AUTO (r_showtextures, "0", FCVAR_CHEAT,
 	"show all uploaded textures");
+
+// [FWGS, 01.10.26]
+CVAR_DEFINE_AUTO (r_showtextures_zoom, "1.0", FCVAR_ARCHIVE,
+	"r_showtextures atlas preview scale");
+
 CVAR_DEFINE_AUTO (r_adjust_fov, "1", FCVAR_ARCHIVE,
 	"making FOV adjustment for wide-screens");
 CVAR_DEFINE_AUTO (r_decals, "4096", FCVAR_ARCHIVE,
@@ -88,26 +93,19 @@ REF_HOST_CHECK (features);
 // [FWGS, 01.07.26]
 static qboolean CheckSkybox (const char *name, char out[SKYBOX_MAX_SIDES][MAX_STRING])
 	{
-	static const char *skybox_ext[3] = { "dds", "tga", "bmp" };
-	static const char *skybox_delim[2] = { "", "_" };	// no space for HL style, underscore for Q1 style
-	/*int i;*/
+	static const char	*skybox_ext[3] = { "dds", "tga", "bmp" };
+	static const char	*skybox_delim[2] = { "", "_" };	// no space for HL style, underscore for Q1 style
 
 	// search for skybox images
-	/*for (i = 0; i < HLARRAYSIZE (skybox_ext); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (skybox_ext); i++)
 		{
-		/*int j;
-
-		for (j = 0; j < HLARRAYSIZE (skybox_delim); j++)*/
 		for (int j = 0; j < HLARRAYSIZE (skybox_delim); j++)
 			{
-			/*int k, num_checked_sides = 0;*/
-			int num_checked_sides = 0;
+			int	num_checked_sides = 0;
 
-			/*for (k = 0; k < SKYBOX_MAX_SIDES; k++)*/
 			for (int k = 0; k < SKYBOX_MAX_SIDES; k++)
 				{
-				char sidename[MAX_VA_STRING];
+				char	sidename[MAX_VA_STRING];
 
 				Q_snprintf (sidename, sizeof (sidename), "%s%s%s.%s", name, skybox_delim[j], r_skyBoxSuffix[k],
 					skybox_ext[i]);
@@ -133,9 +131,6 @@ void R_SetupSky (const char *name)
 	char	sidenames[SKYBOX_MAX_SIDES][MAX_STRING];
 	int		skyboxTextures[SKYBOX_MAX_SIDES] = { 0 };
 	int		i, len;
-	/*qboolean	result;
-
-	// [FWGS, 01.03.26]*/
 
 	if (COM_StringEmptyOrNULL (name))
 		{
@@ -151,10 +146,8 @@ void R_SetupSky (const char *name)
 
 	if (loadname[len - 1] == '_')
 		loadname[len - 1] = '\0';
-	/*result = CheckSkybox (loadname, sidenames);*/
 
 	// to prevent infinite recursion if default skybox was missed
-	/*if (!result && Q_stricmp (name, DEFAULT_SKYBOX_NAME))*/
 	if (!CheckSkybox (loadname, sidenames) && Q_stricmp (name, DEFAULT_SKYBOX_NAME))
 		{
 		Con_Reportf (S_WARN "missed or incomplete skybox '%s'\n", name);
@@ -369,7 +362,7 @@ static screenfade_t *pfnRefGetScreenFade (void)
 // [FWGS, 01.03.26]
 static qboolean R_Init_Video_ (ref_graphic_apis_t type)
 	{
-	const char *config_name = ref.dllFuncs.R_GetConfigName ? ref.dllFuncs.R_GetConfigName () : NULL;
+	const char	*config_name = ref.dllFuncs.R_GetConfigName ? ref.dllFuncs.R_GetConfigName () : NULL;
 
 	if (config_name)
 		{
@@ -560,7 +553,8 @@ static void CL_FillTriAPI (triangleapi_t *dst)
 static void R_CreateBuiltinTextures (void)
 	{
 	// default checkerboard
-	uint data16x16[256];
+	uint	data16x16[256];
+
 	for (int y = 0; y < 16; y++)
 		{
 		for (int x = 0; x < 16; x++)
@@ -571,10 +565,12 @@ static void R_CreateBuiltinTextures (void)
 				data16x16[y * 16 + x] = HostFourCC (0, 0, 0, 255);
 			}
 		}
+
 	ref.dllFuncs.GL_CreateTexture (REF_DEFAULT_TEXTURE, 16, 16, data16x16, 0);
 
 	// particle texture
-	uint particle[64];
+	uint	particle[64];
+
 	for (int y = 0; y < 8; y++)
 		{
 		for (int x = 0; x < 8; x++)
@@ -583,7 +579,8 @@ static void R_CreateBuiltinTextures (void)
 
 	// a1ba: moved one pixel down and to the right to make it look better with linear interpolation
 	// set to 0 to make it look like in goldsrc
-	const int corner = 1;
+	const int	corner = 1;
+
 	for (int y = corner; y < 4 + corner; y++)
 		{
 		for (int x = corner; x < 4 + corner; x++)
@@ -594,10 +591,11 @@ static void R_CreateBuiltinTextures (void)
 			particle[y * 8 + x] = HostFourCC (255, 255, 255, 255);
 			}
 		}
+
 	ref.dllFuncs.GL_CreateTexture (REF_PARTICLE_TEXTURE, 8, 8, particle, TF_CLAMP | TF_HAS_ALPHA);
 
 	// solid colors
-	uint data4x4[16];
+	uint	data4x4[16];
 	memset (data4x4, 0xFF, sizeof (data4x4));
 	ref.dllFuncs.GL_CreateTexture (REF_WHITE_TEXTURE, 4, 4, data4x4, 0);
 
@@ -613,8 +611,8 @@ static void R_CreateBuiltinTextures (void)
 // [FWGS, 01.12.24]
 static qboolean R_LoadProgs (const char *name)
 	{
-	static ref_api_t gpEngfuncs;
-	REFAPI GetRefAPI;	// single export
+	static ref_api_t	gpEngfuncs;
+	REFAPI	GetRefAPI;	// single export
 
 	if (ref.hInstance)
 		R_UnloadProgs ();
@@ -671,6 +669,7 @@ void R_Shutdown (void)
 		if (!mod->name[0]) continue;
 		Mod_FreeModel (mod);
 		}
+
 	memset (clgame.sprites, 0, sizeof (clgame.sprites));
 
 	// correctly free all models before render unload
@@ -716,7 +715,7 @@ static void R_GetRendererName (char *dest, size_t size, const char *opt)
 // [FWGS, 01.04.25]
 static qboolean R_LoadRenderer (const char *refopt, qboolean quiet)
 	{
-	string refdll;
+	string	refdll;
 
 	R_GetRendererName (refdll, sizeof (refdll), refopt);
 
@@ -739,7 +738,7 @@ static qboolean R_LoadRenderer (const char *refopt, qboolean quiet)
 
 static void SetWidthAndHeightFromCommandLine (void)
 	{
-	int width, height;
+	int	width, height;
 
 	Sys_GetIntFromCmdLine ("-width", &width);
 	Sys_GetIntFromCmdLine ("-height", &height);
@@ -826,6 +825,9 @@ qboolean R_Init (void)
 
 	Cvar_RegisterVariable (&gl_vsync);
 	Cvar_RegisterVariable (&r_showtextures);
+
+	// [FWGS, 01.10.26]
+	Cvar_RegisterVariable (&r_showtextures_zoom);
 	Cvar_RegisterVariable (&r_adjust_fov);
 	Cvar_RegisterVariable (&r_decals);
 	Cvar_RegisterVariable (&gl_msaa_samples);
@@ -904,7 +906,7 @@ qboolean R_Init (void)
 
 	if (!success)
 		{
-		int i;
+		int	i;
 
 		for (i = 0; i < ref.num_renderers; i++)
 			{

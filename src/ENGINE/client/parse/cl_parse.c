@@ -492,30 +492,40 @@ int CL_EstimateNeededResources (void)
 	{
 	int	nTotalSize = 0;
 
+	// [FWGS, 01.10.26]
 	for (resource_t *p = cl.resourcesneeded.pNext; p != &cl.resourcesneeded; p = p->pNext)
 		{
+		char	filepath[MAX_QPATH];
+
 		switch (p->type)
 			{
 			case t_sound:
-				if ((p->szFileName[0] != '*') && !FS_FileExists (va (DEFAULT_SOUNDPATH "%s", p->szFileName), false))
+				/*if ((p->szFileName[0] != '*') && !FS_FileExists (va (DEFAULT_SOUNDPATH "%s", p->szFileName), false))
 					{
 					SetBits (p->ucFlags, RES_WASMISSING);
 					nTotalSize += p->nDownloadSize;
 					}
-				break;
+				break;*/
 
 			case t_model:
-				if ((p->szFileName[0] != '*') && !FS_FileExists (p->szFileName, false))
+				/*if ((p->szFileName[0] != '*') && !FS_FileExists (p->szFileName, false))
 					{
 					SetBits (p->ucFlags, RES_WASMISSING);
 					nTotalSize += p->nDownloadSize;
 					}
-				break;
+				break;*/
 
 			case t_skin:
 			case t_generic:
 			case t_eventscript:
-				if (!FS_FileExists (p->szFileName, false))
+				/*if (!FS_FileExists (p->szFileName, false))*/
+				// inline models and sentences aren't real files
+				if (p->szFileName[0] == '*')
+					break;
+
+				CL_ResourcePath (filepath, sizeof (filepath), p);
+
+				if (!CL_HasResourceFile (p, filepath))
 					{
 					SetBits (p->ucFlags, RES_WASMISSING);
 					nTotalSize += p->nDownloadSize;
@@ -697,7 +707,7 @@ static void CL_ParseCustomization (sizebuf_t *msg)
 
 /***
 ==================
-CL_SendResourceList [FWGS, 01.07.26]
+CL_SendResourceList
 ==================
 ***/
 void CL_SendResourceList (const resource_t *list, int count)
@@ -724,6 +734,11 @@ void CL_SendResourceList (const resource_t *list, int count)
 
 	Netchan_CreateFragments (&cls.netchan, &sbuf);
 	Netchan_FragSend (&cls.netchan);
+
+	// [FWGS, 01.10.26]
+	cl.num_sent_resources = count;
+	if (count > 0)
+		memcpy (cl.sent_resources_hash, list[0].rgucMD5_hash, sizeof (cl.sent_resources_hash));
 	}
 
 // [FWGS, 01.07.26]
@@ -845,16 +860,14 @@ static void CL_ParseServerData (sizebuf_t *msg, connprotocol_t proto)
 		Q_strncpy (gamefolder, MSG_ReadString (msg), sizeof (gamefolder));
 		Con_Printf ("Remote host: %s\n", MSG_ReadString (msg));
 		
-		// [FWGS, 01.09.26]
-		/*Q_strncpy (clgame.mapname, COM_FileWithoutPath (MSG_ReadString (msg)), sizeof (clgame.mapname));*/
-		// map name is sent as maps/<name>.bsp, only strip the maps/ prefix to keep subdirectories intact
+		// [FWGS, 01.09.26] map name is sent as maps/<name>.bsp, only strip the maps/ prefix to keep subdirectories intact
 		s = MSG_ReadString (msg);
 		if (!Q_strnicmp (s, "maps/", 5))
 			s += 5;
 		else
 			s = COM_FileWithoutPath (s);
+
 		Q_strncpy (clgame.mapname, s, sizeof (clgame.mapname));
-		
 		COM_StripExtension (clgame.mapname);
 
 		s = MSG_ReadString (msg);
@@ -994,6 +1007,9 @@ static void CL_ParseServerData (sizebuf_t *msg, connprotocol_t proto)
 	for (i = 0; i < MAX_CLIENTS; i++)
 		COM_ClearCustomizationList (&cl.players[i].customdata, true);
 	CL_CreateCustomizationList ();
+
+	// [FWGS, 01.10.26]
+	cl.num_sent_resources = 0;
 
 	// request resources from server
 	if (proto == PROTO_GOLDSRC)
@@ -1422,7 +1438,7 @@ static void CL_UpdateUserinfo (sizebuf_t *msg, connprotocol_t proto)
 	if (slot >= MAX_CLIENTS)
 		Host_Error ("%s: svc_updateuserinfo >= MAX_CLIENTS\n", __func__);
 
-	player_info_t *player = &cl.players[slot];
+	player_info_t	*player = &cl.players[slot];
 	if (active)
 		{
 		Q_strncpy (player->userinfo, MSG_ReadString (msg), sizeof (player->userinfo));

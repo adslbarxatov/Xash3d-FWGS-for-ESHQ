@@ -36,7 +36,8 @@ struct base_command_hashmap_s
 static base_command_hashmap_t *hashed_cmds[HASH_SIZE];
 static poolhandle_t basecmd_pool;
 
-#define BaseCmd_HashKey(x) COM_HashKey(name, HASH_SIZE)
+// [FWGS, 01.10.26]
+/*define BaseCmd_HashKey(x) COM_HashKey(name, HASH_SIZE)*/
 
 /***
 ============
@@ -48,18 +49,12 @@ Find base command in bucket
 static base_command_hashmap_t *BaseCmd_FindInBucket (base_command_hashmap_t *bucket, base_command_type_e type,
 	const char *name)
 	{
-	/*base_command_hashmap_t *i;
-
-	for (i = bucket; i != NULL; i = i->next)*/
 	for (base_command_hashmap_t *i = bucket; i != NULL; i = i->next)
 		{
-		/*int cmp;*/
-
 		if (i->type != type)
 			continue;
 
-		/*cmp = Q_stricmp (i->name, name);*/
-		int cmp = Q_stricmp (i->name, name);
+		int	cmp = Q_stricmp (i->name, name);
 		if (cmp < 0)
 			continue;
 
@@ -81,6 +76,8 @@ Get bucket which contain basecmd by given name
 ***/
 static base_command_hashmap_t *BaseCmd_GetBucket (const char *name)
 	{
+	// [FWGS, 01.10.26]
+	/*return hashed_cmds[COM_HashKey (name, HASH_SIZE)];*/
 	return hashed_cmds[COM_HashKey (name, HASH_SIZE)];
 	}
 
@@ -93,8 +90,8 @@ Find base command in hashmap
 ***/
 base_command_t *BaseCmd_Find (base_command_type_e type, const char *name)
 	{
-	base_command_hashmap_t *base = BaseCmd_GetBucket (name);
-	base_command_hashmap_t *found = BaseCmd_FindInBucket (base, type, name);
+	base_command_hashmap_t	*base = BaseCmd_GetBucket (name);
+	base_command_hashmap_t	*found = BaseCmd_FindInBucket (base, type, name);
 
 	if (found)
 		return found->basecmd;
@@ -110,8 +107,8 @@ Find every type of base command and write into arguments
 ***/
 void BaseCmd_FindAll (const char *name, cmd_t **cmd, cmdalias_t **alias, convar_t **cvar)
 	{
-	base_command_hashmap_t *base = BaseCmd_GetBucket (name);
-	base_command_hashmap_t *i = base;
+	base_command_hashmap_t	*base = BaseCmd_GetBucket (name);
+	base_command_hashmap_t	*i = base;
 
 	*cmd = NULL;
 	*alias = NULL;
@@ -119,7 +116,7 @@ void BaseCmd_FindAll (const char *name, cmd_t **cmd, cmdalias_t **alias, convar_
 
 	for (; i; i = i->next)
 		{
-		int cmp = Q_stricmp (i->name, name);
+		int	cmp = Q_stricmp (i->name, name);
 
 		if (cmp < 0)
 			continue;
@@ -149,26 +146,25 @@ void BaseCmd_FindAll (const char *name, cmd_t **cmd, cmdalias_t **alias, convar_
 
 /***
 ============
-BaseCmd_Insert [FWGS, 01.07.26]
+BaseCmd_Insert
 
 Add new typed base command to hashmap
 ============
 ***/
 void BaseCmd_Insert (base_command_type_e type, base_command_t *basecmd, const char *name)
 	{
-	/*base_command_hashmap_t *elem, *cur, *find;*/
-	uint	hash = BaseCmd_HashKey (name);
+	// [FWGS, 01.10.26]
+	/*uint	hash = BaseCmd_HashKey (name);*/
+	uint	hash = COM_HashKey (name, HASH_SIZE);
 	size_t	len = Q_strlen (name);
-
-	base_command_hashmap_t *elem = Mem_Malloc (basecmd_pool, sizeof (base_command_hashmap_t) + len + 1);
-	/*elem = Mem_Malloc (basecmd_pool, sizeof (base_command_hashmap_t) + len + 1);*/
+	base_command_hashmap_t	*elem = Mem_Malloc (basecmd_pool, sizeof (base_command_hashmap_t) + len + 1);
 
 	elem->basecmd = basecmd;
 	elem->type = type;
 	Q_strncpy (elem->name, name, len + 1);
 
 	// link the variable in alphanumerical order
-	base_command_hashmap_t *cur, *find;
+	base_command_hashmap_t	*cur, *find;
 	for (cur = NULL, find = hashed_cmds[hash];
 		find && Q_stricmp (find->name, elem->name) < 0;
 		cur = find, find = find->next);
@@ -183,25 +179,24 @@ void BaseCmd_Insert (base_command_type_e type, base_command_t *basecmd, const ch
 
 /***
 ============
-BaseCmd_Remove [FWGS, 01.07.26]
+BaseCmd_Remove
 
 Remove base command from hashmap
 ============
 ***/
 void BaseCmd_Remove (base_command_type_e type, const char *name)
 	{
-	uint hash = BaseCmd_HashKey (name);
-	base_command_hashmap_t *i, *prev;
+	// [FWGS, 01.10.26]
+	/*uint	hash = BaseCmd_HashKey (name);*/
+	uint	hash = COM_HashKey (name, HASH_SIZE);
+	base_command_hashmap_t	*i, *prev;
 
 	for (prev = NULL, i = hashed_cmds[hash]; i != NULL; prev = i, i = i->next)
 		{
-		/*int cmp;*/
-
 		if (i->type != type)
 			continue;
 
-		/*cmp = Q_stricmp (i->name, name);*/
-		int cmp = Q_stricmp (i->name, name);
+		int	cmp = Q_stricmp (i->name, name);
 		if (cmp < 0)
 			continue;
 
@@ -234,7 +229,6 @@ initialize base command hashmap system
 ***/
 void BaseCmd_Init (void)
 	{
-	/*basecmd_pool = Mem_AllocPool ("BaseCmd");*/
 	basecmd_pool = Mem_AllocPoolExt ("BaseCmd", MEM_SMALL_ALLOC_OPT);
 	memset (hashed_cmds, 0, sizeof (hashed_cmds));
 	}
@@ -252,15 +246,13 @@ BaseCmd_Stats_f [FWGS, 01.07.26]
 ***/
 void BaseCmd_Stats_f (void)
 	{
-	int minsize = 99999, maxsize = -1, empty = 0;
+	int	minsize = 99999, maxsize = -1, empty = 0;
 
 	for (int i = 0; i < HASH_SIZE; i++)
 		{
-		/*base_command_hashmap_t *hm;*/
-		int len = 0;
+		int	len = 0;
 
 		// count bucket length
-		/*for (hm = hashed_cmds[i]; hm; hm = hm->next, len++);*/
 		for (base_command_hashmap_t *hm = hashed_cmds[i]; hm; hm = hm->next, len++);
 
 		if (len == 0)
@@ -289,7 +281,7 @@ struct basecmd_test_stats_s
 // [FWGS, 01.04.26]
 static void BaseCmd_CheckCvars (const char *key, const char *value, const void *unused, void *ptr)
 	{
-	struct basecmd_test_stats_s *stats = ptr;
+	struct basecmd_test_stats_s	*stats = ptr;
 
 	stats->lookups++;
 	if (!BaseCmd_Find (HM_CVAR, key))
@@ -313,15 +305,11 @@ void BaseCmd_Test_f (void)
 		.valid = true,
 		};
 
-	double start = Platform_DoubleTime () * 1000;
+	double	start = Platform_DoubleTime () * 1000;
 
 	for (int i = 0; i < 1000; i++)
 		{
-		/*cmdalias_t *a;
-		void *cmd;*/
-
 		// Cmd_LookupCmds don't allows to check alias, so just iterate
-		/*for (a = Cmd_AliasGetList (); a; a = a->next, stats.lookups++)*/
 		for (cmdalias_t *a = Cmd_AliasGetList (); a; a = a->next, stats.lookups++)
 			{
 			if (!BaseCmd_Find (HM_CMDALIAS, a->name))
@@ -331,7 +319,6 @@ void BaseCmd_Test_f (void)
 				}
 			}
 
-		/*for (cmd = Cmd_GetFirstFunctionHandle (); cmd;*/
 		for (void *cmd = Cmd_GetFirstFunctionHandle (); cmd;
 			cmd = Cmd_GetNextFunctionHandle (cmd), stats.lookups++)
 			{
