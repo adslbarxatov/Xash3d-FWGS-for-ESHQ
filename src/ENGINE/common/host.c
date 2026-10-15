@@ -126,13 +126,17 @@ typedef struct feature_message_s
 	const char	*arg;
 	} feature_message_t;
 
-// [FWGS, 25.12.24]
+// [FWGS, 01.10.26]
 static const feature_message_t bugcomp_features[] =
 	{
 	{ BUGCOMP_PENTITYOFENTINDEX_FLAG, "pfnPEntityOfEntIndex bugfix revert", "peoei" },
 	{ BUGCOMP_MESSAGE_REWRITE_FACILITY_FLAG, "GoldSrc Message Rewrite Facility", "gsmrf" },
 	{ BUGCOMP_SPATIALIZE_SOUND_WITH_ATTN_NONE, "spatialize sounds with zero attenuation", "sp_attn_none" },
-	{ BUGCOMP_GET_GAME_DIR_FULL_PATH, "Return full path in GET_GAME_DIR()", "get_game_dir_full" }
+	/*{ BUGCOMP_GET_GAME_DIR_FULL_PATH, "Return full path in GET_GAME_DIR()", "get_game_dir_full" }*/
+	{ BUGCOMP_GET_GAME_DIR_FULL_PATH, "Return full path in GET_GAME_DIR()", "get_game_dir_full" },
+	{ BUGCOMP_SPAWNFLAG_NOT_DEATHMATCH, "Inhibit entities with \"Not in Deathmatch\" spawnflag", "sf_notdm" },
+	{ BUGCOMP_ALWAYS_ENABLE_TEXT_INPUT, "Always enable text input during gameplay", "always_textinput" },
+	{ BUGCOMP_PRESERVE_TEXTURE_NAME_CASE, "Preserve BSP texture name case", "texname_case" },
 	};
 
 // [FWGS, 01.12.24]
@@ -157,11 +161,9 @@ static void Host_MakeVersionString (char *out, size_t len)
 		Q_buildos (), Q_buildarch (), Q_buildnum ());
 	}
 
-// [FWGS, 01.07.26]
 static void Host_PrintUsage (const char *exename)
 	{
 	string		version_str;
-	/*const char	*usage_str;*/
 
 	Host_MakeVersionString (version_str, sizeof (version_str));
 
@@ -177,7 +179,7 @@ static void Host_PrintUsage (const char *exename)
 
 #define O( x, y ) "  "x"  "y"\n"
 
-	/*usage_str = S_USAGE XASH_EXE " [options] [+command] [+command2 arg] ...\n"*/
+	// [FWGS, 01.10.26]
 	const char	*usage_str = S_USAGE XASH_EXE " [options] [+command] [+command2 arg] ...\n"
 		"\nCommon options:\n"
 		O ("-dev [level]       ", "set log verbosity 0-2")
@@ -189,8 +191,10 @@ static void Host_PrintUsage (const char *exename)
 		O ("-minidumps         ", "enable writing minidumps when game is crashed")
 #endif
 		O ("-rodir <path>      ", "set read-only base directory")
-		O ("-bugcomp [opts]    ", "enable precise bug compatibility")
+		/*O ("-bugcomp [opts]    ", "enable precise bug compatibility")*/
+		O ("-bugcomp <opts>    ", "enable precise bug compatibility")
 		O ("                   ", "will break games that don't require it")
+		O ("                   ", "run with no argument to list the known flags")
 		O ("                   ", "refer to engine documentation for more info")
 		O ("-language <lang>   ", "mount localization game directory")
 		O ("-disablehelp       ", "disable this message")
@@ -284,13 +288,11 @@ static void Host_PrintBugcompUsage (const char *exename)
 	string	version_str;
 	char	usage_str[4096];
 	char	*p = usage_str;
-	/*int		i;*/
 
 	Host_MakeVersionString (version_str, sizeof (version_str));
 
 	p += Q_snprintf (p, sizeof (usage_str) - (usage_str - p), "Known bugcomp flags are:\n");
 
-	/*for (i = 0; i < HLARRAYSIZE (bugcomp_features); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (bugcomp_features); i++)
 		p += Q_snprintf (p, sizeof (usage_str) - (usage_str - p), " %s: %s\n", bugcomp_features[i].arg,
 			bugcomp_features[i].msg);
@@ -319,9 +321,6 @@ Host_PrintEngineFeatures [FWGS, 01.07.26]
 ***/
 static void Host_PrintFeatures (uint32_t flags, const char *s, const feature_message_t *features, size_t size)
 	{
-	/*size_t i;
-
-	for (i = 0; i < size; i++)*/
 	for (size_t i = 0; i < size; i++)
 		{
 		if (FBitSet (flags, features[i].mask))
@@ -407,7 +406,7 @@ static int Host_CalcSleep (void)
 		{
 		if (sv_hibernate_when_empty.value)
 			{
-			int players, bots;
+			int	players, bots;
 
 			SV_GetPlayerCount (&players, &bots);
 
@@ -478,7 +477,7 @@ static void Host_ChangeGame_f (void)
 		}
 	else
 		{
-		char finalmsg[MAX_VA_STRING];
+		char	finalmsg[MAX_VA_STRING];
 
 		Q_snprintf (finalmsg, sizeof (finalmsg), "change game to '%s'", FI->games[i]->title);
 		Host_NewInstance (Cmd_Argv (1), finalmsg);
@@ -496,10 +495,6 @@ Host_RegisterDecal [FWGS, 01.07.26]
 ***/
 static qboolean Host_RegisterDecal (const char *name, int *count)
 	{
-	/*char	shortname[MAX_QPATH];
-	int		i;
-
-	// [FWGS, 01.03.26]*/
 	if (COM_StringEmptyOrNULL (name))
 		return 0;
 
@@ -533,17 +528,13 @@ Host_InitDecals [FWGS, 01.07.26]
 ***/
 static void Host_InitDecals (void)
 	{
-	/*int			i, num_decals = 0;
-	search_t	*t;*/
 	int	num_decals = 0;
 
 	memset (host.draw_decals, 0, sizeof (host.draw_decals));
 
 	// lookup all the decals in decals.wad (basedir, gamedir, falldir)
-	/*t = FS_Search ("decals.wad/*.*", true, false);*/
 	search_t	*t = FS_Search ("decals.wad/*.*", true, false);
 
-	/*for (i = 0; t && i < t->numfilenames; i++)*/
 	for (int i = 0; t && (i < t->numfilenames); i++)
 		{
 		if (!Host_RegisterDecal (t->filenames[i], &num_decals))
@@ -564,8 +555,8 @@ Add them exactly as if they had been typed at the console
 ***/
 static void Host_GetCommands (void)
 	{
-	/*char *cmd;*/
 	char	*cmd;
+
 	while ((cmd = Platform_Input ()))
 		{
 		Cbuf_AddText (cmd);
@@ -599,30 +590,41 @@ static double Host_CalcFPS (void)
 		fps = CL_GetDemoFramerate ();
 		}
 
-	// [FWGS, 01.05.26]
+	// [FWGS, 01.10.26]
 	else if (Host_IsSinglePlayerGame ())
 		{
-		if (!gl_vsync.value)
-			fps = host_maxfps.value;
+		/*if (!gl_vsync.value)
+			fps = host_maxfps.value;*/
+		// vsync is expected to limit the framerate, but some drivers
+		// ignore it, so never let the game run completely unlimited
+		fps = gl_vsync.value ? MAX_FPS_HARD : host_maxfps.value;
 		}
-
-	// [FWGS, 01.12.24]
 	else if (!SV_Active () && (CL_Protocol () == PROTO_GOLDSRC) && (cls.state != ca_disconnected) &&
 		(cls.state < ca_validate))
 		{
 		return 31.0;
 		}
 
-	// [FWGS, 01.12.24]
+	// [FWGS, 01.10.26]
 	else
 		{
-		if (!gl_vsync.value)
+		/*if (!gl_vsync.value)
 			{
-			double max_fps = fps_override.value ? MAX_FPS_HARD : MAX_FPS_SOFT;
+			double	max_fps = fps_override.value ? MAX_FPS_HARD : MAX_FPS_SOFT;*/
+		const double	max_fps = fps_override.value ? MAX_FPS_HARD : MAX_FPS_SOFT;
 
+		if (gl_vsync.value)
+			{
+			fps = max_fps;
+			}
+		else
+			{
 			fps = host_maxfps.value;
+			/*if (fps == 0.0)
+				fps = max_fps;*/
 			if (fps == 0.0)
 				fps = max_fps;
+
 			fps = bound (MIN_FPS, fps, max_fps);
 			}
 		}
@@ -635,7 +637,6 @@ static double Host_CalcFPS (void)
 static qboolean Host_Autosleep (double dt, double scale)
 	{
 	double	targetframetime;
-	/*int		sleep;*/
 	double	fps = Host_CalcFPS ();
 
 	if (fps <= 0)
@@ -649,7 +650,6 @@ static qboolean Host_Autosleep (double dt, double scale)
 	else
 		targetframetime = (1.0 / fps);
 
-	/*sleep = Host_CalcSleep ();*/
 	int	sleep = Host_CalcSleep ();
 
 	// no sleeps between frames, much simpler code
@@ -672,7 +672,7 @@ static qboolean Host_Autosleep (double dt, double scale)
 				{
 				// Platform_Sleep isn't guaranteed to sleep an exact amount of microseconds
 				// so we measure the real sleep time and use it to decrease the window
-				double t = Platform_DoubleTime ();
+				double	t = Platform_DoubleTime ();
 
 				Platform_NanoSleep (sleep * 1000 * 100);	// sleeptime 1 ~ 100 usecs
 				realsleeptime = Platform_DoubleTime () - t;
@@ -691,7 +691,7 @@ static qboolean Host_Autosleep (double dt, double scale)
 		// if we exhausted this time window, allocate a new one after new frame
 		if (timewindow <= realsleeptime)
 			{
-			double targetsleeptime = targetframetime - host.pureframetime * 2;
+			double	targetsleeptime = targetframetime - host.pureframetime * 2;
 
 			if (targetsleeptime > 0)
 				timewindow = targetsleeptime;
@@ -722,11 +722,10 @@ Returns false if the time is too short to run a frame
 static qboolean Host_FilterTime (double time)
 	{
 	static double	oldtime;
-	/*double dt;*/
 	double	scale = sys_timescale.value;
 
 	host.realtime += time * scale;
-	/*dt = host.realtime - oldtime;*/
+
 	double	dt = host.realtime - oldtime;
 
 	// clamp the fps in multiplayer games
@@ -737,9 +736,13 @@ static qboolean Host_FilterTime (double time)
 	host.realframetime = bound (MIN_FRAMETIME, host.frametime, MAX_FRAMETIME);
 	oldtime = host.realtime;
 
-	// NOTE: allow only in singleplayer while demos are not active
-	if (host_framerate.value > 0.0f && Host_IsSinglePlayerGame () && !CL_IsPlaybackDemo () && !CL_IsRecordDemo ())
-		host.frametime = bound (MIN_FRAMETIME, host_framerate.value * scale, MAX_FRAMETIME);
+	// [FWGS, 01.10.26] NOTE: allow only in singleplayer while demos are not active
+	if ((host_framerate.value > 0.0f) && Host_IsSinglePlayerGame () && !CL_IsPlaybackDemo () && !CL_IsRecordDemo ())
+		// don't bound host framerate here, as it makes sped-up time progression significantly slower than Goldsrc.
+		// This is used in some mods like CoF to skip cinematics faster (for more context, see
+		// https://github.com/FWGS/xash3d-fwgs/issues/2706)
+		host.frametime = host_framerate.value * scale;
+		/*host.frametime = bound (MIN_FRAMETIME, host_framerate.value * scale, MAX_FRAMETIME);*/
 	else
 		host.frametime = bound (MIN_FRAMETIME, host.frametime, MAX_FRAMETIME);
 
@@ -753,13 +756,10 @@ Host_Frame [FWGS, 01.07.26]
 ***/
 void Host_Frame (double time)
 	{
-	/*double t1;*/
-
 	// decide the simulation time
 	if (!Host_FilterTime (time))
 		return;
 
-	/*t1 = Platform_DoubleTime ();*/
 	double	t1 = Platform_DoubleTime ();
 	if (host.framecount == 0)
 		Con_DPrintf ("Time to first frame: %.3f seconds\n", t1 - host.starttime);
@@ -802,27 +802,15 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 		return;
 		}
 
-	/*else if (host.framecount == host.errorframe)*/
 	if (host.framecount == host.errorframe)
 		{
 		Sys_Error ("%sMulti: %s", __func__, hosterror2);
 		return;
 		}
 	
-	/*else*/
 	Con_Printf (S_RED "%s" S_DEFAULT ": %s", __func__, hosterror1);
 	if (host_developer.value)
 		{
-		/*Con_Printf (S_RED "%s" S_DEFAULT ": %s", __func__, hosterror1);
-		if (host_developer.value)
-			{
-			UI_SetActiveMenu (false);
-			Key_SetKeyDest (key_console);
-			}
-		else
-			{
-			Platform_MessageBox ("Host Error", hosterror1, true);
-			}*/
 		UI_SetActiveMenu (false);
 		Key_SetKeyDest (key_console);
 		}
@@ -832,10 +820,6 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 		}
 
 	// host is shutting down. don't invoke infinite loop
-	/*if (host.status == HOST_SHUTDOWN)
-		return;
-
-	// [FWGS, 01.03.26]*/
 	if ((host.status == HOST_SHUTDOWN) || (host.status == HOST_ERR_FATAL))
 		return;
 
@@ -872,7 +856,7 @@ void GAME_EXPORT Host_Error (const char *error, ...)
 
 static void Host_Error_f (void)
 	{
-	const char *error = Cmd_Argv (1);
+	const char	*error = Cmd_Argv (1);
 
 	if (!*error)
 		error = "Invoked host error";
@@ -881,7 +865,7 @@ static void Host_Error_f (void)
 
 static void Sys_Error_f (void)
 	{
-	const char *error = Cmd_Argv (1);
+	const char	*error = Cmd_Argv (1);
 
 	if (!*error)
 		error = "Invoked sys error";
@@ -966,8 +950,8 @@ static uint32_t Host_CheckBugcomp (void)
 	if (!Sys_CheckParm ("-bugcomp"))
 		return 0;
 
-	// [FWGS, 01.05.26]
-	if (Sys_GetParmFromCmdLine ("-bugcomp", args) && isalpha ((byte)args[0]))
+	// [FWGS, 01.10.26]
+	/*if (Sys_GetParmFromCmdLine ("-bugcomp", args) && isalpha ((byte)args[0]))
 		{
 		Q_splitstr (args, '+', &flags, Host_CheckBugcomp_splitstr_handler);
 		}
@@ -975,7 +959,12 @@ static uint32_t Host_CheckBugcomp (void)
 		{
 		// no argument specified -bugcomp just enables everything
 		flags = -1;
-		}
+		}*/
+	// without an argument -bugcomp only prints the list of known flags, see Host_InitCommon
+	if (!Sys_GetParmFromCmdLine ("-bugcomp", args) || !isalpha ((byte)args[0]))
+		return 0;
+
+	Q_splitstr (args, '+', &flags, Host_CheckBugcomp_splitstr_handler);
 
 	Host_PrintFeatures (flags, "BUGCOMP", bugcomp_features, HLARRAYSIZE (bugcomp_features));
 	return flags;
@@ -985,7 +974,7 @@ static uint32_t Host_CheckBugcomp (void)
 static void Host_DetermineExecutableName (char *out, size_t size)
 	{
 #if XASH_WIN32
-	char temp[MAX_SYSPATH];
+	char	temp[MAX_SYSPATH];
 
 	if (GetModuleFileName (NULL, temp, sizeof (temp)))
 		COM_FileBase (temp, out, size);
@@ -1013,7 +1002,6 @@ static qboolean Host_CollectX86Libraries (ECommonLibraryType lib_type, const cha
 #if !(XASH_WIN32 && XASH_X86)
 	if (!COM_StringEmpty (win_path) && FS_FileExists (win_path, true))
 		{
-		/*Q_strncat (found, "Windows (x86)", found_size);*/
 		Q_strncat (found, "Windows", found_size);
 		has_any = true;
 		}
@@ -1026,7 +1014,6 @@ static qboolean Host_CollectX86Libraries (ECommonLibraryType lib_type, const cha
 		if (has_any)
 			Q_strncat (found, ", ", found_size);
 		
-		/*Q_strncat (found, "GNU/Linux (x86)", found_size);*/
 		Q_strncat (found, "GNU/Linux", found_size);
 		has_any = true;
 		}
@@ -1039,7 +1026,6 @@ static qboolean Host_CollectX86Libraries (ECommonLibraryType lib_type, const cha
 		if (has_any)
 			Q_strncat (found, ", ", found_size);
 
-		/*Q_strncat (found, "macOS (x86)", found_size);*/
 		Q_strncat (found, "macOS", found_size);
 		has_any = true;
 		}
@@ -1104,8 +1090,6 @@ static void Host_CheckGameLibraries (void)
 
 		if (ret)
 			{
-			/*size_t len = Q_strlen (details);
-			Q_snprintf (details + len, sizeof (details) - len, "- %s: %s\n", libs[i].name, found);*/
 			size_t	dlen = Q_strlen (details);
 			Q_snprintf (details + dlen, sizeof (details) - dlen, " %-6s : %s\n", libs[i].name, found);
 
@@ -1118,8 +1102,6 @@ static void Host_CheckGameLibraries (void)
 	if (COM_StringEmpty (details))
 		return;
 
-	/*Sys_Warn ("No native game libraries found for current platform (%s-%s),\n"
-		"but found libraries for other platforms:\n"*/
 	Sys_Warn ("Xash3D: missing game library\n"
 		"\n"
 		"Required : %s-%s\n"
@@ -1127,9 +1109,6 @@ static void Host_CheckGameLibraries (void)
 		"\n"
 		"Found %s libraries for these operating systems:\n"
 		"%s"
-		/*"The game may fail to load or work incorrectly.\n"
-		"Consider using a mod version built for this platform.",
-		Q_buildos (), Q_buildarch (), details);*/
 		"\n"
 		"Install \"%s\" game build for %s-%s.",
 		Q_buildos (), Q_buildarch (),
@@ -1153,7 +1132,6 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	char *exename, size_t exename_size)
 	{
 	const char	*basedir = (progname[0] == '#') ? (progname + 1) : progname;
-	/*int		ticrate, developer = DEFAULT_DEV;*/
 	int		developer = DEFAULT_DEV;
 
 	// some commands may turn engine into infinite loop, e.g. xash.exe +game xash -game xash
@@ -1163,13 +1141,19 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 
 	if (!Sys_CheckParm ("-disablehelp"))
 		{
-		string arg;
+		string	arg;
 
 		if (Sys_CheckParm ("-help") || Sys_CheckParm ("-h") || Sys_CheckParm ("--help"))
 			Host_PrintUsage (exename);
 
-		if (Sys_GetParmFromCmdLine ("-bugcomp", arg) && !Q_stricmp (arg, "help"))
-			Host_PrintBugcompUsage (exename);
+		// [FWGS, 01.10.26]
+		/*if (Sys_GetParmFromCmdLine ("-bugcomp", arg) && !Q_stricmp (arg, "help"))
+			Host_PrintBugcompUsage (exename);*/
+		if (Sys_CheckParm ("-bugcomp"))
+			{
+			if (!Sys_GetParmFromCmdLine ("-bugcomp", arg) || !isalpha ((byte)arg[0]) || !Q_stricmp (arg, "help"))
+				Host_PrintBugcompUsage (exename);
+			}
 		}
 
 	host.change_game = bChangeGame || Sys_CheckParm ("-changegame");
@@ -1255,11 +1239,8 @@ static void Host_InitCommon (int argc, char **argv, const char *progname, qboole
 	// print current developer level to simplify processing users feedback
 	if (developer > 0)
 		{
-		/*int i;*/
-
 		Con_Printf ("Program args: " S_YELLOW);
 		
-		/*for (i = 0; i < host.argc; i++)*/
 		for (int i = 0; i < host.argc; i++)
 			Con_Printf ("%s ", host.argv[i]);
 
@@ -1311,24 +1292,30 @@ static void Host_FreeCommon (void)
 	FS_Shutdown ();
 	}
 
-// [FWGS, 22.01.25]
+// [FWGS, 01.10.26]
 static void Sys_Quit_f (void)
 	{
-	Sys_Quit ("command");
+	/*Sys_Quit ("command");*/
+	Sys_Quit (Cmd_Argc () > 1 ? Cmd_Argv (1) : "command");
 	}
 
 // [FWGS, 01.07.25] removed Host_MainLoop
 
 /***
 =================
-Host_Main [FWGS, 01.07.26]
+Host_Main
 =================
 ***/
 int EXPORT Host_Main (int argc, char **argv, const char *progname, int bChangeGame, pfnChangeGame pChangeGame)
 	{
 	static double	oldtime;
-	/*string			demoname, exename;*/
 	string		exename;
+
+	// [FWGS, 01.10.26]
+#if XASH_ANDROID
+	pChangeGame = NULL;
+#endif
+
 	qboolean	achiExecuted = false;	// ESHQ: поддержка достижений
 
 	if (setjmp (return_from_main_buf))
@@ -1550,7 +1537,7 @@ Host_Shutdown
 ***/
 void Host_ShutdownWithReason (const char *reason)
 	{
-	qboolean error = host.status == HOST_ERR_FATAL;
+	qboolean	error = host.status == HOST_ERR_FATAL;
 
 	if (host.shutdown_issued)
 		return;

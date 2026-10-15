@@ -660,7 +660,7 @@ static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 				return var;
 				}
 
-			if (cl_filterstuffcmd.value > 0.0f && FBitSet (var->flags, FCVAR_FILTERABLE))
+			if ((cl_filterstuffcmd.value > 0.0f) && FBitSet (var->flags, FCVAR_FILTERABLE))
 				{
 				Con_Printf ("%s is filterable.\n", var->name);
 				return var;
@@ -706,7 +706,7 @@ static convar_t *Cvar_Set2 (const char *var_name, const char *value)
 
 /***
 ============
-Cvar_DirectSet [FWGS, 01.03.26]
+Cvar_DirectSet
 
 way to change value for many cvars
 ============
@@ -717,15 +717,26 @@ void GAME_EXPORT Cvar_DirectSet (convar_t *var, const char *value)
 		return;	// ?
 
 	// lookup for registration
-	if (unlikely (CVAR_CHECK_SENTINEL (var) || (var->next == NULL &&
+	if (unlikely (CVAR_CHECK_SENTINEL (var) || ((var->next == NULL) &&
 		!FBitSet (var->flags, FCVAR_EXTENDED | FCVAR_ALLOCATED))))
 		{
-		// need to registering cvar fisrt
-		Cvar_RegisterVariable (var);	// ok, register it
+		// [FWGS, 01.10.26]
+		/*// need to registering cvar fisrt
+		Cvar_RegisterVariable (var);	// ok, register it*/
+		// a short cvar_t with next == NULL may still be registered: the last entry
+		// in the sorted list also has next == NULL, so resolve it by name first
+		if (Cvar_FindVar (var->name) != var)
+			{
+			// need to registering cvar fisrt
+			Cvar_RegisterVariable (var);	// ok, register it
 
-		// lookup for registration again
+			/*// lookup for registration again
 		if (var != Cvar_FindVar (var->name))
-			return;	// how this possible?
+			return;	// how this possible?*/
+			// lookup for registration again
+			if (var != Cvar_FindVar (var->name))
+				return;		// how this possible?
+			}
 		}
 
 	if (!Cvar_CanSet (var))
@@ -1088,7 +1099,6 @@ weren't declared in C code
 ***/
 static void Cvar_Set_f (void)
 	{
-	/*char	combined[MAX_CMD_TOKENS];*/
 	char	combined[MAX_STRING];
 	int		l = 0;
 	int		c = Cmd_Argc ();
@@ -1103,8 +1113,6 @@ static void Cvar_Set_f (void)
 
 	for (int i = 2; i < c; i++)
 		{
-		/*int	len = Q_strlen (Cmd_Argv (i) + 1);
-		if (l + len >= MAX_CMD_TOKENS - 2)*/
 		const char	*arg = Cmd_Argv (i);
 
 		if (COM_StringEmpty (arg))
@@ -1114,9 +1122,6 @@ static void Cvar_Set_f (void)
 		if (l + len >= sizeof (combined))
 			break;
 
-		/*Q_strncat (combined, Cmd_Argv (i), sizeof (combined));
-		if (i != c - 1)
-			Q_strncat (combined, " ", sizeof (combined));*/
 		Q_strncat (combined, arg, sizeof (combined));
 		if (i != c - 1)
 			Q_strncat (combined, " ", sizeof (combined));

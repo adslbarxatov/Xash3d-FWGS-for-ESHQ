@@ -49,8 +49,8 @@ static CVAR_DEFINE_AUTO (ui_language, "english", FCVAR_PRIVILEGED,
 fs_api_t	g_fsapi;
 fs_globals_t	*FI;
 
-static pfnCreateInterface_t fs_pfnCreateInterface;
-static HINSTANCE fs_hInstance;
+static pfnCreateInterface_t		fs_pfnCreateInterface;
+static HINSTANCE	fs_hInstance;
 
 // [FWGS, 01.12.24]
 search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly)
@@ -85,10 +85,7 @@ byte *FS_LoadDirectFile (const char *path, fs_offset_t *filesizeptr)
 // [FWGS, 01.07.26]
 static void COM_StripDirectorySlash (char *pname)
 	{
-	/*size_t len;
-
-	len = Q_strlen (pname);*/
-	size_t len = Q_strlen (pname);
+	size_t	len = Q_strlen (pname);
 	if ((len > 0) && (pname[len - 1] == '/'))
 		pname[len - 1] = 0;
 	}
@@ -104,7 +101,7 @@ void *FS_GetNativeObject (const char *obj)
 // [FWGS, 01.11.25]
 static uint32_t FS_MountFlags (void)
 	{
-	uint32_t flags = 0;
+	uint32_t	flags = 0;
 
 	// FIXME: VFS shouldn't care about this, allow engine to mount gamedirs
 	if (fs_mount_lv.value)
@@ -128,7 +125,7 @@ void FS_Rescan_f (void)
 // [FWGS, 01.11.25]
 static void FS_LoadVFSConfig (const char *gamedir)
 	{
-	string parm;
+	string	parm;
 
 	if (Host_IsDedicated ())
 		return;
@@ -153,8 +150,7 @@ static void FS_LoadVFSConfig (const char *gamedir)
 // [FWGS, 01.07.26]
 void FS_SaveVFSConfig (void)
 	{
-	/*file_t *f;*/
-	const qboolean force_save = !FS_FileExists ("vfs.cfg", true);
+	const qboolean	force_save = !FS_FileExists ("vfs.cfg", true);
 
 	if (!force_save && !FBitSet (fs_mount_hd.flags | fs_mount_lv.flags | fs_mount_l10n.flags | fs_mount_addon.flags |
 		ui_language.flags, FCVAR_CHANGED))
@@ -165,8 +161,7 @@ void FS_SaveVFSConfig (void)
 
 	Con_Printf ("%s()\n", __func__);
 
-	/*f = FS_Open ("vfs.cfg.new", "w", true);*/
-	file_t *f = FS_Open ("vfs.cfg.new", "w", true);
+	file_t	*f = FS_Open ("vfs.cfg.new", "w", true);
 	if (!f)
 		{
 		Con_Printf (S_ERROR "%s: can't open %s for write\n", __func__, "vfs.cfg.new");
@@ -192,7 +187,6 @@ void FS_SaveVFSConfig (void)
 void FS_LoadGameInfo (void)
 	{
 	FS_LoadVFSConfig (g_fsapi.Gamedir ());
-
 	g_fsapi.LoadGameInfo (FS_MountFlags (), ui_language.string);
 	}
 
@@ -250,19 +244,18 @@ static void FS_UnloadProgs (void)
 
 // [FWGS, 01.09.25]
 #ifdef XASH_INTERNAL_GAMELIBS
-#define FILESYSTEM_STDIO_DLL "filesystem_stdio"
+	#define FILESYSTEM_STDIO_DLL "filesystem_stdio"
 #elif XASH_ANDROID
-#define FILESYSTEM_STDIO_DLL "libfilesystem_stdio.so"
+	#define FILESYSTEM_STDIO_DLL "libfilesystem_stdio.so"
 #else
-// ESHQ: other DLL name
-#define FILESYSTEM_STDIO_DLL "FS." OS_LIB_EXT
+	// ESHQ: other DLL name
+	#define FILESYSTEM_STDIO_DLL "FS." OS_LIB_EXT
 #endif
 
 // [FWGS, 01.07.26]
 static qboolean FS_LoadProgs (void)
 	{
-	const char *name = FILESYSTEM_STDIO_DLL;
-	/*FSAPI GetFSAPI;*/
+	const char	*name = FILESYSTEM_STDIO_DLL;
 
 	fs_hInstance = COM_LoadLibrary (name, false, true);
 	if (!fs_hInstance)
@@ -271,7 +264,7 @@ static qboolean FS_LoadProgs (void)
 		return false;
 		}
 
-	FSAPI GetFSAPI;
+	FSAPI	GetFSAPI;
 	if (!(GetFSAPI = (FSAPI)COM_GetProcAddress (fs_hInstance, GET_FS_API)))
 		{
 		FS_UnloadProgs ();
@@ -299,7 +292,7 @@ static qboolean FS_LoadProgs (void)
 
 static qboolean FS_DetermineRootDirectory (char *out, size_t size)
 	{
-	const char *path = getenv ("XASH3D_BASEDIR");
+	const char	*path = getenv ("XASH3D_BASEDIR");
 
 	// [FWGS, 01.03.26]
 	if (!COM_StringEmptyOrNULL (path))
@@ -322,23 +315,35 @@ static qboolean FS_DetermineRootDirectory (char *out, size_t size)
 
 	return false;
 
-#elif ( XASH_SDL >= 2 ) && !XASH_NSWITCH // GetBasePath not impl'd in switch-sdl2
+#elif ( XASH_SDL >= 2 ) && !XASH_NSWITCH	// GetBasePath not impl'd in switch-sdl2
+
+	// [FWGS, 01.10.26] SDL2 hands the base path over to us, SDL3 keeps ownership and frees it on quit
+	qboolean	owned = (XASH_SDL == 2);
 
 	path = SDL_GetBasePath ();
 
+	// [FWGS, 01.10.26]
 #if XASH_APPLE
-	if (path != NULL && Q_stristr (path, ".app"))
+	if ((path != NULL) && Q_stristr (path, ".app"))
 		{
-		SDL_free ((void *)path);
+		/*SDL_free ((void *)path);*/
+		if (owned)
+			SDL_free ((void *)path);
+
+		// the pref path is ours to free in both versions
 		path = SDL_GetPrefPath (NULL, XASH_ENGINE_NAME);
+		owned = true;
 		}
 #endif
 
-	// [FWGS, 01.02.25]
+	// [FWGS, 01.10.26]
 	if (path != NULL)
 		{
 		Q_strncpy (out, path, size);
-		SDL_free ((void *)path);
+		/*SDL_free ((void *)path);*/
+		if (owned)
+			SDL_free ((void *)path);
+
 		return true;
 		}
 
@@ -369,7 +374,7 @@ static qboolean FS_DetermineRootDirectory (char *out, size_t size)
 
 static qboolean FS_DetermineReadOnlyRootDirectory (char *out, size_t size)
 	{
-	const char *env_rodir = getenv ("XASH3D_RODIR");
+	const char	*env_rodir = getenv ("XASH3D_RODIR");
 
 	if (_Sys_GetParmFromCmdLine ("-rodir", out, size))
 		return true;
@@ -418,7 +423,7 @@ void FS_Init (void)
 
 	if (!Sys_GetParmFromCmdLine ("-game", gamedir))
 		{
-		char *env = getenv ("XASH3D_GAME");
+		char	*env = getenv ("XASH3D_GAME");
 		if (env)
 			Q_strncpy (gamedir, env, sizeof (gamedir));
 		else
@@ -498,12 +503,12 @@ static unsigned char WAS_entered = 0;
 void FS_WriteAchievementsScript (byte Mode, int NewLevel)
 	{
 	// Переменные
-	file_t *f;
-	char temp[32];
+	file_t	*f;
+	char	temp[32];
 
-	convar_t *rt = Cvar_FindVar ("room_type");
-	unsigned int gravity = (unsigned int)sv_gravity.value;
-	unsigned int roomtype = 0;
+	convar_t	*rt = Cvar_FindVar ("room_type");
+	unsigned int	gravity = (unsigned int)sv_gravity.value;
+	unsigned int	roomtype = 0;
 
 	// Защита от двойного входа
 	if (WAS_entered)

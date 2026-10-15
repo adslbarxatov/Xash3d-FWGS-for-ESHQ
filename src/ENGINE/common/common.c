@@ -73,10 +73,6 @@ static int idum = 0;
 // [FWGS, 01.07.26]
 static int lran1 (void)
 	{
-	/*static int	iy = 0;
-	static int	iv[NTAB];
-	int		j;
-	int		k;*/
 	static int	iy = 0;
 	static int	iv[NTAB];
 
@@ -87,12 +83,11 @@ static int lran1 (void)
 		else
 			idum = -(idum);
 
-		/*for (j = NTAB + 7; j >= 0; j--)*/
 		for (int j = NTAB + 7; j >= 0; j--)
 			{
-			/*k = (idum) / IQ;*/
-			int k = (idum) / IQ;
+			int	k = (idum) / IQ;
 			idum = IA * (idum - k * IQ) - IR * k;
+
 			if (idum < 0)
 				idum += IM;
 			if (j < NTAB)
@@ -102,14 +97,13 @@ static int lran1 (void)
 		iy = iv[0];
 		}
 
-	/*k = (idum) / IQ;*/
-	int k = (idum) / IQ;
+	int	k = (idum) / IQ;
 	idum = IA * (idum - k * IQ) - IR * k;
+
 	if (idum < 0)
 		idum += IM;
 
-	/*j = iy / NDIV;*/
-	int j = iy / NDIV;
+	int	j = iy / NDIV;
 	iy = iv[j];
 	iv[j] = idum;
 
@@ -119,9 +113,10 @@ static int lran1 (void)
 // fran1 -- return a random floating-point number on the interval [0,1]
 static float fran1 (void)
 	{
-	float temp = (float)AM * lran1 ();
+	float	temp = (float)AM * lran1 ();
 	if (temp > RNMX)
 		return (float)RNMX;
+
 	return temp;
 	}
 
@@ -141,21 +136,16 @@ void GAME_EXPORT COM_SetRandomSeed (int lSeed)
 // [FWGS, 01.07.26]
 float GAME_EXPORT COM_RandomFloat (float flLow, float flHigh)
 	{
-	/*float	fl;*/
-
 	if (idum == 0)
 		COM_SetRandomSeed (0);
 
-	/*fl = fran1 ();	// float in [0,1]*/
-	float fl = fran1 ();	// float in [0,1]
+	float	fl = fran1 ();	// float in [0,1]
 	return (fl * (flHigh - flLow)) + flLow;	// float in [low, high)
 	}
 
 // [FWGS, 01.07.26]
 int GAME_EXPORT COM_RandomLong (int lLow, int lHigh)
 	{
-	/*dword	maxAcceptable;
-	dword	n, x = lHigh - lLow + 1;*/
 	dword	x = lHigh - lLow + 1;
 
 	if (idum == 0)
@@ -171,9 +161,8 @@ int GAME_EXPORT COM_RandomLong (int lLow, int lHigh)
 	// the average number of times through the loop is 2. For cases where x is
 	// much smaller than MAX_RANDOM_RANGE, the average number of times through the
 	// loop is very close to 1
-	/*maxAcceptable = MAX_RANDOM_RANGE - ((MAX_RANDOM_RANGE + 1) % x);*/
-	dword maxAcceptable = MAX_RANDOM_RANGE - ((MAX_RANDOM_RANGE + 1) % x);
-	dword n;
+	dword	maxAcceptable = MAX_RANDOM_RANGE - ((MAX_RANDOM_RANGE + 1) % x);
+	dword	n;
 
 	do
 		{
@@ -194,9 +183,6 @@ of all text functions
 ***/
 char *va (const char *format, ...)
 	{
-	/*va_list		argptr;
-	static char	string[16][MAX_VA_STRING], *s;
-	static int	stringindex = 0;*/
 	static char	string[16][MAX_VA_STRING], *s;
 	static int	stringindex = 0;
 
@@ -230,10 +216,10 @@ typedef struct
 // expected to be sixteen bytes
 typedef struct lzss_node_s
 	{
-	const byte			*data;
+	const byte	*data;
 	struct lzss_node_s	*prev;
 	struct lzss_node_s	*next;
-	char				pad[4];
+	char		pad[4];
 	} lzss_node_t;
 
 typedef struct
@@ -252,14 +238,10 @@ typedef struct
 // [FWGS, 01.07.26]
 qboolean LZSS_IsCompressed (const byte *source, size_t input_len)
 	{
-	/*const lzss_header_t *phdr;*/
-
 	if (input_len <= sizeof (lzss_header_t))
 		return 0;
 
-	/*// [FWGS, 01.05.26]
-	phdr = (const lzss_header_t *)source;*/
-	const lzss_header_t *phdr = (const lzss_header_t *)source;
+	const lzss_header_t	*phdr = (const lzss_header_t *)source;
 	if (phdr && (phdr->id == LittleLong (LZSS_ID)))
 		return true;
 
@@ -269,14 +251,10 @@ qboolean LZSS_IsCompressed (const byte *source, size_t input_len)
 // [FWGS, 01.07.26]
 uint LZSS_GetActualSize (const byte *source, size_t input_len)
 	{
-	/*const lzss_header_t *phdr;*/
-
 	if (input_len <= sizeof (lzss_header_t))
 		return 0;
 
-	/*// [FWGS, 01.05.26]
-	phdr = (const lzss_header_t *)source;*/
-	const lzss_header_t *phdr = (const lzss_header_t *)source;
+	const lzss_header_t	*phdr = (const lzss_header_t *)source;
 	if (phdr && (phdr->id == LittleLong (LZSS_ID)))
 		return LittleLong (phdr->size);
 
@@ -286,18 +264,12 @@ uint LZSS_GetActualSize (const byte *source, size_t input_len)
 // [FWGS, 01.07.26]
 static void LZSS_BuildHash (lzss_state_t *state, const byte *source)
 	{
-	/*lzss_list_t		*list;
-	lzss_node_t		*node;
-	unsigned int	targetindex = (uintptr_t)source & (state->window_size - 1);
-
-	node = &state->hash_node[targetindex];*/
 	unsigned int	targetindex = (uintptr_t)source & (state->window_size - 1);
 	lzss_node_t		*node = &state->hash_node[targetindex];
 
 	if (node->data)
 		{
-		/*list = &state->hash_table[*node->data];*/
-		lzss_list_t *list = &state->hash_table[*node->data];
+		lzss_list_t	*list = &state->hash_table[*node->data];
 
 		if (node->prev)
 			{
@@ -311,11 +283,11 @@ static void LZSS_BuildHash (lzss_state_t *state, const byte *source)
 			}
 		}
 
-	/*list = &state->hash_table[*source];*/
-	lzss_list_t *list = &state->hash_table[*source];
+	lzss_list_t	*list = &state->hash_table[*source];
 	node->data = source;
 	node->prev = NULL;
 	node->next = list->start;
+
 	if (list->start)
 		list->start->prev = node;
 	else
@@ -328,16 +300,6 @@ static void LZSS_BuildHash (lzss_state_t *state, const byte *source)
 static byte *LZSS_CompressNoAlloc (lzss_state_t *state, byte *pInput, int input_length, byte *pOutputBuf,
 	uint *pOutputSize)
 	{
-	/*byte	*pStart = pOutputBuf;	// allocate the output buffer, compressed buffer is expected to be less, caller will free
-	byte	*pEnd = pStart + input_length - sizeof (lzss_header_t) - 8;	// prevent compression failure
-	lzss_header_t	*header = (lzss_header_t *)pStart;
-	byte	*pOutput = pStart + sizeof (lzss_header_t);
-	const byte		*pEncodedPosition = NULL;
-	byte	*pLookAhead = pInput;
-	byte	*pWindow = pInput;
-	int		i, putCmdByte = 0;
-	byte	*pCmdByte = NULL;*/
-
 	if (input_length <= sizeof (lzss_header_t) + 8)
 		return NULL;
 
@@ -364,7 +326,7 @@ static byte *LZSS_CompressNoAlloc (lzss_state_t *state, byte *pInput, int input_
 	while (input_length > 0)
 		{
 		int		lookAheadLength = input_length < LZSS_LOOKAHEAD ? input_length : LZSS_LOOKAHEAD;
-		lzss_node_t *hash = state->hash_table[pLookAhead[0]].start;
+		lzss_node_t	*hash = state->hash_table[pLookAhead[0]].start;
 		int		encoded_length = 0;
 
 		pWindow = pLookAhead - state->window_size;
@@ -413,7 +375,6 @@ static byte *LZSS_CompressNoAlloc (lzss_state_t *state, byte *pInput, int input_
 			encoded_length = 1;
 			}
 
-		/*for (i = 0; i < encoded_length; i++)*/
 		for (int i = 0; i < encoded_length; i++)
 			{
 			LZSS_BuildHash (state, pLookAhead++);
@@ -463,13 +424,10 @@ static byte *LZSS_CompressNoAlloc (lzss_state_t *state, byte *pInput, int input_
 byte *LZSS_Compress (byte *pInput, int inputLength, uint *pOutputSize)
 	{
 	byte	*pStart = (byte *)malloc (inputLength);
-	/*byte	*pFinal = NULL;
-	lzss_state_t	state = { .window_size = LZSS_WINDOW_SIZE };*/
 
 	if (!pStart)
 		return NULL;
 
-	/*pFinal = LZSS_CompressNoAlloc (&state, pInput, inputLength, pStart, pOutputSize);*/
 	lzss_state_t	state = { .window_size = LZSS_WINDOW_SIZE };
 	byte	*pFinal = LZSS_CompressNoAlloc (&state, pInput, inputLength, pStart, pOutputSize);
 	if (!pFinal)
@@ -484,18 +442,10 @@ byte *LZSS_Compress (byte *pInput, int inputLength, uint *pOutputSize)
 // [FWGS, 01.07.26]
 uint LZSS_Decompress (const byte *pInput, byte *pOutput, size_t input_len, size_t output_len)
 	{
-	/*uint	totalBytes = 0;
-	int		getCmdByte = 0;
-	int		cmdByte = 0;
-	uint	actualSize;
-	const byte	*pInputEnd = pInput + input_len - 1;	// thanks to nillerusr for the fix!
-	byte	*pOrigOutput = pOutput;*/
-
 	if (input_len <= sizeof (lzss_header_t))
 		return 0;
 
-	/*actualSize = LZSS_GetActualSize (pInput, input_len);*/
-	uint actualSize = LZSS_GetActualSize (pInput, input_len);
+	uint	actualSize = LZSS_GetActualSize (pInput, input_len);
 	if (!actualSize || (actualSize > output_len))
 		return 0;
 
@@ -521,28 +471,20 @@ uint LZSS_Decompress (const byte *pInput, byte *pOutput, size_t input_len, size_
 
 		if (cmdByte & 0x01)
 			{
-			/*int		position;
-			int		i, count;
-			byte	*pSource;*/
-
 			if (pInput > pInputEnd)
 				return 0;
 
-			/*position = *pInput++ << LZSS_LOOKSHIFT;*/
-			int position = *pInput++ << LZSS_LOOKSHIFT;
+			int	position = *pInput++ << LZSS_LOOKSHIFT;
 			position |= (*pInput >> LZSS_LOOKSHIFT);
 
-			/*count = (*pInput++ & 0x0F) + 1;*/
-			int count = (*pInput++ & 0x0F) + 1;
+			int	count = (*pInput++ & 0x0F) + 1;
 			if (count == 1)
 				break;
 
-			/*pSource = pOutput - position - 1;*/
-			byte *pSource = pOutput - position - 1;
+			byte	*pSource = pOutput - position - 1;
 			if ((totalBytes + count > output_len) || (pSource < pOrigOutput))
 				return 0;
 
-			/*for (i = 0; i < count; i++)*/
 			for (int i = 0; i < count; i++)
 				*pOutput++ = *pSource++;
 			totalBytes += count;
@@ -555,6 +497,7 @@ uint LZSS_Decompress (const byte *pInput, byte *pOutput, size_t input_len, size_
 			*pOutput++ = *pInput++;
 			totalBytes++;
 			}
+
 		cmdByte = cmdByte >> 1;
 		}
 
@@ -563,6 +506,7 @@ uint LZSS_Decompress (const byte *pInput, byte *pOutput, size_t input_len, size_
 		Assert (0);
 		return 0;
 		}
+
 	return totalBytes;
 	}
 
@@ -575,17 +519,12 @@ COM_ParseVector [FWGS, 01.07.26]
 ***/
 qboolean COM_ParseVector (char **pfile, float *v, size_t size)
 	{
-	/*string		token;
-	qboolean	bracket = false;
-	char		*saved;
-	uint		i;*/
-
 	if ((v == NULL) || (size == 0))
 		return false;
 
 	memset (v, 0, sizeof (*v) * size);
 
-	string token;
+	string	token;
 	if (size == 1)
 		{
 		*pfile = COM_ParseFile (*pfile, token, sizeof (token));
@@ -593,19 +532,17 @@ qboolean COM_ParseVector (char **pfile, float *v, size_t size)
 		return true;
 		}
 
-	/*saved = *pfile;*/
-	char *saved = *pfile;
+	char	*saved = *pfile;
 
 	if ((*pfile = COM_ParseFile (*pfile, token, sizeof (token))) == NULL)
 		return false;
 
-	qboolean bracket = false;
+	qboolean	bracket = false;
 	if (token[0] == '(')
 		bracket = true;
 	else
 		*pfile = saved;	// restore token to right get it again
 
-	/*for (i = 0; i < size; i++)*/
 	for (uint i = 0; i < size; i++)
 		{
 		*pfile = COM_ParseFile (*pfile, token, sizeof (token));
@@ -637,6 +574,21 @@ int GAME_EXPORT COM_FileSize (const char *filename)
 // [FWGS, 01.03.26] removed COM_TrimSpace
 
 /***
+=============
+COM_DownloadCachePath [FWGS, 01.10.26]
+
+files received from the server go into a separate directory, which the game directory
+intentionally overrides, so a server can't replace the game's own files
+=============
+***/
+const char *COM_DownloadCachePath (char *buf, size_t size, const char *path, qboolean incomplete)
+	{
+	Q_snprintf (buf, size, "../%s" DEFAULT_DOWNLOADED_DIRECTORY_SUFFIX "/%s%s", GI->gamefolder,
+		path, incomplete ? ".incomplete" : "");
+	return buf;
+	}
+
+/***
 ==================
 COM_Nibble [FWGS, 22.01.25]
 
@@ -666,15 +618,10 @@ Converts pszInput Hex string to nInputLength/2 binary
 ***/
 void COM_HexConvert (const char *pszInput, int nInputLength, byte *pOutput)
 	{
-	/*const char	*pIn;
-	byte		*p = pOutput;
-	int			i;*/
 	byte	*p = pOutput;
 
-	/*for (i = 0; i < nInputLength; i += 2)*/
 	for (int i = 0; i < nInputLength; i += 2)
 		{
-		/*pIn = &pszInput[i];*/
 		const char	*pIn = &pszInput[i];
 
 		*p = COM_Nibble (pIn[0]) << 4 | COM_Nibble (pIn[1]);
@@ -691,11 +638,6 @@ COM_LoadFileForMe [FWGS, 01.07.26]
 ***/
 byte *GAME_EXPORT COM_LoadFileForMe (const char *filename, int *pLength)
 	{
-	/*string		name;
-	byte		*pfile;
-	fs_offset_t	iLength;
-
-	// [FWGS, 01.03.26]*/
 	if (COM_StringEmptyOrNULL (filename))
 		{
 		if (pLength)
@@ -703,13 +645,12 @@ byte *GAME_EXPORT COM_LoadFileForMe (const char *filename, int *pLength)
 		return NULL;
 		}
 
-	string name;
+	string	name;
 	Q_strncpy (name, filename, sizeof (name));
 	COM_FixSlashes (name);
 
-	/*pfile = g_fsapi.LoadFileMalloc (name, &iLength, false);*/
-	fs_offset_t iLength;
-	byte *pfile = g_fsapi.LoadFileMalloc (name, &iLength, false);
+	fs_offset_t	iLength;
+	byte	*pfile = g_fsapi.LoadFileMalloc (name, &iLength, false);
 	if (pLength)
 		*pLength = (int)iLength;
 
@@ -793,20 +734,7 @@ void GAME_EXPORT pfnGetModelBounds (model_t *mod, float *mins, float *maxs)
 
 // [FWGS, 01.02.24] removed pfnCvar_RegisterServerVariable, pfnCvar_RegisterEngineVariable,
 // pfnCvar_RegisterClientVariable, pfnCvar_RegisterGameUIVariable
-
 // [FWGS, 01.07.26] removed pfnCVarGetPointer
-/*
-=============
-pfnCVarGetPointer
-
-can return NULL
-=============
-/
-cvar_t *GAME_EXPORT pfnCVarGetPointer (const char *szVarName)
-	{
-	return (cvar_t *)Cvar_FindVar (szVarName);
-	}*/
-
 // [FWGS, 01.02.24] removed pfnCVarDirectSet
 
 /***
@@ -816,19 +744,16 @@ pfnCompareFileTime [FWGS, 01.07.26]
 ***/
 int GAME_EXPORT pfnCompareFileTime (const char *path1, const char *path2, int *retval)
 	{
-	/*int	t1, t2;*/
 	*retval = 0;
 
 	if (!path1 || !path2)
 		return 0;
 
-	/*if ((t1 = g_fsapi.FileTime (path1, false)) == -1)*/
-	int t1 = g_fsapi.FileTime (path1, false);
+	int	t1 = g_fsapi.FileTime (path1, false);
 	if (t1 == -1)
 		return 0;
 
-	/*if ((t2 = g_fsapi.FileTime (path2, false)) == -1)*/
-	int t2 = g_fsapi.FileTime (path2, false);
+	int	t2 = g_fsapi.FileTime (path2, false);
 	if (t2 == -1)
 		return 0;
 
@@ -866,18 +791,9 @@ int GAME_EXPORT COM_CheckParm (char *parm, char **ppnext)
 // [FWGS, 01.07.26]
 qboolean COM_IsSafeFileToDownload (const char *filename)
 	{
-	/*char		lwrfilename[4096];
-	const char	*last;
-	const char	*ext;
-	size_t		len;
-	int			i;
-
-	// [FWGS, 01.03.26]*/
 	if (COM_StringEmptyOrNULL (filename))
 		return false;
 
-	/*ext = COM_FileExtension (filename);
-	len = Q_strlen (filename);*/
 	const char	*ext = COM_FileExtension (filename);
 	size_t	len = Q_strlen (filename);
 
@@ -891,7 +807,6 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 		if (len != 36)
 			return false;
 
-		/*for (i = 4; i < len; i++)*/
 		for (int i = 4; i < len; i++)
 			{
 			if (((filename[i] >= '0') && (filename[i] <= '9')) ||
@@ -904,14 +819,13 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 		return true;
 		}
 
-	/*for (i = 0; i < len; i++)*/
 	for (int i = 0; i < len; i++)
 		{
 		if (!isprint (filename[i]))
 			return false;
 		}
 
-	char lwrfilename[4096];
+	char	lwrfilename[4096];
 	Q_strnlwr (filename, lwrfilename, sizeof (lwrfilename));
 	ext = COM_FileExtension (lwrfilename);
 
@@ -921,7 +835,6 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 	if (lwrfilename[0] == '/')
 		return false;
 
-	/*last = Q_strrchr (lwrfilename, '.');*/
 	const char	*last = Q_strrchr (lwrfilename, '.');
 	if (last == NULL)
 		return false;
@@ -929,7 +842,6 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 	if (Q_strlen (last) != 4)
 		return false;
 
-	/*for (i = 0; i < HLARRAYSIZE (file_exts); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (file_exts); i++)
 		{
 		if (!Q_stricmp (ext, file_exts[i]))
@@ -944,16 +856,11 @@ qboolean COM_IsSafeFileToDownload (const char *filename)
 // [FWGS, 01.07.26]
 char *_copystring (poolhandle_t mempool, const char *s, const char *filename, int fileline)
 	{
-	/*size_t size;
-	char *b;*/
-
 	if (!s)
 		return NULL;
 	if (!mempool)
 		mempool = host.mempool;
 
-	/*size = Q_strlen (s) + 1;
-	b = _Mem_Alloc (mempool, size, false, filename, fileline);*/
 	size_t	size = Q_strlen (s) + 1;
 	char	*b = _Mem_Alloc (mempool, size, false, filename, fileline);
 	Q_strncpy (b, s, size);
@@ -1049,26 +956,23 @@ void GAME_EXPORT pfnResetTutorMessageDecayData (void)
 // [FWGS, 01.07.26]
 static void Test_LZSS (void)
 	{
-	/*char poison1[8192];*/
-	char poison1[8192] MAYBE_UNUSED;
-	byte in[256];
-	/*char poison2[8192];*/
-	char poison2[8192] MAYBE_UNUSED;
-	byte out[256];
-	/*char poison3[8192];*/
-	char poison3[8192] MAYBE_UNUSED;
+	char	poison1[8192] MAYBE_UNUSED;
+	byte	in[256];
+	char	poison2[8192] MAYBE_UNUSED;
+	byte	out[256];
+	char	poison3[8192] MAYBE_UNUSED;
 
-	lzss_header_t *hdr = (lzss_header_t *)in;
+	lzss_header_t	*hdr = (lzss_header_t *)in;
 	uint result;
 
-	const byte compressed[] =
+	const byte	compressed[] =
 		{
 		0x4c, 0x5a, 0x53, 0x53, 0x1a, 0x00, 0x00, 0x00, 0x00,
 		0x44, 0x6f, 0x20, 0x79, 0x6f, 0x75, 0x20, 0x6c, 0x00,
 		0x69, 0x6b, 0x65, 0x20, 0x77, 0x68, 0x61, 0x74, 0x41,
 		0x00, 0xd4, 0x73, 0x65, 0x65, 0x3f, 0x00, 0x00, 0x00,
 		};
-	const char decompressed[] = "Do you like what you see?";
+	const char	decompressed[] = "Do you like what you see?";
 
 #ifdef USE_ASAN
 	ASAN_POISON_MEMORY_REGION (poison1, sizeof (poison1));

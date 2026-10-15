@@ -159,12 +159,12 @@ static void Host_ShutdownGame (void)
 		}
 	}
 
-// [FWGS, 01.07.24]
 static void Host_RunFrame (double time)
 	{
-	// at this time, we don't need to get events from OS on dedicated
+	// [FWGS, 01.10.26] at this time, we don't need to get events from OS on dedicated
 #if !XASH_DEDICATED
 	Platform_RunEvents ();
+	VID_UpdateWindowInsets ();
 #endif
 
 	// engine main frame
@@ -210,16 +210,13 @@ void Host_AbortCurrentFrame (void)
 // [FWGS, 01.07.26]
 void COM_Frame (double time)
 	{
-	/*int	loopCount = 0;*/
-
 	if (setjmp (g_abortframe))
 		return;
 
 	int loopCount = 0;
 	while (1)
 		{
-		/*int	oldState = GameState->curstate;*/
-		int oldState = GameState->curstate;
+		int	oldState = GameState->curstate;
 
 		// execute the current state (and transition to the next state if not in STATE_RUNFRAME)
 		switch (GameState->curstate)
