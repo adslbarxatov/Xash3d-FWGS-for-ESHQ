@@ -717,7 +717,6 @@ static qboolean Mod_CalcMipTexUsesCustomPalette (model_t *mod, dbspmodel_t *bmod
 	return remainingBytes >= MIPTEX_CUSTOM_PALETTE_SIZE_BYTES;
 	}
 
-// [FWGS, 01.07.24]
 static qboolean Mod_NameImpliesTextureIsAnimated (texture_t *tex)
 	{
 	if (!tex)
@@ -727,9 +726,11 @@ static qboolean Mod_NameImpliesTextureIsAnimated (texture_t *tex)
 	if ((tex->name[0] != '-') && (tex->name[0] != '+'))
 		return false;
 
-	// Name implies texture is animated - check second character is valid
+	// [FWGS, 01.10.26] name implies texture is animated - check second character is valid
 	if (!((tex->name[1] >= '0') && (tex->name[1] <= '9')) &&
-		!((tex->name[1] >= 'a') && (tex->name[1] <= 'j')))
+		/*!((tex->name[1] >= 'a') && (tex->name[1] <= 'j')))*/
+		!((tex->name[1] >= 'a') && (tex->name[1] <= 'j')) &&
+		!((tex->name[1] >= 'A') && (tex->name[1] <= 'J')))
 		{
 		Con_Printf (S_ERROR "%s: animating texture \"%s\" has invalid name\n", __func__, tex->name);
 		return false;
@@ -1627,7 +1628,29 @@ static void Mod_LightMatrixFromTexMatrix (const mtexinfo_t *tx, float lmvecs[2][
 
 /***
 =================
-Mod_CalcSurfaceExtents [FWGS, 01.07.26]
+Mod_PointVecsProduct [FWGS, 01.10.26]
+
+volatile forces rounding of every sum to double and result to float,
+same as compilers did it, otherwise x87 or FMA give different extents
+=================
+***/
+static float Mod_PointVecsProduct (const float *point, const float *vecs)
+	{
+	volatile double	val = 0.0;
+	volatile float	res;
+
+	for (int i = 0; i < 3; i++)
+		val += (double)point[i] * vecs[i];
+
+	val += vecs[3];
+	res = val;
+
+	return res;
+	}
+
+/***
+=================
+Mod_CalcSurfaceExtents
 
 Fills in surf->texturemins[] and surf->extents[]
 =================
@@ -1670,16 +1693,25 @@ static void Mod_CalcSurfaceExtents (model_t *mod, msurface_t *surf, const dbspmo
 				v = &mod->vertexes[mod->edges16[-e].v[1]];
 			}
 
+		// [FWGS, 01.10.26]
 		for (int j = 0; j < 2; j++)
 			{
+#if 0	// causes misaligned lightmap on ramp on cs_havana.bsp in either release i386 build or in -ffast-math build
 			val = DotProductPrecise (v->position, surf->texinfo->vecs[j]) + surf->texinfo->vecs[j][3];
+#else
+			val = Mod_PointVecsProduct (v->position, surf->texinfo->vecs[j]);
+#endif
 			mins[j] = Q_min (val, mins[j]);
 			maxs[j] = Q_max (val, maxs[j]);
 			}
 
 		for (int j = 0; j < 2; j++)
 			{
+#if 0	// same as above, therefore disabled
 			val = DotProductPrecise (v->position, info->lmvecs[j]) + info->lmvecs[j][3];
+#else
+			val = Mod_PointVecsProduct (v->position, info->lmvecs[j]);
+#endif
 			lmmins[j] = Q_min (val, lmmins[j]);
 			lmmaxs[j] = Q_max (val, lmmaxs[j]);
 			}
@@ -1889,7 +1921,6 @@ static int RemapClipNodes_r (dbspmodel_t *bmod, dclipnode32_t *srcnodes, hull_t 
 		return nodenum;
 
 	// [FWGS, 01.09.26] emit a clipnode
-	/*if (bmod->version == QBSP2_VERSION)*/
 	if (bmod->hulls32bit)
 		{
 		if (hull->lastclipnode == MAX_MAP_CLIPNODES_BSP2)
@@ -1907,7 +1938,6 @@ static int RemapClipNodes_r (dbspmodel_t *bmod, dclipnode32_t *srcnodes, hull_t 
 	hull->lastclipnode++;
 
 	// [FWGS, 01.09.26]
-	/*if (bmod->version == QBSP2_VERSION)*/
 	if (bmod->hulls32bit)
 		{
 		mclipnode32_t	*out = &hull->clipnodes32[c];
@@ -1944,7 +1974,6 @@ static void Mod_MakeHull0 (model_t *mod, const dbspmodel_t *bmod)
 	hull->planes = mod->planes;
 
 	// [FWGS, 01.09.26]
-	/*if (bmod->version == QBSP2_VERSION)*/
 	if (bmod->hulls32bit)
 		{
 		mclipnode32_t	*out;
@@ -2053,7 +2082,6 @@ static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, int headnode, int hu
 		// [FWGS, 01.09.26] only allocate clipnodes array for the base model, only for first hull
 		if ((mod == world) && (hullnum == 1))
 			{
-			/*if (bmod->version == QBSP2_VERSION)*/
 			if (bmod->hulls32bit)
 				{
 				hull->clipnodes32 = Mem_Malloc (world->mempool, sizeof (*hull->clipnodes32) * mod->numclipnodes);
@@ -2079,7 +2107,6 @@ static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, int headnode, int hu
 			}
 		else
 			{
-			/*if (bmod->version == QBSP2_VERSION)*/
 			if (bmod->hulls32bit)
 				hull->clipnodes32 = world->hulls[1].clipnodes32;
 			else
@@ -2093,7 +2120,6 @@ static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, int headnode, int hu
 		return;	// hull missed
 
 	// [FWGS, 01.09.26] fit array to real count
-	/*if (bmod->version == QBSP2_VERSION)*/
 	if (bmod->hulls32bit)
 		{
 		CountDClipNodes_r (bmod->clipnodes_out, hull, headnode, MAX_MAP_CLIPNODES_BSP2);
@@ -2116,11 +2142,8 @@ static void Mod_SetupHull (dbspmodel_t *bmod, model_t *mod, int headnode, int hu
 // [FWGS, 01.09.26]
 static qboolean Mod_LoadLitfile (model_t *mod, const char *ext, size_t expected_size, color24 **out, size_t *outsize)
 	{
-	/*char	modelname[64], path[64];*/
 	char	basename[sizeof (mod->name)], path[sizeof (mod->name) + 8];
 
-	/*COM_FileBase (mod->name, modelname, sizeof (modelname));
-	Q_snprintf (path, sizeof (path), "maps/%s.%s", modelname, ext);*/
 	// keep the directory part, so maps in subdirectories look up their lit files next to the bsp
 	Q_strncpy (basename, mod->name, sizeof (basename));
 	COM_StripExtension (basename);
@@ -2207,7 +2230,6 @@ static void Mod_SetupSubmodels (model_t *mod, dbspmodel_t *bmod)
 		mod->hulls[0].lastclipnode = bm->headnode[0];	// need to be real count
 
 		// [FWGS, 01.09.26] counting a real number of clipnodes per each submodel
-		/*if (bmod->version == QBSP2_VERSION)*/
 		if (bmod->hulls32bit)
 			CountClipNodes32_r (mod->hulls[0].clipnodes32, &mod->hulls[0], bm->headnode[0]);
 		else
@@ -2362,18 +2384,15 @@ static int Mod_LoadEntities_splitstr_handler (char *prev, char *next, void *user
 
 	COM_FixSlashes (prev);
 
-	/*const char	*wad = COM_FileWithoutPath (prev);*/
 	const char	*rawWadName = COM_FileWithoutPath (prev);
 
 	Q_strncpy (normalizedWadName, rawWadName, sizeof (normalizedWadName));
 	COM_DefaultExtension (normalizedWadName, ".wad", sizeof (normalizedWadName));
 
-	/*if (Q_stricmp (COM_FileExtension (wad), "wad"))*/
 	if (Q_stricmp (COM_FileExtension (normalizedWadName), "wad"))
 		return 0;
 
 	// make sure that wad really exists
-	/*if (FS_FileExists (wad, false))*/
 	if (FS_FileExists (normalizedWadName, false))
 		{
 		int	num = w->wadcount++;
@@ -2381,7 +2400,6 @@ static int Mod_LoadEntities_splitstr_handler (char *prev, char *next, void *user
 		// FIXME: that's right, it goes into host.mempool!
 		w->wadlist = Mem_Realloc (host.mempool, w->wadlist, w->wadcount * sizeof (*w->wadlist));
 
-		/*Q_strncpy (w->wadlist[num].name, wad, sizeof (w->wadlist[num].name));*/
 		Q_strncpy (w->wadlist[num].name, normalizedWadName, sizeof (w->wadlist[num].name));
 		w->wadlist[num].usage = 0;
 		}
@@ -2694,9 +2712,11 @@ static qboolean Mod_LooksLikeWaterTexture (const char *name)
 	if (((name[0] == '*') && Q_stricmp (name, REF_DEFAULT_TEXTURE)) || (name[0] == '!'))
 		return true;
 
+	// [FWGS, 01.10.26]
 	if (!Host_IsQuakeCompatible ())
 		{
-		if (!Q_strncmp (name, "water", 5) || !Q_strnicmp (name, "laser", 5))
+		/*if (!Q_strncmp (name, "water", 5) || !Q_strnicmp (name, "laser", 5))*/
+		if (!Q_strnicmp (name, "water", 5) || !Q_strnicmp (name, "laser", 5))
 			return true;
 		}
 
@@ -2745,7 +2765,6 @@ static qboolean Mod_SearchForTextureReplacement (char *out, size_t size, const c
 	}
 
 // [FWGS, 01.09.26]
-/*static void Mod_InitSkyClouds (model_t *mod, const mip_t *mt, texture_t *tx, qboolean custom_palette)*/
 static void Mod_InitSkyClouds (model_t *mod, const mip_t *mt, const byte *mtdata, texture_t *tx, qboolean custom_palette)
 	{
 #if !XASH_DEDICATED
@@ -2810,7 +2829,6 @@ static void Mod_InitSkyClouds (model_t *mod, const mip_t *mt, const byte *mtdata
 			size += sizeof (short) + 768;
 
 		Image_SetForceFlags (IL_HOST_ENDIAN);
-		/*r_sky = FS_LoadImage (texname, (byte *)mt, size);*/
 		r_sky = FS_LoadImage (texname, mtdata, size);
 		}
 	else
@@ -2930,7 +2948,6 @@ static void Mod_LoadTextureData (model_t *mod, dbspmodel_t *bmod, int textureInd
 	// [FWGS, 01.09.26] check for multi-layered sky texture (quake1 specific)
 	if ((bmod->isworld && Q_strncmp (mipTex.name, "sky", 3) == 0) && ((mipTex.width / mipTex.height) == 2))
 		{
-		/*Mod_InitSkyClouds (mod, &mipTex, texture, usesCustomPalette);	// load quake sky*/
 		Mod_InitSkyClouds (mod, &mipTex, mipRaw, texture, usesCustomPalette);	// load quake sky
 		return;
 		}
@@ -3067,7 +3084,6 @@ static void Mod_LoadTextureData (model_t *mod, dbspmodel_t *bmod, int textureInd
 #endif
 	}
 
-// [FWGS, 01.07.26]
 static void Mod_LoadTexture (model_t *mod, dbspmodel_t *bmod, int textureIndex)
 	{
 	if ((textureIndex < 0) || (textureIndex >= mod->numtextures))
@@ -3093,8 +3109,14 @@ static void Mod_LoadTexture (model_t *mod, dbspmodel_t *bmod, int textureIndex)
 	texture_t	*texture = (texture_t *)Mem_Calloc (mod->mempool, sizeof (*texture));
 	mod->textures[textureIndex] = texture;
 
-	// ensure texture name is lowercase
-	Q_strnlwr (mipTex.name, texture->name, sizeof (texture->name));
+	// [FWGS, 01.10.26]
+	/*// ensure texture name is lowercase
+	Q_strnlwr (mipTex.name, texture->name, sizeof (texture->name));*/
+	// Xash3D games rely on lowercase texture names, GoldSrc keeps them as is
+	if (FBitSet (host.bugcomp, BUGCOMP_PRESERVE_TEXTURE_NAME_CASE))
+		Q_strncpy (texture->name, mipTex.name, sizeof (texture->name));
+	else
+		Q_strnlwr (mipTex.name, texture->name, sizeof (texture->name));
 
 	texture->width = mipTex.width;
 	texture->height = mipTex.height;
@@ -3109,7 +3131,6 @@ static void Mod_LoadAllTextures (model_t *mod, dbspmodel_t *bmod)
 		Mod_LoadTexture (mod, bmod, i);
 	}
 
-// [FWGS, 01.07.26]
 static void Mod_SequenceAnimatedTexture (model_t *mod, int baseTextureIndex)
 	{
 	if ((baseTextureIndex < 0) || (baseTextureIndex >= mod->numtextures))
@@ -3142,8 +3163,9 @@ static void Mod_SequenceAnimatedTexture (model_t *mod, int baseTextureIndex)
 		}
 	else
 		{
-		// this texture is an alternate animation frame
-		int	frameIndex = (int)baseTexture->name[1] - (int)'a';
+		// [FWGS, 01.10.26] this texture is an alternate animation frame
+		/*int	frameIndex = (int)baseTexture->name[1] - (int)'a';*/
+		int	frameIndex = (int)Q_toupper (baseTexture->name[1]) - (int)'A';
 
 		altanims[frameIndex] = baseTexture;
 		altmax = frameIndex + 1;
@@ -3174,8 +3196,10 @@ static void Mod_SequenceAnimatedTexture (model_t *mod, int baseTextureIndex)
 			}
 		else
 			{
-			// This texture is an alternate frame
-			int	frameIndex = (int)altTexture->name[1] - (int)'a';
+			// [FWGS, 01.10.26] this texture is an alternate frame
+			/*int	frameIndex = (int)altTexture->name[1] - (int)'a';*/
+			int	frameIndex = (int)Q_toupper (altTexture->name[1]) - (int)'A';
+
 			altanims[frameIndex] = altTexture;
 			if (frameIndex >= altmax)
 				altmax = frameIndex + 1;
@@ -4842,3 +4866,59 @@ int GAME_EXPORT Mod_SaveLump (const char *filename, const int lump, void *lumpda
 	FS_Close (f);
 	return LUMP_SAVE_OK;
 	}
+
+// [FWGS, 01.10.26]
+#if XASH_ENGINE_TESTS
+
+#include "tests.h"
+
+// [FWGS, 01.10.26]
+static void Test_Mod_NameImpliesTextureIsAnimated (void)
+	{
+	typedef struct { char name[64]; } test_texture_t;
+
+	test_texture_t valid[] =
+		{
+		{"+0"}, {"+9"}, {"-0"}, {"-9"},
+		{"+a"}, {"+A"}, {"+j"}, {"+J"},
+		{"-a"}, {"-A"}, {"-j"}, {"-J"},
+		};
+
+	for (int i = 0; i < (int)ARRAYSIZE (valid); i++)
+		{
+		TASSERT (Mod_NameImpliesTextureIsAnimated ((texture_t *)&valid[i]));
+		}
+
+	test_texture_t invalid[] =
+		{
+		{"+k"}, {"+K"}, {"+z"}, {"+Z"},
+		{"-k"}, {"-K"}, {"-z"}, {"-Z"},
+		{"++"}, {"+-"}, {"-+"}, {"--"},
+		{"a0"}, {"0a"}, {""}, {"+"}, {"-"}, {" "}, {"+ "}, {"- "},
+		};
+
+	for (int i = 0; i < (int)ARRAYSIZE (invalid); i++)
+		{
+		TASSERT (!Mod_NameImpliesTextureIsAnimated ((texture_t *)&invalid[i]));
+		}
+	}
+
+// [FWGS, 01.10.26]
+static void Test_Mod_FrameIndexCalculation (void)
+	{
+	TASSERT_EQi (Q_toupper ('A') - 'A', 0);
+	TASSERT_EQi (Q_toupper ('a') - 'A', 0);
+	TASSERT_EQi (Q_toupper ('J') - 'A', 9);
+	TASSERT_EQi (Q_toupper ('j') - 'A', 9);
+	TASSERT_EQi (Q_toupper ('0') - '0', 0);
+	TASSERT_EQi (Q_toupper ('9') - '0', 9);
+	}
+
+// [FWGS, 01.10.26]
+void Test_RunModBmodel (void)
+	{
+	TRUN (Test_Mod_NameImpliesTextureIsAnimated ());
+	TRUN (Test_Mod_FrameIndexCalculation ());
+	}
+
+#endif

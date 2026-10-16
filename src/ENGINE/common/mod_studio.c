@@ -222,16 +222,12 @@ Mod_InitStudioHull [FWGS, 01.07.26]
 ***/
 void Mod_InitStudioHull (void)
 	{
-	/*int i;*/
-
 	if (studio_hull[0].planes != NULL)
 		return;	// already initailized
 
-	/*for (i = 0; i < MAXSTUDIOBONES; i++)*/
 	for (int i = 0; i < MAXSTUDIOBONES; i++)
 		{
 		studio_hull[i].clipnodes16 = (mclipnode16_t *)box_clipnodes16;
-
 		studio_hull[i].planes = &studio_planes[i * 6];
 		studio_hull[i].firstclipnode = 0;
 		studio_hull[i].lastclipnode = 5;
@@ -278,17 +274,15 @@ AddToStudioCache [FWGS, 01.07.26]
 static void Mod_AddToStudioCache (float frame, int sequence, vec3_t angles, vec3_t origin, vec3_t size, 
 	byte *pcontroller, byte *pblending, model_t *model, hull_t *hull, int numhitboxes)
 	{
-	/*mstudiocache_t *pCache;*/
-
 	if (numhitboxes + cache_current_hull >= MAXSTUDIOBONES)
 		Mod_ClearStudioCache ();
 
 	cache_current++;
-	/*pCache = &cache_studio[cache_current & STUDIO_CACHEMASK];*/
-	mstudiocache_t *pCache = &cache_studio[cache_current & STUDIO_CACHEMASK];
 
+	mstudiocache_t	*pCache = &cache_studio[cache_current & STUDIO_CACHEMASK];
 	pCache->frame = frame;
 	pCache->sequence = sequence;
+
 	VectorCopy (angles, pCache->angles);
 	VectorCopy (origin, pCache->origin);
 	VectorCopy (size, pCache->size);
@@ -317,14 +311,9 @@ CheckStudioCache [FWGS, 01.07.26]
 static mstudiocache_t *Mod_CheckStudioCache (model_t *model, float frame, int sequence, vec3_t angles, vec3_t origin,
 	vec3_t size, byte *controller, byte *blending)
 	{
-	/*mstudiocache_t *pCached;
-	int		i;
-
-	for (i = 0; i < STUDIO_CACHESIZE; i++)*/
 	for (int i = 0; i < STUDIO_CACHESIZE; i++)
 		{
-		/*pCached = &cache_studio[(cache_current - i) & STUDIO_CACHEMASK];*/
-		mstudiocache_t *pCached = &cache_studio[(cache_current - i) & STUDIO_CACHEMASK];
+		mstudiocache_t	*pCached = &cache_studio[(cache_current - i) & STUDIO_CACHEMASK];
 
 		if (pCached->model != model)
 			continue;
@@ -372,7 +361,6 @@ static void Mod_SetStudioHullPlane (int planenum, int bone, int axis, float offs
 	struct mplane_t	*pl = &studio_planes[planenum];
 
 	pl->type = 5;
-
 	pl->normal[0] = studio_bones[bone][0][axis];
 	pl->normal[1] = studio_bones[bone][1][axis];
 	pl->normal[2] = studio_bones[bone][2][axis];
@@ -396,20 +384,13 @@ NOTE: pEdict may be NULL
 hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t angles, vec3_t origin, 
 	vec3_t size, byte *pcontroller, byte *pblending, int *numhitboxes, edict_t *pEdict)
 	{
-	/*vec3_t			angles2;
-	mstudiocache_t	*bonecache;
-	mstudiobbox_t	*phitbox;
-	qboolean		bSkipShield;
-	int				i, j;*/
-	qboolean bSkipShield = false;
+	qboolean	bSkipShield = false;
 
-	/*bSkipShield = false;*/
 	*numhitboxes = 0;	// assume error
 
 	if (mod_studiocache.value)
 		{
-		/*bonecache = Mod_CheckStudioCache (model, frame, sequence, angles, origin, size, pcontroller, pblending);*/
-		mstudiocache_t *bonecache = Mod_CheckStudioCache (model, frame, sequence, angles, origin, size,
+		mstudiocache_t	*bonecache = Mod_CheckStudioCache (model, frame, sequence, angles, origin, size,
 			pcontroller, pblending);
 
 		if (bonecache != NULL)
@@ -429,23 +410,18 @@ hull_t *Mod_HullForStudio (model_t *model, float frame, int sequence, vec3_t ang
 	if (!mod_studiohdr)
 		return NULL;	// probably not a studiomodel
 
-	/*VectorCopy (angles, angles2);*/
-	vec3_t angles2 = Vec3 (angles);
+	vec3_t	angles2 = Vec3 (angles);
 
 	if (!FBitSet (host.features, ENGINE_COMPENSATE_QUAKE_BUG))
 		angles2[PITCH] = -angles2[PITCH];	// stupid quake bug
 
 	pBlendAPI->SV_StudioSetupBones (model, frame, sequence, angles2, origin, pcontroller, pblending, -1, pEdict);
 
-	/*phitbox = (mstudiobbox_t *)((byte *)mod_studiohdr + mod_studiohdr->hitboxindex);*/
-	mstudiobbox_t *phitbox = (mstudiobbox_t *)((byte *)mod_studiohdr + mod_studiohdr->hitboxindex);
+	mstudiobbox_t	*phitbox = (mstudiobbox_t *)((byte *)mod_studiohdr + mod_studiohdr->hitboxindex);
 
 	if (SV_IsValidEdict (pEdict) && (pEdict->v.gamestate == 1))
 		bSkipShield = 1;
 
-	/*for (i = j = 0; i < mod_studiohdr->numhitboxes; i++, j += 6)
-		{
-		// [FWGS, 01.02.25]*/
 	for (int i = 0, j = 0; i < mod_studiohdr->numhitboxes; i++, j += 6)
 		{
 		if (world.version == QBSP2_VERSION)
@@ -600,13 +576,13 @@ void Mod_SwapStudioSeqGroupAnims (studiohdr_t *phdr, mstudioseqdesc_t *pseq, byt
 			if (panim->offset[k] == 0)
 				continue;
 
-			mstudioanimvalue_t *panimvalue = (mstudioanimvalue_t *)((byte *)panim + panim->offset[k]);
+			mstudioanimvalue_t	*panimvalue = (mstudioanimvalue_t *)((byte *)panim + panim->offset[k]);
 
 			int frames = pseq->numframes;
 			while (frames > 0)
 				{
-				int valid = panimvalue->num.valid;
-				int total = panimvalue->num.total;
+				int	valid = panimvalue->num.valid;
+				int	total = panimvalue->num.total;
 
 				for (int l = 1; l <= valid; l++)
 					panimvalue[l].value = LittleShort (panimvalue[l].value);
@@ -646,7 +622,7 @@ void *R_StudioGetAnim (studiohdr_t *m_pStudioHeader, model_t *m_pSubModel, mstud
 
 		// NOTE: here we build real sub-animation filename because stupid user may rename model
 		// without recompile
-		string filepath;
+		string	filepath;
 		Q_snprintf (filepath, sizeof (filepath), "%s/%s%i%i.mdl", modelpath, modelname, 
 			pseqdesc->seqgroup / 10, pseqdesc->seqgroup % 10);
 
@@ -784,7 +760,6 @@ StudioGetAttachment [FWGS, 01.07.26]
 void Mod_StudioGetAttachment (const edict_t *e, int iAtt, float *origin, float *angles)
 	{
 	mstudioattachment_t	*pAtt;
-	/*vec3_t				angles2;*/
 	matrix3x4	localPose;
 	matrix3x4	worldPose;
 	model_t		*mod;
@@ -809,8 +784,7 @@ void Mod_StudioGetAttachment (const edict_t *e, int iAtt, float *origin, float *
 	// calculate attachment origin and angles
 	pAtt = (mstudioattachment_t *)((byte *)mod_studiohdr + mod_studiohdr->attachmentindex) + iAtt;
 
-	/*VectorCopy (e->v.angles, angles2);*/
-	vec3_t angles2 = Vec3 (e->v.angles);
+	vec3_t	angles2 = Vec3 (e->v.angles);
 
 	if (!FBitSet (host.features, ENGINE_COMPENSATE_QUAKE_BUG))
 		angles2[PITCH] = -angles2[PITCH];
@@ -836,7 +810,7 @@ GetBonePosition
 ***/
 void Mod_GetBonePosition (const edict_t *e, int iBone, float *origin, float *angles)
 	{
-	model_t *mod;
+	model_t	*mod;
 
 	mod = SV_ModelHandle (e->v.modelindex);
 	mod_studiohdr = (studiohdr_t *)Mod_StudioExtradata (mod);
@@ -911,8 +885,7 @@ static void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qbo
 	int				i, j, k, numseq;
 	studiohdr_t		*pstudiohdr;
 	mstudiobodyparts_t	*pbodypart;
-	mstudiomodel_t	*m_pSubModel;
-	/*mstudioseqgroup_t	*pseqgroup;*/
+	mstudiomodel_t		*m_pSubModel;
 	mstudioseqdesc_t	*pseqdesc;
 	mstudiobone_t	*pbones;
 	mstudioanim_t	*panim;
@@ -952,8 +925,6 @@ static void Mod_StudioComputeBounds (void *buffer, vec3_t mins, vec3_t maxs, qbo
 	for (i = 0; i < numseq; i++)
 		{
 		pseqdesc = (mstudioseqdesc_t *)((byte *)pstudiohdr + pstudiohdr->seqindex) + i;
-		/*pseqgroup = (mstudioseqgroup_t *)((byte *)pstudiohdr + pstudiohdr->seqgroupindex) + pseqdesc->seqgroup;*/
-
 		if (pseqdesc->seqgroup == 0)
 			panim = (mstudioanim_t *)((byte *)pstudiohdr + pseqdesc->animindex);
 		else
@@ -1013,7 +984,7 @@ extract texture filename from modelname
 ***/
 const char *Mod_StudioTexName (const char *modname)
 	{
-	static char texname[MAX_QPATH + 1];
+	static char	texname[MAX_QPATH + 1];
 
 	Q_strncpy (texname, modname, sizeof (texname));
 	COM_StripExtension (texname);
@@ -1053,7 +1024,6 @@ static int Mod_StudioBodyVariations (model_t *mod)
 static qboolean Mod_SwapStudioModel (const char *name, void *buffer, size_t buffersize)
 	{
 	studiohdr_t	*phdr = buffer;
-	/*byte	*mod_base = buffer;*/
 
 	if (buffersize < sizeof (studiohdr_t))
 		return false;
@@ -1064,13 +1034,12 @@ static qboolean Mod_SwapStudioModel (const char *name, void *buffer, size_t buff
 		return false;
 
 #if XASH_BIG_ENDIAN
-	byte *mod_base = buffer;
+	byte	*mod_base = buffer;
 	if ((phdr->studiohdr2index > 0) && (phdr->studiohdr2index < phdr->length))
 		{
 		Con_Printf (S_ERROR "byteswapping extended studio model \"%s\" is unsupoprted\n", name);
 		return false;
 		}
-	/*endif*/
 
 	for (int i = 0; i < phdr->numbones; i++)
 		le_struct_swap (mstudiobone_swap, (mstudiobone_t *)(mod_base + phdr->boneindex) + i);
@@ -1113,7 +1082,7 @@ static qboolean Mod_SwapStudioModel (const char *name, void *buffer, size_t buff
 
 	for (int i = 0; i < phdr->numbodyparts; i++)
 		{
-		mstudiobodyparts_t *pbodypart = (mstudiobodyparts_t *)(mod_base + phdr->bodypartindex) + i;
+		mstudiobodyparts_t	*pbodypart = (mstudiobodyparts_t *)(mod_base + phdr->bodypartindex) + i;
 
 		for (int j = 0; j < pbodypart->nummodels; j++)
 			{
@@ -1125,11 +1094,11 @@ static qboolean Mod_SwapStudioModel (const char *name, void *buffer, size_t buff
 
 			for (int k = 0; k < pmodel->nummesh; k++)
 				{
-				mstudiomesh_t *pmesh = (mstudiomesh_t *)(mod_base + pmodel->meshindex) + k;
+				mstudiomesh_t	*pmesh = (mstudiomesh_t *)(mod_base + pmodel->meshindex) + k;
 				le_struct_swap (mstudiomesh_swap, pmesh);
 
-				short *ptricmds = (short *)(mod_base + pmesh->triindex);
-				short n;
+				short	*ptricmds = (short *)(mod_base + pmesh->triindex);
+				short	n;
 
 				while ((n = LittleShort (*ptricmds)))
 					{
@@ -1144,7 +1113,7 @@ static qboolean Mod_SwapStudioModel (const char *name, void *buffer, size_t buff
 			}
 		}
 
-	short *pskinref = (short *)(mod_base + phdr->skinindex);
+	short	*pskinref = (short *)(mod_base + phdr->skinindex);
 	for (int i = 0; i < phdr->numskinfamilies * phdr->numskinref; i++)
 		pskinref[i] = LittleShort (pskinref[i]);
 #endif
@@ -1178,7 +1147,7 @@ static studiohdr_t *R_StudioLoadHeader (model_t *mod, void *buffer, size_t buffe
 static studiohdr_t *Mod_MaybeTruncateStudioTextureData (model_t *mod)
 	{
 #if XASH_LOW_MEMORY
-	studiohdr_t *phdr = (studiohdr_t *)mod->cache.data;
+	studiohdr_t	*phdr = (studiohdr_t *)mod->cache.data;
 
 	mod->cache.data = Mem_Realloc (mod->mempool, mod->cache.data, phdr->texturedataindex);
 	phdr = (studiohdr_t *)mod->cache.data;	// get the new pointer on studiohdr
@@ -1193,7 +1162,7 @@ static studiohdr_t *Mod_MaybeTruncateStudioTextureData (model_t *mod)
 
 /***
 =================
-Mod_LoadStudioModel [FWGS, 01.05.26]
+Mod_LoadStudioModel
 =================
 ***/
 void Mod_LoadStudioModel (model_t *mod, void *buffer, size_t buffersize, qboolean *loaded)
@@ -1227,8 +1196,8 @@ void Mod_LoadStudioModel (model_t *mod, void *buffer, size_t buffersize, qboolea
 
 		if (thdr != NULL)
 			{
-			byte *in, *out;
-			size_t size1, size2;
+			byte	*in, *out;
+			size_t	size1, size2;
 
 			// TODO: Mod_StudioLoadTextures will crash if passed a merged studio model!
 			ref.dllFuncs.Mod_StudioLoadTextures (mod, thdr);
@@ -1294,10 +1263,11 @@ void Mod_LoadStudioModel (model_t *mod, void *buffer, size_t buffersize, qboolea
 		}
 	else
 		{
-		// well compute bounds from vertices and round to nearest even values
+		// [FWGS, 01.10.26] well compute bounds from vertices and round to nearest even values
 		Mod_StudioComputeBounds (phdr, mod->mins, mod->maxs, true);
-		RoundUpHullSize (mod->mins);
-		RoundUpHullSize (mod->maxs);
+		/*RoundUpHullSize (mod->mins);
+		RoundUpHullSize (mod->maxs);*/
+		RoundUpHullSize (mod->mins, mod->maxs);
 		}
 
 	mod->numframes = Mod_StudioBodyVariations (mod);
@@ -1308,13 +1278,13 @@ void Mod_LoadStudioModel (model_t *mod, void *buffer, size_t buffersize, qboolea
 		*loaded = true;
 	}
 
-static sv_blending_interface_t gBlendAPI =
+static sv_blending_interface_t	gBlendAPI =
 	{
 	SV_BLENDING_INTERFACE_VERSION,
 	SV_StudioSetupBones,
 	};
 
-static server_studio_api_t gStudioAPI =
+static server_studio_api_t	gStudioAPI =
 	{
 	Mod_Calloc,
 	Mod_CacheCheck,

@@ -320,10 +320,8 @@ void MSG_WriteUBitLong (sizebuf_t *sb, uint curData, int numbits)
 	int		nBitsLeft = numbits;
 	int		iCurBit = sb->iCurBit;
 	uint	iDWord = iCurBit >> 5;	// mask in a dword
-	/*uint32_t	iCurBitMasked;
-	int		nBitsWritten;*/
 
-	Assert (numbits >= 1 && numbits <= 32);
+	Assert ((numbits >= 1) && (numbits <= 32));
 
 	// bounds checking
 	if (MSG_Overflow (sb, numbits))
@@ -332,8 +330,6 @@ void MSG_WriteUBitLong (sizebuf_t *sb, uint curData, int numbits)
 		return;
 		}
 
-	/*// [FWGS, 01.05.26]
-	iCurBitMasked = iCurBit & 31;*/
 	uint32_t	iCurBitMasked = iCurBit & 31;
 	uint32_t	dword = LittleLong (((uint32_t *)sb->pData)[iDWord]);
 
@@ -342,8 +338,7 @@ void MSG_WriteUBitLong (sizebuf_t *sb, uint curData, int numbits)
 	((uint32_t *)sb->pData)[iDWord] = LittleLong (dword);
 
 	// did it span a dword?
-	/*nBitsWritten = 32 - iCurBitMasked;*/
-	int nBitsWritten = 32 - iCurBitMasked;
+	int	nBitsWritten = 32 - iCurBitMasked;
 
 	if (nBitsWritten < nBitsLeft)
 		{
@@ -352,8 +347,8 @@ void MSG_WriteUBitLong (sizebuf_t *sb, uint curData, int numbits)
 		curData >>= nBitsWritten;
 
 		iCurBitMasked = iCurBit & 31;
-		uint32_t dword2 = LittleLong (((uint32_t *)sb->pData)[iDWord + 1]);
 
+		uint32_t	dword2 = LittleLong (((uint32_t *)sb->pData)[iDWord + 1]);
 		dword2 &= BitWriteMasks[iCurBitMasked][nBitsLeft - 1];
 		dword2 |= curData << iCurBitMasked;
 		((uint32_t *)sb->pData)[iDWord + 1] = LittleLong (dword2);
@@ -435,7 +430,7 @@ qboolean MSG_WriteBits (sizebuf_t *sb, const void *pData, int nBits)
 		++pOut;
 		}
 
-	// Read the remaining bits
+	// read the remaining bits
 	if (nBitsLeft)
 		{
 		MSG_WriteUBitLong (sb, *pOut, nBitsLeft);
@@ -444,20 +439,20 @@ qboolean MSG_WriteBits (sizebuf_t *sb, const void *pData, int nBits)
 	return !sb->bOverflow;
 	}
 
-// [FWGS, 01.07.26]
 void MSG_WriteBitAngle (sizebuf_t *sb, float fAngle, int numbits)
 	{
 	const uint	shift = (1 << numbits);
 	const uint	mask = shift - 1;
-	/*int		d;*/
 
-	// clamp the angle before receiving
+	// [FWGS, 01.10.26]
+	/*// clamp the angle before receiving
 	fAngle = fmod (fAngle, 360.0f);
 	if (fAngle < 0)
 		fAngle += 360.0f;
 
-	/*d = (int)((fAngle * shift) / 360.0f);*/
-	int d = (int)((fAngle * shift) / 360.0f);
+	int	d = (int)((fAngle * shift) / 360.0f);*/
+	// GoldSrc truncates in double, then does integer division, so we do too
+	int64_t	d = (int64_t)(shift * fmod ((double)fAngle, 360.0)) / 360;
 	d &= mask;
 
 	MSG_WriteUBitLong (sb, (uint)d, numbits);
@@ -560,7 +555,7 @@ qboolean MSG_WriteBytes (sizebuf_t *sb, const void *pBuf, int nBytes)
 // [FWGS, 01.09.24]
 qboolean MSG_WriteString (sizebuf_t *sb, const char *pStr)
 	{
-	int len = Q_strlen (pStr);
+	int	len = Q_strlen (pStr);
 
 	if (len)
 		MSG_WriteBytes (sb, pStr, len + 1);
@@ -574,12 +569,11 @@ qboolean MSG_WriteString (sizebuf_t *sb, const char *pStr)
 qboolean MSG_WriteStringf (sizebuf_t *sb, const char *format, ...)
 	{
 	va_list	va;
-	/*int		len;*/
 	char	buf[MAX_VA_STRING];
 
 	va_start (va, format);
-	/*len = Q_vsnprintf (buf, sizeof (buf), format, va);*/
-	int len = Q_vsnprintf (buf, sizeof (buf), format, va);
+
+	int	len = Q_vsnprintf (buf, sizeof (buf), format, va);
 	va_end (va);
 
 	if (len < 0)
@@ -596,7 +590,7 @@ int MSG_ReadOneBit (sizebuf_t *sb)
 	{
 	if (!MSG_Overflow (sb, 1))
 		{
-		int value = sb->pData[sb->iCurBit >> 3] & (1 << (sb->iCurBit & 7));
+		int	value = sb->pData[sb->iCurBit >> 3] & (1 << (sb->iCurBit & 7));
 		sb->iCurBit++;
 		return !!value;
 		}
@@ -607,12 +601,9 @@ int MSG_ReadOneBit (sizebuf_t *sb)
 // [FWGS, 01.07.26]
 uint MSG_ReadUBitLong (sizebuf_t *sb, int numbits)
 	{
-	/*int		idword1;
-	uint	dword1, ret;*/
-
 	if (numbits == 8)
 		{
-		int leftBits = MSG_GetNumBitsLeft (sb);
+		int	leftBits = MSG_GetNumBitsLeft (sb);
 
 		if (leftBits >= 0 && leftBits < 8)
 			return 0;	// end of message
@@ -627,15 +618,12 @@ uint MSG_ReadUBitLong (sizebuf_t *sb, int numbits)
 	Assert ((numbits > 0) && (numbits <= 32));
 
 	// read the current dword
-	/*idword1 = sb->iCurBit >> 5;
-	dword1 = LittleLong (((uint *)sb->pData)[idword1]);*/
 	int		idword1 = sb->iCurBit >> 5;
 	uint	dword1 = LittleLong (((uint *)sb->pData)[idword1]);
 	dword1 >>= (sb->iCurBit & 31);	// get the bits we're interested in
-
 	sb->iCurBit += numbits;
-	/*ret = dword1;*/
-	uint ret = dword1;
+
+	uint	ret = dword1;
 
 	// does it span this dword?
 	if ((sb->iCurBit - 1) >> 5 == idword1)
@@ -657,11 +645,8 @@ uint MSG_ReadUBitLong (sizebuf_t *sb, int numbits)
 	}
 
 // [FWGS, 01.07.26]
-/*qboolean MSG_ReadBits (sizebuf_t *sb, void *pOutData, int nBits)*/
 qboolean MSG_ReadBits (sizebuf_t *sb, void *out, size_t maxBytes, int bits)
 	{
-	/*byte	*pOut = (byte *)pOutData;
-	int		nBitsLeft = nBits;*/
 	byte	*p = (byte *)out;
 	int		left = bits;
 
@@ -669,26 +654,17 @@ qboolean MSG_ReadBits (sizebuf_t *sb, void *out, size_t maxBytes, int bits)
 		return false;
 
 	// get output dword-aligned
-	/*while ((((uintptr_t)pOut & 3) != 0) && (nBitsLeft >= 8))*/
 	while ((((uintptr_t)p & 3) != 0) && (left >= 8))
 		{
-		/**pOut = (byte)MSG_ReadUBitLong (sb, 8);
-		++pOut;
-		nBitsLeft -= 8;*/
 		*p = (byte)MSG_ReadUBitLong (sb, 8);
 		++p;
 		left -= 8;
 		}
 
 	// read dwords
-	/*while (nBitsLeft >= 32)*/
 	while (left >= 32)
 		{
 		uint32_t	dword = MSG_ReadUBitLong (sb, 32);
-		/**((uint32_t *)pOut) = LittleLong (dword);
-
-		pOut += sizeof (uint32_t);
-		nBitsLeft -= 32;*/
 		dword = LittleLong (dword);
 		memcpy (p, &dword, sizeof (dword));
 		p += sizeof (dword);
@@ -696,22 +672,14 @@ qboolean MSG_ReadBits (sizebuf_t *sb, void *out, size_t maxBytes, int bits)
 		}
 
 	// read the remaining bytes
-	/*while (nBitsLeft >= 8)*/
 	while (left >= 8)
 		{
-		/**pOut = MSG_ReadUBitLong (sb, 8);
-		++pOut;
-		nBitsLeft -= 8;*/
 		*p = MSG_ReadUBitLong (sb, 8);
 		++p;
 		left -= 8;
 		}
 
 	// read the remaining bits
-	/*if (nBitsLeft)
-		{
-		*pOut = MSG_ReadUBitLong (sb, nBitsLeft);
-		}*/
 	if (left)
 		*p = MSG_ReadUBitLong (sb, left);
 
@@ -737,11 +705,11 @@ float MSG_ReadBitAngle (sizebuf_t *sb, int numbits)
 // [FWGS, 01.02.25] Append numbits least significant bits from data to the current bit stream
 int MSG_ReadSBitLong (sizebuf_t *sb, int numbits)
 	{
-	int r;
+	int	r;
 
 	if (sb->iAlternateSign)
 		{
-		int sign = MSG_ReadOneBit (sb);
+		int	sign = MSG_ReadOneBit (sb);
 		r = MSG_ReadUBitLong (sb, numbits - 1);
 
 		if (sign)
@@ -789,12 +757,9 @@ int MSG_ReadCmd (sizebuf_t *sb, netsrc_t type)
 // [FWGS, 01.07.26]
 int MSG_ReadChar (sizebuf_t *sb)
 	{
-	/*int alt = sb->iAlternateSign, ret;*/
 	int	alt = sb->iAlternateSign;
-
 	sb->iAlternateSign = 0;
 
-	/*ret = MSG_ReadSBitLong (sb, sizeof (int8_t) << 3);*/
 	int	ret = MSG_ReadSBitLong (sb, sizeof (int8_t) << 3);
 	sb->iAlternateSign = alt;
 
@@ -809,12 +774,9 @@ int MSG_ReadByte (sizebuf_t *sb)
 // [FWGS, 01.07.26]
 int MSG_ReadShort (sizebuf_t *sb)
 	{
-	/*int alt = sb->iAlternateSign, ret;*/
 	int	alt = sb->iAlternateSign;
-
 	sb->iAlternateSign = 0;
 
-	/*ret = MSG_ReadSBitLong (sb, sizeof (int16_t) << 3);*/
 	int	ret = MSG_ReadSBitLong (sb, sizeof (int16_t) << 3);
 	sb->iAlternateSign = alt;
 
@@ -852,12 +814,9 @@ void MSG_ReadVec3Angles (sizebuf_t *sb, vec3_t fa)
 // [FWGS, 01.07.26]
 int MSG_ReadLong (sizebuf_t *sb)
 	{
-	/*int alt = sb->iAlternateSign, ret;*/
 	int	alt = sb->iAlternateSign;
-
 	sb->iAlternateSign = 0;
 
-	/*ret = MSG_ReadSBitLong (sb, sizeof (int32_t) << 3);*/
 	int	ret = MSG_ReadSBitLong (sb, sizeof (int32_t) << 3);
 	sb->iAlternateSign = alt;
 
@@ -876,10 +835,8 @@ float MSG_ReadFloat (sizebuf_t *sb)
 	}
 
 // [FWGS, 01.07.26]
-/*qboolean MSG_ReadBytes (sizebuf_t *sb, void *pOut, int nBytes)*/
 qboolean MSG_ReadBytes (sizebuf_t *sb, void *out, size_t maxBytes, int bytes)
 	{
-	/*return MSG_ReadBits (sb, pOut, nBytes << 3);*/
 	return MSG_ReadBits (sb, out, maxBytes, bytes << 3);
 	}
 
@@ -892,7 +849,7 @@ static char *MSG_ReadStringExt (sizebuf_t *sb, qboolean bLine)
 	do
 		{
 		// use MSG_ReadByte so -1 is out of bounds
-		int c = MSG_ReadByte (sb);
+		int	c = MSG_ReadByte (sb);
 
 		if (c == 0)
 			break;
@@ -927,7 +884,6 @@ char *MSG_ReadStringLine (sizebuf_t *sb)
 // [FWGS, 01.07.26]
 void MSG_ExciseBits (sizebuf_t *sb, int startbit, int bitstoremove)
 	{
-	/*int	i, endbit = startbit + bitstoremove;*/
 	int	endbit = startbit + bitstoremove;
 	int	remaining_to_end = sb->nDataBits - endbit;
 	sizebuf_t	temp;
@@ -935,7 +891,6 @@ void MSG_ExciseBits (sizebuf_t *sb, int startbit, int bitstoremove)
 	MSG_StartWriting (&temp, sb->pData, MSG_GetMaxBytes (sb), startbit, -1);
 	MSG_SeekToBit (sb, endbit, SEEK_SET);
 
-	/*for (i = 0; i < remaining_to_end; i++)*/
 	for (int i = 0; i < remaining_to_end; i++)
 		{
 		MSG_WriteOneBit (&temp, MSG_ReadOneBit (sb));
@@ -949,8 +904,8 @@ void MSG_ExciseBits (sizebuf_t *sb, int startbit, int bitstoremove)
 
 #include "tests.h"
 
-static const void *g_testbuf = "asdf\xba\xa1\xba\xa1\xed\xc8\x15\x7a";
-static const size_t g_testbuf_bits = ((4 + 4 + 2 + 1) << 3) + 4;
+static const void	*g_testbuf = "asdf\xba\xa1\xba\xa1\xed\xc8\x15\x7a";
+static const size_t	g_testbuf_bits = ((4 + 4 + 2 + 1) << 3) + 4;
 
 static void Test_Buffer_BitByte (void)
 	{
@@ -963,7 +918,7 @@ static void Test_Buffer_BitByte (void)
 static void Test_Buffer_Write (void)
 	{
 	sizebuf_t sb;
-	char testdata[0x100] = { 0 };
+	char	testdata[0x100] = { 0 };
 
 	MSG_Init (&sb, __func__, testdata, sizeof (testdata));
 	TASSERT_EQi (sb.iCurBit, 0);
@@ -1019,8 +974,8 @@ static void Test_Buffer_Write (void)
 // [FWGS, 01.07.26]
 static void Test_Buffer_Read (void)
 	{
-	sizebuf_t sb;
-	char buf[4];
+	sizebuf_t	sb;
+	char	buf[4];
 
 	MSG_StartReading (&sb, (void *)g_testbuf, -1, 0, g_testbuf_bits);
 	TASSERT_EQi (sb.iCurBit, 0);
@@ -1028,7 +983,6 @@ static void Test_Buffer_Read (void)
 	TASSERT_EQp (sb.pData, (void *)g_testbuf);
 	TASSERT_EQi (sb.bOverflow, false);
 
-	/*MSG_ReadBytes (&sb, buf, 4);*/
 	MSG_ReadBytes (&sb, buf, sizeof (buf), 4);
 	TASSERT (!memcmp (buf, "asdf", 4));
 	TASSERT_EQi (sb.iCurBit, 32);
@@ -1068,8 +1022,8 @@ static void Test_Buffer_Read (void)
 
 static void Test_Buffer_ExciseBits (void)
 	{
-	sizebuf_t sb;
-	char testdata[0x100];
+	sizebuf_t	sb;
+	char	testdata[0x100];
 
 	memcpy (testdata, g_testbuf, BitByte (g_testbuf_bits));
 
@@ -1093,12 +1047,57 @@ static void Test_Buffer_ExciseBits (void)
 	TASSERT_EQi (MSG_ReadUBitLong (&sb, 4), 0xa);
 	}
 
+// [FWGS, 01.10.26]
+static void Test_Buffer_BitAngle (void)
+	{
+	// expected values are produced by GoldSrc's MSG_WriteBitAngle
+	const struct
+		{
+		float	angle;
+		int		numbits;
+		uint	result;
+		} test_data[] =
+			{
+			{ 0.0f, 16, 0 },
+			{ 90.0f, 16, 16384 },
+			{ 180.0f, 16, 32768 },
+			{ 359.99f, 16, 65534 },
+			{ 360.0f, 16, 0 },
+			{ 720.5f, 16, 91 },
+			{ 45.123f, 16, 8214 },
+			{ -1.0f, 16, 65354 },
+			{ -90.0f, 16, 49152 },
+			{ -0.001f, 16, 0 },
+			{ -179.99f, 16, 32770 },
+			{ -360.0f, 16, 0 },
+			{ -45.123f, 16, 57322 },
+			{ -720.5f, 16, 65445 },
+			{ -1.0f, 12, 4085 },
+			{ 100.7f, 12, 1145 },
+			};
+	sizebuf_t	sb;
+	char	testdata[0x100];
+
+	MSG_Init (&sb, __func__, testdata, sizeof (testdata));
+
+	for (int i = 0; i < ARRAYSIZE (test_data); i++)
+		MSG_WriteBitAngle (&sb, test_data[i].angle, test_data[i].numbits);
+
+	MSG_SeekToBit (&sb, 0, SEEK_SET);
+
+	for (int i = 0; i < ARRAYSIZE (test_data); i++)
+		TASSERT_EQi (MSG_ReadUBitLong (&sb, test_data[i].numbits), test_data[i].result);
+	}
+
 void Test_RunBuffer (void)
 	{
 	TRUN (Test_Buffer_BitByte ());
 	TRUN (Test_Buffer_Write ());
 	TRUN (Test_Buffer_Read ());
 	TRUN (Test_Buffer_ExciseBits ());
+
+	// [FWGS, 01.10.26]
+	TRUN (Test_Buffer_BitAngle ());
 	}
 
 #endif

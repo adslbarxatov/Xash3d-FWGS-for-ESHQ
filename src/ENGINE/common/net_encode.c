@@ -332,8 +332,9 @@ static const delta_field_t meta_fields[] =
 	{ DESC_DEF (postmultiply),		},
 	};
 
-// [FWGS, 01.05.24]
 #if XASH_ENGINE_TESTS
+
+// [FWGS, 01.10.26]
 typedef struct delta_test_struct_t
 	{
 	char	dt_string[128];		// always signed
@@ -342,17 +343,21 @@ typedef struct delta_test_struct_t
 	float	dt_angle;			// always_signed
 	float	dt_float_signed;
 	float	dt_float_unsigned;
-	int32_t	dt_integer_signed;
+	int32_t		dt_integer_signed;
 	uint32_t	dt_integer_unsigned;
-	int16_t	dt_short_signed;
+	int16_t		dt_short_signed;
 	uint16_t	dt_short_unsigned;
-	int8_t	dt_byte_signed;
-	uint8_t	dt_byte_unsigned;
+	int8_t		dt_byte_signed;
+	uint8_t		dt_byte_unsigned;
+
+	int32_t		dt_integer_signed_mul;
+	int16_t		dt_short_signed_mul;
+	int8_t		dt_byte_signed_mul;
 	} delta_test_struct_t;
 
 #define TEST_DEF( x ) #x, offsetof( delta_test_struct_t, x ), sizeof( ((delta_test_struct_t *)0)->x )
 
-// [FWGS, 22.01.25]
+// [FWGS, 01.10.26]
 static const delta_field_t test_fields[] =
 	{
 	{ TEST_DEF (dt_string)				},
@@ -367,7 +372,12 @@ static const delta_field_t test_fields[] =
 	{ TEST_DEF (dt_short_unsigned)		},
 	{ TEST_DEF (dt_byte_signed)			},
 	{ TEST_DEF (dt_byte_unsigned)		},
+
+	{ TEST_DEF (dt_integer_signed_mul) },
+	{ TEST_DEF (dt_short_signed_mul) },
+	{ TEST_DEF (dt_byte_signed_mul) },
 	};
+
 #endif
 
 // [FWGS, 22.01.25]
@@ -1062,6 +1072,65 @@ static int Delta_ClampIntegerField (delta_t *pField, int iValue, int signbit, in
 
 /***
 =====================
+Delta_IntegerToDouble [FWGS, 01.10.26]
+
+using double here as double can represent whole 32-bit integer range
+unlike float
+=====================
+***/
+static double Delta_IntegerToDouble (uint iValue, qboolean bSigned)
+	{
+	return bSigned ? (double)(int)iValue : (double)iValue;
+	}
+
+/***
+=====================
+Delta_IntegerFromDouble [FWGS, 01.10.26]
+=====================
+***/
+static uint Delta_IntegerFromDouble (double value, qboolean bSigned)
+	{
+	if (bSigned)
+		return (int)bound ((double)INT_MIN, value, (double)INT_MAX);
+	return (uint)bound (0.0, value, (double)UINT_MAX);
+	}
+
+/***
+=====================
+Delta_PreMultiplyInteger [FWGS, 01.10.26]
+=====================
+***/
+static uint Delta_PreMultiplyInteger (const delta_t *pField, uint iValue, qboolean bSigned)
+	{
+	if (Q_equal (pField->multiplier, 1.0))
+		return iValue;
+
+	return Delta_IntegerFromDouble (Delta_IntegerToDouble (iValue, bSigned) * pField->multiplier, bSigned);
+	}
+
+/***
+=====================
+Delta_PostMultiplyInteger [FWGS, 01.10.26]
+=====================
+***/
+static uint Delta_PostMultiplyInteger (const delta_t *pField, uint iValue, qboolean bSigned)
+	{
+	if (Q_equal (pField->multiplier, 1.0) && Q_equal (pField->post_multiplier, 1.0))
+		return iValue;
+
+	double	value = Delta_IntegerToDouble (iValue, bSigned);
+
+	if (!Q_equal (pField->multiplier, 1.0))
+		value /= pField->multiplier;
+
+	if (!Q_equal (pField->post_multiplier, 1.0))
+		value *= pField->post_multiplier;
+
+	return Delta_IntegerFromDouble (value, bSigned);
+	}
+
+/***
+=====================
 Delta_CompareField [FWGS, 01.12.24]
 
 compare fields by offsets
@@ -1172,8 +1241,8 @@ static qboolean Delta_CompareField (delta_t *pField, const void *from, const voi
 	else if (pField->flags & DT_STRING)
 		{
 		// compare strings
-		char *s1 = (char *)((byte *)from + pField->offset);
-		char *s2 = (char *)((byte *)to + pField->offset);
+		char	*s1 = (char *)((byte *)from + pField->offset);
+		char	*s2 = (char *)((byte *)to + pField->offset);
 
 		// 0 is equal, otherwise not equal
 		toF = Q_strcmp (s1, s2);
@@ -1239,7 +1308,7 @@ int Delta_TestBaseline (const entity_state_t *from, const entity_state_t *to, qb
 
 /***
 =====================
-Delta_WriteField [FWGS, 01.12.24]
+Delta_WriteField
 
 write fields by offsets
 assume from and to is valid
@@ -1260,8 +1329,10 @@ static void Delta_WriteField_ (sizebuf_t *msg, delta_t *pField, const void *from
 		else
 			iValue = *(uint8_t *)((int8_t *)to + pField->offset);
 
-		if (!Q_equal (pField->multiplier, 1.0))
-			iValue *= pField->multiplier;
+		// [FWGS, 01.10.26]
+		/*if (!Q_equal (pField->multiplier, 1.0))
+			iValue *= pField->multiplier;*/
+		iValue = Delta_PreMultiplyInteger (pField, iValue, signbit);
 
 		iValue = Delta_ClampIntegerField (pField, iValue, signbit, pField->bits);
 		MSG_WriteBitLong (msg, iValue, pField->bits, signbit);
@@ -1273,8 +1344,10 @@ static void Delta_WriteField_ (sizebuf_t *msg, delta_t *pField, const void *from
 		else
 			iValue = *(uint16_t *)((int8_t *)to + pField->offset);
 
-		if (!Q_equal (pField->multiplier, 1.0))
-			iValue *= pField->multiplier;
+		// [FWGS, 01.10.26]
+		/*if (!Q_equal (pField->multiplier, 1.0))
+			iValue *= pField->multiplier;*/
+		iValue = Delta_PreMultiplyInteger (pField, iValue, signbit);
 
 		iValue = Delta_ClampIntegerField (pField, iValue, signbit, pField->bits);
 		MSG_WriteBitLong (msg, iValue, pField->bits, signbit);
@@ -1286,8 +1359,10 @@ static void Delta_WriteField_ (sizebuf_t *msg, delta_t *pField, const void *from
 		else
 			iValue = *(uint32_t *)((int8_t *)to + pField->offset);
 
-		if (!Q_equal (pField->multiplier, 1.0))
-			iValue *= pField->multiplier;
+		// [FWGS, 01.10.26]
+		/*if (!Q_equal (pField->multiplier, 1.0))
+			iValue *= pField->multiplier;*/
+		iValue = Delta_PreMultiplyInteger (pField, iValue, signbit);
 
 		iValue = Delta_ClampIntegerField (pField, iValue, signbit, pField->bits);
 		MSG_WriteBitLong (msg, iValue, pField->bits, signbit);
@@ -1410,14 +1485,16 @@ static void Delta_ReadField_ (sizebuf_t *msg, delta_t *pField, void *to, double 
 
 	Assert (pField->multiplier != 0.0f);
 
+	// [FWGS, 01.10.26]
 	if (pField->flags & DT_BYTE)
 		{
 		iValue = MSG_ReadBitLong (msg, pField->bits, bSigned);
-		if (!Q_equal (pField->multiplier, 1.0))
+		/*if (!Q_equal (pField->multiplier, 1.0))
 			iValue /= pField->multiplier;
 
 		if (!Q_equal (pField->post_multiplier, 1.0))
-			iValue *= pField->post_multiplier;
+			iValue *= pField->post_multiplier;*/
+		iValue = Delta_PostMultiplyInteger (pField, iValue, bSigned);
 
 		if (bSigned)
 			*(int8_t *)((uint8_t *)to + pField->offset) = iValue;
@@ -1427,11 +1504,12 @@ static void Delta_ReadField_ (sizebuf_t *msg, delta_t *pField, void *to, double 
 	else if (pField->flags & DT_SHORT)
 		{
 		iValue = MSG_ReadBitLong (msg, pField->bits, bSigned);
-		if (!Q_equal (pField->multiplier, 1.0))
+		/*if (!Q_equal (pField->multiplier, 1.0))
 			iValue /= pField->multiplier;
 
 		if (!Q_equal (pField->post_multiplier, 1.0))
-			iValue *= pField->post_multiplier;
+			iValue *= pField->post_multiplier;*/
+		iValue = Delta_PostMultiplyInteger (pField, iValue, bSigned);
 
 		if (bSigned)
 			*(int16_t *)((uint8_t *)to + pField->offset) = iValue;
@@ -1441,11 +1519,12 @@ static void Delta_ReadField_ (sizebuf_t *msg, delta_t *pField, void *to, double 
 	else if (pField->flags & DT_INTEGER)
 		{
 		iValue = MSG_ReadBitLong (msg, pField->bits, bSigned);
-		if (!Q_equal (pField->multiplier, 1.0))
+		/*if (!Q_equal (pField->multiplier, 1.0))
 			iValue /= pField->multiplier;
 
 		if (!Q_equal (pField->post_multiplier, 1.0))
-			iValue *= pField->post_multiplier;
+			iValue *= pField->post_multiplier;*/
+		iValue = Delta_PostMultiplyInteger (pField, iValue, bSigned);
 
 		if (bSigned)
 			*(int32_t *)((uint8_t *)to + pField->offset) = iValue;
@@ -1472,7 +1551,6 @@ static void Delta_ReadField_ (sizebuf_t *msg, delta_t *pField, void *to, double 
 	// [FWGS, 01.09.26]
 	else if (pField->flags & DT_ANGLE)
 		{
-		/*flAngle = MSG_ReadBitAngle (msg, pField->bits);*/
 		flAngle = MSG_ReadUBitLong (msg, pField->bits) * (360.0f / (float)(1 << pField->bits));
 		*(float *)((byte *)to + pField->offset) = flAngle;
 		}
@@ -2263,7 +2341,6 @@ void GAME_EXPORT Delta_UnsetFieldByIndex (delta_t *pFields, int fieldNumber)
 
 #include "tests.h"
 
-// [FWGS, 01.07.26]
 void Test_RunDelta (void)
 	{
 	delta_info_t	*dt = &dt_info[DT_DELTA_TEST_STRUCT_T];
@@ -2286,6 +2363,11 @@ void Test_RunDelta (void)
 	Delta_AddField (dt, "dt_byte_signed", DT_BYTE | DT_SIGNED, 6, 1.0f, 1.0f);
 	Delta_AddField (dt, "dt_byte_unsigned", DT_BYTE, 8, 1.0f, 1.0f);
 
+	// [FWGS, 01.10.26]
+	Delta_AddField (dt, "dt_integer_signed_mul", DT_INTEGER | DT_SIGNED, 24, 2.0f, 1.0f);
+	Delta_AddField (dt, "dt_short_signed_mul", DT_SHORT | DT_SIGNED, 16, 4.0f, 1.0f);
+	Delta_AddField (dt, "dt_byte_signed_mul", DT_BYTE | DT_SIGNED, 8, 2.0f, 1.0f);
+
 	Q_strncpy (from.dt_string, "test data check it's the same", sizeof (from.dt_string));
 	from.dt_timewindow_big = timebase + 2.3456;
 	from.dt_timewindow_8 = timebase + 0.0234;
@@ -2298,6 +2380,11 @@ void Test_RunDelta (void)
 	from.dt_short_unsigned = 32131;
 	from.dt_byte_signed = 16;
 	from.dt_byte_unsigned = 218;
+
+	// [FWGS, 01.10.26]
+	from.dt_integer_signed_mul = -412784;
+	from.dt_short_signed_mul = -1234;
+	from.dt_byte_signed_mul = -30;
 
 	MSG_Init (&msg, "test message", buffer, sizeof (buffer));
 
@@ -2330,6 +2417,11 @@ void Test_RunDelta (void)
 	TASSERT ((from.dt_short_unsigned & (0xffff << 3)) == to.dt_short_unsigned);
 	TASSERT_EQi (from.dt_byte_signed, to.dt_byte_signed);
 	TASSERT_EQi (from.dt_byte_unsigned, to.dt_byte_unsigned);
+
+	// [FWGS, 01.10.26]
+	TASSERT_EQi (from.dt_integer_signed_mul, to.dt_integer_signed_mul);
+	TASSERT_EQi (from.dt_short_signed_mul, to.dt_short_signed_mul);
+	TASSERT_EQi (from.dt_byte_signed_mul, to.dt_byte_signed_mul);
 
 	Con_Printf ("from.dt_timewindow_big = %f\n", from.dt_timewindow_big);
 	Con_Printf ("to.dt_timewindow_big = %f\n", to.dt_timewindow_big);

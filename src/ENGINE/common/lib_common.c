@@ -41,25 +41,18 @@ void COM_PushLibraryError (const char *error)
 // [FWGS, 01.07.26]
 void *COM_FunctionFromName_SR (void *hInstance, const char *pName)
 	{
-	/*char	**funcs = NULL;
-	size_t	numfuncs, i;
-	void	*f = NULL;
-	const char	*func = NULL;*/
-
 #ifdef XASH_ALLOW_SAVERESTORE_OFFSETS
 	if (!memcmp (pName, "ofs:", 4))
 		return (byte *)svgame.dllFuncs.pfnGameInit + Q_atoi (pName + 4);
 #endif
 
 #if XASH_POSIX
-	/*funcs = COM_ConvertToLocalPlatform (MANGLE_ITANIUM, pName, &numfuncs);*/
 	size_t	numfuncs;
 	char	**funcs = COM_ConvertToLocalPlatform (MANGLE_ITANIUM, pName, &numfuncs);
 
 	if (funcs)
 		{
-		/*for (i = 0; i < numfuncs; i++)*/
-		void *f = NULL;
+		void	*f = NULL;
 		for (size_t i = 0; i < numfuncs; i++)
 			{
 			if (!f)
@@ -78,8 +71,7 @@ void *COM_FunctionFromName_SR (void *hInstance, const char *pName)
 	// TODO: COM_ConvertToLocalPlatform doesn't support MSVC yet
 	// also custom loader strips always MSVC mangling, so Win32
 	// platforms already use platform-neutral names
-	/*func = COM_GetPlatformNeutralName (pName);*/
-	const char *func = COM_GetPlatformNeutralName (pName);
+	const char	*func = COM_GetPlatformNeutralName (pName);
 
 	if (func)
 		return COM_FunctionFromName (hInstance, func);
@@ -91,7 +83,7 @@ void *COM_FunctionFromName_SR (void *hInstance, const char *pName)
 // [FWGS, 01.11.25]
 const char *COM_OffsetNameForFunction (void *function)
 	{
-	static string sname;
+	static string	sname;
 
 	Q_snprintf (sname, MAX_STRING, "ofs:%zu", (size_t)((byte *)function - (byte *)svgame.dllFuncs.pfnGameInit));
 	Con_Reportf ("%s: %s\n", __func__, sname);
@@ -101,14 +93,10 @@ const char *COM_OffsetNameForFunction (void *function)
 // [FWGS, 01.07.26]
 dll_user_t *FS_FindLibrary (const char *dllname, qboolean directpath)
 	{
-	/*dll_user_t		*p;
-	fs_dllinfo_t	dllInfo;*/
-
 	// no fs loaded yet, but let engine find fs
 	if (!g_fsapi.FindLibrary)
 		{
-		/*p = Mem_Calloc (host.mempool, sizeof (dll_user_t));*/
-		dll_user_t *p = Mem_Calloc (host.mempool, sizeof (dll_user_t));
+		dll_user_t	*p = Mem_Calloc (host.mempool, sizeof (dll_user_t));
 
 		Q_strncpy (p->shortPath, dllname, sizeof (p->shortPath));
 		Q_strncpy (p->fullPath, dllname, sizeof (p->fullPath));
@@ -117,7 +105,7 @@ dll_user_t *FS_FindLibrary (const char *dllname, qboolean directpath)
 		return p;
 		}
 
-	fs_dllinfo_t dllInfo;
+	fs_dllinfo_t	dllInfo;
 
 	// fs can't find library
 	if (!g_fsapi.FindLibrary (dllname, directpath, &dllInfo))
@@ -125,8 +113,7 @@ dll_user_t *FS_FindLibrary (const char *dllname, qboolean directpath)
 
 	// NOTE: for libraries we not fail even if search is NULL
 	// let the OS find library himself
-	/*p = Mem_Calloc (host.mempool, sizeof (dll_user_t));*/
-	dll_user_t *p = Mem_Calloc (host.mempool, sizeof (dll_user_t));
+	dll_user_t	*p = Mem_Calloc (host.mempool, sizeof (dll_user_t));
 
 	Q_strncpy (p->shortPath, dllInfo.shortPath, sizeof (p->shortPath));
 	Q_strncpy (p->fullPath, dllInfo.fullPath, sizeof (p->fullPath));
@@ -157,7 +144,7 @@ static void COM_GenerateClientLibraryPath (const char *name, char *out, size_t s
 #ifdef XASH_INTERNAL_GAMELIBS	// assuming library loader knows where to get libraries
 	Q_strncpy (out, name, size);
 #else
-	string libname;
+	string	libname;
 
 	COM_GenerateCommonLibraryName (name, libname, sizeof (libname));
 
@@ -193,8 +180,8 @@ static void COM_GenerateServerLibraryPath (const char *alt_dllname, char *out, s
 	COM_DefaultExtension (out, "." OS_LIB_EXT, size);
 
 #else
-	string temp, dir, libname;
-	const char *base_dllname;
+	string	temp, dir, libname;
+	const char	*base_dllname;
 
 #if XASH_WIN32
 	Q_strncpy (temp, GI->game_dll, sizeof (temp));
@@ -324,17 +311,14 @@ static EFunctionMangleType COM_DetectMangleType (const char *str)
 // [FWGS, 01.07.26]
 char *COM_GetMSVCName (const char *in_name)
 	{
-	/*static string   out_name;
-	char *pos;*/
-	static string out_name;
+	static string	out_name;
 
 	if (in_name[0] == '?')	// is this a MSVC C++ mangled name?
 		{
-		/*if ((pos = Q_strstr (in_name, "@@")) != NULL)*/
-		char *pos = Q_strstr (in_name, "@@");
+		char	*pos = Q_strstr (in_name, "@@");
 		if (pos != NULL)
 			{
-			ptrdiff_t len = pos - in_name;
+			ptrdiff_t	len = pos - in_name;
 
 			// strip off the leading '?'
 			Q_strncpy (out_name, in_name + 1, sizeof (out_name));
@@ -418,17 +402,11 @@ invalid_format:
 // [FWGS, 01.07.26]
 char **COM_ConvertToLocalPlatform (EFunctionMangleType to, const char *from, size_t *numfuncs)
 	{
-	/*string		symbols[MAX_NESTED_NAMESPACES], temp, temp2;
-	const char	*prev;
-	const char	*postfix[3];
-	int			i = 0;
-	char		**ret;*/
-
 	// TODO:
 	if (to == MANGLE_MSVC)
 		return NULL;
 
-	const char *postfix[3];
+	const char	*postfix[3];
 	switch (to)
 		{
 		case MANGLE_ITANIUM:
@@ -442,15 +420,14 @@ char **COM_ConvertToLocalPlatform (EFunctionMangleType to, const char *from, siz
 			return NULL;
 		}
 
-	/*prev = from;*/
-	string symbols[MAX_NESTED_NAMESPACES];
-	const char *prev = from;
+	string	symbols[MAX_NESTED_NAMESPACES];
+	const char	*prev = from;
+	int		i;
 
-	int i;
 	for (i = 0; i < MAX_NESTED_NAMESPACES; i++)
 		{
-		const char *at = Q_strchr (prev, '@');
-		uint len;
+		const char	*at = Q_strchr (prev, '@');
+		uint	len;
 
 		if (at) 
 			len = (uint)(at - prev);
@@ -472,10 +449,10 @@ char **COM_ConvertToLocalPlatform (EFunctionMangleType to, const char *from, siz
 
 	// only three possible variations
 	*numfuncs = HLARRAYSIZE (postfix);
-	/*ret = Z_Malloc (sizeof (char *) * HLARRAYSIZE (postfix));*/
-	char **ret = Z_Malloc (sizeof (char *) * HLARRAYSIZE (postfix));
 
-	string temp, temp2;
+	char	**ret = Z_Malloc (sizeof (char *) * HLARRAYSIZE (postfix));
+	string	temp, temp2;
+
 	Q_strncpy (temp, "_ZN", sizeof (temp));
 
 	for (; i >= 0; i--)
@@ -495,17 +472,53 @@ char **COM_ConvertToLocalPlatform (EFunctionMangleType to, const char *from, siz
 
 const char *COM_GetPlatformNeutralName (const char *in_name)
 	{
-	EFunctionMangleType type = COM_DetectMangleType (in_name);
+	EFunctionMangleType	type = COM_DetectMangleType (in_name);
 
 	switch (type)
 		{
-		case MANGLE_ITANIUM: return COM_GetItaniumName (in_name);
-		case MANGLE_MSVC: return COM_GetMSVCName (in_name);
-		default: return in_name;
+		case MANGLE_ITANIUM:
+			return COM_GetItaniumName (in_name);
+
+		case MANGLE_MSVC:
+			return COM_GetMSVCName (in_name);
+
+		default:
+			return in_name;
 		}
 	}
 
+// [FWGS, 01.10.26]
+qboolean COM_CheckLibraryDirectDependency (const char *name, const char *depname, qboolean directpath)
+	{
+	dll_user_t	*hInst = FS_FindLibrary (name, directpath);
+
+	if (!hInst)
+		return false;
+
+	fs_offset_t	filesize = 0;
+	byte	*data;
+
+	// FS_LoadFile could resolve shortPath through a search path FS_FindLibrary skipped
+	if (hInst->custom_loader)
+		data = FS_LoadFile (hInst->shortPath, &filesize, false);
+	else
+		data = FS_LoadDirectFile (hInst->fullPath, &filesize);
+
+	// FS_FindLibrary only looks the library up, there's nothing to unload here
+	Mem_Free (hInst);
+
+	if (!data)
+		return false;
+
+	const qboolean	ret = Platform_CheckLibraryDirectDependency (data, (size_t)filesize, depname);
+
+	Mem_Free (data);
+
+	return ret;
+	}
+
 #if XASH_ENGINE_TESTS
+
 #include "tests.h"
 
 static void Test_DetectMangleType (void)
@@ -542,7 +555,7 @@ static void Test_DetectMangleType (void)
 // [FWGS, 01.07.26]
 static void Test_GetMSVCName (void)
 	{
-	const char *symbols[] =
+	const char	*symbols[] =
 		{
 		"", "",
 		"?f@f@@XYZA", "f@f",
@@ -552,9 +565,7 @@ static void Test_GetMSVCName (void)
 		"?foo@@", "foo",	// not an error?
 		"?foo@bar@baz@@gotstrippedanyway","foo@bar@baz"
 		};
-	/*int i;*/
 
-	/*for (i = 0; i < HLARRAYSIZE (symbols); i += 2)*/
 	for (int i = 0; i < HLARRAYSIZE (symbols); i += 2)
 		{
 		Msg ("Checking if MSVC '%s' converts to '%s'...\n", symbols[i], symbols[i + 1]);
@@ -566,7 +577,7 @@ static void Test_GetMSVCName (void)
 // [FWGS, 01.07.26]
 static void Test_GetItaniumName (void)
 	{
-	const char *symbols[] =
+	const char	*symbols[] =
 		{
 		"", NULL,
 		"_", NULL,
@@ -581,9 +592,7 @@ static void Test_GetItaniumName (void)
 		"_ZN3fooEv", "foo",	// not possible?
 		"_ZN3baz3bar3fooEdontcare", "foo@bar@baz",
 		};
-	/*int i;*/
 
-	/*for (i = 0; i < HLARRAYSIZE (symbols); i += 2)*/
 	for (int i = 0; i < HLARRAYSIZE (symbols); i += 2)
 		{
 		Msg ("Checking if Itanium '%s' converts to '%s'...\n", symbols[i], symbols[i + 1]);
@@ -595,26 +604,22 @@ static void Test_GetItaniumName (void)
 // [FWGS, 01.07.26]
 static void Test_ConvertFromValveToLocal (void)
 	{
-	const char *symbols[] =
+	const char	*symbols[] =
 		{
 		"", "_ZN",
 		"foo", "_ZN3foo",
 		"xash3d@fwgs", "_ZN4fwgs6xash3d",
 		"foo@bar@bazz", "_ZN4bazz3bar3foo"
 		};
-	/*int i;*/
 
-	/*for (i = 0; i < HLARRAYSIZE (symbols); i += 2)*/
 	for (int i = 0; i < HLARRAYSIZE (symbols); i += 2)
 		{
-		/*char **ret;*/
-		size_t numfuncs;
-		size_t symlen = Q_strlen (symbols[i + 1]);
+		size_t	numfuncs;
+		size_t	symlen = Q_strlen (symbols[i + 1]);
 
 		Msg ("Checking if Valve '%s' converts to Itanium '%s'...\n", symbols[i], symbols[i + 1]);
 
-		/*ret = COM_ConvertToLocalPlatform (MANGLE_ITANIUM, symbols[i], &numfuncs);*/
-		char **ret = COM_ConvertToLocalPlatform (MANGLE_ITANIUM, symbols[i], &numfuncs);
+		char	**ret = COM_ConvertToLocalPlatform (MANGLE_ITANIUM, symbols[i], &numfuncs);
 
 		TASSERT (numfuncs == 3);
 		TASSERT (!Q_strncmp (ret[0], symbols[i + 1], symlen));
