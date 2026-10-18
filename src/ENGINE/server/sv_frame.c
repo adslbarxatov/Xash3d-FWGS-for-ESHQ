@@ -928,7 +928,6 @@ void SV_SendClientMessages (void)
 
 			// [FWGS, 01.09.26] NOTE: we should send frame even if server is not simulated
 			// to prevent overflow
-			/*if (cl->state == cs_spawned)*/
 			if ((cl->state == cs_spawned) && SV_CanSendDatagram (cl))
 				SV_SendClientDatagram (cl);
 			else
@@ -1001,8 +1000,9 @@ void SV_InactivateClients (void)
 			cl->connection_started = host.realtime;
 			}
 
-		// [FWGS, 01.03.26]
+		// [FWGS, 01.10.26]
 		COM_ClearCustomizationList (&cl->customdata, false);
+		ClearBits (cl->flags, FCL_SEND_RESOURCES);
 		memset (cl->physinfo, 0, sizeof (cl->physinfo));
 
 		// NOTE: many mods sending messages that must be applied on a next level

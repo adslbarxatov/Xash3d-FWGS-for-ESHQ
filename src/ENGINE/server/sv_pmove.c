@@ -214,10 +214,6 @@ static void SV_AddLinksToPmove (areanode_t *node, const vec3_t pmove_mins, const
 		// [FWGS, 01.09.26]
 		if (check->v.groupinfo != 0)
 			{
-			/*if ((svs.groupop == GROUP_OP_AND) && !FBitSet (check->v.groupinfo, pl->v.groupinfo))
-				continue;
-
-			if ((svs.groupop == GROUP_OP_NAND) && FBitSet (check->v.groupinfo, pl->v.groupinfo))*/
 			if (!SV_CheckGroupOp (svs.groupop, check->v.groupinfo, pl->v.groupinfo))
 				continue;
 			}
@@ -535,13 +531,14 @@ static void PM_CheckMovingGround (edict_t *ent, float frametime)
 	ClearBits (ent->v.flags, FL_BASEVELOCITY);
 	}
 
-// [FWGS, 01.08.26]
 static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd, const char *physinfo)
 	{
 	vec3_t	absmin, absmax;
 	edict_t	*clent = cl->edict;
 
-	pmove->frametime = ucmd->msec * 0.001f;
+	// [FWGS, 01.10.26]
+	/*pmove->frametime = ucmd->msec * 0.001f;*/
+	pmove->frametime = ucmd->msec / 1000.0f;
 
 	pmove->player_index = NUM_FOR_EDICT (clent) - 1;
 	pmove->multiplayer = (svs.maxclients > 1) ? true : false;
@@ -755,7 +752,6 @@ static void SV_SetupMoveInterpolant (sv_client_t *cl)
 	if (sv_maxunlag.value != 0.0f)
 		{
 		if (sv_maxunlag.value < 0.0f)
-			/*Cvar_DirectSetValue (&sv_maxunlag, 0.0f);*/
 			Cvar_DirectSet (&sv_maxunlag, "0");
 
 		latency = Q_min (latency, sv_maxunlag.value);

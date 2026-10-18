@@ -39,8 +39,8 @@ assume GameInfo is valid
 ***/
 static qboolean FS_WriteGameInfo (const char *filepath, const gameinfo_t *GameInfo)
 	{
-	file_t *f = FS_Open (filepath, "w", false);	// we in binary-mode
-	int write_ambients = false;
+	file_t	*f = FS_Open (filepath, "w", false);	// we in binary-mode
+	int		write_ambients = false;
 
 	if (!f)
 		return false;
@@ -107,8 +107,13 @@ static qboolean FS_WriteGameInfo (const char *filepath, const gameinfo_t *GameIn
 
 	switch (GameInfo->gamemode)
 		{
-		case 1: FS_Print (f, "gamemode\t\t\"singleplayer_only\"\n"); break;
-		case 2: FS_Print (f, "gamemode\t\t\"multiplayer_only\"\n"); break;
+		case 1:
+			FS_Print (f, "gamemode\t\t\"singleplayer_only\"\n");
+			break;
+
+		case 2:
+			FS_Print (f, "gamemode\t\t\"multiplayer_only\"\n");
+			break;
 		}
 
 	if (!COM_StringEmpty (GameInfo->sp_entity))
@@ -234,9 +239,9 @@ static void FS_InitGameInfo (gameinfo_t *GameInfo, const char *gamedir, qboolean
 
 static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, const qboolean isGameInfo)
 	{
-	char *pfile = (char *)buf;
-	qboolean found_linux = false, found_osx = false;
-	string token;
+	char	*pfile = (char *)buf;
+	qboolean	found_linux = false, found_osx = false;
+	string	token;
 
 	while ((pfile = COM_ParseFile (pfile, token, sizeof (token))) != NULL)
 		{
@@ -526,11 +531,22 @@ static void FS_ParseGenericGameInfo (gameinfo_t *GameInfo, const char *buf, cons
 			Q_strncpy (GameInfo->demomap, "hldemo1", sizeof (GameInfo->demomap));
 		}
 
+	// [FWGS, 01.10.26]
 	if (!found_linux || !found_osx)
 		{
 		// just replace extension from dll to so/dylib
-		char gamedll[64];
-		Q_strncpy (gamedll, GameInfo->game_dll, sizeof (gamedll));
+		char	gamedll[64];
+		/*Q_strncpy (gamedll, GameInfo->game_dll, sizeof (gamedll));*/
+
+		if (found_linux)
+			{
+			Q_strncpy (gamedll, GameInfo->game_dll_linux, sizeof (gamedll));
+			}
+		else
+			{
+			Q_strncpy (gamedll, GameInfo->game_dll, sizeof (gamedll));
+			}
+
 		COM_StripExtension (gamedll);
 
 		if (!found_linux)
@@ -562,7 +578,7 @@ FS_ParseLiblistGam
 ***/
 static qboolean FS_ParseLiblistGam (const char *filename, const char *gamedir, gameinfo_t *GameInfo, time_t mtime)
 	{
-	char *afile = FS_LoadDirectFile (filename, NULL);
+	char	*afile = FS_LoadDirectFile (filename, NULL);
 
 	if (!afile)
 		return false;
@@ -580,7 +596,8 @@ static qboolean FS_ParseLiblistGam (const char *filename, const char *gamedir, g
 FS_ConvertGameInfo
 ================
 ***/
-static qboolean FS_ConvertGameInfo (const char *gamedir, const char *gameinfo_path, const char *liblist_path, gameinfo_t *gi, time_t liblist_mtime)
+static qboolean FS_ConvertGameInfo (const char *gamedir, const char *gameinfo_path, const char *liblist_path, gameinfo_t *gi,
+	time_t liblist_mtime)
 	{
 	memset (gi, 0, sizeof (*gi));
 
@@ -601,7 +618,7 @@ FS_ReadGameInfo
 ***/
 static qboolean FS_ReadGameInfo (const char *filename, const char *gamedir, gameinfo_t *GameInfo, time_t mtime)
 	{
-	char *afile = FS_LoadDirectFile (filename, NULL);
+	char	*afile = FS_LoadDirectFile (filename, NULL);
 
 	if (!afile)
 		return false;
@@ -626,12 +643,12 @@ static qboolean FS_CheckForQuakeGameDir (const char *gamedir)
 	{
 	// if directory contain quake.rc or progs.dat it's 100% quake gamedir
 	// quake mods probably always archived, so check pak0.pak too
-	const char *files[] = { "pak0.pak", "PAK0.PAK", "progs.dat", "quake.rc" };
+	const char	*files[] = { "pak0.pak", "PAK0.PAK", "progs.dat", "quake.rc" };
 
 	// search it in the filesystem
 	for (int i = 0; i < sizeof (files) / sizeof (files[0]); i++)
 		{
-		char buf[MAX_SYSPATH];
+		char	buf[MAX_SYSPATH];
 
 		if (Q_snprintf (buf, sizeof (buf), "%s/%s", gamedir, files[i]) > 0)
 			{
@@ -663,11 +680,11 @@ Checks if game directory resembles Xash3D game directory
 static qboolean FS_CheckForXashGameDir (const char *gamedir)
 	{
 	// if directory contain gameinfo.txt or liblist.gam it's 100% gamedir
-	const char *files[] = { "gameinfo.txt", "liblist.gam" };
+	const char	*files[] = { "gameinfo.txt", "liblist.gam" };
 
 	for (int i = 0; i < sizeof (files) / sizeof (files[0]); i++)
 		{
-		char buf[MAX_SYSPATH];
+		char	buf[MAX_SYSPATH];
 
 		if (Q_snprintf (buf, sizeof (buf), "%s/%s", gamedir, files[i]) > 0)
 			{
@@ -686,11 +703,11 @@ FS_ParseGameInfo
 ***/
 qboolean FS_ParseGameInfo (const char *gamedir, gameinfo_t *GameInfo, qboolean rodir)
 	{
-	char liblist_path[MAX_SYSPATH];
-	char gameinfo_path[MAX_SYSPATH];
-	char gamedir_path[MAX_SYSPATH];
-	time_t liblist_mtime;
-	time_t gameinfo_mtime;
+	char	liblist_path[MAX_SYSPATH];
+	char	gameinfo_path[MAX_SYSPATH];
+	char	gamedir_path[MAX_SYSPATH];
+	time_t	liblist_mtime;
+	time_t	gameinfo_mtime;
 
 	if (rodir)
 		Q_snprintf (gamedir_path, sizeof (gamedir_path), "%s/%s", fs_rodir, gamedir);

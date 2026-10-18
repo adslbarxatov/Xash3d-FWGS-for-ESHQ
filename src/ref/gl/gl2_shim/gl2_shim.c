@@ -1407,9 +1407,36 @@ static void APIENTRY GL2_LoadMatrixf (const GLfloat *m)
 	gl2wrap_matrix.update = 0xFFFFFFFFFFFFFFFF;
 	}
 
+// [FWGS, 01.10.26]
+static void (APIENTRY *rpglGetFloatv)(GLenum pname, GLfloat *params);
+
+// [FWGS, 01.10.26]
+static void APIENTRY GL2_GetFloatv (GLenum pname, GLfloat *params)
+	{
+	switch (pname)
+		{
+		case GL_MODELVIEW_MATRIX:
+			memcpy (params, gl2wrap_matrix.mv, 16 * sizeof (float));
+			break;
+
+		case GL_PROJECTION_MATRIX:
+			memcpy (params, gl2wrap_matrix.pr, 16 * sizeof (float));
+			break;
+
+		case GL_FOG_COLOR:
+			Vector4Copy (gl2wrap.fog, params);
+			break;
+
+		default:
+			rpglGetFloatv (pname, params);
+			break;
+		}
+	}
+
 // [FWGS, 01.12.24]
 #if XASH_GLES
 static void (APIENTRY *_pglDepthRangef)(GLfloat zFar, GLfloat zNear);
+
 static void APIENTRY GL2_DepthRange (GLdouble zFar, GLdouble zNear)
 	{
 	_pglDepthRangef (zFar, zNear);
@@ -1546,7 +1573,6 @@ static void GL2_UpdatePersistentArrayBuffer (gl2wrap_prog_t *prog, int size, int
 			GL2_MAX_VERTS * 64, flags);
 
 		// [FWGS, 01.09.26]
-		/*size = end * stride, offset = 0;*/
 		size = (end + 1) * stride, offset = 0;
 		}
 
@@ -1577,7 +1603,6 @@ static void GL2_UpdateIncrementalArrayBuffer (gl2wrap_prog_t *prog, int size, in
 	// [FWGS, 01.09.26]
 	if (gl2wrap_arrays.stream_counter + size > GL2_MAX_VERTS * 64)
 		{
-		/*size = end * stride;*/
 		size = (end + 1) * stride;
 		offset = 0;
 		gl2wrap_arrays.stream_counter = 0;
@@ -1717,14 +1742,12 @@ static void GL2_SetupArrays (GLuint start, GLuint end)
 					}
 
 				// [FWGS, 01.09.26]
-				/*int	size = (end - start) * stride;*/
 				int	size = (end - start + 1) * stride;
 				int	offset = start * stride;
 
 				// [FWGS, 01.09.26] logical buffer start can lie before real buffer start
 				// but attrib pointer cannot have negative buffer offset
 				if (gl2wrap_arrays.stream_counter < offset)
-					/*size = end * stride, offset = 0;*/
 					size = (end + 1) * stride, offset = 0;
 
 				if ((!gl2wrap_config.buf_storage && !gl2wrap_config.incremental) || (size > GL2_MAX_VERTS * 32))
@@ -1776,7 +1799,6 @@ static void APIENTRY GL2_DrawRangeElements (GLenum mode, GLuint start, GLuint en
 // [FWGS, 01.09.26]
 static void APIENTRY GL2_DrawArrays (GLenum mode, GLint first, GLsizei count)
 	{
-	/*GL2_SetupArrays (0, count);*/
 	if (count <= 0)
 		return;
 
@@ -1879,7 +1901,6 @@ static void GL2_PolygonOffset (GLfloat factor, GLfloat units)
 
 #endif
 
-// [FWGS, 01.09.25]
 void GL2_ShimInstall (void)
 	{
 	GL2_OVERRIDE_PTR (Vertex2f)
@@ -1904,6 +1925,7 @@ void GL2_ShimInstall (void)
 	GL2_OVERRIDE_PTR (LoadIdentity)
 	GL2_OVERRIDE_PTR (Ortho)
 	GL2_OVERRIDE_PTR (LoadMatrixf)
+	GL2_OVERRIDE_PTR_B (GetFloatv)	// [FWGS, 01.10.26]
 	GL2_OVERRIDE_PTR (Scalef)
 	GL2_OVERRIDE_PTR (Translatef)
 	GL2_OVERRIDE_PTR (TexEnvi)

@@ -274,6 +274,12 @@ CVAR_DEFINE_AUTO (sv_allow_testpacket, "1", FCVAR_ARCHIVE,
 CVAR_DEFINE_AUTO (sv_expose_player_list, "1", FCVAR_ARCHIVE,
 	"expose player list through packets that don't require connection");
 
+// [FWGS, 01.10.26]
+CVAR_DEFINE_AUTO (sv_query_rate_limit, "1", FCVAR_ARCHIVE,
+	"max info, ping, players and rules query replies per second per address bucket, 0 to disable");
+CVAR_DEFINE_AUTO (sv_connect_max_per_ip, "3", FCVAR_ARCHIVE,
+	"max clients from the same IP address that are still connecting, 0 to disable");
+
 // ============================================================================
 
 /***
@@ -285,13 +291,10 @@ returns true if server have spawned players
 ***/
 static qboolean SV_HasActivePlayers (void)
 	{
-	/*int	i;*/
-
 	// server inactive
 	if (!svs.clients)
 		return false;
 
-	/*for (i = 0; i < svs.maxclients; i++)*/
 	for (int i = 0; i < svs.maxclients; i++)
 		{
 		if (svs.clients[i].state == cs_spawned)
@@ -378,7 +381,6 @@ static void SV_CheckCmdTimes (void)
 	{
 	sv_client_t		*cl;
 	static double	lastreset = 0;
-	/*float	diff;*/
 	int		i;
 
 	if (sv_fps.value != 0.0f)
@@ -406,8 +408,7 @@ static void SV_CheckCmdTimes (void)
 		if (cl->connecttime == 0.0)
 			cl->connecttime = host.realtime;
 
-		/*diff = cl->connecttime + cl->cmdtime - host.realtime;*/
-		float diff = cl->connecttime + cl->cmdtime - host.realtime;
+		float	diff = cl->connecttime + cl->cmdtime - host.realtime;
 		if (diff > net_clockwindow.value)
 			{
 			cl->ignorecmdtime = net_clockwindow.value + host.realtime;
@@ -429,7 +430,6 @@ process incoming file (customization)
 ***/
 static void SV_ProcessFile (sv_client_t *cl, const char *filename)
 	{
-	/*customization_t	*pList;*/
 	resource_t	*resource;
 	resource_t	*next;
 	byte		md5[16];
@@ -478,7 +478,6 @@ static void SV_ProcessFile (sv_client_t *cl, const char *filename)
 	bError = false;
 	bFound = false;
 
-	/*for (pList = cl->customdata.pNext; pList; pList = pList->pNext)*/
 	for (customization_t *pList = cl->customdata.pNext; pList; pList = pList->pNext)
 		{
 		if (!memcmp (pList->resource.rgucMD5_hash, resource->rgucMD5_hash, 16))
@@ -505,13 +504,12 @@ static void SV_ProcessFile (sv_client_t *cl, const char *filename)
 
 /***
 =================
-SV_ReadPackets [FWGS, 01.07.26]
+SV_ReadPackets
 =================
 ***/
 static void SV_ReadPackets (void)
 	{
 	sv_client_t	*cl;
-	/*int			i, qport;*/
 	int		i;
 	size_t	curSize;
 
@@ -526,13 +524,6 @@ static void SV_ReadPackets (void)
 			continue;
 			}
 
-		/*// read the qport out of the message so we can fix up
-		// stupid address translating routers
-		MSG_Clear (&net_message);
-		MSG_ReadLong (&net_message);	// sequence number
-		MSG_ReadLong (&net_message);	// sequence number
-		qport = (int)MSG_ReadShort (&net_message) & 0xffff;*/
-
 		// check for packets from connected clients
 		for (i = 0, sv.current_client = svs.clients; i < svs.maxclients; i++, sv.current_client++)
 			{
@@ -544,34 +535,42 @@ static void SV_ReadPackets (void)
 			if (!NET_CompareBaseAdr (net_from, cl->netchan.remote_address))
 				continue;
 
-			/*if (cl->netchan.qport != qport)*/
+			// [FWGS, 01.10.26]
 			if (!Netchan_Process (&cl->netchan, &net_message))
-				continue;
+			/*	continue;
 
 			// authenticated; safe to adopt the (possibly NAT-rewritten) source port
 			if (cl->netchan.remote_address.port != net_from.port)
-				cl->netchan.remote_address.port = net_from.port;
-
-			/*if (Netchan_Process (&cl->netchan, &net_message))
+				cl->netchan.remote_address.port = net_from.port;*/
 				{
+				// a packet carrying nothing but fragments is reported as rejected
+				// after the fragments were queued, because nothing is left to parse
+				if (!Netchan_IncomingReady (&cl->netchan))
+					continue;
+				}
+			else
+				{
+				// authenticated; safe to adopt the (possibly NAT-rewritten) source port
+				if (cl->netchan.remote_address.port != net_from.port)
+					cl->netchan.remote_address.port = net_from.port;
+
+				// [FWGS, 01.10.26] ESHQ: brackets
 				if ((svs.maxclients == 1) && !host_limitlocal.value || (cl->state != cs_spawned))
-					SetBits (cl->flags, FCL_SEND_NET_MESSAGE);	// reply at end of frame*/
-			if ((svs.maxclients == 1 && !host_limitlocal.value) || (cl->state != cs_spawned))
-				SetBits (cl->flags, FCL_SEND_NET_MESSAGE);	// reply at end of frame
+					SetBits (cl->flags, FCL_SEND_NET_MESSAGE);	// reply at end of frame
 
-			/*// this is a valid, sequenced packet, so process it
-			if ((cl->frames != NULL) && (cl->state != cs_zombie))
+				/*// this is a valid, sequenced packet, so process it
+				if ((cl->frames != NULL) && (cl->state != cs_zombie))
 				{
 				SV_ExecuteClientMessage (cl, &net_message);
 				svgame.globals->frametime = sv.frametime;
-				svgame.globals->time = sv.time;
-				}*/
-			// this is a valid, sequenced packet, so process it
-			if ((cl->frames != NULL) && (cl->state != cs_zombie))
-				{
-				SV_ExecuteClientMessage (cl, &net_message);
-				svgame.globals->frametime = sv.frametime;
-				svgame.globals->time = sv.time;
+				svgame.globals->time = sv.time;*/
+				// this is a valid, sequenced packet, so process it
+				if ((cl->frames != NULL) && (cl->state != cs_zombie))
+					{
+					SV_ExecuteClientMessage (cl, &net_message);
+					svgame.globals->frametime = sv.frametime;
+					svgame.globals->time = sv.time;
+					}
 				}
 
 			// fragmentation / reassembly sending takes priority over all game messages, want this in the future?
@@ -642,7 +641,7 @@ static void SV_CheckTimeouts (void)
 
 	for (i = 0; i < svs.maxclients; i++)
 		{
-		sv_client_t *cl = &svs.clients[i];
+		sv_client_t	*cl = &svs.clients[i];
 
 		if (cl->state >= cs_connected)
 			{
@@ -701,16 +700,9 @@ player processing happens outside RunWorldFrame
 ***/
 static void SV_PrepWorldFrame (void)
 	{
-	/*edict_t	*ent;
-	int		i;
-
-	for (i = 1; i < svgame.numEntities; i++)
-		{
-		// [FWGS, 05.04.26]*/
 	for (int i = 1; i < svgame.numEntities; i++)
 		{
-		/*ent = SV_EdictNum (i);*/
-		edict_t *ent = SV_EdictNum (i);
+		edict_t	*ent = SV_EdictNum (i);
 		if (ent->free)
 			continue;
 
@@ -794,8 +786,8 @@ static qboolean SV_RunGameFrame (void)
 static void SV_UpdateStatusLine (void)
 	{
 #if XASH_PLATFORM_HAVE_STATUS
-	static double lasttime;
-	string status;
+	static double	lasttime;
+	string	status;
 
 	if (!Host_IsDedicated ())
 		return;
@@ -806,7 +798,7 @@ static void SV_UpdateStatusLine (void)
 
 	if (sv.state == ss_active)
 		{
-		int clients, bots;
+		int	clients, bots;
 		SV_GetPlayerCount (&clients, &bots);
 
 		Q_snprintf (status, sizeof (status), "%.1f fps %2i/%2i on %16s",
@@ -948,11 +940,9 @@ send error message and return false on wrong input devices
 ***/
 qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent)
 	{
-	const char *input_devices_str = Info_ValueForKey (useragent, "d");
-	const char *id = Info_ValueForKey (useragent, "uuid");
-
-	/*size_t len, i;*/
-	size_t len;
+	const char	*input_devices_str = Info_ValueForKey (useragent, "d");
+	const char	*id = Info_ValueForKey (useragent, "uuid");
+	size_t	len;
 
 	len = Q_strlen (id);
 	if (len != 32)
@@ -961,10 +951,9 @@ qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent)
 		return false;
 		}
 
-	/*for (i = 0; i < len; i++)*/
 	for (size_t i = 0; i < len; i++)
 		{
-		char c = id[i];
+		char	c = id[i];
 
 		if (!isdigit ((byte)id[i]) && !((c >= 'a') && (c <= 'f')))
 			{
@@ -988,7 +977,7 @@ qboolean SV_ProcessUserAgent (netadr_t from, const char *useragent)
 
 	if (input_devices_str)
 		{
-		int input_devices = Q_atoi (input_devices_str);
+		int	input_devices = Q_atoi (input_devices_str);
 
 		if (!sv_allow_touch.value && (input_devices & INPUT_DEVICE_TOUCH))
 			{
@@ -1182,11 +1171,19 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&sv_allow_testpacket);
 	Cvar_RegisterVariable (&sv_expose_player_list);
 
+	// [FWGS, 01.10.26]
+	Cvar_RegisterVariable (&sv_query_rate_limit);
+	Cvar_RegisterVariable (&sv_connect_max_per_ip);
+
 	// when we in developer-mode automatically turn cheats on
 	if (host_developer.value)
 		Cvar_SetValue ("sv_cheats", 1.0f);
 
 	MSG_Init (&net_message, "NetMessage", net_message_buffer, sizeof (net_message_buffer));
+
+	// [FWGS, 01.10.26] rcon is accepted even before the first map is loaded, don't leave the salt zeroed until then
+	for (int i = 0; i < HLARRAYSIZE (svs.challenge_salt); i++)
+		svs.challenge_salt[i] = COM_RandomLong (0, 0x7FFFFFFE);
 
 	// [FWGS, 01.02.25]
 	Q_snprintf (versionString, sizeof (versionString), XASH_ENGINE_NAME ": " XASH_VERSION "-%s(%s-%s),%i,%i",

@@ -23,9 +23,9 @@ PLAYER ID FILTER
 ***/
 typedef struct cidfilter_s
 	{
-	float endTime;
-	struct cidfilter_s *next;
-	string id;
+	float	endTime;
+	struct cidfilter_s	*next;
+	string	id;
 	} cidfilter_t;
 
 static cidfilter_t *cidfilter = NULL;
@@ -33,10 +33,8 @@ static cidfilter_t *cidfilter = NULL;
 // [FWGS, 01.07.26]
 static void SV_RemoveID (const char *id)
 	{
-	/*cidfilter_t *filter, *prevfilter = NULL;*/
 	cidfilter_t	*prevfilter = NULL;
 
-	/*for (filter = cidfilter; filter; filter = filter->next)*/
 	for (cidfilter_t *filter = cidfilter; filter; filter = filter->next)
 		{
 		if (Q_strcmp (filter->id, id))
@@ -64,9 +62,7 @@ static void SV_RemoveID (const char *id)
 qboolean SV_CheckID (const char *id)
 	{
 	qboolean	ret = false;
-	/*cidfilter_t *filter;*/
 
-	/*for (filter = cidfilter; filter; filter = filter->next)*/
 	for (cidfilter_t *filter = cidfilter; filter; filter = filter->next)
 		{
 		int	len1 = Q_strlen (id), len2 = Q_strlen (filter->id);
@@ -97,7 +93,6 @@ static void SV_BanID_f (void)
 	float		time = Q_atof (Cmd_Argv (1));
 	const char	*id = Cmd_Argv (2);
 	sv_client_t	*cl = NULL;
-	/*cidfilter_t	*filter;*/
 
 	if (time)
 		time = host.realtime + time * 60.0f;
@@ -157,7 +152,6 @@ static void SV_BanID_f (void)
 
 	SV_RemoveID (id);
 
-	/*filter = Mem_Malloc (host.mempool, sizeof (cidfilter_t));*/
 	cidfilter_t	*filter = Mem_Malloc (host.mempool, sizeof (cidfilter_t));
 	filter->endTime = time;
 	filter->next = cidfilter;
@@ -171,12 +165,9 @@ static void SV_BanID_f (void)
 // [FWGS, 01.07.26]
 static void SV_ListID_f (void)
 	{
-	/*cidfilter_t *filter;*/
-
 	Con_Reportf ("id ban list\n");
 	Con_Reportf ("-----------\n");
 
-	/*for (filter = cidfilter; filter; filter = filter->next)*/
 	for (cidfilter_t *filter = cidfilter; filter; filter = filter->next)
 		{
 		if (filter->endTime && host.realtime > filter->endTime)
@@ -215,7 +206,6 @@ static void SV_RemoveID_f (void)
 static void SV_WriteID_f (void)
 	{
 	file_t	*f = FS_Open (Cvar_VariableString ("bannedcfgfile"), "w", false);
-	/*cidfilter_t	*filter;*/
 
 	if (!f)
 		{
@@ -228,7 +218,6 @@ static void SV_WriteID_f (void)
 	FS_Printf (f, "//\t\t    %s - archive of id blacklist\n", Cvar_VariableString ("bannedcfgfile"));
 	FS_Printf (f, "//=======================================================================\n");
 
-	/*for (filter = cidfilter; filter; filter = filter->next)*/
 	for (cidfilter_t *filter = cidfilter; filter; filter = filter->next)
 		if (!filter->endTime)	// only permanent
 			FS_Printf (f, "banid 0 %s\n", filter->id);
@@ -247,15 +236,12 @@ static void SV_InitIDFilter (void)
 // [FWGS, 01.07.26]
 static void SV_ShutdownIDFilter (void)
 	{
-	/*cidfilter_t *cidList, *cidNext;*/
-
 	// should be called manually because banned.cfg is not executed by engine
 	Cmd_RemoveCommand ("banid");
 	Cmd_RemoveCommand ("listid");
 	Cmd_RemoveCommand ("removeid");
 	Cmd_RemoveCommand ("writeid");
 
-	/*for (cidList = cidfilter; cidList; cidList = cidNext)*/
 	for (cidfilter_t *cidList = cidfilter, *cidNext; cidList; cidList = cidNext)
 		{
 		cidNext = cidList->next;
@@ -330,8 +316,9 @@ static void SV_RemoveIPFilter (ipfilter_t *toremove, qboolean removeAll, qboolea
 				Con_Printf ("%s removed.\n", filterStr);
 				}
 
+			// [FWGS, 01.10.26]
 			*back = f->next;
-			back = &f->next;
+			/*back = &f->next;*/
 
 			Mem_Free (f);
 
@@ -345,16 +332,23 @@ static void SV_RemoveIPFilter (ipfilter_t *toremove, qboolean removeAll, qboolea
 		}
 	}
 
-// [FWGS, 01.07.26]
+// [FWGS, 01.10.26]
 qboolean SV_CheckIP (netadr_t *adr)
 	{
-	/*ipfilter_t	*entry = ipfilter;
-
-	for (; entry; entry = entry->next)*/
-	for (ipfilter_t *entry = ipfilter; entry; entry = entry->next)
+	/*for (ipfilter_t *entry = ipfilter; entry; entry = entry->next)*/
+	for (ipfilter_t **back = &ipfilter; *back; )
 		{
+		ipfilter_t	*entry = *back;
+
 		if (entry->endTime && (host.realtime > entry->endTime))
-			continue;	// expired
+			{
+			/*continue;	// expired*/
+			*back = entry->next;
+			Mem_Free (entry);
+			continue;
+			}
+
+		back = &entry->next;
 
 		switch (NET_NetadrType (&entry->adr))
 			{
@@ -398,7 +392,6 @@ static void SV_AddIP_f (void)
 	const char	*adr = Cmd_Argv (2);
 	ipfilter_t	filter, *newfilter;
 	float		minutes;
-	/*int			i;*/
 
 	if (Cmd_Argc () != 3)
 		{
@@ -431,7 +424,6 @@ static void SV_AddIP_f (void)
 
 	ipfilter = newfilter;
 
-	/*for (i = 0; i < svs.maxclients; i++)*/
 	for (int i = 0; i < svs.maxclients; i++)
 		{
 		netadr_t	clientadr = svs.clients[i].netchan.remote_address;
@@ -448,7 +440,6 @@ static void SV_AddIP_f (void)
 static void SV_ListIP_f (void)
 	{
 	qboolean	haveFilter = false;
-	/*ipfilter_t filter, *f;*/
 	ipfilter_t	filter;
 
 	if (Cmd_Argc () > 2)
@@ -476,10 +467,9 @@ static void SV_ListIP_f (void)
 
 	Con_Printf ("IP filter list:\n");
 
-	/*for (f = ipfilter; f; f = f->next)*/
 	for (ipfilter_t *f = ipfilter; f; f = f->next)
 		{
-		string filterStr;
+		string	filterStr;
 
 		if (haveFilter && !SV_IPFilterIncludesIPFilter (&filter, f))
 			continue;
@@ -495,7 +485,6 @@ static void SV_RemoveIP_f (void)
 	const char	*adr = Cmd_Argv (1);
 	qboolean	removeAll;
 	ipfilter_t	filter;
-	/*int			i;*/
 
 	if ((Cmd_Argc () != 2) && (Cmd_Argc () != 3))
 		{
@@ -519,14 +508,12 @@ static void SV_RemoveIP_f (void)
 static void SV_WriteIP_f (void)
 	{
 	file_t	*fd = FS_Open (Cvar_VariableString ("listipcfgfile"), "w", true);
-	/*ipfilter_t	*f;*/
 	if (!fd)
 		{
 		Con_Printf ("Couldn't open listip.cfg\n");
 		return;
 		}
 
-	/*for (f = ipfilter; f; f = f->next)*/
 	for (ipfilter_t *f = ipfilter; f; f = f->next)
 		{
 		string	filterStr;
@@ -554,9 +541,6 @@ static void SV_InitIPFilter (void)
 // [FWGS, 01.07.26]
 static void SV_ShutdownIPFilter (void)
 	{
-	/*ipfilter_t	*ipList, *ipNext;*/
-
-	/*for (ipList = ipfilter; ipList; ipList = ipNext)*/
 	for (ipfilter_t *ipList = ipfilter, *ipNext; ipList; ipList = ipNext)
 		{
 		ipNext = ipList->next;
@@ -586,7 +570,6 @@ void SV_ShutdownFilter (void)
 static void Test_StringToFilterAdr (void)
 	{
 	ipfilter_t	f1;
-	/*int	i;*/
 
 	struct
 		{
@@ -620,7 +603,6 @@ static void Test_StringToFilterAdr (void)
 			{ "fd8a:63d5:e014:0d62:ffff:ffff:ffff:ffff:ffff", false },
 			};
 
-	/*for (i = 0; i < HLARRAYSIZE (ipv4tests); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (ipv4tests); i++)
 		{
 		qboolean	ret = NET_StringToFilterAdr (ipv4tests[i].str, &f1.adr, &f1.prefixlen);
@@ -637,7 +619,6 @@ static void Test_StringToFilterAdr (void)
 			}
 		}
 
-	/*for (i = 0; i < HLARRAYSIZE (ipv6tests); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (ipv6tests); i++)
 		{
 		qboolean ret = NET_StringToFilterAdr (ipv6tests[i].str, &f1.adr, &f1.prefixlen);
@@ -672,7 +653,6 @@ static void Test_IPFilterIncludesIPFilter (void)
 		};
 
 	ipfilter_t	f[7];
-	/*int	i;*/
 	int	tests[][3] =
 		{
 		// ipv4
@@ -695,13 +675,11 @@ static void Test_IPFilterIncludesIPFilter (void)
 		{ 6, 5, true },
 		};
 
-	/*for (i = 0; i < 7; i++)*/
 	for (int i = 0; i < 7; i++)
 		{
 		NET_StringToFilterAdr (adrs[i], &f[i].adr, &f[i].prefixlen);
 		}
 
-	/*for (i = 0; i < HLARRAYSIZE (tests); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (tests); i++)
 		{
 		ret = SV_IPFilterIncludesIPFilter (&f[tests[i][0]], &f[tests[i][1]]);

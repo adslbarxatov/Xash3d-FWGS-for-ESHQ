@@ -25,7 +25,7 @@ CVAR_DEFINE_AUTO (r_lighting_extended, "1", FCVAR_GLCONFIG,
 
 /***
 ==================
-CL_RunLightStyles [FWGS, 01.07.26]
+CL_RunLightStyles
 ==================
 ***/
 void CL_RunLightStyles (lightstyle_t *ls)
@@ -63,7 +63,9 @@ void CL_RunLightStyles (lightstyle_t *ls)
 			continue;
 			}
 
-		int	flight = (int)Q_floor (ls[i].time * 10);
+		// [FWGS, 01.10.26]
+		/*int	flight = (int)Q_floor (ls[i].time * 10);*/
+		int	flight = (int)floor (ls[i].time * 10);
 
 		if (!ls[i].interp || !cl_lightstyle_lerping->value)
 			{
@@ -71,7 +73,9 @@ void CL_RunLightStyles (lightstyle_t *ls)
 			continue;
 			}
 
-		int	clight = (int)Q_ceil (ls[i].time * 10);
+		// [FWGS, 01.10.26]
+		/*int	clight = (int)Q_ceil (ls[i].time * 10);*/
+		int		clight = (int)ceil (ls[i].time * 10);
 		float	lerpfrac = (ls[i].time * 10) - flight;
 		float	backlerp = 1.0f - lerpfrac;
 
@@ -97,6 +101,7 @@ static void R_MarkLights (const dlight_t *light, int bit, const mnode_t *node, m
 	{
 	const float	virtual_radius = light->radius * Q_max (1.0f, r_dlight_virtual_radius.value);
 	const float	maxdist = light->radius * light->radius;
+
 start:
 	if (!node || (node->contents < 0))
 		return;
@@ -308,7 +313,6 @@ start:
 		// [FWGS, 01.09.26]
 		const color24	*lm = surf->samples + Q_rint (dt) * smax + Q_rint (ds);
 		const color24	*dm = NULL;
-		/*matrix3x4	tbn;*/
 		matrix3x4	tbn = { 0 };
 
 		if (surf->info->deluxemap)

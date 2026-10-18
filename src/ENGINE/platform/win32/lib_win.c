@@ -348,54 +348,66 @@ static const char *GetLastErrorAsString (void)
 	return errormessage;
 	}
 
-// [FWGS, 01.07.26]
-static PIMAGE_IMPORT_DESCRIPTOR GetImportDescriptor (const char *name, byte *data, PIMAGE_NT_HEADERS *peheader)
+// [FWGS, 01.10.26]
+/*static PIMAGE_IMPORT_DESCRIPTOR GetImportDescriptor (const char *name, byte *data, PIMAGE_NT_HEADERS *peheader)*/
+static PIMAGE_IMPORT_DESCRIPTOR GetImportDescriptor (const byte *data, size_t size, PIMAGE_NT_HEADERS *peheader)
 	{
-	if (!data)
+	/*if (!data)
 		{
-		Con_Printf (S_ERROR "%s: couldn't load %s\n", __func__, name);
+		Con_Printf (S_ERROR "%s: couldn't load %s\n", __func__, name);*/
+	if (size < sizeof (IMAGE_DOS_HEADER))
 		return NULL;
-		}
+		/*}*/
 
 	PIMAGE_DOS_HEADER	dosHeader = (PIMAGE_DOS_HEADER)data;
-	if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE)
+	/*if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE)
 		{
-		Con_Printf (S_ERROR "%s: %s is not a valid executable file\n", __func__, name);
+		Con_Printf (S_ERROR "%s: %s is not a valid executable file\n", __func__, name);*/
+	if ((dosHeader->e_magic != IMAGE_DOS_SIGNATURE) || (dosHeader->e_lfanew < 0))
 		return NULL;
-		}
+
+	if (size - (size_t)dosHeader->e_lfanew < sizeof (IMAGE_NT_HEADERS))
+		return NULL;
+		/*}*/
 
 	PIMAGE_NT_HEADERS	peHeader = (PIMAGE_NT_HEADERS)(data + dosHeader->e_lfanew);
-	if (peHeader->Signature != IMAGE_NT_SIGNATURE)
+	/*if (peHeader->Signature != IMAGE_NT_SIGNATURE)
 		{
-		Con_Printf (S_ERROR "%s: %s is missing a PE header\n", __func__, name);
+		Con_Printf (S_ERROR "%s: %s is missing a PE header\n", __func__, name);*/
+	if (peHeader->Signature != IMAGE_NT_SIGNATURE)
 		return NULL;
-		}
+		/*}*/
 
 	PIMAGE_DATA_DIRECTORY	importDir = &peHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
 	if (importDir->Size <= 0)
-		{
-		Con_Printf (S_ERROR "%s: %s has no dependencies\n", __func__, name);
+		/*{
+		Con_Printf (S_ERROR "%s: %s has no dependencies\n", __func__, name);*/
 		return NULL;
-		}
+		/*}*/
 
 	*peheader = peHeader;
 	return (PIMAGE_IMPORT_DESCRIPTOR)CALCULATE_ADDRESS (data, GetOffsetByRVA (importDir->VirtualAddress, peHeader));
 	}
 
-// [FWGS, 01.07.26]
+// [FWGS, 01.10.26]
 static void ListMissingModules (dll_user_t *hInst)
 	{
 	if (!hInst || !g_fsapi.LoadFile)
 		return;
 
-	byte	*data = g_fsapi.LoadFile (hInst->dllName, NULL, false);
+	/*byte	*data = g_fsapi.LoadFile (hInst->dllName, NULL, false);*/
+	fs_offset_t	size = 0;
+	byte	*data = g_fsapi.LoadFile (hInst->dllName, &size, false);
 	if (!data)
 		return;
 
 	PIMAGE_NT_HEADERS	peHeader;
-	PIMAGE_IMPORT_DESCRIPTOR	importDesc = GetImportDescriptor (hInst->dllName, data, &peHeader);
+	/*PIMAGE_IMPORT_DESCRIPTOR	importDesc = GetImportDescriptor (hInst->dllName, data, &peHeader);*/
+	PIMAGE_IMPORT_DESCRIPTOR	importDesc = GetImportDescriptor (data, (size_t)size, &peHeader);
 	if (!importDesc)
 		{
+		Con_Printf (S_ERROR "%s: %s is not a valid PE image or has no dependencies\n", __func__, hInst->dllName);
+
 		Mem_Free (data);
 		return;
 		}
@@ -421,10 +433,11 @@ static void ListMissingModules (dll_user_t *hInst)
 	return;
 	}
 
-// [FWGS, 01.07.26]
-qboolean COM_CheckLibraryDirectDependency (const char *name, const char *depname, qboolean directpath)
+// [FWGS, 01.10.26]
+/*qboolean COM_CheckLibraryDirectDependency (const char *name, const char *depname, qboolean directpath)*/
+qboolean Platform_CheckLibraryDirectDependency (const byte *data, size_t size, const char *depname)
 	{
-	dll_user_t	*hInst = FS_FindLibrary (name, directpath);
+	/*dll_user_t	*hInst = FS_FindLibrary (name, directpath);
 	if (!hInst) 
 		return FALSE;
 
@@ -433,32 +446,41 @@ qboolean COM_CheckLibraryDirectDependency (const char *name, const char *depname
 		{
 		COM_FreeLibrary (hInst);
 		return FALSE;
-		}
+		}*/
 
 	PIMAGE_NT_HEADERS	peHeader;
-	PIMAGE_IMPORT_DESCRIPTOR	importDesc = GetImportDescriptor (name, data, &peHeader);
+	/*PIMAGE_IMPORT_DESCRIPTOR	importDesc = GetImportDescriptor (name, data, &peHeader);
 	if (!importDesc)
 		{
 		COM_FreeLibrary (hInst);
 		Mem_Free (data);
 		return FALSE;
-		}
+		}*/
+	PIMAGE_IMPORT_DESCRIPTOR importDesc = GetImportDescriptor (data, size, &peHeader);
+
+	/*for (; !IsBadReadPtr (importDesc, sizeof (IMAGE_IMPORT_DESCRIPTOR)) && importDesc->Name; importDesc++)*/
+	if (!importDesc)
+		return false;
 
 	for (; !IsBadReadPtr (importDesc, sizeof (IMAGE_IMPORT_DESCRIPTOR)) && importDesc->Name; importDesc++)
 		{
+		/*const char	*importName = (const char *)CALCULATE_ADDRESS (data, GetOffsetByRVA (importDesc->Name, peHeader));*/
 		const char	*importName = (const char *)CALCULATE_ADDRESS (data, GetOffsetByRVA (importDesc->Name, peHeader));
 
-		if (!Q_stricmp (importName, depname))
+		/*if (!Q_stricmp (importName, depname))
 			{
 			COM_FreeLibrary (hInst);
 			Mem_Free (data);
 			return TRUE;
-			}
+			}*/
+		if (!Q_stricmp (importName, depname))
+			return true;
 		}
 
-	COM_FreeLibrary (hInst);
+	/*COM_FreeLibrary (hInst);
 	Mem_Free (data);
-	return FALSE;
+	return FALSE;*/
+	return false;
 	}
 
 /***
@@ -540,6 +562,17 @@ void *COM_GetProcAddress (void *hInstance, const char *name)
 	return (void *)GetProcAddress (hInst->hInstance, name);
 	}
 
+// [FWGS, 01.10.26]
+void *COM_GetProcAddressFromDependency (void *hInstance, const char *depname, const char *name)
+	{
+	// GetProcAddress doesn't follow imports, but a loaded dependency is a module of its own
+	HMODULE	hMod = GetModuleHandleA (depname);
+	if (!hMod)
+		return NULL;
+
+	return (void *)GetProcAddress (hMod, name);
+	}
+
 // [FWGS, 01.07.24]
 void COM_FreeLibrary (void *hInstance)
 	{
@@ -618,7 +651,6 @@ const char *COM_NameForFunction (void *hInstance, void *function)
 		}
 
 	// [FWGS, 01.09.26] couldn't find the function address to return name
-	/*Con_Printf ("Can't find address: %08lx\n", function);*/
 	Con_Printf ("Can't find address: %p\n", function);
 
 	return NULL;

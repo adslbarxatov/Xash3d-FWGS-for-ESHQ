@@ -20,8 +20,8 @@ GNU General Public License for more details
 #include "xash3d_mathlib.h"
 #include "studio.h"
 
-// [FWGS, 01.03.26]
-#define HULL_PRECISION	4
+// [FWGS, 01.10.26]
+/*define HULL_PRECISION	4*/
 
 // [FWGS, 01.03.26]
 static const uint8_t hull_table[] = {
@@ -55,10 +55,6 @@ const float m_bytenormals[NUMVERTEXNORMALS][3] =
 // [FWGS, 01.07.26]
 uint16_t FloatToHalf (float v)
 	{
-	/*unsigned int	i = FloatAsUint (v);
-	unsigned int	e = (i >> 23) & 0x00ff;
-	unsigned int	m = i & 0x007fffff;
-	unsigned short	h;*/
 	unsigned int	i = FloatAsUint (v);
 	unsigned int	e = (i >> 23) & 0x00ff;
 	unsigned int	m = i & 0x007fffff;
@@ -108,38 +104,38 @@ float HalfToFloat (uint16_t h)
 
 /***
 =================
-RoundUpHullSize [FWGS, 01.07.26]
-
-round the hullsize to nearest 'right' value
+RoundHullBound [FWGS, 01.10.26]
 =================
 ***/
-void RoundUpHullSize (vec3_t size)
+/*void RoundUpHullSize (vec3_t size)*/
+static float RoundHullBound (float bound, qboolean toward_positive)
 	{
-	/*int	i, j;
-
-	for (i = 0; i < 3; i++)*/
-	for (int i = 0; i < 3; i++)
+	/*for (int i = 0; i < 3; i++)
 		{
-		/*qboolean	negative = false;
-		float	result, value;*/
 		qboolean	negative = false;
-		float	value = size[i];
+		float	value = size[i];*/
+	qboolean	negative = bound < 0.0f;
+	float		value = fabs (bound);
 
-		/*value = size[i];*/
-		if (value < 0.0f)
+	/*if (value < 0.0f)
 			negative = true;
 		value = Q_ceil (fabs (value));
-		/*result = Q_ceil (size[i]);*/
-		float result = Q_ceil (size[i]);
 
-		// lookup hull table to find nearest supposed value
-		/*for (j = 0; j < sizeof (hull_table) / sizeof (hull_table[0]); j++)*/
+		float	result = Q_ceil (size[i]);*/
+	if (value == 0.0f)
+		return 0.0f;
+
+	/*// lookup hull table to find nearest supposed value
 		for (size_t j = 0; j < sizeof (hull_table) / sizeof (hull_table[0]); j++)
 			{
 			if (value > hull_table[j])
-				continue;	// ceil only
+				continue;	// ceil only*/
+	if (negative != toward_positive)
+		{
+		// magnitude grows, snap to the next table value
+		value = ceil (value);
 
-			if (negative)
+		/*if (negative)
 				{
 				result = (value - hull_table[j]);
 				if (result <= HULL_PRECISION)
@@ -148,18 +144,55 @@ void RoundUpHullSize (vec3_t size)
 					break;
 					}
 				}
-			else
+			else*/
+		for (size_t i = 0; i < HLARRAYSIZE (hull_table); i++)
+			{
+			if (value <= hull_table[i])
 				{
-				result = (value - hull_table[j]);
+				/*result = (value - hull_table[j]);
 				if (result <= HULL_PRECISION)
 					{
 					result = hull_table[j];
 					break;
-					}
+					}*/
+				value = hull_table[i];
+				break;
 				}
 			}
+		}
+	else
+		{
+		// magnitude shrinks, snap to the previous table value
+		value = floor (value);
 
-		size[i] = result;
+		if (value <= hull_table[HLARRAYSIZE (hull_table) - 1])
+			{
+			float	snapped = 0.0f;
+
+		/*size[i] = result;*/
+			for (size_t i = 0; i < ARRAYSIZE (hull_table) && hull_table[i] <= value; i++)
+				snapped = hull_table[i];
+
+			value = snapped;
+			}
+		}
+
+	return negative ? -value : value;
+	}
+
+/***
+=================
+RoundUpHullSize [FWGS, 01.10.26]
+
+round the hullsize outwards to nearest 'right' value
+=================
+***/
+void RoundUpHullSize (vec3_t mins, vec3_t maxs)
+	{
+	for (int i = 0; i < 3; i++)
+		{
+		mins[i] = RoundHullBound (mins[i], false);
+		maxs[i] = RoundHullBound (maxs[i], true);
 		}
 	}
 
@@ -173,20 +206,15 @@ rsqrt [FWGS, 01.07.26]
 ***/
 float Q_rsqrt (float number)
 	{
-	/*int	i;
-	float	x, y;*/
-
 	if (number == 0.0f)
 		return 0.0f;
 
-	/*x = number * 0.5f;
-	i = FloatAsInt (number);*/
-	float x = number * 0.5f;
-	int i = FloatAsInt (number);	// evil floating point bit level hacking
+	float	x = number * 0.5f;
+	int		i = FloatAsInt (number);	// evil floating point bit level hacking
 
 	i = 0x5f3759df - (i >> 1);		// what the fuck?
-	/*y = IntAsFloat (i);*/
-	float y = IntAsFloat (i);
+
+	float	y = IntAsFloat (i);
 	y = y * (1.5f - (x * y * y));	// first iteration
 
 	return y;
@@ -198,14 +226,11 @@ float Q_rsqrt (float number)
 // [FWGS, 01.07.26]
 void VectorVectors (const vec3_t forward, vec3_t right, vec3_t up)
 	{
-	/*float	d;*/
-
 	right[0] = forward[2];
 	right[1] = -forward[0];
 	right[2] = forward[1];
 
-	/*d = DotProduct (forward, right);*/
-	float d = DotProduct (forward, right);
+	float	d = DotProduct (forward, right);
 
 	VectorMA (right, -d, forward, right);
 	VectorNormalize (right);
@@ -222,8 +247,6 @@ VectorAngles [FWGS, 01.07.26]
 ***/
 void GAME_EXPORT VectorAngles (const float *forward, float *angles)
 	{
-	/*float	tmp, yaw, pitch;*/
-
 	if (!forward || !angles)
 		{
 		if (angles)
@@ -231,7 +254,7 @@ void GAME_EXPORT VectorAngles (const float *forward, float *angles)
 		return;
 		}
 
-	float yaw, pitch;
+	float	yaw, pitch;
 	if ((forward[1] == 0) && (forward[0] == 0))
 		{
 		// fast case
@@ -247,8 +270,7 @@ void GAME_EXPORT VectorAngles (const float *forward, float *angles)
 		if (yaw < 0)
 			yaw += 360;
 
-		/*tmp = sqrt (forward[0] * forward[0] + forward[1] * forward[1]);*/
-		float tmp = sqrt (forward[0] * forward[0] + forward[1] * forward[1]);
+		float	tmp = sqrt (forward[0] * forward[0] + forward[1] * forward[1]);
 		pitch = (atan2 (forward[2], tmp) * 180 / M_PI_F);
 		if (pitch < 0) pitch += 360;
 		}
@@ -263,13 +285,9 @@ VectorsAngles [FWGS, 01.07.26]
 ***/
 void VectorsAngles (const vec3_t forward, const vec3_t right, const vec3_t up, vec3_t angles)
 	{
-	/*float	pitch, cpitch, yaw, roll;
-
-	pitch = -asin (forward[2]);
-	cpitch = cos (pitch);*/
-	float pitch = -asin (forward[2]);
-	float cpitch = cos (pitch);
-	float yaw, roll;
+	float	pitch = -asin (forward[2]);
+	float	cpitch = cos (pitch);
+	float	yaw, roll;
 
 	if (fabs (cpitch) > EQUAL_EPSILON)	// gimball lock?
 		{
@@ -302,22 +320,15 @@ SphereIntersect [FWGS, 01.07.26]
 qboolean SphereIntersect (const vec3_t vSphereCenter, float fSphereRadiusSquared, const vec3_t vLinePt,
 	const vec3_t vLineDir)
 	{
-	/*float	a, b, c, insideSqr;
-	vec3_t	p;*/
-
 	// translate sphere to origin
-	vec3_t p;
+	vec3_t	p;
 	VectorSubtract (vLinePt, vSphereCenter, p);
 
-	/*a = DotProduct (vLineDir, vLineDir);
-	b = 2.0f * DotProduct (p, vLineDir);
-	c = DotProduct (p, p) - fSphereRadiusSquared;*/
-	float a = DotProduct (vLineDir, vLineDir);
-	float b = 2.0f * DotProduct (p, vLineDir);
-	float c = DotProduct (p, p) - fSphereRadiusSquared;
+	float	a = DotProduct (vLineDir, vLineDir);
+	float	b = 2.0f * DotProduct (p, vLineDir);
+	float	c = DotProduct (p, p) - fSphereRadiusSquared;
+	float	insideSqr = b * b - 4.0f * a * c;
 
-	/*insideSqr = b * b - 4.0f * a * c;*/
-	float insideSqr = b * b - 4.0f * a * c;
 	if (insideSqr <= 0.000001f)
 		return false;
 
@@ -338,13 +349,9 @@ if not, reverse q
 static void QuaternionAlign (const vec4_t p, const vec4_t q, vec4_t qt)
 	{
 	// decide if one of the quaternions is backwards
-	/*float	a = 0.0f;
+	float	a = 0.0f;
 	float	b = 0.0f;
-	int		i;*/
-	float a = 0.0f;
-	float b = 0.0f;
 
-	/*for (i = 0; i < 4; i++)*/
 	for (int i = 0; i < 4; i++)
 		{
 		a += (p[i] - q[i]) * (p[i] - q[i]);
@@ -353,13 +360,11 @@ static void QuaternionAlign (const vec4_t p, const vec4_t q, vec4_t qt)
 
 	if (a > b)
 		{
-		/*for (i = 0; i < 4; i++)*/
 		for (int i = 0; i < 4; i++)
 			qt[i] = -q[i];
 		}
 	else
 		{
-		/*for (i = 0; i < 4; i++)*/
 		for (int i = 0; i < 4; i++)
 			qt[i] = q[i];
 		}
@@ -372,22 +377,16 @@ QuaternionSlerpNoAlign [FWGS, 01.07.26]
 ***/
 static void QuaternionSlerpNoAlign (const vec4_t p, const vec4_t q, float t, vec4_t qt)
 	{
-	/*float	omega, cosom, sinom, sclp, sclq;
-	int		i;*/
-
 	// 0.0 returns p, 1.0 return q
-	/*cosom = p[0] * q[0] + p[1] * q[1] + p[2] * q[2] + p[3] * q[3];*/
-	float cosom = p[0] * q[0] + p[1] * q[1] + p[2] * q[2] + p[3] * q[3];
-	float sclp, sclq;
+	float	cosom = p[0] * q[0] + p[1] * q[1] + p[2] * q[2] + p[3] * q[3];
+	float	sclp, sclq;
 
 	if ((1.0f + cosom) > 0.000001f)
 		{
 		if ((1.0f - cosom) > 0.000001f)
 			{
-			/*omega = acos (cosom);
-			sinom = sin (omega);*/
-			float omega = acos (cosom);
-			float sinom = sin (omega);
+			float	omega = acos (cosom);
+			float	sinom = sin (omega);
 
 			sclp = sin ((1.0f - t) * omega) / sinom;
 			sclq = sin (t * omega) / sinom;
@@ -398,7 +397,6 @@ static void QuaternionSlerpNoAlign (const vec4_t p, const vec4_t q, float t, vec
 			sclq = t;
 			}
 
-		/*for (i = 0; i < 4; i++)*/
 		for (int i = 0; i < 4; i++)
 			{
 			qt[i] = sclp * p[i] + sclq * q[i];
@@ -413,7 +411,6 @@ static void QuaternionSlerpNoAlign (const vec4_t p, const vec4_t q, float t, vec
 		sclp = sin ((1.0f - t) * (0.5f * M_PI_F));
 		sclq = sin (t * (0.5f * M_PI_F));
 
-		/*for (i = 0; i < 3; i++)*/
 		for (int i = 0; i < 3; i++)
 			{
 			qt[i] = sclp * p[i] + sclq * qt[i];
@@ -517,17 +514,13 @@ void R_StudioCalcBones (int frame, float s, const mstudiobone_t *pbone, const ms
 	vec3_t pos, vec4_t q)
 	{
 	float	v1[6], v2[6];
-	/*int		i, max;
-
-	max = q != NULL ? 6 : 3;*/
 	int		max = (q != NULL) ? 6 : 3;
 
-	/*for (i = 0; i < max; i++)*/
 	for (int i = 0; i < max; i++)
 		{
-		mstudioanimvalue_t *panimvalue = (mstudioanimvalue_t *)((byte *)panim + panim->offset[i]);
-		int j = frame;
-		float fadj = 0.0f;
+		mstudioanimvalue_t	*panimvalue = (mstudioanimvalue_t *)((byte *)panim + panim->offset[i]);
+		int		j = frame;
+		float	fadj = 0.0f;
 
 		if ((pbone->bonecontroller[i] >= 0) && (adj != NULL))
 			fadj = adj[pbone->bonecontroller[i]];
@@ -552,29 +545,24 @@ void R_StudioCalcBones (int frame, float s, const mstudiobone_t *pbone, const ms
 
 		if (panimvalue->num.valid > j)
 			{
-			/*v1[i] = panimvalue[j + 1].value;*/
 			v1[i] = UnalignedShort (&(panimvalue[j + 1].value));
 
 			if (panimvalue->num.valid > j + 1)
 				v2[i] = UnalignedShort (&(panimvalue[j + 2].value));
-				/*v2[i] = panimvalue[j + 2].value;*/
 			else if (panimvalue->num.total > j + 1)
 				v2[i] = v1[i];
 			else
 				v2[i] = UnalignedShort (&(panimvalue[panimvalue->num.valid + 2].value));
-				/*v2[i] = panimvalue[panimvalue->num.valid + 2].value;*/
 			}
 
 		else
 			{
-			/*v1[i] = panimvalue[panimvalue->num.valid].value;*/
 			v1[i] = UnalignedShort (&(panimvalue[panimvalue->num.valid].value));
 
 			if (panimvalue->num.total > j + 1)
 				v2[i] = v1[i];
 			else
 				v2[i] = UnalignedShort (&(panimvalue[panimvalue->num.valid + 2].value));
-				/*v2[i] = panimvalue[panimvalue->num.valid + 2].value;*/
 			}
 
 		v1[i] = pbone->value[i] + v1[i] * pbone->scale[i] + fadj;
@@ -590,7 +578,7 @@ void R_StudioCalcBones (int frame, float s, const mstudiobone_t *pbone, const ms
 		{
 		if (!VectorCompare (&v1[3], &v2[3]))
 			{
-			vec4_t q1, q2;
+			vec4_t	q1, q2;
 
 			AngleQuaternion (&v1[3], q1, true);
 			AngleQuaternion (&v2[3], q2, true);

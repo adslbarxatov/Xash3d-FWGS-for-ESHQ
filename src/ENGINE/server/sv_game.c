@@ -471,14 +471,6 @@ static int SV_Multicast (int dest, const vec3_t origin, const edict_t *ent, qboo
 			continue;
 
 		// [FWGS, 01.09.26]
-		/*if (SV_IsValidEdict (ent) && ent->v.groupinfo && cl->edict->v.groupinfo)
-			{
-			if ((svs.groupop == GROUP_OP_AND) && !FBitSet (cl->edict->v.groupinfo, ent->v.groupinfo))
-				continue;
-
-			if ((svs.groupop == GROUP_OP_NAND) && FBitSet (cl->edict->v.groupinfo, ent->v.groupinfo))
-				continue;
-			}*/
 		if (SV_IsValidEdict (ent) && !SV_CheckGroupTrace (ent, cl->edict))
 			continue;
 
@@ -689,7 +681,7 @@ void SV_RestartAmbientSounds (void)
 
 /***
 =================
-SV_RestartDecals [FWGS, 01.07.26]
+SV_RestartDecals
 
 Write all the decals into demo
 =================
@@ -711,8 +703,11 @@ void SV_RestartDecals (void)
 	list = (decallist_t *)Z_Calloc (sizeof (decallist_t) * MAX_RENDER_DECALS * 2);
 	numdecals = ref.dllFuncs.R_CreateDecalList (list);
 
-	// remove decals from map
-	ref.dllFuncs.R_ClearAllDecals ();
+	// [FWGS, 01.10.26]
+	/*// remove decals from map
+	ref.dllFuncs.R_ClearAllDecals ();*/
+	// remove decals from map for clean demo recording state (keep permanent)
+	ref.dllFuncs.R_ClearAllDecals (false);
 
 	// write decals into reliable datagram
 	msg = SV_GetReliableDatagram ();
@@ -721,6 +716,11 @@ void SV_RestartDecals (void)
 	for (int i = 0; i < numdecals; i++)
 		{
 		decallist_t	*entry = &list[i];
+
+		// [FWGS, 01.10.26] skip permanent decals - they're map data sent via svc_bspdecal on map load
+		if (FBitSet (entry->flags, FDECAL_PERMANENT))
+			continue;
+
 		int	modelIndex = SV_PEntityOfEntIndex (entry->entityIndex, true)->v.modelindex;
 
 		// game override
@@ -3168,7 +3168,7 @@ void SV_SetStringArrayMode (qboolean dynamic)
 
 /***
 ==================
-SV_AllocStringPool [FWGS, 01.12.24]
+SV_AllocStringPool
 
 alloc string pool on 32bit platforms
 alloc string array near the server library on 64bit platforms if possible
@@ -3182,16 +3182,19 @@ static void SV_AllocStringPool (void)
 	void	*ptr = NULL;
 	string	lenstr;
 
+	// [FWGS, 01.10.26]
 	Con_Reportf ("%s()\n", __func__);
 	if (Sys_GetParmFromCmdLine ("-str64alloc", lenstr))
 		{
 		str64.maxstringarray = Q_atoi (lenstr);
 		if ((str64.maxstringarray < 1024) || (str64.maxstringarray >= INT_MAX))
-			str64.maxstringarray = 65536 * Q_ceil (GI->max_edicts / 1024.0f);
+			/*str64.maxstringarray = 65536 * Q_ceil (GI->max_edicts / 1024.0f);*/
+			str64.maxstringarray = 65536 * ceil (GI->max_edicts / 1024.0f);
 		}
 	else
 		{
-		str64.maxstringarray = 65536 * Q_ceil (GI->max_edicts / 1024.0f);
+		/*str64.maxstringarray = 65536 * Q_ceil (GI->max_edicts / 1024.0f);*/
+			else str64.maxstringarray = 65536 * ceil (GI->max_edicts / 1024.0f);
 		}
 
 	if (Sys_CheckParm ("-str64dup"))
@@ -3440,11 +3443,6 @@ void SV_PrintStr64Stats_f (void)
 	Con_Printf ("====================\n");
 	Con_Printf ("64 bit string pool statistics\n");
 	Con_Printf ("====================\n");
-	/*Con_Printf ("string array size: %lu\n", str64.maxstringarray);
-	Con_Printf ("total alloc %lu\n", str64.totalalloc);
-	Con_Printf ("maximum array usage: %lu\n", str64.maxalloc);
-	Con_Printf ("overflow counter: %lu\n", str64.numoverflows);
-	Con_Printf ("dup string counter: %lu\n", str64.numdups);*/
 	Con_Printf ("string array size: %zu\n", str64.maxstringarray);
 	Con_Printf ("total alloc %zu\n", str64.totalalloc);
 	Con_Printf ("maximum array usage: %zu\n", str64.maxalloc);
@@ -4291,14 +4289,6 @@ void GAME_EXPORT SV_PlaybackEventFull (int flags, const edict_t *pInvoker, word 
 			continue;
 
 		// [FWGS, 01.09.26]
-		/*if (SV_IsValidEdict (pInvoker) && pInvoker->v.groupinfo && cl->edict->v.groupinfo)
-			{
-			if (svs.groupop == GROUP_OP_AND && !FBitSet (cl->edict->v.groupinfo, pInvoker->v.groupinfo))
-				continue;
-
-			if (svs.groupop == GROUP_OP_NAND && FBitSet (cl->edict->v.groupinfo, pInvoker->v.groupinfo))
-				continue;
-			}*/
 		if (SV_IsValidEdict (pInvoker) && !SV_CheckGroupTrace (pInvoker, cl->edict))
 			continue;
 
@@ -4955,8 +4945,10 @@ static enginefuncs_t gEngfuncs =
 	pfnRegUserMsg,
 	pfnAnimationAutomove,
 	pfnGetBonePosition,
-	(void *)pfnFunctionFromName,
-	(void *)pfnNameForFunction,
+	/*(void *)pfnFunctionFromName,
+	(void *)pfnNameForFunction,*/
+	pfnFunctionFromName,	// [FWGS, 01.10.26]
+	pfnNameForFunction,		// [FWGS, 01.10.26]
 	pfnClientPrintf,
 	pfnServerPrint,
 	Cmd_Args,
@@ -5289,6 +5281,15 @@ static void SV_LoadFromFile (const char *mapname, char *entities)
 
 			if (!SV_ParseEdict (&entities, ent))
 				continue;
+
+			// [FWGS, 01.10.26]
+			if (deathmatch.value && FBitSet (host.bugcomp, BUGCOMP_SPAWNFLAG_NOT_DEATHMATCH) &&
+				FBitSet (ent->v.spawnflags, SF_NOT_DEATHMATCH))
+				{
+				SV_FreeEdict (ent);
+				inhibited++;
+				continue;
+				}
 
 			if (svgame.dllFuncs.pfnSpawn (ent) == -1)
 				{

@@ -101,14 +101,12 @@ void GAME_EXPORT CRC32_ProcessByte (uint32_t *pulCRC, byte ch)
 // [FWGS, 01.07.26]
 void GAME_EXPORT CRC32_ProcessBuffer (uint32_t *pulCRC, const void *pBuffer, int nBuffer)
 	{
-	/*uint32_t	ulCrc = *pulCRC, tmp;
-	byte *pb = (byte *)pBuffer;*/
 	uint32_t	ulCrc = *pulCRC;
 	byte	*pb = (byte *)pBuffer;
 
 	while (nBuffer >= sizeof (uint64_t))
 		{
-		uint32_t tmp;
+		uint32_t	tmp;
 
 		memcpy (&tmp, pb, sizeof (tmp));
 		ulCrc ^= LittleLong (tmp);
@@ -130,7 +128,7 @@ void GAME_EXPORT CRC32_ProcessBuffer (uint32_t *pulCRC, const void *pBuffer, int
 
 	if (nBuffer & sizeof (uint32_t))
 		{
-		uint32_t tmp;
+		uint32_t	tmp;
 
 		memcpy (&tmp, pb, sizeof (tmp));
 		ulCrc ^= LittleLong (tmp);
@@ -158,11 +156,7 @@ For proxy protecting
 ***/
 byte CRC32_BlockSequence (byte *base, int length, int sequence)
 	{
-	/*uint32_t	CRC;
-	char		buffer[64];
-	int			off;
-	uint32_t	le[2];*/
-	char buffer[64];
+	char	buffer[64];
 
 	if (sequence < 0)
 		sequence = abs (sequence);
@@ -171,7 +165,6 @@ byte CRC32_BlockSequence (byte *base, int length, int sequence)
 		length = 60;
 	memcpy (buffer, base, length);
 
-	/*off = sequence % 0x3FC;*/
 	int	off = sequence % 0x3FC;
 	uint32_t	le[2];
 
@@ -181,7 +174,7 @@ byte CRC32_BlockSequence (byte *base, int length, int sequence)
 
 	length += 4;
 
-	uint32_t CRC;
+	uint32_t	CRC;
 	CRC32_Init (&CRC);
 	CRC32_ProcessBuffer (&CRC, buffer, length);
 	CRC = CRC32_Final (CRC);
@@ -209,11 +202,8 @@ Update context to reflect the concatenation of another buffer full of bytes
 ***/
 void MD5Update (MD5Context_t *ctx, const byte *buf, uint len)
 	{
-	/*uint	t;*/
-
 	// update bitcount
-	/*t = ctx->bits[0];*/
-	uint t = ctx->bits[0];
+	uint	t = ctx->bits[0];
 
 	if ((ctx->bits[0] = t + ((uint)len << 3)) < t)
 		ctx->bits[1]++;	// carry from low to high
@@ -224,7 +214,7 @@ void MD5Update (MD5Context_t *ctx, const byte *buf, uint len)
 	// handle any leading odd-sized chunks
 	if (t)
 		{
-		byte *p = (byte *)ctx->in + t;
+		byte	*p = (byte *)ctx->in + t;
 
 		t = 64 - t;
 		if (len < t)
@@ -266,17 +256,12 @@ Final wrapup - pad to 64-byte boundary with the bit pattern
 ***/
 void MD5Final (byte digest[16], MD5Context_t *ctx)
 	{
-	/*uint	count;
-	byte	*p;*/
-
 	// compute number of bytes mod 64
-	/*count = (ctx->bits[0] >> 3) & 0x3F;*/
-	uint count = (ctx->bits[0] >> 3) & 0x3F;
+	uint	count = (ctx->bits[0] >> 3) & 0x3F;
 
 	// set the first char of padding to 0x80.
 	// this is safe since there is always at least one byte free
-	/*p = (byte *)ctx->in + count;*/
-	byte *p = (byte *)ctx->in + count;
+	byte	*p = (byte *)ctx->in + count;
 	*p++ = 0x80;
 
 	// bytes of padding needed to make 64 bytes
@@ -337,16 +322,10 @@ the data and converts bytes into longwords for this routine
 ***/
 void MD5Transform (uint buf[4], const uint in[16])
 	{
-	/*register uint	a, b, c, d;
-
-	a = buf[0];
-	b = buf[1];
-	c = buf[2];
-	d = buf[3];*/
-	register uint a = buf[0];
-	register uint b = buf[1];
-	register uint c = buf[2];
-	register uint d = buf[3];
+	register uint	a = buf[0];
+	register uint	b = buf[1];
+	register uint	c = buf[2];
+	register uint	d = buf[3];
 
 	MD5STEP (F1, a, b, c, d, in[0] + 0xd76aa478, 7);
 	MD5STEP (F1, d, a, b, c, in[1] + 0xe8c7b756, 12);
@@ -422,11 +401,11 @@ void MD5Transform (uint buf[4], const uint in[16])
 	buf[3] += d;
 	}
 
-/*
+/***
 ============
 COM_Hex2Char [FWGS, 01.12.24]
 ============
-*/
+***/
 static char COM_Hex2Char (uint8_t hex)
 	{
 	if ((hex >= 0x0) && (hex <= 0x9))
@@ -437,11 +416,11 @@ static char COM_Hex2Char (uint8_t hex)
 	return (char)hex;
 	}
 
-/*
+/***
 ============
 COM_Hex2String [FWGS, 01.12.24]
 ============
-*/
+***/
 static void COM_Hex2String (uint8_t hex, char *str)
 	{
 	*str++ = COM_Hex2Char (hex >> 4);
@@ -458,13 +437,10 @@ transform hash to hexadecimal printable symbols
 ***/
 char *MD5_Print (byte hash[16])
 	{
-	/*static char	szReturn[64];
-	int		i;*/
-	static char szReturn[64];
+	static char	szReturn[64];
 
 	memset (szReturn, 0, 64);
 
-	/*for (i = 0; i < 16; i++)*/
 	for (int i = 0; i < 16; i++)
 		COM_Hex2String (hash[i], &szReturn[i * 2]);
 
@@ -473,7 +449,7 @@ char *MD5_Print (byte hash[16])
 
 /***
 =================
-COM_HashKey [FWGS, 01.05.24]
+COM_HashKey [FWGS, 01.10.26]
 
 returns hash key for string
 =================
@@ -484,10 +460,88 @@ uint COM_HashKey (const char *string, uint hashSize)
 	unsigned char	i;
 
 	while ((i = *string++))
-		{
-		i = Q_tolower (i);
-		hashKey = (hashKey << 5) + hashKey + (i & 0xDF);
-		}
+		hashKey = (hashKey << 5) + hashKey + (i & 0xDF);	// 0xDF folds ASCII case
 
 	return hashKey & (hashSize - 1);
 	}
+
+/***
+=============================================================================
+[FWGS, 01.10.26]
+SipHash-2-4, adapted from the CC0 reference implementation:
+https://github.com/veorq/SipHash
+Copyright (c) 2012-2022 Jean-Philippe Aumasson
+Copyright (c) 2012-2014 Daniel J. Bernstein
+
+To the extent possible under law, the authors have dedicated all copyright
+and related and neighboring rights to this software to the public domain
+worldwide. This software is distributed without any warranty.
+See https://creativecommons.org/publicdomain/zero/1.0/
+=============================================================================
+***/
+static uint64_t SipHash_Load64 (const byte *p)
+	{
+	uint64_t	value = 0;
+
+	for (int i = 0; i < 8; i++)
+		value |= (uint64_t)p[i] << (8 * i);
+
+	return value;
+	}
+
+// [FWGS, 01.10.26]
+#define SIPHASH_ROTL( x, n ) (((x) << (n)) | ((x) >> (64 - (n))))
+#define SIPHASH_ROUND() { \
+	v0 += v1; v1 = SIPHASH_ROTL( v1, 13 ); v1 ^= v0; \
+	v0 = SIPHASH_ROTL( v0, 32 ); \
+	v2 += v3; v3 = SIPHASH_ROTL( v3, 16 ); v3 ^= v2; \
+	v0 += v3; v3 = SIPHASH_ROTL( v3, 21 ); v3 ^= v0; \
+	v2 += v1; v1 = SIPHASH_ROTL( v1, 17 ); v1 ^= v2; \
+	v2 = SIPHASH_ROTL( v2, 32 ); \
+	}
+
+// [FWGS, 01.10.26]
+uint64_t SipHash24 (const void *data, size_t len, const byte key[16])
+	{
+	const byte	*p = data;
+	uint64_t	k0 = SipHash_Load64 (key);
+	uint64_t	k1 = SipHash_Load64 (key + 8);
+	uint64_t	v0 = 0x736f6d6570736575ULL ^ k0;
+	uint64_t	v1 = 0x646f72616e646f6dULL ^ k1;
+	uint64_t	v2 = 0x6c7967656e657261ULL ^ k0;
+	uint64_t	v3 = 0x7465646279746573ULL ^ k1;
+	uint64_t	tail = (uint64_t)len << 56;
+
+	for (; len >= 8; len -= 8, p += 8)
+		{
+		/*i = Q_tolower (i);
+		hashKey = (hashKey << 5) + hashKey + (i & 0xDF);*/
+		uint64_t	word = SipHash_Load64 (p);
+
+		v3 ^= word;
+		SIPHASH_ROUND ();
+		SIPHASH_ROUND ();
+		v0 ^= word;
+		}
+
+	/*return hashKey & (hashSize - 1);*/
+	for (size_t i = 0; i < len; i++)
+		tail |= (uint64_t)p[i] << (8 * i);
+
+	v3 ^= tail;
+	SIPHASH_ROUND ();
+	SIPHASH_ROUND ();
+	v0 ^= tail;
+	v2 ^= 0xff;
+
+	for (int i = 0; i < 4; i++)
+		{
+		SIPHASH_ROUND ();
+		}
+
+	return v0 ^ v1 ^ v2 ^ v3;
+	}
+
+// [FWGS, 01.10.26]
+#undef SIPHASH_ROUND
+#undef SIPHASH_ROTL

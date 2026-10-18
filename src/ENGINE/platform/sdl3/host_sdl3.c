@@ -51,7 +51,14 @@ static void SDLash_KeyEvent (const SDL_KeyboardEvent *key)
 	{
 	int	keynum = key->scancode;
 
-	if (SDL_TextInputActive (host.hWnd) && key->down)
+	// [FWGS, 01.10.26]
+	/*if (SDL_TextInputActive (host.hWnd) && key->down)*/
+#if XASH_ANDROID
+	if ((keynum == SDL_SCANCODE_VOLUMEUP) || (keynum == SDL_SCANCODE_VOLUMEDOWN))
+		host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
+#endif
+
+	if (host.textmode && key->down)
 		{
 		// this is how engine understands ctrl+c, ctrl+v and other hotkeys
 		if ((cls.key_dest != key_game) && FBitSet (SDL_GetModState (), SDL_KMOD_CTRL))
@@ -70,9 +77,6 @@ static void SDLash_KeyEvent (const SDL_KeyboardEvent *key)
 		qboolean console_key = (keynum == SDL_SCANCODE_GRAVE) && (cls.key_dest == key_console);
 
 		// ignore printable keys, they are coming through SDL_EVENT_TEXT_INPUT
-		/*if (((keynum >= SDL_SCANCODE_A) && (keynum <= SDL_SCANCODE_Z)) ||
-			((keynum >= SDL_SCANCODE_1) && (keynum <= SDL_SCANCODE_0)) ||
-			((keynum >= SDL_SCANCODE_KP_1) && (keynum <= SDL_SCANCODE_KP_0)))*/
 		// [FWGS, 01.09.26] printable keys have keycode equal to their Unicode value, others have SDLK_SCANCODE_MASK set
 		if (!console_key && !FBitSet (key->key, SDLK_SCANCODE_MASK) && !FBitSet (key->key, SDLK_EXTENDED_MASK) &&
 			(key->key >= 32) && (key->key != 127))
@@ -269,10 +273,22 @@ static void SDLash_TouchEvent (const SDL_TouchFingerEvent *touch)
 
 static void SDLash_EventHandler (const SDL_Event *ev)
 	{
+	// [FWGS, 01.10.26]
+	if ((ev->type >= SDL_EVENT_WINDOW_FIRST) && (ev->type <= SDL_EVENT_WINDOW_LAST))
+		{
+		if (ev->window.windowID != SDL_GetWindowID (host.hWnd))
+			return;
+
+		if ((host.status == HOST_SHUTDOWN) || Host_IsDedicated ())
+			return;		// no need to activate
+		}
+
 	switch (ev->type)
 		{
+		// [FWGS, 01.10.26]
 		case SDL_EVENT_QUIT:
-			Sys_Quit ("caught SDL_EVENT_QUIT");
+			/*Sys_Quit ("caught SDL_EVENT_QUIT");*/
+			CL_RequestQuit ("caught SDL_EVENT_QUIT");
 			break;
 			// TODO: use SDL_AddEventWatch
 			// case SDL_EVENT_TERMINATING:
@@ -286,11 +302,17 @@ static void SDLash_EventHandler (const SDL_Event *ev)
 
 		case SDL_EVENT_WINDOW_MINIMIZED:
 			host.status = HOST_SLEEP;
+
+			// [FWGS, 01.10.26]
+			Cvar_DirectSet (&vid_maximized, "0");
 			break;
 
 		case SDL_EVENT_WINDOW_RESTORED:
 			host.status = HOST_FRAME;
 			host.force_draw_version_time = host.realtime + FORCE_DRAW_VERSION_TIME;
+
+			// [FWGS, 01.10.26]
+			Cvar_DirectSet (&vid_maximized, "0");
 			break;
 
 		case SDL_EVENT_WINDOW_FOCUS_GAINED:
@@ -299,6 +321,16 @@ static void SDLash_EventHandler (const SDL_Event *ev)
 
 		case SDL_EVENT_WINDOW_FOCUS_LOST:
 			SDLash_ActiveEvent (false);
+			break;
+
+		// [FWGS, 01.10.26]
+		case SDL_EVENT_WINDOW_RESIZED:
+			VID_SaveWindowSize (ev->window.data1, ev->window.data2);
+			break;
+
+		// [FWGS, 01.10.26]
+		case SDL_EVENT_WINDOW_MAXIMIZED:
+			Cvar_DirectSet (&vid_maximized, "1");
 			break;
 
 		case SDL_EVENT_KEY_DOWN:
@@ -324,6 +356,7 @@ static void SDLash_EventHandler (const SDL_Event *ev)
 			IN_MWheelEvent (ev->wheel.integer_y);
 			break;
 
+		// [FWGS, 01.10.26]
 		case SDL_EVENT_GAMEPAD_AXIS_MOTION:
 		case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
 		case SDL_EVENT_GAMEPAD_BUTTON_UP:
@@ -333,7 +366,12 @@ static void SDLash_EventHandler (const SDL_Event *ev)
 		case SDL_EVENT_GAMEPAD_TOUCHPAD_MOTION:
 		case SDL_EVENT_GAMEPAD_TOUCHPAD_UP:
 		case SDL_EVENT_GAMEPAD_SENSOR_UPDATE:
-			// TODO:
+			SDLash_HandleGamepadEvent (ev);
+			break;
+
+		// [FWGS, 01.10.26]
+		case SDL_EVENT_SENSOR_UPDATE:
+			SDLash_SensorUpdate (ev->sensor);
 			break;
 
 		case SDL_EVENT_FINGER_DOWN:
@@ -352,9 +390,21 @@ void Platform_RunEvents (void)
 		SDLash_EventHandler (&ev);
 	}
 
+/***
+========================
+Platform_PreCreateMove [FWGS, 01.10.26]
+
+this should disable mouse look on client when m_ignore enabled
+TODO: kill mouse in win32 clients too
+========================
+***/
 void Platform_PreCreateMove (void)
 	{
-	// TODO
+	if (m_ignore.value)
+		{
+		SDL_GetRelativeMouseState (NULL, NULL);
+		SDL_ShowCursor ();
+		}
 	}
 
 // ESHQ: ограничение компиляции

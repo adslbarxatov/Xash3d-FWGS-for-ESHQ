@@ -89,12 +89,12 @@ Sys_DebugBreak
 ***/
 void Sys_DebugBreak (void)
 	{
-	qboolean was_grabbed = false;
+	qboolean	was_grabbed = false;
 
 	if (!Sys_DebuggerPresent ())
 		return;
 
-	if (host.hWnd) // so annoying
+	if (host.hWnd)	// so annoying
 		{
 		was_grabbed = Platform_GetMouseGrab ();
 		Platform_SetMouseGrab (false);
@@ -125,7 +125,7 @@ create buffer, that contain clipboard
 ***/
 char *Sys_GetClipboardData (void)
 	{
-	static char data[1024];
+	static char	data[1024];
 
 	data[0] = '\0';
 
@@ -153,7 +153,7 @@ const char *Sys_GetCurrentUser (void)
 
 	if (GetUserNameW (sw_userName, &size) && (sw_userName[0] != 0))
 		{
-		static char s_userName[MAX_STRING * 4];
+		static char	s_userName[MAX_STRING * 4];
 
 		// set length to -1, so it will null terminate
 		WideCharToMultiByte (CP_UTF8, 0, sw_userName, -1, s_userName, sizeof (s_userName), NULL, NULL);
@@ -162,14 +162,14 @@ const char *Sys_GetCurrentUser (void)
 
 	// [FWGS, 01.03.26]
 #elif XASH_PSVITA
-	static string username;
+	static string	username;
 	sceAppUtilSystemParamGetString (SCE_SYSTEM_PARAM_ID_USERNAME, username, sizeof (username) - 1);
 	if (!COM_StringEmpty (username))
 		return username;
 
 #elif XASH_POSIX && !XASH_ANDROID && !XASH_NSWITCH
-	static string username;
-	struct passwd *pw = getpwuid (geteuid ());
+	static string	username;
+	struct passwd	*pw = getpwuid (geteuid ());
 
 	// POSIX standard says pw _might_ point to static area, so let's make a copy
 	if (pw && !COM_StringEmptyOrNULL (pw->pw_name))
@@ -190,7 +190,6 @@ Sys_ParseCommandLine [FWGS, 01.07.26]
 void Sys_ParseCommandLine (int argc, const char **argv)
 	{
 	const char	*blank = "censored";
-	/*int		i;*/
 
 	host.argc = argc;
 	host.argv = argv;
@@ -198,7 +197,6 @@ void Sys_ParseCommandLine (int argc, const char **argv)
 	if (!host.change_game)
 		return;
 
-	/*for (i = 0; i < host.argc; i++)*/
 	for (int i = 0; i < host.argc; i++)
 		{
 		// we don't want to return to first game
@@ -235,9 +233,6 @@ where the given parameter apears, or 0 if not present
 ***/
 int Sys_CheckParm (const char *parm)
 	{
-	/*int	i;
-
-	for (i = 1; i < host.argc; i++)*/
 	for (int i = 1; i < host.argc; i++)
 		{
 		if (!host.argv[i])
@@ -271,7 +266,7 @@ qboolean _Sys_GetParmFromCmdLine (const char *parm, char *out, size_t size)
 
 qboolean Sys_GetIntFromCmdLine (const char *argName, int *out)
 	{
-	int argIndex = Sys_CheckParm (argName);
+	int	argIndex = Sys_CheckParm (argName);
 
 	if ((argIndex < 1) || (argIndex + 1 >= host.argc) || !host.argv[argIndex + 1])
 		{
@@ -292,7 +287,6 @@ qboolean Sys_GetIntFromCmdLine (const char *argName, int *out)
 // [FWGS, 01.07.26]
 qboolean Sys_LoadLibrary (dll_info_t *dll)
 	{
-	/*size_t	i;*/
 	string	errorstring;
 
 	// check errors
@@ -321,10 +315,9 @@ qboolean Sys_LoadLibrary (dll_info_t *dll)
 		}
 
 	// get the function adresses
-	/*for (i = 0; i < dll->num_fcts; i++)*/
 	for (size_t i = 0; i < dll->num_fcts; i++)
 		{
-		const dllfunc_t *func = &dll->fcts[i];
+		const dllfunc_t	*func = &dll->fcts[i];
 
 		if (!(*func->func = COM_GetProcAddress (dll->link, func->name)))
 			{
@@ -622,14 +615,12 @@ it explicitly doesn't use internal allocation or string copy utils
 ***/
 qboolean Sys_NewInstance (const char *gamedir, const char *finalmsg)
 	{
-	qboolean replaced_arg = false;
-	/*int i;*/
+	qboolean	replaced_arg = false;
 
 #if XASH_NSWITCH
-	char newargs[4096];
-	const char *exe = host.argv[0];	// arg 0 is always the full NRO path
+	char	newargs[4096];
+	const char	*exe = host.argv[0];	// arg 0 is always the full NRO path
 
-	/*for (i = 0; i < host.argc; i++)*/
 	for (int i = 0; i < host.argc; i++)
 		{
 		Q_strncat (newargs, host.argv[i], sizeof (newargs));
@@ -662,13 +653,10 @@ qboolean Sys_NewInstance (const char *gamedir, const char *finalmsg)
 
 #else
 
-	/*int		exelen;
-	char	*exe, **newargs;*/
 	char	*exe = NULL;
 
 	// don't use engine allocation utils here
 	// they will be freed after Host_Shutdown
-	/*newargs = calloc (host.argc + 4, sizeof (*newargs));*/
 	char	**newargs = calloc (host.argc + 4, sizeof (*newargs));
 	int		i;
 	
@@ -704,8 +692,7 @@ qboolean Sys_NewInstance (const char *gamedir, const char *finalmsg)
 
 #else
 
-	/*exelen = wai_getExecutablePath (NULL, 0, NULL);*/
-	int exelen = wai_getExecutablePath (NULL, 0, NULL);
+	int	exelen = wai_getExecutablePath (NULL, 0, NULL);
 	if (exelen >= 0)
 		{
 		exe = malloc (exelen + 1);
@@ -733,24 +720,24 @@ qboolean Sys_NewInstance (const char *gamedir, const char *finalmsg)
 
 /***
 ==================
-Sys_GetNativeObject [FWGS, 01.07.26]
+Sys_GetNativeObject
 
 Get platform-specific native object
 ==================
 ***/
 void *Sys_GetNativeObject (const char *obj)
 	{
-	/*void *ptr;
-
-	// [FWGS, 01.03.26]*/
 	if (COM_StringEmptyOrNULL (obj))
 		return NULL;
 
-	/*ptr = FS_GetNativeObject (obj);*/
+	// [FWGS, 01.10.26]
+	if (!Q_strcmp (obj, "WindowInsets"))
+		return host.window_insets;
+
 	if (!Q_strcmp (obj, "MenuFactory"))
 		return UI_GetMenuFactory ();
 
-	void *ptr = FS_GetNativeObject (obj);
+	void	*ptr = FS_GetNativeObject (obj);
 	if (ptr)
 		return ptr;
 

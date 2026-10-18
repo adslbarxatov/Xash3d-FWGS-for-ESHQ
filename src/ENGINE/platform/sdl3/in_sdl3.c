@@ -95,17 +95,19 @@ void GAME_EXPORT Platform_SetMousePos (int x, int y)
 	SDL_WarpMouseInWindow (host.hWnd, x, y);
 	}
 
-// [FWGS, 01.03.26]
 void GAME_EXPORT Platform_GetMousePos (int *x, int *y)
 	{
 	SDL_FPoint p = { 0 };
 	SDL_GetMouseState (&p.x, &p.y);
 
+	// [FWGS, 01.10.26]
 	if (x)
-		*x = p.x;
+		/**x = p.x;*/
+		*x = p.x * refState.scale_x;
 
 	if (y)
-		*y = p.y;
+		/**y = p.y;*/
+		*y = p.y * refState.scale_y;
 	}
 
 void Platform_SetCursorType (VGUI_DefaultCursor type)
@@ -146,8 +148,6 @@ void Platform_SetCursorType (VGUI_DefaultCursor type)
 		SDL_HideCursor ();
 		}
 	}
-
-/*void Platform_EnableTextInput (qboolean enable)*/
 
 /***
 =============
@@ -241,7 +241,6 @@ int Platform_TranslateKeyLayout (int keynum)
 // [FWGS, 01.09.26]
 void Platform_EnableTextInput (qboolean enable, int x, int y, int w, int h)
 	{
-	/*enable ? SDL_StartTextInput (host.hWnd) : SDL_StopTextInput (host.hWnd);*/
 	if (!enable)
 		{
 		SDL_StopTextInput (host.hWnd);

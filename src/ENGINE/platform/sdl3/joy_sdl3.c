@@ -23,11 +23,9 @@ GNU General Public License for more details
 #include "client.h"
 #include "platform_sdl3.h"
 
-// [FWGS, 01.09.26]
-/*void Platform_Vibrate (float time, char flags)*/
+// [FWGS, 01.10.26]
 static const int	g_button_mapping[] =
 	{
-	/*Platform_Vibrate2 (time, -1, -1, flags);*/
 	K_A_BUTTON, K_B_BUTTON, K_X_BUTTON, K_Y_BUTTON,
 	K_BACK_BUTTON, K_MODE_BUTTON, K_START_BUTTON,
 	K_LSTICK, K_RSTICK,
@@ -35,7 +33,11 @@ static const int	g_button_mapping[] =
 	K_DPAD_UP, K_DPAD_DOWN, K_DPAD_LEFT, K_DPAD_RIGHT,
 	K_MISC_BUTTON,
 	K_PADDLE1_BUTTON, K_PADDLE2_BUTTON, K_PADDLE3_BUTTON, K_PADDLE4_BUTTON,
-	K_TOUCHPAD,
+	/*K_TOUCHPAD,*/
+	K_TOUCHPAD,			// left pad click on Steam Controller and Steam Deck
+	K_MISC2_BUTTON,		// right pad click
+	// FIXME: I guess, K_MISC2_BUTTON stays there forever for compatibility
+	// but SDL 3.5+ moved right pad and other (like touchpad touch and grips) to new capsense API
 	};
 
 // [FWGS, 01.09.26] Swap axis to follow default axis binding:
@@ -86,7 +88,6 @@ static void SDLash_RestartCalibration (void)
 	}
 
 // [FWGS, 01.09.26]
-/*void Platform_Vibrate2 (float time, int val1, int val2, uint flags)*/
 static void SDLash_FinalizeCalibration (void)
 	{
 	int	min_samples = Q_rint (CALIBRATION_TIME * gyrocal.data_rate * 0.5f);
@@ -120,11 +121,8 @@ static void SDLash_FinalizeCalibration (void)
 	}
 
 // [FWGS, 01.09.26]
-/*int Platform_JoyInit (void)*/
 static void SDLash_AccumulateCalibrationData (const float *data)
 	{
-	/*// TODO
-	return 0;*/
 	// for continuous background calibration only listen for noise
 	// by comparing it with calibrated values
 	//
@@ -147,7 +145,6 @@ static void SDLash_AccumulateCalibrationData (const float *data)
 	}
 
 // [FWGS, 01.09.26]
-/*void Platform_JoyShutdown (void)*/
 static void SDLash_GamepadAddMappings (const char *name)
 	{
 	fs_offset_t	len = 0;
@@ -167,7 +164,6 @@ static void SDLash_GamepadAddMappings (const char *name)
 	Mem_Free (p);
 	}
 
-// [FWGS, 01.09.26]
 static void SDLash_SetActiveGamepad (SDL_JoystickID id)
 	{
 	if (g_current_gamepad_id == id)
@@ -181,8 +177,10 @@ static void SDLash_SetActiveGamepad (SDL_JoystickID id)
 
 	if (id == 0)
 		{
+		// [FWGS, 01.10.26]
 		g_current_gamepad = NULL;
-		Joy_SetCapabilities (false);
+		/*Joy_SetCapabilities (false);*/
+		Joy_SetCapabilities (false, 0);
 		Joy_SetCalibrationState (JOY_NOT_CALIBRATED);
 		}
 	else
@@ -198,7 +196,9 @@ static void SDLash_SetActiveGamepad (SDL_JoystickID id)
 			SDLash_RestartCalibration ();
 			}
 
-		Joy_SetCapabilities (have_gyro);
+		// [FWGS, 01.10.26]
+		/*Joy_SetCapabilities (have_gyro);*/
+		Joy_SetCapabilities (have_gyro, SDL_GetNumGamepadTouchpads (g_current_gamepad));
 		}
 	}
 
@@ -290,7 +290,19 @@ static void SDLash_GamepadSensorUpdate (const SDL_GamepadSensorEvent *sensor)
 	Joy_GyroEvent (data);
 	}
 
-// [FWGS, 01.09.26]
+// [FWGS, 01.10.26]
+static void SDLash_GamepadTouchpadEvent (const SDL_GamepadTouchpadEvent *tpad, qboolean down)
+	{
+	// SDL orders touchpads the way the driver reports them, for two pad devices that's left first, then right
+	// FIXME: DualShock 4 and DualSense track two fingers on their single pad but we only care about the first one
+	if ((tpad->touchpad < 0) || (tpad->touchpad >= MAX_TOUCHPADS) || (tpad->finger != 0))
+		return;
+
+	SDLash_SetActiveGamepad (tpad->which);
+
+	Joy_TouchpadEvent (tpad->touchpad, down, tpad->x, tpad->y, tpad->pressure);
+	}
+
 void SDLash_HandleGamepadEvent (const SDL_Event *ev)
 	{
 	int	x;
@@ -322,6 +334,17 @@ void SDLash_HandleGamepadEvent (const SDL_Event *ev)
 
 		case SDL_EVENT_GAMEPAD_SENSOR_UPDATE:
 			SDLash_GamepadSensorUpdate (&ev->gsensor);
+			break;
+
+		// [FWGS, 01.10.26]
+		case SDL_EVENT_GAMEPAD_TOUCHPAD_DOWN:
+		case SDL_EVENT_GAMEPAD_TOUCHPAD_MOTION:
+			SDLash_GamepadTouchpadEvent (&ev->gtouchpad, true);
+			break;
+
+		// [FWGS, 01.10.26]
+		case SDL_EVENT_GAMEPAD_TOUCHPAD_UP:
+			SDLash_GamepadTouchpadEvent (&ev->gtouchpad, false);
 			break;
 		}
 	}

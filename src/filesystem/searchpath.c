@@ -48,28 +48,28 @@ typedef struct fs_archive_s
 static const fs_archive_t g_archives[] =
 	{
 		{
-			.ext = "pak",
-			.type = SEARCHPATH_PAK,
-			.pfnAddArchive_Fullpath = FS_AddPak_Fullpath,
-			.load_wads = true,
-			.real_archive = true,
-			.allow_exec = true,
+		.ext = "pak",
+		.type = SEARCHPATH_PAK,
+		.pfnAddArchive_Fullpath = FS_AddPak_Fullpath,
+		.load_wads = true,
+		.real_archive = true,
+		.allow_exec = true,
 		}, {
-			.ext = "pk3",
-			.type = SEARCHPATH_ZIP,
-			.pfnAddArchive_Fullpath = FS_AddZip_Fullpath,
-			.load_wads = true,
-			.real_archive = true,
+		.ext = "pk3",
+		.type = SEARCHPATH_ZIP,
+		.pfnAddArchive_Fullpath = FS_AddZip_Fullpath,
+		.load_wads = true,
+		.real_archive = true,
 		}, {
-			.ext = "pk3dir",
-			.type = SEARCHPATH_PK3DIR,
-			.pfnAddArchive_Fullpath = FS_AddDir_Fullpath,
-			.load_wads = true,
+		.ext = "pk3dir",
+		.type = SEARCHPATH_PK3DIR,
+		.pfnAddArchive_Fullpath = FS_AddDir_Fullpath,
+		.load_wads = true,
 		}, {
-			.ext = "wad",
-			.type = SEARCHPATH_WAD,
-			.pfnAddArchive_Fullpath = FS_AddWad_Fullpath,
-			.real_archive = true,
+		.ext = "wad",
+		.type = SEARCHPATH_WAD,
+		.pfnAddArchive_Fullpath = FS_AddWad_Fullpath,
+		.real_archive = true,
 		},
 	};
 
@@ -91,11 +91,11 @@ static const fs_archive_t g_android_archive =
 
 static searchpath_t *FS_AddArchive_Fullpath (const fs_archive_t *archive, const char *file, int flags)
 	{
-	searchpath_t *search;
+	searchpath_t	*search;
 
 	if (!archive)
 		{
-		const char *ext = COM_FileExtension (file);
+		const char	*ext = COM_FileExtension (file);
 
 		for (int i = 0; i < sizeof (g_archives) / sizeof (g_archives[0]); i++)
 			{
@@ -128,7 +128,6 @@ static searchpath_t *FS_AddArchive_Fullpath (const fs_archive_t *archive, const 
 		SetBits (flags, FS_NOWRITE_PATH);
 
 	search = archive->pfnAddArchive_Fullpath (file, flags);
-
 	if (!search)
 		return NULL;
 
@@ -138,7 +137,7 @@ static searchpath_t *FS_AddArchive_Fullpath (const fs_archive_t *archive, const 
 	// time to add in search list all the wads from this archive
 	if (archive->load_wads && !FBitSet (flags, FS_SKIP_ARCHIVED_WADS))
 		{
-		stringlist_t list;
+		stringlist_t	list;
 
 		stringlistinit (&list);
 		search->pfnSearch (search, &list, "*.wad", true);
@@ -150,8 +149,8 @@ static searchpath_t *FS_AddArchive_Fullpath (const fs_archive_t *archive, const 
 
 		for (int i = 0; i < list.numstrings; i++)
 			{
-			searchpath_t *wad;
-			char fullpath[MAX_SYSPATH];
+			searchpath_t	*wad;
+			char	fullpath[MAX_SYSPATH];
 
 			Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", file, list.strings[i]);
 			if ((wad = FS_AddWad_Fullpath (fullpath, flags | FS_LOAD_PACKED_WAD)))
@@ -187,8 +186,8 @@ then loads and adds pak1.pak pak2.pak...
 ***/
 void FS_AddGameDirectory (const char *dir, uint flags)
 	{
-	stringlist_t list;
-	searchpath_t *search;
+	stringlist_t	list;
+	searchpath_t	*search;
 
 	stringlistinit (&list);
 	listdirectory (&list, dir, false);
@@ -196,7 +195,7 @@ void FS_AddGameDirectory (const char *dir, uint flags)
 
 	for (int j = 0; j < sizeof (g_archives) / sizeof (g_archives[0]); j++)
 		{
-		char fullpath[MAX_SYSPATH];
+		char	fullpath[MAX_SYSPATH];
 
 		for (int i = 0; i < list.numstrings; i++)
 			{
@@ -210,8 +209,13 @@ void FS_AddGameDirectory (const char *dir, uint flags)
 
 	stringlistfreecontents (&list);
 
+	// [FWGS, 01.10.26]
 #if XASH_ANDROID
-	FS_AddArchive_Fullpath (&g_android_archive, dir, flags);
+	/*FS_AddArchive_Fullpath (&g_android_archive, dir, flags);*/
+	// launcher assets must be mounted on top of engine assets, even if launcher runs base game
+	FS_AddArchive_Fullpath (&g_android_archive, dir, flags & ~FS_GAMEDIR_PATH);
+	if (FBitSet (flags, FS_GAMEDIR_PATH))
+		FS_AddArchive_Fullpath (&g_android_archive, dir, flags);
 #endif
 
 	// add the directory to the search path
@@ -228,7 +232,7 @@ FS_ClearSearchPath
 ***/
 void FS_ClearSearchPath (void)
 	{
-	searchpath_t *cur, **prev = &fs_searchpaths;
+	searchpath_t	*cur, **prev = &fs_searchpaths;
 
 	while (true)
 		{
@@ -284,6 +288,7 @@ only implemented for Android for now
 static uint32_t FS_PathExecFlag (const char *dir)
 	{
 #if XASH_ANDROID
+
 	// on Android, where directories usually lie outside of internal app directory
 	// we can't reliably load libraries from
 	//
@@ -292,11 +297,14 @@ static uint32_t FS_PathExecFlag (const char *dir)
 	if (!Q_strncmp (dir, "/data/", 6))
 		return FS_EXEC_PATH;
 	return 0;
-#else	// !XASH_ANDROID
+
+#else
+
 	// FIXME: read noexec flag on *nix systems?
 	(void)dir;
 	return FS_EXEC_PATH;
-#endif	// !XASH_ANDROID
+
+#endif
 	}
 
 /***
@@ -306,8 +314,8 @@ FS_AddGameHierarchy
 ***/
 void FS_AddGameHierarchy (const char *dir, uint flags)
 	{
-	const qboolean is_game_dir = FBitSet (flags, FS_GAMEDIR_PATH);
-	const uint32_t mount_flags = FBitSet (flags, FS_MOUNT_FLAGS);
+	const qboolean	is_game_dir = FBitSet (flags, FS_GAMEDIR_PATH);
+	const uint32_t	mount_flags = FBitSet (flags, FS_MOUNT_FLAGS);
 
 	if (COM_StringEmptyOrNULL (dir))
 		return;
@@ -349,10 +357,10 @@ void FS_AddGameHierarchy (const char *dir, uint flags)
 	char buf[MAX_VA_STRING];
 	if (!COM_StringEmpty (fs_rodir))
 		{
-		uint32_t new_flags = flags
-			| FS_NOWRITE_PATH
-			| (is_game_dir ? FS_GAMERODIR_PATH : 0)
-			| FS_PathExecFlag (fs_rodir);
+		uint32_t	new_flags = flags |
+			FS_NOWRITE_PATH |
+			(is_game_dir ? FS_GAMERODIR_PATH : 0) |
+			FS_PathExecFlag (fs_rodir);
 
 		// clear flags not applicable to read-only directory
 		ClearBits (new_flags, FS_GAMEDIR_PATH | FS_CUSTOM_PATH);
@@ -431,7 +439,7 @@ void FS_Rescan (uint32_t flags, const char *language)
 		ClearBits (flags, FS_MOUNT_L10N);
 		}
 
-	const char *str = getenv ("XASH3D_EXTRAS_PAK1");
+	const char	*str = getenv ("XASH3D_EXTRAS_PAK1");
 	if (!COM_StringEmptyOrNULL (str))
 		FS_MountArchive_Fullpath (str, FS_NOWRITE_PATH | FS_CUSTOM_PATH);
 
@@ -473,7 +481,7 @@ can be passed null arg
 ***/
 void FS_LoadGameInfo (uint32_t flags, const char *language)
 	{
-	int i;
+	int	i;
 
 	// lock uplevel of gamedir for read\write
 	FS_AllowDirectPaths (false);
@@ -515,15 +523,16 @@ return true if library is crypted
 ***/
 static qboolean FS_CheckForCrypt (const char *dllname)
 	{
-	file_t *f;
-	int key;
+	file_t	*f;
+	int		key;
 
 	// this encryption is specific to DLLs
 	if (Q_stricmp (COM_FileExtension (dllname), "dll"))
 		return false;
 
 	f = FS_Open (dllname, "rb", false);
-	if (!f) return false;
+	if (!f)
+		return false;
 
 	FS_Seek (f, 64, SEEK_SET);	// skip first 64 bytes
 	FS_Read (f, &key, sizeof (key));
@@ -534,8 +543,8 @@ static qboolean FS_CheckForCrypt (const char *dllname)
 
 static int FS_StripIdiotRelativePath (const char *dllname, const char *gamefolder)
 	{
-	string idiot_relpath;
-	int len = Q_snprintf (idiot_relpath, sizeof (idiot_relpath), "../%s/", gamefolder);
+	string	idiot_relpath;
+	int		len = Q_snprintf (idiot_relpath, sizeof (idiot_relpath), "../%s/", gamefolder);
 
 	if (len >= 4)
 		{
@@ -554,7 +563,7 @@ static int FS_StripIdiotRelativePath (const char *dllname, const char *gamefolde
 
 static void FS_ValidateDirectories (const char *path, qboolean *has_base_dir, qboolean *has_game_dir)
 	{
-	stringlist_t dirs;
+	stringlist_t	dirs;
 
 	stringlistinit (&dirs);
 	listdirectory (&dirs, path, true);
@@ -585,9 +594,9 @@ FS_Init
 ***/
 qboolean FS_InitStdio (qboolean unused_set_to_true, const char *rootdir, const char *basedir, const char *gamedir, const char *rodir)
 	{
-	stringlist_t dirs;
-	int rodir_num_games;
-	char buf[MAX_SYSPATH];
+	stringlist_t	dirs;
+	int		rodir_num_games;
+	char	buf[MAX_SYSPATH];
 
 	FS_InitMemory ();
 
@@ -612,8 +621,8 @@ qboolean FS_InitStdio (qboolean unused_set_to_true, const char *rootdir, const c
 	// this whole check only required to fallback to base directory
 	// (i.e. default game directory hardcoded in the executable file)
 	{
-	qboolean has_base_dir = false;
-	qboolean has_game_dir = false;
+	qboolean	has_base_dir = false;
+	qboolean	has_game_dir = false;
 
 	FS_ValidateDirectories ("./", &has_base_dir, &has_game_dir);
 
@@ -674,7 +683,7 @@ qboolean FS_InitStdio (qboolean unused_set_to_true, const char *rootdir, const c
 
 	for (int i = 0; i < dirs.numstrings; i++)
 		{
-		int j;
+		int	j;
 
 		if (!FS_SysFolderExists (dirs.strings[i]))
 			continue;
@@ -686,7 +695,7 @@ qboolean FS_InitStdio (qboolean unused_set_to_true, const char *rootdir, const c
 			{
 			if (!Q_stricmp (dirs.strings[i], FI.games[j]->gamefolder))
 				{
-				gameinfo_t gi;
+				gameinfo_t	gi;
 				if (FS_ParseGameInfo (dirs.strings[i], &gi, false))
 					{
 					if (gi.mtime > FI.games[j]->mtime)
@@ -706,7 +715,6 @@ qboolean FS_InitStdio (qboolean unused_set_to_true, const char *rootdir, const c
 	stringlistfreecontents (&dirs);
 
 	Con_Reportf ("%s: done\n", __func__);
-
 	return true;
 	}
 
@@ -731,6 +739,7 @@ void FS_ShutdownStdio (void)
 			FI.games[i] = NULL;
 			}
 		}
+
 	FI.numgames = 0;
 
 	FS_ClearSearchPath ();	// release all wad files too
@@ -750,8 +759,8 @@ void FS_Path_f (void)
 
 	for (searchpath_t *s = fs_searchpaths; s; s = s->next)
 		{
-		string fl;
-		string info;
+		string	fl;
+		string	info;
 
 		s->pfnPrintInfo (s, info, sizeof (info));
 
@@ -783,10 +792,10 @@ void FS_FindFile_f (const char *filename)
 
 	for (searchpath_t *s = fs_searchpaths; s; s = s->next)
 		{
-		string fixedname;
+		string	fixedname;
 		if (s->pfnFindFile (s, filename, fixedname, sizeof (fixedname)) >= 0)
 			{
-			string info;
+			string	info;
 			count++;
 			s->pfnPrintInfo (s, info, sizeof (info));
 			Con_Printf ("  " S_CYAN "%s%s\n", info, count == 1 ? " " S_GREEN "(active)" : "");
@@ -809,12 +818,12 @@ and the file index in the package if relevant
 ***/
 searchpath_t *FS_FindFile (const char *name, int *index, char *fixedname, size_t len, uint32_t flags)
 	{
-	searchpath_t *search;
+	searchpath_t	*search;
 
 	// search through the path, one element at a time
 	for (search = fs_searchpaths; search; search = search->next)
 		{
-		int pack_ind;
+		int	pack_ind;
 
 		if (flags && !FBitSet (search->flags, flags))
 			continue;
@@ -830,7 +839,7 @@ searchpath_t *FS_FindFile (const char *name, int *index, char *fixedname, size_t
 
 	if (fs_ext_path)
 		{
-		char netpath[MAX_SYSPATH], dirpath[MAX_SYSPATH];
+		char	netpath[MAX_SYSPATH], dirpath[MAX_SYSPATH];
 
 		// HACKHACK: when the code wants to access to root game directory
 		// it often uses ../ in conjunction with FS_AllowDirectPath
@@ -848,7 +857,7 @@ searchpath_t *FS_FindFile (const char *name, int *index, char *fixedname, size_t
 
 		if (FS_SysFileExists (netpath))
 			{
-			static searchpath_t fs_directpath;
+			static searchpath_t	fs_directpath;
 
 			// clear old dir cache, if needed
 			if (0 != Q_strcmp (fs_directpath.filename, dirpath))
@@ -884,9 +893,9 @@ search for library, assume index is valid
 ***/
 qboolean FS_FindLibrary (const char *dllname, qboolean directpath, fs_dllinfo_t *dllInfo)
 	{
-	string fixedname;
-	searchpath_t *search;
-	int index, start = 0, len;
+	string	fixedname;
+	searchpath_t	*search;
+	int		index, start = 0, len;
 
 	// check for bad exports
 	if (COM_StringEmptyOrNULL (dllname))
@@ -984,7 +993,7 @@ qboolean FS_FullPathToRelativePath (char *dst, const char *src, size_t size)
 	{
 	for (searchpath_t *sp = fs_searchpaths; sp; sp = sp->next)
 		{
-		size_t splen = Q_strlen (sp->filename);
+		size_t	splen = Q_strlen (sp->filename);
 
 		if (!Q_strnicmp (sp->filename, src, splen))
 			{
@@ -1006,11 +1015,11 @@ Allocate and fill a search structure with information on matching filenames
 ***/
 search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly)
 	{
-	search_t *search = NULL;
-	int numfiles, numchars;
-	stringlist_t resultlist;
+	search_t	*search = NULL;
+	int		numfiles, numchars;
+	stringlist_t	resultlist;
 
-	if (pattern[0] == '.' || pattern[0] == ':' || pattern[0] == '/' || pattern[0] == '\\')
+	if ((pattern[0] == '.') || (pattern[0] == ':') || (pattern[0] == '/') || (pattern[0] == '\\'))
 		return NULL;	// punctuation issues
 
 	stringlistinit (&resultlist);
@@ -1032,6 +1041,7 @@ search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly)
 
 		for (int i = 0; i < resultlist.numstrings; i++)
 			numchars += (int)Q_strlen (resultlist.strings[i]) + 1;
+
 		search = Mem_Calloc (fs_mempool, sizeof (search_t) + numchars + numfiles * sizeof (char *));
 		search->filenames = (char **)((char *)search + sizeof (search_t));
 		search->filenamesbuffer = (char *)((char *)search + sizeof (search_t) + numfiles * sizeof (char *));
@@ -1040,7 +1050,7 @@ search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly)
 
 		for (int i = 0; i < resultlist.numstrings; i++)
 			{
-			size_t textlen;
+			size_t	textlen;
 
 			search->filenames[numfiles] = search->filenamesbuffer + numchars;
 			textlen = Q_strlen (resultlist.strings[i]) + 1;
@@ -1051,7 +1061,6 @@ search_t *FS_Search (const char *pattern, int caseinsensitive, int gamedironly)
 		}
 
 	stringlistfreecontents (&resultlist);
-
 	return search;
 	}
 
@@ -1074,7 +1083,7 @@ qboolean FS_IsArchiveExtensionSupported (const char *ext, uint flags)
 
 searchpath_t *FS_GetArchiveByName (const char *name, searchpath_t *prev)
 	{
-	searchpath_t *sp = prev ? prev->next : fs_searchpaths;
+	searchpath_t	*sp = prev ? prev->next : fs_searchpaths;
 
 	for (; sp; sp = sp->next)
 		{

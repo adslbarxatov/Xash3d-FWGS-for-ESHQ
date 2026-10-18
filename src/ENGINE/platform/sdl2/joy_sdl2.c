@@ -90,7 +90,7 @@ static void SDLash_RestartCalibration (void)
 // [FWGS, 15.04.26]
 static void SDLash_FinalizeCalibration (void)
 	{
-	int min_samples = Q_rint (CALIBRATION_TIME * gyrocal.data_rate * 0.5f);
+	int	min_samples = Q_rint (CALIBRATION_TIME * gyrocal.data_rate * 0.5f);
 
 	// we waited for few seconds and got too few samples
 	if (gyrocal.samples <= min_samples)
@@ -134,7 +134,7 @@ static void SDLash_AccumulateCalibrationData (vec3_t data)
 	// output offset data
 	if (gyrocal.continuous)
 		{
-		vec3_t calibrated;
+		vec3_t	calibrated;
 		VectorSubtract (data, gyrocal.calibrated_values, calibrated);
 
 		if (VectorLength (calibrated) > 0.1f)
@@ -150,22 +150,21 @@ static void SDLash_AccumulateCalibrationData (vec3_t data)
 
 static void SDLash_GameControllerAddMappings (const char *name)
 	{
-	fs_offset_t len = 0;
-	byte *p = FS_LoadFile (name, &len, false);
+	fs_offset_t	len = 0;
+	byte	*p = FS_LoadFile (name, &len, false);
 
 	if (!p)
 		return;
 
-	if (len > 0 && len < INT32_MAX)	// function accepts int, SDL3 fixes this
+	if ((len > 0) && (len < INT32_MAX))	// function accepts int, SDL3 fixes this
 		{
-		SDL_RWops *rwops = SDL_RWFromConstMem (p, (int)len);
+		SDL_RWops	*rwops = SDL_RWFromConstMem (p, (int)len);
 		SDL_GameControllerAddMappingsFromRW (rwops, true);
 		}
 
 	Mem_Free (p);
 	}
 
-// [FWGS, 01.06.25]
 static void SDLash_SetActiveGameController (SDL_JoystickID id)
 	{
 	if (g_current_gamepad_id == id)
@@ -180,19 +179,25 @@ static void SDLash_SetActiveGameController (SDL_JoystickID id)
 	g_current_gamepad_id = id;
 	if (id < 0)
 		{
+		// [FWGS, 01.10.26]
 		g_current_gamepad = NULL;
-		Joy_SetCapabilities (false);
+		/*Joy_SetCapabilities (false);*/
+		Joy_SetCapabilities (false, 0);
 		Joy_SetCalibrationState (JOY_NOT_CALIBRATED);
 		}
 	else
 		{
-		qboolean have_gyro = false;
+		// [FWGS, 01.10.26]
+		qboolean	have_gyro = false;
+		int		num_touchpads = 0;
 
 		g_current_gamepad = SDL_GameControllerFromInstanceID (id);
 
 #if SDL_VERSION_ATLEAST( 2, 0, 14 )
 		have_gyro = SDL_GameControllerHasSensor (g_current_gamepad, SDL_SENSOR_GYRO);
 
+		// [FWGS, 01.10.26]
+		num_touchpads = SDL_GameControllerGetNumTouchpads (g_current_gamepad);
 		if (have_gyro)
 			{
 			SDL_GameControllerSetSensorEnabled (g_current_gamepad, SDL_SENSOR_GYRO, SDL_TRUE);
@@ -200,18 +205,16 @@ static void SDLash_SetActiveGameController (SDL_JoystickID id)
 			}
 #endif
 
-		Joy_SetCapabilities (have_gyro);
+		// [FWGS, 01.10.26]
+		/*Joy_SetCapabilities (have_gyro);*/
+		Joy_SetCapabilities (have_gyro, num_touchpads);
 		}
 	}
 
 // [FWGS, 01.07.26]
 static void SDLash_GameControllerAdded (int device_index)
 	{
-	/*SDL_GameController *gc;
-	SDL_GameController **list;
-
-	gc = SDL_GameControllerOpen (device_index);*/
-	SDL_GameController *gc = SDL_GameControllerOpen (device_index);
+	SDL_GameController	*gc = SDL_GameControllerOpen (device_index);
 	if (!gc)
 		{
 		Con_Printf (S_ERROR "SDL_GameControllerOpen: %s\n", SDL_GetError ());
@@ -230,16 +233,15 @@ static void SDLash_GameControllerAdded (int device_index)
 		}
 #endif
 
-	/*list = Mem_Realloc (host.mempool, g_gamepads, sizeof (*list) * (g_num_gamepads + 1));*/
-	SDL_GameController **list = Mem_Realloc (host.mempool, g_gamepads, sizeof (*list) * (g_num_gamepads + 1));
+	SDL_GameController	**list = Mem_Realloc (host.mempool, g_gamepads, sizeof (*list) * (g_num_gamepads + 1));
+	
 	list[g_num_gamepads++] = gc;
-
 	g_gamepads = list;
 
 	// set as current device if none other set
 	if (g_current_gamepad_id < 0)
 		{
-		SDL_Joystick *joy = SDL_GameControllerGetJoystick (gc);
+		SDL_Joystick	*joy = SDL_GameControllerGetJoystick (gc);
 
 		if (joy)
 			SDLash_SetActiveGameController (SDL_JoystickInstanceID (joy));
@@ -252,23 +254,17 @@ static void SDLash_GameControllerAdded (int device_index)
 // [FWGS, 01.07.26]
 static void SDLash_GameControllerRemoved (SDL_JoystickID id)
 	{
-	/*size_t i;*/
-
 	if (id == g_current_gamepad_id)
 		SDLash_SetActiveGameController (-1);
 
 	// now close the device
-	/*for (i = 0; i < g_num_gamepads; i++)*/
 	for (size_t i = 0; i < g_num_gamepads; i++)
 		{
-		SDL_GameController *gc = g_gamepads[i];
-		/*SDL_Joystick *joy;*/
-
+		SDL_GameController	*gc = g_gamepads[i];
 		if (!gc)
 			continue;
 
-		/*joy = SDL_GameControllerGetJoystick (gc);*/
-		SDL_Joystick *joy = SDL_GameControllerGetJoystick (gc);
+		SDL_Joystick	*joy = SDL_GameControllerGetJoystick (gc);
 		if (!joy)
 			continue;
 
@@ -285,7 +281,7 @@ static void SDLash_GameControllerRemoved (SDL_JoystickID id)
 #if SDL_VERSION_ATLEAST( 2, 0, 14 )
 static void SDLash_GameControllerSensorUpdate (SDL_ControllerSensorEvent sensor)
 	{
-	vec3_t data;
+	vec3_t	data;
 
 	if (sensor.which != g_current_gamepad_id)
 		return;
@@ -311,9 +307,26 @@ static void SDLash_GameControllerSensorUpdate (SDL_ControllerSensorEvent sensor)
 	}
 #endif
 
+// [FWGS, 01.10.26]
+#if SDL_VERSION_ATLEAST( 2, 0, 14 )
+
+static void SDLash_GameControllerTouchpadEvent (const SDL_ControllerTouchpadEvent *tpad, qboolean down)
+	{
+	// SDL orders touchpads the way the driver reports them, for two pad devices that's left first, then right.
+	// FIXME: DualShock 4 and DualSense track two fingers on their single pad but we only care about the first one
+	if ((tpad->touchpad < 0) || (tpad->touchpad >= MAX_TOUCHPADS) || (tpad->finger != 0))
+		return;
+
+	SDLash_SetActiveGameController (tpad->which);
+
+	Joy_TouchpadEvent (tpad->touchpad, down, tpad->x, tpad->y, tpad->pressure);
+	}
+
+#endif
+
 void SDLash_HandleGameControllerEvent (SDL_Event *ev)
 	{
-	int x;
+	int	x;
 
 	switch (ev->type)
 		{
@@ -344,6 +357,16 @@ void SDLash_HandleGameControllerEvent (SDL_Event *ev)
 		case SDL_CONTROLLERSENSORUPDATE:
 			SDLash_GameControllerSensorUpdate (ev->csensor);
 			break;
+
+		// [FWGS, 01.10.26]
+		case SDL_CONTROLLERTOUCHPADDOWN:
+		case SDL_CONTROLLERTOUCHPADMOTION:
+			SDLash_GameControllerTouchpadEvent (&ev->ctouchpad, true);
+			break;
+
+		case SDL_CONTROLLERTOUCHPADUP:
+			SDLash_GameControllerTouchpadEvent (&ev->ctouchpad, false);
+			break;
 #endif
 		}
 	}
@@ -357,8 +380,7 @@ void Platform_CalibrateGamepadGyro (void)
 void Platform_Vibrate2 (float time, int val1, int val2, uint flags)
 	{
 #if SDL_VERSION_ATLEAST( 2, 0, 9 )
-	SDL_GameController *gc = g_current_gamepad;
-	/*Uint32 ms;*/
+	SDL_GameController	*gc = g_current_gamepad;
 
 	if ((g_current_gamepad_id < 0) || !gc)
 		return;
@@ -369,8 +391,7 @@ void Platform_Vibrate2 (float time, int val1, int val2, uint flags)
 	if (val2 < 0)
 		val2 = COM_RandomLong (0x7FFF, 0xFFFF);
 
-	/*ms = (Uint32)ceil (time);*/
-	Uint32 ms = (Uint32)ceil (time);
+	Uint32	ms = (Uint32)ceil (time);
 	SDL_GameControllerRumble (gc, val1, val2, ms);
 #endif
 	}
@@ -392,9 +413,6 @@ Platform_JoyInit [FWGS, 01.07.26]
 ***/
 int Platform_JoyInit (void)
 	{
-	/*int count, numJoysticks, i;
-
-	// [FWGS, 15.04.26]*/
 	SDL_SetHint (SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1");
 	SDL_SetHint (SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE, "1");
 
@@ -409,11 +427,8 @@ int Platform_JoyInit (void)
 	SDLash_GameControllerAddMappings ("gamecontrollerdb.txt");	// shipped in extras.pk3
 	SDLash_GameControllerAddMappings ("controllermappings.txt");
 
-	/*count = 0;
-	numJoysticks = SDL_NumJoysticks ();
-	for (i = 0; i < numJoysticks; i++)*/
-	int count = 0;
-	int numJoysticks = SDL_NumJoysticks ();
+	int	count = 0;
+	int	numJoysticks = SDL_NumJoysticks ();
 	for (int i = 0; i < numJoysticks; i++)
 		{
 		if (SDL_IsGameController (i))
@@ -430,11 +445,8 @@ Platform_JoyShutdown [FWGS, 01.07.26]
 ***/
 void Platform_JoyShutdown (void)
 	{
-	/*size_t i;*/
-
 	SDLash_SetActiveGameController (-1);
 
-	/*for (i = 0; i < g_num_gamepads; i++)*/
 	for (size_t i = 0; i < g_num_gamepads; i++)
 		{
 		if (!g_gamepads[i])

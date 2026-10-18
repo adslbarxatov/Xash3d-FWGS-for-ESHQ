@@ -26,30 +26,25 @@ Global variables. Must be visible to window-procedure function
 so it can unlock and free the data block after it has been played
 =======================================================================
 ***/
+
+// [FWGS, 01.10.26]
 static SDL_AudioStream *out_stream;
+static SDL_AudioStream *in_stream;
+
 static char sdl_backend_name[32];
 
 // [FWGS, 01.07.26]
 static void SDLash_OutputCallback (void *userdata, SDL_AudioStream *stream, int additional_amount, int len)
 	{
-	/*// [FWGS, 15.04.26]
-	const int size = snd.samples << 1;
-	int pos;
-	int wrapped;*/
-
 	(void)userdata;
 	(void)additional_amount;
 
-	/*// [FWGS, 15.04.26]
-	pos = snd.samplepos << 1;*/
-	const int size = snd.samples << 1;
-	int pos = snd.samplepos << 1;
+	const int	size = snd.samples << 1;
+	int	pos = snd.samplepos << 1;
 	if (pos >= size)
 		pos = snd.samplepos = 0;
 
-	/*// [FWGS, 15.04.26]
-	wrapped = pos + len - size;*/
-	int wrapped = pos + len - size;
+	int	wrapped = pos + len - size;
 	if (wrapped < 0)
 		{
 		SDL_PutAudioStreamData (stream, snd.buffer + pos, len);
@@ -57,7 +52,7 @@ static void SDLash_OutputCallback (void *userdata, SDL_AudioStream *stream, int 
 		}
 	else
 		{
-		int remaining = size - pos;
+		int	remaining = size - pos;
 
 		SDL_PutAudioStreamData (stream, snd.buffer + pos, remaining);
 		SDL_PutAudioStreamData (stream, snd.buffer, wrapped);
@@ -104,6 +99,7 @@ qboolean SNDDMA_Init (void)
 	SDL_SetHint (SDL_HINT_AUDIO_DRIVER, driver);
 #endif
 
+	// reinitialize SDL with our driver just in case
 	if (SDL_WasInit (SDL_INIT_AUDIO))
 		SDL_QuitSubSystem (SDL_INIT_AUDIO);
 
@@ -136,7 +132,7 @@ qboolean SNDDMA_Init (void)
 	snd.format.channels = 2;
 	snd.format.width = 2;
 
-	int samplecount = s_samplecount.value;
+	int	samplecount = s_samplecount.value;
 	if (!samplecount)
 		samplecount = 0x8000;
 
@@ -232,41 +228,105 @@ void SNDDMA_Activate (qboolean active)
 
 /***
 ===========
-VoiceCapture_Init
+SDLash_InputCallback [FWGS, 01.10.26]
+===========
+***/
+static void SDLash_InputCallback (void *userdata, SDL_AudioStream *stream, int additional_amount, int total_amount)
+	{
+	int	size = Q_min (additional_amount, sizeof (voice.input_buffer) - voice.input_buffer_pos);
+
+	// engine can't keep up, skip audio
+	if (!size)
+		return;
+
+	size = SDL_GetAudioStreamData (stream, voice.input_buffer + voice.input_buffer_pos, size);
+	if (size > 0)
+		voice.input_buffer_pos += size;
+	}
+
+/***
+===========
+VoiceCapture_Init [FWGS, 01.10.26]
 ===========
 ***/
 qboolean VoiceCapture_Init (void)
 	{
-	return false;
+	/*return false;*/
+	if (in_stream)
+		{
+		VoiceCapture_Shutdown ();
+		}
+
+	const SDL_AudioSpec	wanted = {
+		.freq = voice.samplerate,
+		.format = SDL_AUDIO_S16,
+		.channels = VOICE_PCM_CHANNELS,
+		};
+
+	in_stream = SDL_OpenAudioDeviceStream (SDL_AUDIO_DEVICE_DEFAULT_RECORDING, &wanted,
+		SDLash_InputCallback, NULL);
+	if (!in_stream)
+		{
+		Con_Printf ("%s: error creating capture device (%s)\n", __func__, SDL_GetError ());
+		return false;
+		}
+
+	SDL_AudioDeviceID in_dev = SDL_GetAudioStreamDevice (in_stream);
+	Con_Printf (S_NOTE "%s: capture device creation success (%i: %s)\n", __func__, in_dev,
+		SDL_GetAudioDeviceName (in_dev));
+	return true;
 	}
 
 /***
 ===========
-VoiceCapture_Activate
+VoiceCapture_Activate [FWGS, 01.10.26]
 ===========
 ***/
 qboolean VoiceCapture_Activate (qboolean activate)
 	{
-	return false;
+	/*return false;*/
+	if (!in_stream)
+		return false;
+
+	if (activate)
+		SDL_ResumeAudioStreamDevice (in_stream);
+	else
+		SDL_PauseAudioStreamDevice (in_stream);
+
+	return true;
 	}
 
 /***
 ===========
-VoiceCapture_Lock
+VoiceCapture_Lock [FWGS, 01.10.26]
 ===========
 ***/
 qboolean VoiceCapture_Lock (qboolean lock)
 	{
-	return false;
+	/*return false;*/
+	if (!in_stream)
+		return false;
+
+	if (lock)
+		SDL_LockAudioStream (in_stream);
+	else
+		SDL_UnlockAudioStream (in_stream);
+
+	return true;
 	}
 
 /***
 ==========
-VoiceCapture_Shutdown
+VoiceCapture_Shutdown [FWGS, 01.10.26]
 ==========
 ***/
 void VoiceCapture_Shutdown (void)
 	{
+	if (!in_stream)
+		return;
+
+	SDL_DestroyAudioStream (in_stream);
+	in_stream = NULL;
 	}
 
 // ESHQ: ограничение компиляции

@@ -18,7 +18,7 @@ GNU General Public License for more details
 
 /***
 ==================
-SV_SourceQuery_Details [FWGS, 01.12.24]
+SV_SourceQuery_Details
 ==================
 ***/
 static void SV_SourceQuery_Details (netadr_t from)
@@ -26,6 +26,10 @@ static void SV_SourceQuery_Details (netadr_t from)
 	sizebuf_t	buf;
 	char		answer[2048];
 	int			bot_count, client_count;
+
+	// [FWGS, 01.10.26]
+	if (SV_RateLimited (from, SV_RATELIMIT_QUERY))
+		return;
 
 	SV_GetPlayerCount (&client_count, &bot_count);
 	client_count += bot_count;	// bots are counted as players in this reply
@@ -68,16 +72,19 @@ static void SV_SourceQuery_Details (netadr_t from)
 
 /***
 ==================
-SV_SourceQuery_Rules [FWGS, 01.07.26]
+SV_SourceQuery_Rules
 ==================
 ***/
 static void SV_SourceQuery_Rules (netadr_t from)
 	{
-	/*const cvar_t	*cvar;*/
 	sizebuf_t		buf;
 	char	answer[MAX_PRINT_MSG - 4];
 	int		pos;
 	uint	cvar_count = 0;
+
+	// [FWGS, 01.10.26]
+	if (SV_RateLimited (from, SV_RATELIMIT_QUERY))
+		return;
 
 	MSG_Init (&buf, "TSourceEngineQueryRules", answer, sizeof (answer));
 
@@ -86,7 +93,6 @@ static void SV_SourceQuery_Rules (netadr_t from)
 	pos = MSG_GetNumBitsWritten (&buf);
 	MSG_WriteShort (&buf, 0);
 
-	/*for (cvar = Cvar_GetList (); cvar; cvar = cvar->next)*/
 	for (const cvar_t *cvar = Cvar_GetList (); cvar; cvar = cvar->next)
 		{
 		if (!FBitSet (cvar->flags, FCVAR_SERVER))
@@ -122,19 +128,22 @@ static void SV_SourceQuery_Rules (netadr_t from)
 
 /***
 ==================
-SV_SourceQuery_Players [FWGS, 01.07.26]
+SV_SourceQuery_Players
 ==================
 ***/
 static void SV_SourceQuery_Players (netadr_t from)
 	{
 	sizebuf_t	buf;
 	char	answer[MAX_PRINT_MSG - 4];
-	/*int			i, count = 0;*/
 	int		count = 0;
 	int		pos;
 	
 	// respect players privacy
 	if (!sv_expose_player_list.value || SV_HavePassword ())
+		return;
+
+	// [FWGS, 01.10.26]
+	if (SV_RateLimited (from, SV_RATELIMIT_QUERY))
 		return;
 
 	MSG_Init (&buf, "TSourceEngineQueryPlayers", answer, sizeof (answer));
@@ -144,10 +153,9 @@ static void SV_SourceQuery_Players (netadr_t from)
 	pos = MSG_GetNumBitsWritten (&buf);
 	MSG_WriteByte (&buf, 0);
 
-	/*for (i = 0; i < svs.maxclients; i++)*/
 	for (int i = 0; i < svs.maxclients; i++)
 		{
-		const sv_client_t *cl = &svs.clients[i];
+		const sv_client_t	*cl = &svs.clients[i];
 		if (cl->state < cs_connected)
 			continue;
 
@@ -164,7 +172,7 @@ static void SV_SourceQuery_Players (netadr_t from)
 
 	if (count != 0)
 		{
-		int total = MSG_GetNumBytesWritten (&buf);
+		int	total = MSG_GetNumBytesWritten (&buf);
 
 		MSG_SeekToBit (&buf, pos, SEEK_SET);
 		MSG_WriteByte (&buf, count);
@@ -175,7 +183,7 @@ static void SV_SourceQuery_Players (netadr_t from)
 
 /***
 ==================
-SV_SourceQuery_CheckChallenge [FWGS, 01.08.26]
+SV_SourceQuery_CheckChallenge
 
 Validates the challenge that follows the query type byte.
 On missing, mismatched or explicitly requested (-1) challenge,
@@ -191,6 +199,10 @@ static qboolean SV_SourceQuery_CheckChallenge (netadr_t from, sizebuf_t *msg)
 
 	if (!MSG_CheckOverflow (msg) && (challenge != -1) && SV_ValidateChallenge (from, challenge))
 		return true;
+
+	// [FWGS, 01.10.26]
+	if (SV_RateLimited (from, SV_RATELIMIT_CHALLENGE))
+		return false;
 
 	challenge = SV_CreateChallenge (from, &error);
 	if (error)
@@ -215,7 +227,6 @@ static qboolean SV_SourceQuery_CheckChallenge (netadr_t from, sizebuf_t *msg)
 SV_SourceQuery_HandleConnnectionlessPacket [FWGS, 01.08.26]
 ==================
 ***/
-/*void SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from)*/
 void SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from, sizebuf_t *msg)
 	{
 	if (!Q_strcmp (c, A2S_GOLDSRC_INFO))
@@ -225,13 +236,11 @@ void SV_SourceQuery_HandleConnnectionlessPacket (const char *c, netadr_t from, s
 	else switch (c[0])
 		{
 		case A2S_GOLDSRC_RULES:
-			/*SV_SourceQuery_Rules (from);*/
 			if (SV_SourceQuery_CheckChallenge (from, msg))
 				SV_SourceQuery_Rules (from);
 			break;
 
 		case A2S_GOLDSRC_PLAYERS:
-			/*SV_SourceQuery_Players (from);*/
 			if (SV_SourceQuery_CheckChallenge (from, msg))
 				SV_SourceQuery_Players (from);
 			break;
