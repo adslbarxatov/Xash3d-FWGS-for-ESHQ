@@ -1923,7 +1923,7 @@ void CSave::WriteFunction (const char *pname, const int *data, int count)
 	const char	*functionName;
 
 	// ESHQ: !!! изменение протокола
-	functionName = NAME_FOR_FUNCTION ((void *)data);
+	functionName = NAME_FOR_FUNCTION ((void *)*data);
 	if (functionName)
 		BufferField (pname, strlen (functionName) + 1, functionName);
 	else
@@ -2293,8 +2293,11 @@ int CRestore::ReadField (void *pBaseData, TYPEDESCRIPTION *pFields, int fieldCou
 							if (strlen ((char *)pInputData) == 0)
 								*((int *)pOutputData) = 0;
 							else
+								{
 								/**((int *)pOutputData) = FUNCTION_FROM_NAME ((char *)pInputData);*/
-								pOutputData = FUNCTION_FROM_NAME ((char *)pInputData);
+								void *pp = FUNCTION_FROM_NAME ((char *)pInputData);
+								*((int *)pOutputData) = (int)pp;
+								}
 							break;
 
 						default:
