@@ -170,7 +170,7 @@ static float RoundHullBound (float bound, qboolean toward_positive)
 			float	snapped = 0.0f;
 
 		/*size[i] = result;*/
-			for (size_t i = 0; i < ARRAYSIZE (hull_table) && hull_table[i] <= value; i++)
+			for (size_t i = 0; i < HLARRAYSIZE (hull_table) && hull_table[i] <= value; i++)
 				snapped = hull_table[i];
 
 			value = snapped;

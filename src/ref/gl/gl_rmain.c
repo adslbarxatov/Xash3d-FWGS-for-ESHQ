@@ -87,22 +87,12 @@ Sorting translucent entities by rendermode then by distance
 ***/
 static int R_TransEntityCompare (const void *a, const void *b)
 	{
-	/*cl_entity_t *ent1, *ent2;
-	vec3_t		vecLen, org;
-	float		dist1, dist2;
-	int		rendermode1;
-	int		rendermode2;*/
 	cl_entity_t	*ent1 = *(cl_entity_t **)a;
 	cl_entity_t	*ent2 = *(cl_entity_t **)b;
 	int	rendermode1 = R_GetEntityRenderMode (ent1);
 	int	rendermode2 = R_GetEntityRenderMode (ent2);
-
-	/*ent1 = *(cl_entity_t **)a;
-	ent2 = *(cl_entity_t **)b;
-	rendermode1 = R_GetEntityRenderMode (ent1);
-	rendermode2 = R_GetEntityRenderMode (ent2);*/
-	vec3_t vecLen, org;
-	float dist1, dist2;
+	vec3_t	vecLen, org;
+	float	dist1, dist2;
 
 	// ESHQ: сортировка по дистанции без игнорирования аддитивных текстур (иначе наблюдаются проблемы с
 	// прозрачными текстурами при взгляде на объекты с точки ниже их центра)
@@ -156,34 +146,28 @@ Returns true if we behind to screen
 ***/
 int R_WorldToScreen (const vec3_t point, vec3_t screen)
 	{
-	/*matrix4x4	worldToScreen;
-	qboolean	behind;
-	float	w;*/
-
 	if (!point || !screen)
 		return true;
 
-	matrix4x4 worldToScreen;
+	matrix4x4	worldToScreen;
 	Matrix4x4_Copy (worldToScreen, RI.worldviewProjectionMatrix);
 	screen[0] = worldToScreen[0][0] * point[0] + worldToScreen[0][1] * point[1] + worldToScreen[0][2] *
 		point[2] + worldToScreen[0][3];
 	screen[1] = worldToScreen[1][0] * point[0] + worldToScreen[1][1] * point[1] + worldToScreen[1][2] *
 		point[2] + worldToScreen[1][3];
 
-	/*w = worldToScreen[3][0] * point[0] + worldToScreen[3][1] * point[1] + worldToScreen[3][2] * point[2] +
-		worldToScreen[3][3];*/
-	float w = worldToScreen[3][0] * point[0] + worldToScreen[3][1] * point[1] + worldToScreen[3][2] * point[2] +
+	float	w = worldToScreen[3][0] * point[0] + worldToScreen[3][1] * point[1] + worldToScreen[3][2] * point[2] +
 		worldToScreen[3][3];
 	screen[2] = 0.0f;	// just so we have something valid here
 
-	qboolean behind;
+	qboolean	behind;
 	if (w < 0.001f)
 		{
 		behind = true;
 		}
 	else
 		{
-		float invw = 1.0f / w;
+		float	invw = 1.0f / w;
 		screen[0] *= invw;
 		screen[1] *= invw;
 		behind = false;
@@ -201,13 +185,10 @@ Convert a given point from screen into world space
 ***/
 void R_ScreenToWorld (const vec3_t screen, vec3_t point)
 	{
-	/*matrix4x4	screenToWorld;
-	float	w;*/
-
 	if (!point || !screen)
 		return;
 
-	matrix4x4 screenToWorld;
+	matrix4x4	screenToWorld;
 	Matrix4x4_Invert_Full (screenToWorld, RI.worldviewProjectionMatrix);
 
 	point[0] = screen[0] * screenToWorld[0][0] + screen[1] * screenToWorld[0][1] + screen[2] *
@@ -217,9 +198,7 @@ void R_ScreenToWorld (const vec3_t screen, vec3_t point)
 	point[2] = screen[0] * screenToWorld[2][0] + screen[1] * screenToWorld[2][1] + screen[2] *
 		screenToWorld[2][2] + screenToWorld[2][3];
 
-	/*w = screen[0] * screenToWorld[3][0] + screen[1] * screenToWorld[3][1] + screen[2] *
-		screenToWorld[3][2] + screenToWorld[3][3];*/
-	float w = screen[0] * screenToWorld[3][0] + screen[1] * screenToWorld[3][1] + screen[2] *
+	float	w = screen[0] * screenToWorld[3][0] + screen[1] * screenToWorld[3][1] + screen[2] *
 		screenToWorld[3][2] + screenToWorld[3][3];
 	if (w != 0.0f)
 		VectorScale (point, (1.0f / w), point);
@@ -337,21 +316,17 @@ R_Clear [FWGS, 01.07.26]
 ***/
 static void R_Clear (int bitMask)
 	{
-	/*int	bits;*/
-
 	if (ENGINE_GET_PARM (PARM_DEV_OVERVIEW))
 		pglClearColor (0.0f, 1.0f, 0.0f, 1.0f);	// green background (Valve rules)
 	else
 		pglClearColor (0.5f, 0.5f, 0.5f, 1.0f);
 
-	/*bits = GL_DEPTH_BUFFER_BIT;*/
-	int bits = GL_DEPTH_BUFFER_BIT;
+	int	bits = GL_DEPTH_BUFFER_BIT;
 
 	if (glState.stencilEnabled)
 		bits |= GL_STENCIL_BUFFER_BIT;
 
 	bits &= bitMask;
-
 	pglClear (bits);
 
 	// change ordering for overview
@@ -422,8 +397,6 @@ R_SetupProjectionMatrix [FWGS, 01.07.26]
 ***/
 static void R_SetupProjectionMatrix (matrix4x4 m)
 	{
-	/*GLfloat	xMin, xMax, yMin, yMax, zNear, zFar;*/
-
 	if (FBitSet (RI.rvp.flags, RF_DRAW_OVERVIEW))
 		{
 		const ref_overview_t *ov = gEngfuncs.GetOverviewParms ();
@@ -433,20 +406,12 @@ static void R_SetupProjectionMatrix (matrix4x4 m)
 
 	RI.farClip = R_GetFarClip ();
 
-	/*zNear = 4.0f;
-	zFar = Q_max (256.0f, RI.farClip);*/
-	GLfloat zNear = 4.0f;
-	GLfloat zFar = Q_max (256.0f, RI.farClip);
-
-	/*yMax = zNear * tan (RI.rvp.fov_y * M_PI_F / 360.0f);
-	yMin = -yMax;*/
-	GLfloat yMax = zNear * tan (RI.rvp.fov_y * M_PI_F / 360.0f);
-	GLfloat yMin = -yMax;
-
-	/*xMax = zNear * tan (RI.rvp.fov_x * M_PI_F / 360.0f);
-	xMin = -xMax;*/
-	GLfloat xMax = zNear * tan (RI.rvp.fov_x * M_PI_F / 360.0f);
-	GLfloat xMin = -xMax;
+	GLfloat	zNear = 4.0f;
+	GLfloat	zFar = Q_max (256.0f, RI.farClip);
+	GLfloat	yMax = zNear * tan (RI.rvp.fov_y * M_PI_F / 360.0f);
+	GLfloat	yMin = -yMax;
+	GLfloat	xMax = zNear * tan (RI.rvp.fov_x * M_PI_F / 360.0f);
+	GLfloat	xMin = -xMax;
 
 	if (tr.rotation & 1)
 		Matrix4x4_CreateProjection (m, yMax, yMin, xMax, xMin, zNear, zFar);
@@ -504,7 +469,7 @@ R_RotateForEntity [FWGS, 01.01.24]
 ***/
 void R_RotateForEntity (cl_entity_t *e)
 	{
-	float scale = 1.0f;
+	float	scale = 1.0f;
 
 	if (e == CL_GetEntityByIndex (0))
 		{
@@ -530,7 +495,7 @@ R_TranslateForEntity [FWGS, 01.01.24]
 ***/
 void R_TranslateForEntity (cl_entity_t *e)
 	{
-	float scale = 1.0f;
+	float	scale = 1.0f;
 
 	if (e == CL_GetEntityByIndex (0))
 		{
@@ -586,7 +551,7 @@ static void R_SetupFrame (void)
 
 /***
 =============
-R_SetupGL [FWGS, 01.07.26]
+R_SetupGL
 =============
 ***/
 void R_SetupGL (qboolean set_gl_state)
@@ -601,17 +566,21 @@ void R_SetupGL (qboolean set_gl_state)
 
 	if (!FBitSet (RI.rvp.flags, RF_DRAW_CUBEMAP))
 		{
-		/*int x, x2, y, y2;*/
+		// [FWGS, 01.10.26]
+		int	scene_width, scene_height;
+
+		GL_BindSceneTarget ();
+		GL_GetSceneTargetSize (&scene_width, &scene_height);
 
 		// set up viewport (main, playersetup)
-		/*x = floor (RI.rvp.viewport[0] * gpGlobals->width / gpGlobals->width);
-		x2 = ceil ((RI.rvp.viewport[0] + RI.rvp.viewport[2]) * gpGlobals->width / gpGlobals->width);
-		y = floor (gpGlobals->height - RI.rvp.viewport[1] * gpGlobals->height / gpGlobals->height);
-		y2 = ceil (gpGlobals->height - (RI.rvp.viewport[1] + RI.rvp.viewport[3]) * gpGlobals->height / gpGlobals->height);*/
-		int x = floor (RI.rvp.viewport[0] * gpGlobals->width / gpGlobals->width);
-		int x2 = ceil ((RI.rvp.viewport[0] + RI.rvp.viewport[2]) * gpGlobals->width / gpGlobals->width);
-		int y = floor (gpGlobals->height - RI.rvp.viewport[1] * gpGlobals->height / gpGlobals->height);
-		int y2 = ceil (gpGlobals->height - (RI.rvp.viewport[1] + RI.rvp.viewport[3]) * gpGlobals->height / gpGlobals->height);
+		/*int	x = floor (RI.rvp.viewport[0] * gpGlobals->width / gpGlobals->width);
+		int	x2 = ceil ((RI.rvp.viewport[0] + RI.rvp.viewport[2]) * gpGlobals->width / gpGlobals->width);
+		int	y = floor (gpGlobals->height - RI.rvp.viewport[1] * gpGlobals->height / gpGlobals->height);
+		int	y2 = ceil (gpGlobals->height - (RI.rvp.viewport[1] + RI.rvp.viewport[3]) * gpGlobals->height / gpGlobals->height);*/
+		int	x = RI.rvp.viewport[0] * scene_width / gpGlobals->width;
+		int	x2 = ((RI.rvp.viewport[0] + RI.rvp.viewport[2]) * scene_width + gpGlobals->width - 1) / gpGlobals->width;
+		int	y = scene_height - RI.rvp.viewport[1] * scene_height / gpGlobals->height;
+		int	y2 = scene_height - ((RI.rvp.viewport[1] + RI.rvp.viewport[3]) * scene_height + gpGlobals->height - 1) / gpGlobals->height;
 
 		if (tr.rotation & 1)
 			pglViewport (y2, x, y - y2, x2 - x);
@@ -620,7 +589,8 @@ void R_SetupGL (qboolean set_gl_state)
 		}
 	else
 		{
-		// envpass, mirrorpass
+		// [FWGS, 01.10.26] envpass, mirrorpass
+		GL_BindWindowTarget ();
 		pglViewport (RI.rvp.viewport[0], RI.rvp.viewport[1], RI.rvp.viewport[2], RI.rvp.viewport[3]);
 		}
 
@@ -662,24 +632,16 @@ static gl_texture_t *R_RecursiveFindWaterTexture (const mnode_t *node, const mno
 
 	if (node->contents < 0)
 		{
-		/*mleaf_t *pleaf;
-		msurface_t **mark;
-		int		i, c;*/
-
 		// ignore non-liquid leaves
 		if ((node->contents != CONTENTS_WATER) && (node->contents != CONTENTS_LAVA) &&
 			(node->contents != CONTENTS_SLIME))
 			return NULL;
 
 		// find texture
-		/*pleaf = (mleaf_t *)node;
-		mark = pleaf->firstmarksurface;
-		c = pleaf->nummarksurfaces;*/
-		mleaf_t *pleaf = (mleaf_t *)node;
-		msurface_t **mark = pleaf->firstmarksurface;
-		int c = pleaf->nummarksurfaces;
+		mleaf_t		*pleaf = (mleaf_t *)node;
+		msurface_t	**mark = pleaf->firstmarksurface;
+		int		c = pleaf->nummarksurfaces;
 
-		/*for (i = 0; i < c; i++, mark++)*/
 		for (int i = 0; i < c; i++, mark++)
 			{
 			if ((*mark)->flags & SURF_DRAWTURB && (*mark)->texinfo && (*mark)->texinfo->texture)
@@ -692,7 +654,7 @@ static gl_texture_t *R_RecursiveFindWaterTexture (const mnode_t *node, const mno
 
 	// this is a regular node
 	// traverse children
-	mnode_t *child = node_child (node, 0, WORLDMODEL);
+	mnode_t	*child = node_child (node, 0, WORLDMODEL);
 
 	if (child && (child != ignore))
 		{
@@ -732,10 +694,6 @@ from underwater leaf (idea: XaeroX)
 ***/
 static void R_CheckFog (void)
 	{
-	/*cl_entity_t		*ent;
-	gl_texture_t	*tex;
-	int				i, cnt, count;*/
-
 	// quake global fog
 	if ((ENGINE_GET_PARM (PARM_WATER_LEVEL) < 3) &&
 		(FBitSet (gp_host->features, ENGINE_QUAKE_COMPATIBLE) || gp_movevars->fog_settings))
@@ -793,10 +751,8 @@ static void R_CheckFog (void)
 		return;
 		}
 
-	/*// [FWGS, 01.05.26]
-	ent = gEngfuncs.CL_GetWaterEntity (RI.rvp.vieworigin);*/
-	cl_entity_t *ent = gEngfuncs.CL_GetWaterEntity (RI.rvp.vieworigin);
-	int cnt;
+	cl_entity_t	*ent = gEngfuncs.CL_GetWaterEntity (RI.rvp.vieworigin);
+	int		cnt;
 
 	if (ent && ent->model && (ent->model->type == mod_brush) && (ent->curstate.skin < 0))
 		cnt = ent->curstate.skin;
@@ -806,19 +762,14 @@ static void R_CheckFog (void)
 	RI.cached_waterlevel = ENGINE_GET_PARM (PARM_WATER_LEVEL);
 
 	// ESHQ: отменено исправление, выводящее подводный туман из строя
-	/*tex = NULL;*/
-	gl_texture_t *tex = NULL;
+	gl_texture_t	*tex = NULL;
 
 	// check for water texture
 	if (ent && ent->model && (ent->model->type == mod_brush))
 		{
-		/*msurface_t *surf;
+		int		count = ent->model->nummodelsurfaces;
+		msurface_t	*surf = &ent->model->surfaces[ent->model->firstmodelsurface];
 
-		count = ent->model->nummodelsurfaces;*/
-		int count = ent->model->nummodelsurfaces;
-
-		/*for (i = 0, surf = &ent->model->surfaces[ent->model->firstmodelsurface]; i < count; i++, surf++)*/
-		msurface_t *surf = &ent->model->surfaces[ent->model->firstmodelsurface];
 		for (int i = 0; i < count; i++, surf++)
 			{
 			if (surf->flags & SURF_DRAWTURB && surf->texinfo && surf->texinfo->texture)
@@ -892,13 +843,10 @@ R_DrawEntitiesOnList [FWGS, 01.07.26]
 ***/
 static void R_DrawEntitiesOnList (void)
 	{
-	/*int	i;*/
-
 	tr.blend = 1.0f;
 	GL_CheckForErrors ();
 
 	// first draw solid entities
-	/*for (i = 0; (i < tr.draw_list->num_solid_entities) && !FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW); i++)*/
 	for (int i = 0; i < tr.draw_list->num_solid_entities && !FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW); i++)
 		{
 		RI.currententity = tr.draw_list->solid_entities[i];
@@ -937,7 +885,6 @@ static void R_DrawEntitiesOnList (void)
 	GL_CheckForErrors ();
 
 	// draw sprites seperately, because of alpha blending
-	/*for (i = 0; (i < tr.draw_list->num_solid_entities) && !FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW); i++)*/
 	for (int i = 0; i < tr.draw_list->num_solid_entities && !FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW); i++)
 		{
 		RI.currententity = tr.draw_list->solid_entities[i];
@@ -971,8 +918,15 @@ static void R_DrawEntitiesOnList (void)
 
 	GL_CheckForErrors ();
 
+	// [FWGS, 01.10.26]
+#ifdef HACKS_RELATED_HLMODS
+	// Vampire Slayer leave GL_LINEAR fog with their own start/end after
+	// pfnDrawNormalTriangles; restore engine fog for the translucent
+	// entities and viewmodel drawn below
+	R_DrawFog ();
+#endif
+
 	// then draw translucent entities
-	/*for (i = 0; (i < tr.draw_list->num_trans_entities) && !FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW); i++)*/
 	for (int i = 0; i < tr.draw_list->num_trans_entities && !FBitSet (RI.rvp.flags, RF_ONLY_CLIENTDRAW); i++)
 		{
 		RI.currententity = tr.draw_list->trans_entities[i];
@@ -1112,7 +1066,7 @@ void R_GammaChanged (qboolean do_reset_gamma)
 // [FWGS, 01.12.24]
 static void R_CheckCvars (void)
 	{
-	qboolean rebuild = false;
+	qboolean	rebuild = false;
 
 	if (FBitSet (gl_overbright.flags, FCVAR_CHANGED))
 		{
@@ -1151,6 +1105,9 @@ void R_BeginFrame (qboolean clearScene)
 	{
 	glConfig.softwareGammaUpdate = false;	// in case of possible fails
 
+	// [FWGS, 01.10.26]
+	GL_CheckRenderTargets ();
+
 	if ((gl_clear->value || ENGINE_GET_PARM (PARM_DEV_OVERVIEW)) &&
 		clearScene && (ENGINE_GET_PARM (PARM_CONNSTATE) != ca_cinematic))
 		{
@@ -1161,8 +1118,10 @@ void R_BeginFrame (qboolean clearScene)
 	R_CheckCvars ();
 	R_Set2DMode (true);
 
-	// draw buffer stuff
-	pglDrawBuffer (GL_BACK);
+	// [FWGS, 01.10.26] draw buffer stuff
+	/*pglDrawBuffer (GL_BACK);*/
+	if (!GL_RenderTargetsActive ())
+		pglDrawBuffer (GL_BACK);
 
 	// update texture parameters
 	if (FBitSet (gl_texture_nearest.flags | gl_lightmap_nearest.flags | gl_texture_anisotropy.flags |
@@ -1235,6 +1194,9 @@ R_EndFrame
 ***/
 void R_EndFrame (void)
 	{
+	// [FWGS, 01.10.26]
+	GL_PresentScreenTarget ();
+
 #if XASH_PSVITA
 	VGL_ShimEndFrame ();
 #endif
@@ -1254,7 +1216,7 @@ R_DrawCubemapView
 ***/
 void R_DrawCubemapView (const vec3_t origin, const vec3_t angles, int size)
 	{
-	ref_viewpass_t rvp;
+	ref_viewpass_t	rvp;
 
 	// basic params
 	rvp.flags = rvp.viewentity = 0;
@@ -1281,13 +1243,8 @@ CL_FxBlend [FWGS, 01.07.26]
 ***/
 int CL_FxBlend (cl_entity_t *e)
 	{
-	/*int		blend = 0;
-	float	offset, dist;
-	vec3_t	tmp;
-
-	offset = ((int)e->index) * 363.0f;	// use ent index to de-sync these fx*/
-	int blend = 0;
-	float offset = ((int)e->index) * 363.0f;	// use ent index to de-sync these fx
+	int		blend = 0;
+	float	offset = ((int)e->index) * 363.0f;	// use ent index to de-sync these fx
 
 	switch (e->curstate.renderfx)
 		{
@@ -1398,11 +1355,10 @@ int CL_FxBlend (cl_entity_t *e)
 		case kRenderFxHologram:
 		case kRenderFxDistort:
 			{
-			vec3_t tmp = Vec3 (e->origin);
-			/*VectorCopy (e->origin, tmp);*/
+			vec3_t	tmp = Vec3 (e->origin);
 			VectorSubtract (tmp, RI.rvp.vieworigin, tmp);
-			/*dist = DotProduct (tmp, RI.vforward);*/
-			float dist = DotProduct (tmp, RI.vforward);
+
+			float	dist = DotProduct (tmp, RI.vforward);
 
 			// turn off distance fade
 			if (e->curstate.renderfx == kRenderFxDistort)

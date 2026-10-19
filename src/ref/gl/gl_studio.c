@@ -389,12 +389,14 @@ player_info_t *pfnPlayerInfo (int index)
 
 /***
 ===============
-pfnGetPlayerState [FWGS, 01.05.26]
+pfnGetPlayerState
 ===============
 ***/
 static entity_state_t *R_StudioGetPlayerState (int index)
 	{
-	if (!FBitSet (RI.rvp.flags, RF_DRAW_WORLD))
+	// [FWGS, 01.10.26]
+	/*if (!FBitSet (RI.rvp.flags, RF_DRAW_WORLD))*/
+	if (!FBitSet (RI.rvp.flags, RF_DRAW_WORLD) && RI.currententity)
 		return &RI.currententity->curstate;
 
 	return gEngfuncs.pfnGetPlayerState (index);
@@ -1972,14 +1974,6 @@ static void R_StudioDrawArrays (uint startverts, uint startelems)
 		}
 
 	// [FWGS, 01.09.26]
-	/*if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN		// WebGL need to know array sizes
-	if (pglDrawRangeElements)
-		pglDrawRangeElements (GL_TRIANGLES, startverts, g_studio.numverts,
-			g_studio.numelems - startelems, GL_UNSIGNED_SHORT, &g_studio.arrayelems[startelems]);
-	else
-	endif
-		pglDrawElements (GL_TRIANGLES, g_studio.numelems - startelems, GL_UNSIGNED_SHORT,
-			&g_studio.arrayelems[startelems]);*/
 	GL_DrawRangeElements (GL_TRIANGLES, startverts, g_studio.numverts - 1, g_studio.numelems - startelems,
 		GL_UNSIGNED_SHORT, &g_studio.arrayelems[startelems]);
 
@@ -2067,7 +2061,6 @@ static void R_StudioDrawPoints (void)
 		matrix3x4		skinMat;
 
 		// [FWGS, 01.09.26]
-		/*for (int i = 0; i < m_pSubModel->numverts; i++)*/
 		for (int i = 0; i < numverts; i++)
 			{
 			R_StudioComputeSkinMatrix (&pvertweight[i], skinMat);
@@ -2075,7 +2068,6 @@ static void R_StudioDrawPoints (void)
 			R_LightStrength (pvertbone[i], pstudioverts[i], g_studio.lightpos[i]);
 			}
 
-		/*for (int i = 0; i < m_pSubModel->numnorms; i++)*/
 		for (int i = 0; i < numnorms; i++)
 			{
 			R_StudioComputeSkinMatrix (&pnormweight[i], skinMat);
@@ -2085,14 +2077,11 @@ static void R_StudioDrawPoints (void)
 	else
 		{
 		// [FWGS, 01.09.26]
-		/*for (int i = 0; i < m_pSubModel->numverts; i++)
-			{*/
 		for (int i = 0; i < numverts; i++)
 			Matrix3x4_VectorTransform (g_studio.bonestransform[pvertbone[i]], pstudioverts[i], g_studio.verts[i]);
 
 		for (int i = 0; i < numverts; i++)
 			R_LightStrength (pvertbone[i], pstudioverts[i], g_studio.lightpos[i]);
-			/*}*/
 		}
 
 	// generate shared normals for properly scaling glowing shell
@@ -2176,8 +2165,6 @@ static void R_StudioDrawPoints (void)
 	for (int j = 0; j < m_pSubModel->nummesh; j++)
 		{
 		float	oldblend = tr.blend;
-		/*uint	startArrayVerts = g_studio.numverts;
-		uint	startArrayElems = g_studio.numelems;*/
 
 		pmesh = g_studio.meshes[j].mesh;
 
@@ -2215,26 +2202,6 @@ static void R_StudioDrawPoints (void)
 		R_StudioSetupSkin (m_pStudioHeader, pskinref[pmesh->skinref]);
 
 		// [FWGS, 01.09.26]
-		/*if (r_studio_drawelements.value)
-			{
-			if (FBitSet (g_nFaceFlags, STUDIO_NF_CHROME))
-				R_StudioBuildArrayChromeMesh (ptricmds, pstudionorms, s, t, shellscale);
-			else if (FBitSet (g_nFaceFlags, STUDIO_NF_UV_COORDS))
-				R_StudioBuildArrayFloatMesh (ptricmds, pstudionorms);
-			else
-				R_StudioBuildArrayNormalMesh (ptricmds, pstudionorms, s, t);
-
-			R_StudioDrawArrays (startArrayVerts, startArrayElems);
-			}
-		else
-			{
-			if (FBitSet (g_nFaceFlags, STUDIO_NF_CHROME))
-				R_StudioDrawChromeMesh (ptricmds, pstudionorms, s, t, shellscale);
-			else if (FBitSet (g_nFaceFlags, STUDIO_NF_UV_COORDS))
-				R_StudioDrawFloatMesh (ptricmds, pstudionorms);
-			else
-				R_StudioDrawNormalMesh (ptricmds, pstudionorms, s, t);
-			}*/
 		R_StudioSubmitMesh (ptricmds, pstudionorms, s, t, shellscale, 0);
 
 		if (FBitSet (g_nFaceFlags, STUDIO_NF_MASKED))
@@ -2752,10 +2719,6 @@ static void R_StudioDrawPointsShadow (void)
 
 	for (int k = 0; k < m_pSubModel->nummesh; k++)
 		{
-		/*short *ptricmds;
-
-		pmesh = (mstudiomesh_t *)((byte *)m_pStudioHeader + m_pSubModel->meshindex) + k;
-		ptricmds = (short *)((byte *)m_pStudioHeader + pmesh->triindex);*/
 		mstudiomesh_t	*pmesh = (mstudiomesh_t *)((byte *)m_pStudioHeader + m_pSubModel->meshindex) + k;
 		short	*ptricmds = (short *)((byte *)m_pStudioHeader + pmesh->triindex);
 
@@ -3509,8 +3472,9 @@ void R_DrawViewModel (void)
 	if (!RI.currententity->model)
 		return;
 
-	// adjust the depth range to prevent view model from poking into walls
-	pglDepthRange (gldepthmin, gldepthmin + 0.3f * (gldepthmax - gldepthmin));
+	// [FWGS, 01.10.26] adjust the depth range to prevent view model from poking into walls
+	/*pglDepthRange (gldepthmin, gldepthmin + 0.3f * (gldepthmax - gldepthmin));*/
+	pglDepthRange (gldepthmin, gldepthmin + VIEWMODEL_DEPTH_RANGE * (gldepthmax - gldepthmin));
 	RI.currentmodel = RI.currententity->model;
 
 	switch (RI.currententity->model->type)

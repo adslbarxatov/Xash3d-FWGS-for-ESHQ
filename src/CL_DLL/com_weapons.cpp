@@ -22,28 +22,28 @@ without written permission from Valve LLC
 #include "r_efx.h"
 
 // g_runfuncs is true if this is the first time we've "predicated" a particular movement/firing
-//  command.  If it is 1, then we should play events/sounds etc., otherwise, we just will be
-//  updating state info, but not firing events
+// command. If it is 1, then we should play events/sounds etc., otherwise, we just will be
+// updating state info, but not firing events
 int	g_runfuncs = 0;
 
 // During our weapon prediction processing, we'll need to reference some data that is part of
-//  the final state passed into the postthink functionality.  We'll set this pointer and then
-//  reset it to NULL as appropriate
-struct local_state_s* g_finalstate = NULL;
+// the final state passed into the postthink functionality.  We'll set this pointer and then
+// reset it to NULL as appropriate
+struct local_state_s *g_finalstate = NULL;
 
 /***
 ====================
 COM_Log
 
-Log debug messages to file ( appends )
+Log debug messages to file (appends)
 ====================
 ***/
 void COM_Log (char* pszFile, char* fmt, ...)
 	{
-	va_list		argptr;
-	char		string[1024];
-	FILE* fp;
-	char* pfilename;
+	va_list	argptr;
+	char	string[1024];
+	FILE	*fp;
+	char	*pfilename;
 
 	if (!pszFile)
 		{
@@ -67,7 +67,7 @@ void COM_Log (char* pszFile, char* fmt, ...)
 	}
 
 // remember the current animation for the view model, in case we get out of sync with
-//  server.
+// server
 static int g_currentanim;
 
 /***
@@ -79,13 +79,13 @@ Change weapon model animation
 ***/
 void HUD_SendWeaponAnim (int iAnim, int body, int force)
 	{
-	// Don't actually change it
+	// don't actually change it
 	if (!g_runfuncs && !force)
 		return;
 
 	g_currentanim = iAnim;
 
-	// Tell animation system new info
+	// tell animation system new info
 	gEngfuncs.pfnWeaponAnim (iAnim, body);
 	}
 
@@ -126,8 +126,8 @@ Directly queue up an event on the client
 void HUD_PlaybackEvent (int flags, const edict_t* pInvoker, unsigned short eventindex, float delay,
 	float* origin, float* angles, float fparam1, float fparam2, int iparam1, int iparam2, int bparam1, int bparam2)
 	{
-	vec3_t org;
-	vec3_t ang;
+	vec3_t	org;
+	vec3_t	ang;
 
 	if (!g_runfuncs || !g_finalstate)
 		return;
@@ -153,7 +153,7 @@ void HUD_SetMaxSpeed (const edict_t* ed, float speed)
 UTIL_WeaponTimeBase
 
 Always 0.0 on client, even if not predicting weapons (won't get called
-in that case )
+in that case)
 =====================
 ***/
 float UTIL_WeaponTimeBase (void)
@@ -203,7 +203,7 @@ UTIL_SharedRandomLong
 ***/
 int UTIL_SharedRandomLong (unsigned int seed, int low, int high)
 	{
-	unsigned int range;
+	unsigned int	range;
 
 	U_Srand ((int)seed + low + high);
 
@@ -214,8 +214,8 @@ int UTIL_SharedRandomLong (unsigned int seed, int low, int high)
 		}
 	else
 		{
-		int offset;
-		int rnum;
+		int	offset;
+		int	rnum;
 
 		rnum = U_Random ();
 
@@ -233,7 +233,7 @@ UTIL_SharedRandomFloat
 float UTIL_SharedRandomFloat (unsigned int seed, float low, float high)
 	{
 	//
-	unsigned int range;
+	unsigned int	range;
 
 	U_Srand ((int)seed + *(int*)&low + *(int*)&high);
 
@@ -263,11 +263,12 @@ float UTIL_SharedRandomFloat (unsigned int seed, float low, float high)
 stub_*
 
 stub functions for such things as precaching.  So we don't have to modify weapons code that
- is compiled into both game and client .dlls.
+ is compiled into both game and client .dlls
 ======================
 ***/
 int				stub_PrecacheModel (const char* s) { return 0; }
 int				stub_PrecacheSound (const char* s) { return 0; }
 unsigned short	stub_PrecacheEvent (int type, const char* s) { return 0; }
-const char*		stub_NameForFunction (unsigned long function) { return "func"; }
+/*const char*		stub_NameForFunction (unsigned long function) { return "func"; }*/
+const char		*stub_NameForFunction (void *function) { return "func"; }
 void			stub_SetModel (edict_t* e, const char* m) {}

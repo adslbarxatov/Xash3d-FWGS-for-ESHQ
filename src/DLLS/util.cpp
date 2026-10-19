@@ -1920,9 +1920,10 @@ void CSave::WritePositionVector (const char *pname, const float *value, int coun
 
 void CSave::WriteFunction (const char *pname, const int *data, int count)
 	{
-	const char *functionName;
+	const char	*functionName;
 
-	functionName = NAME_FOR_FUNCTION (*data);
+	// ESHQ: !!! изменение протокола
+	functionName = NAME_FOR_FUNCTION ((void *)data);
 	if (functionName)
 		BufferField (pname, strlen (functionName) + 1, functionName);
 	else
@@ -2083,6 +2084,7 @@ int CSave::WriteFields (const char *pname, void *pBaseData, TYPEDESCRIPTION *pFi
 			case FIELD_FUNCTION:
 				WriteFunction (pTest->fieldName, (int *)(char *)pOutputData, pTest->fieldSize);
 				break;
+
 			default:
 				ALERT (at_error, "Bad field type\n");
 			}
@@ -2285,11 +2287,14 @@ int CRestore::ReadField (void *pBaseData, TYPEDESCRIPTION *pFields, int fieldCou
 						case FIELD_POINTER:
 							*((int *)pOutputData) = *(int *)pInputData;
 							break;
+
+						// ESHQ: !!! изменение протокола
 						case FIELD_FUNCTION:
 							if (strlen ((char *)pInputData) == 0)
 								*((int *)pOutputData) = 0;
 							else
-								*((int *)pOutputData) = FUNCTION_FROM_NAME ((char *)pInputData);
+								/**((int *)pOutputData) = FUNCTION_FROM_NAME ((char *)pInputData);*/
+								pOutputData = FUNCTION_FROM_NAME ((char *)pInputData);
 							break;
 
 						default:

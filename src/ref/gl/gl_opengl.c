@@ -14,6 +14,11 @@ CVAR_DEFINE_AUTO (gl_texture_nearest, "0", FCVAR_GLCONFIG,
 	"disable texture filter");
 CVAR_DEFINE_AUTO (gl_lightmap_nearest, "0", FCVAR_GLCONFIG,
 	"disable lightmap filter");
+
+// [FWGS, 01.10.26]
+CVAR_DEFINE_AUTO (gl_fbo_nearest, "0", FCVAR_GLCONFIG,
+	"disable filter when upscaling the scene rendered with r_scene_scale");
+
 CVAR_DEFINE_AUTO (gl_keeptjunctions, "1", FCVAR_GLCONFIG,
 	"removing tjuncs causes blinking pixels");
 CVAR_DEFINE_AUTO (gl_check_errors, "1", FCVAR_GLCONFIG,
@@ -80,6 +85,10 @@ CVAR_DEFINE_AUTO (r_ripple_spawntime, "0.1", FCVAR_GLCONFIG,
 	"how fast new ripples spawn");
 CVAR_DEFINE_AUTO (r_large_lightmaps, "0", FCVAR_GLCONFIG | FCVAR_LATCH,
 	"enable larger lightmap atlas textures (might break custom renderer mods)");
+
+// [FWGS, 01.10.26]
+CVAR_DEFINE_AUTO (r_scene_scale, "1.0", FCVAR_GLCONFIG,
+	"render the 3D scene at this fraction of the window resolution (0.1 to 8.0), HUD is unaffected");
 
 // [FWGS, 01.05.26]
 gl_globals_t	tr;
@@ -327,6 +336,58 @@ static const dllfunc_t	bufferstoragefuncs[] =
 	{ GL_CALL (glBufferStorage) },
 	};
 
+// [FWGS, 01.10.26]
+static const dllfunc_t framebufferobjectfuncs[] =
+	{
+	{ GL_CALL (glIsRenderbuffer) },
+	{ GL_CALL (glBindRenderbuffer) },
+	{ GL_CALL (glDeleteRenderbuffers) },
+	{ GL_CALL (glGenRenderbuffers) },
+	{ GL_CALL (glRenderbufferStorage) },
+	{ GL_CALL (glGetRenderbufferParameteriv) },
+	{ GL_CALL (glIsFramebuffer) },
+	{ GL_CALL (glBindFramebuffer) },
+	{ GL_CALL (glDeleteFramebuffers) },
+	{ GL_CALL (glGenFramebuffers) },
+	{ GL_CALL (glCheckFramebufferStatus) },
+	{ GL_CALL (glFramebufferTexture2D) },
+	{ GL_CALL (glFramebufferRenderbuffer) },
+	{ GL_CALL (glGetFramebufferAttachmentParameteriv) },
+	};
+
+// [FWGS, 01.10.26]
+static const dllfunc_t framebufferblitfuncs[] =
+	{
+	{ GL_CALL (glBlitFramebuffer) },
+	};
+
+// [FWGS, 01.10.26]
+static const dllfunc_t framebuffermultisamplefuncs[] =
+	{
+	{ GL_CALL (glRenderbufferStorageMultisample) },
+	};
+
+// [FWGS, 01.10.26] GL_ARB_framebuffer_object merges the three EXT extensions above
+static const dllfunc_t framebufferarbfuncs[] MAYBE_UNUSED =
+	{
+	{ GL_CALL (glIsRenderbuffer) },
+	{ GL_CALL (glBindRenderbuffer) },
+	{ GL_CALL (glDeleteRenderbuffers) },
+	{ GL_CALL (glGenRenderbuffers) },
+	{ GL_CALL (glRenderbufferStorage) },
+	{ GL_CALL (glGetRenderbufferParameteriv) },
+	{ GL_CALL (glIsFramebuffer) },
+	{ GL_CALL (glBindFramebuffer) },
+	{ GL_CALL (glDeleteFramebuffers) },
+	{ GL_CALL (glGenFramebuffers) },
+	{ GL_CALL (glCheckFramebufferStatus) },
+	{ GL_CALL (glFramebufferTexture2D) },
+	{ GL_CALL (glFramebufferRenderbuffer) },
+	{ GL_CALL (glGetFramebufferAttachmentParameteriv) },
+	{ GL_CALL (glBlitFramebuffer) },
+	{ GL_CALL (glRenderbufferStorageMultisample) },
+	};
+
 // [FWGS, 01.07.26]
 static const dllfunc_t	shaderobjectsfuncs[] MAYBE_UNUSED =
 	{
@@ -537,13 +598,15 @@ static void GL_SetExtension (int r_ext, int enable)
 
 /***
 =================
-GL_CheckExtension [FWGS, 01.07.26]
+GL_CheckExtension [FWGS, 01.10.26]
 =================
 ***/
 static qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, size_t num_funcs, const char *cvarname,
 	int r_ext, float minver)
 	{
-	const float	glver = (float)glConfig.version_major + glConfig.version_minor / 10.0f;
+	/*const float	glver = (float)glConfig.version_major + glConfig.version_minor / 10.0f;*/
+	const int	glver = glConfig.version_major * 10 + glConfig.version_minor;
+	const int	iminver = Q_rint (minver * 10.0f);
 
 	gEngfuncs.Con_Reportf ("%s: %s ", __func__, name);
 	GL_SetExtension (r_ext, true);
@@ -567,8 +630,10 @@ static qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, siz
 
 	const char *extensions_string = glConfig.extensions_string;
 
+	/*if (((name[2] == '_') || (name[3] == '_')) && !Q_strstr (extensions_string, name) &&
+		((glver < minver) || (!minver || !glver)))*/
 	if (((name[2] == '_') || (name[3] == '_')) && !Q_strstr (extensions_string, name) &&
-		((glver < minver) || (!minver || !glver)))
+		((glver < iminver) || !iminver || !glver))
 		{
 		GL_SetExtension (r_ext, false);	// update render info
 		gEngfuncs.Con_Reportf ("- ^1failed\n");
@@ -754,10 +819,10 @@ static void R_RenderInfo (qboolean startup)
 
 	if (glConfig.wrapper == GLES_WRAPPER_GL4ES)
 		{
-		const char *vendor = (const char *)pglGetString (GL_VENDOR | 0x10000);
-		const char *renderer = (const char *)pglGetString (GL_RENDERER | 0x10000);
-		const char *version = (const char *)pglGetString (GL_VERSION | 0x10000);
-		const char *extensions = (const char *)pglGetString (GL_EXTENSIONS | 0x10000);
+		const char	*vendor = (const char *)pglGetString (GL_VENDOR | 0x10000);
+		const char	*renderer = (const char *)pglGetString (GL_RENDERER | 0x10000);
+		const char	*version = (const char *)pglGetString (GL_VERSION | 0x10000);
+		const char	*extensions = (const char *)pglGetString (GL_EXTENSIONS | 0x10000);
 
 		if (vendor)
 			gEngfuncs.Con_Printf ("GL4ES_VENDOR: %s\n", vendor);
@@ -809,7 +874,6 @@ static void R_RenderInfo_f (void)
 
 #if XASH_GLES
 
-// [FWGS, 01.07.26]
 static void GL_InitExtensionsGLES (void)
 	{
 	// intialize wrapper type
@@ -927,6 +991,37 @@ static void GL_InitExtensionsGLES (void)
 				GL_CheckExtension ("GL_EXT_buffer_storage", bufferstoragefuncs,
 					HLARRAYSIZE (bufferstoragefuncs), "gl_buffer_storage", GL_BUFFER_STORAGE_EXT, 0);
 				break;
+
+			// [FWGS, 01.10.26]
+			case GL_FRAMEBUFFER_OBJECT_EXT:
+				// render targets use RGBA8 and packed depth-stencil renderbuffers and NPOT textures, all core since ES 3.0
+				if ((glConfig.version_major >= 3) || (GL_Support (GL_ARB_TEXTURE_NPOT_EXT) &&
+					Q_strstr (glConfig.extensions_string, "GL_OES_rgb8_rgba8") &&
+					Q_strstr (glConfig.extensions_string, "GL_OES_packed_depth_stencil")))
+					GL_CheckExtension ("GL_OES_framebuffer_object", framebufferobjectfuncs, HLARRAYSIZE (framebufferobjectfuncs),
+						"gl_framebuffer_object", extid, 2.0);
+				else
+					GL_SetExtension (extid, false);
+				break;
+
+			// [FWGS, 01.10.26]
+			case GL_FRAMEBUFFER_BLIT_EXT:
+				// ES 2.0 blit extensions use vendor suffixes that GL_CheckExtension doesn't look up
+				if ((glConfig.version_major >= 3) && GL_Support (GL_FRAMEBUFFER_OBJECT_EXT))
+					GL_CheckExtension ("framebuffer_blit", framebufferblitfuncs, HLARRAYSIZE (framebufferblitfuncs),
+						"gl_framebuffer_object", extid, 3.0);
+				else
+					GL_SetExtension (extid, false);
+				break;
+				
+			// [FWGS, 01.10.26]
+			case GL_FRAMEBUFFER_MULTISAMPLE_EXT:
+				if ((glConfig.version_major >= 3) && GL_Support (GL_FRAMEBUFFER_OBJECT_EXT))
+					GL_CheckExtension ("framebuffer_multisample", framebuffermultisamplefuncs,
+						HLARRAYSIZE (framebuffermultisamplefuncs), "gl_framebuffer_object", extid, 3.0);
+				else
+					GL_SetExtension (extid, false);
+				break;
 #endif
 
 			case GL_DEBUG_OUTPUT:
@@ -949,7 +1044,6 @@ static void GL_InitExtensionsGLES (void)
 
 #else
 
-// [FWGS, 22.01.25]
 static void GL_InitExtensionsBigGL (void)
 	{
 	// intialize wrapper type
@@ -1072,6 +1166,24 @@ static void GL_InitExtensionsBigGL (void)
 	GL_CheckExtension ("GL_ARB_draw_elements_base_vertex", drawrangeelementsbasevertexfuncs,
 		HLARRAYSIZE (drawrangeelementsbasevertexfuncs), "gl_drawrangeelementsbasevertex",
 		GL_DRAW_RANGE_ELEMENTS_BASE_VERTEX_EXT, 3.2);
+
+	// [FWGS, 01.10.26]
+	if (GL_CheckExtension ("GL_ARB_framebuffer_object", framebufferarbfuncs, HLARRAYSIZE (framebufferarbfuncs),
+		"gl_framebuffer_object", GL_FRAMEBUFFER_OBJECT_EXT, 3.0))
+		{
+		GL_SetExtension (GL_FRAMEBUFFER_BLIT_EXT, true);
+		GL_SetExtension (GL_FRAMEBUFFER_MULTISAMPLE_EXT, true);
+		}
+	else
+		{
+		GL_CheckExtension ("GL_EXT_framebuffer_object", framebufferobjectfuncs, HLARRAYSIZE (framebufferobjectfuncs),
+			"gl_framebuffer_object", GL_FRAMEBUFFER_OBJECT_EXT, 0);
+		GL_CheckExtension ("GL_EXT_framebuffer_blit", framebufferblitfuncs, HLARRAYSIZE (framebufferblitfuncs),
+			"gl_framebuffer_object", GL_FRAMEBUFFER_BLIT_EXT, 0);
+		GL_CheckExtension ("GL_EXT_framebuffer_multisample", framebuffermultisamplefuncs,
+			HLARRAYSIZE (framebuffermultisamplefuncs), "gl_framebuffer_object", GL_FRAMEBUFFER_MULTISAMPLE_EXT, 0);
+		}
+
 #endif
 
 	if (GL_CheckExtension ("GL_ARB_shading_language_100", NULL, 0, NULL, GL_SHADER_GLSL100_EXT, 2.0))
@@ -1246,7 +1358,6 @@ void GL_InitExtensions (void)
 
 	// [FWGS, 01.09.26]
 	Q_snprintf (value, sizeof (value), "%i", glConfig.max_2d_texture_size);
-	/*gEngfuncs.Cvar_Get ("gl_max_size", value, 0, "opengl texture max dims");*/
 	gEngfuncs.Cvar_Get ("gl_max_size", value, 0, "opengl texture max dims (compatibility cvar, does nothing)");
 	gEngfuncs.Cvar_SetValue ("gl_anisotropy", bound (0, gl_texture_anisotropy.value, glConfig.max_texture_anisotropy));
 
@@ -1310,9 +1421,15 @@ static void GL_InitCommands (void)
 
 	// [FWGS, 01.05.26]
 	gEngfuncs.Cvar_RegisterVariable (&r_large_lightmaps);
+
+	// [FWGS, 01.10.26]
+	gEngfuncs.Cvar_RegisterVariable (&r_scene_scale);
 	gEngfuncs.Cvar_RegisterVariable (&gl_extensions);
 	gEngfuncs.Cvar_RegisterVariable (&gl_texture_nearest);
 	gEngfuncs.Cvar_RegisterVariable (&gl_lightmap_nearest);
+
+	// [FWGS, 01.10.26]
+	gEngfuncs.Cvar_RegisterVariable (&gl_fbo_nearest);
 	gEngfuncs.Cvar_RegisterVariable (&gl_check_errors);
 	gEngfuncs.Cvar_RegisterVariable (&gl_texture_anisotropy);
 	gEngfuncs.Cvar_RegisterVariable (&gl_texture_lodbias);
@@ -1425,9 +1542,6 @@ qboolean R_Init (void)
 	tr.texgammatable = (byte *)ENGINE_GET_PARM (PARM_GET_TEXGAMMATABLE_PTR);
 	
 	// [FWGS, 01.09.26]
-	/*tr.lightgammatable = (uint *)ENGINE_GET_PARM (PARM_GET_LIGHTGAMMATABLE_PTR);
-	tr.screengammatable = (uint *)ENGINE_GET_PARM (PARM_GET_SCREENGAMMATABLE_PTR);
-	tr.lineargammatable = (uint *)ENGINE_GET_PARM (PARM_GET_LINEARGAMMATABLE_PTR);*/
 	tr.lightgammatable = (uint16_t *)ENGINE_GET_PARM (PARM_GET_LIGHTGAMMATABLE_PTR);
 	tr.screengammatable = (uint16_t *)ENGINE_GET_PARM (PARM_GET_SCREENGAMMATABLE_PTR);
 	tr.lineargammatable = (uint16_t *)ENGINE_GET_PARM (PARM_GET_LINEARGAMMATABLE_PTR);
@@ -1448,7 +1562,7 @@ qboolean R_Init (void)
 
 /***
 ===============
-R_Shutdown [FWGS, 01.12.24]
+R_Shutdown
 ===============
 ***/
 void R_Shutdown (void)
@@ -1456,7 +1570,9 @@ void R_Shutdown (void)
 	if (!glw_state.initialized)
 		return;
 
+	// [FWGS, 01.10.26]
 	GL_RemoveCommands ();
+	GL_FreeRenderTargets ();
 	R_ShutdownImages ();
 
 #if !XASH_GLES && !XASH_GL_STATIC
@@ -1644,6 +1760,7 @@ void GL_SetupAttributes (int safegl)
 			case 16:
 				samples = gEngfuncs.pfnGetCvarFloat ("gl_msaa_samples");
 				break;
+
 			default:
 				samples = 0;	// don't use, because invalid parameter is passed
 			}
@@ -1674,6 +1791,7 @@ int nanoGL_Init (void);
 
 // [FWGS, 01.09.25]
 #if XASH_GL4ES
+
 static void APIENTRY GL4ES_GetMainFBSize (int *width, int *height)
 	{
 	*width = gpGlobals->width;

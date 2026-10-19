@@ -26,6 +26,11 @@ GNU General Public License for more details
 
 #include <SDL3/SDL_system.h>
 
+// [FWGS, 01.10.26]
+#if XASH_WIN32
+#include <windows.h>
+#endif
+
 static struct
 	{
 	int		prev_width;
@@ -34,12 +39,41 @@ static struct
 	int		num_vidmodes;
 	} vid_state = { 640, 480 };
 
+// [FWGS, 01.10.26]
+static struct
+	{
+	SDL_Renderer	*renderer;
+	SDL_Texture		*tex;
+	int		width, height;
+	SDL_Surface		*win;
+	} sw;
+
 static void GL_SetupAttributes (ref_safegl_context_t safegl)
 	{
 	SDL_GL_ResetAttributes ();
 
 	ref.dllFuncs.GL_SetupAttributes (safegl);
 	}
+
+// [FWGS, 01.10.26]
+#if XASH_WIN32
+
+static qboolean WIN_SetWindowIcon (HICON ico)
+	{
+	HWND	hwnd = SDL_GetPointerProperty (SDL_GetWindowProperties (host.hWnd), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+
+	if (hwnd)
+		{
+		SendMessage (hwnd, WM_SETICON, ICON_SMALL, (LONG_PTR)ico);
+		SendMessage (hwnd, WM_SETICON, ICON_BIG, (LONG_PTR)ico);
+		return true;
+		}
+
+	Con_Reportf (S_ERROR "%s: %s\n", __func__, SDL_GetError ());
+	return false;
+	}
+
+#endif
 
 static void VID_SetWindowIcon (SDL_Window *hWnd)
 	{
@@ -48,31 +82,73 @@ static void VID_SetWindowIcon (SDL_Window *hWnd)
 	Q_strncpy (iconpath, GI->iconpath, sizeof (iconpath));
 	COM_ReplaceExtension (iconpath, ".tga", sizeof (iconpath));
 
+	// [FWGS, 01.10.26]
 	rgbdata_t	*icon = FS_LoadImage (iconpath, NULL, 0);
-	if (!icon)
-		return;
-
-	SDL_Surface	*surface = SDL_CreateSurfaceFrom (icon->width, icon->height, SDL_PIXELFORMAT_RGBA8888,
-		icon->buffer, 4 * icon->width);
-	FS_FreeImage (icon);
-
-	if (!surface)
+	/*if (!icon)
+		return;*/
+	if (icon)
 		{
+		SDL_Surface	*surface = SDL_CreateSurfaceFrom (icon->width, icon->height, SDL_PIXELFORMAT_RGBA8888, icon->buffer, 4 * icon->width);
+
+		FS_FreeImage (icon);
+
+		/*SDL_Surface	*surface = SDL_CreateSurfaceFrom (icon->width, icon->height, SDL_PIXELFORMAT_RGBA8888,
+		icon->buffer, 4 * icon->width);*/
+		if (surface)
+			{
+			if (!SDL_SetWindowIcon (hWnd, surface))
+				Con_PrintSDLError ("SDL_SetWindowIcon");
+
+			/*FS_FreeImage (icon);*/
+			SDL_DestroySurface (surface);
+			return;
+			}
+
+		/*if (!surface)
+		{*/
 		Con_PrintSDLError ("SDL_CreateSurfaceFrom");
-		return;
+		/*return;*/
 		}
 
-	if (!SDL_SetWindowIcon (hWnd, surface))
-		Con_PrintSDLError ("SDL_SetWindowIcon");
+	// [FWGS, 01.10.26]
+	/*if (!SDL_SetWindowIcon (hWnd, surface))
+	Con_PrintSDLError ("SDL_SetWindowIcon");*/
+	
+	// ICO support only for Win32
+#if XASH_WIN32
 
-	SDL_DestroySurface (surface);
+	const char	*disk_iconpath = FS_GetDiskPath (GI->iconpath, true);
+
+	if (disk_iconpath)
+		{
+		int	len = MultiByteToWideChar (CP_UTF8, 0, disk_iconpath, -1, NULL, 0);
+
+		if (len >= 0)
+			{
+			wchar_t	*path = malloc (len * sizeof (*path));
+			HICON	ico;
+
+			MultiByteToWideChar (CP_UTF8, 0, disk_iconpath, -1, path, len);
+			ico = (HICON)LoadImageW (NULL, path, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+
+			/*SDL_DestroySurface (surface);*/
+			free (path);
+
+			if (ico && WIN_SetWindowIcon (ico))
+				return;
+			}
+		}
+
+	WIN_SetWindowIcon (LoadIcon (GetModuleHandle (NULL), MAKEINTRESOURCE (101)));
+
+#endif
 	}
 
 static SDL_Window *VID_CreateWindowWithSafeGL (const char *title, SDL_Rect *rect, Uint32 flags)
 	{
 	for (; glw_state.safe < SAFE_LAST; glw_state.safe++)
 		{
-		if (glw_state.safe == SAFE_NOMSAA && !gl_msaa_samples.value)
+		if ((glw_state.safe == SAFE_NOMSAA) && !gl_msaa_samples.value)
 			continue;
 
 		// choose attributes with select safegl level
@@ -92,14 +168,17 @@ static SDL_Window *VID_CreateWindowWithSafeGL (const char *title, SDL_Rect *rect
 	return NULL;
 	}
 
-// [FWGS, 01.08.26]
-static void VID_SaveWindowSize (SDL_Window *hWnd, int width, int height)
+// [FWGS, 01.10.26]
+/*static void VID_SaveWindowSize (SDL_Window *hWnd, int width, int height)*/
+void VID_SaveWindowSize (int width, int height)
 	{
-	qboolean	maximized = FBitSet (SDL_GetWindowFlags (hWnd), SDL_WINDOW_MAXIMIZED);
+	/*qboolean	maximized = FBitSet (SDL_GetWindowFlags (hWnd), SDL_WINDOW_MAXIMIZED);*/
+	qboolean	maximized = FBitSet (SDL_GetWindowFlags (host.hWnd), SDL_WINDOW_MAXIMIZED);
 	int	render_w;
 	int	render_h;
 
-	if (!SDL_GetWindowSizeInPixels (hWnd, &render_w, &render_h))
+	/*if (!SDL_GetWindowSizeInPixels (hWnd, &render_w, &render_h))*/
+	if (!SDL_GetWindowSizeInPixels (host.hWnd, &render_w, &render_h))
 		{
 		render_w = width;
 		render_h = height;
@@ -111,14 +190,22 @@ static void VID_SaveWindowSize (SDL_Window *hWnd, int width, int height)
 	R_SaveVideoMode (width, height, render_w, render_h, maximized);
 	}
 
-// [FWGS, 01.08.26]
 static qboolean VID_CreateWindow (const int input_width, const int input_height, window_mode_t window_mode)
 	{
 	SDL_Rect	rect = { SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, input_width, input_height };
 	Uint32		flags = SDL_WINDOW_RESIZABLE;
 
+	// [FWGS, 01.10.26] TODO: disabled for Windows for now
+#if !XASH_WIN32
+	SetBits (flags, SDL_WINDOW_HIGH_PIXEL_DENSITY);
+#endif
+
 	if (!glw_state.software)
 		SetBits (flags, SDL_WINDOW_OPENGL);
+
+	// [FWGS, 01.10.26]
+	if (vid_maximized.value)
+		SetBits (flags, SDL_WINDOW_MAXIMIZED);
 
 	// probe true fullscreen first, if it fails, try borderless next
 	if (window_mode == WINDOW_MODE_FULLSCREEN)
@@ -144,10 +231,8 @@ static qboolean VID_CreateWindow (const int input_width, const int input_height,
 	if (window_mode == WINDOW_MODE_BORDERLESS)
 		{
 		SDL_DisplayID	display = SDL_GetPrimaryDisplay ();
-		/*const SDL_DisplayMode *dm;
+		const SDL_DisplayMode	*dm = SDL_GetDesktopDisplayMode (display);
 
-		dm = SDL_GetDesktopDisplayMode (display);*/
-		const SDL_DisplayMode *dm = SDL_GetDesktopDisplayMode (display);
 		if (dm)
 			{
 			SetBits (flags, SDL_WINDOW_FULLSCREEN);
@@ -172,12 +257,32 @@ static qboolean VID_CreateWindow (const int input_width, const int input_height,
 	if (!host.hWnd)
 		return false;
 
+	// [FWGS, 01.10.26]
+	SDL_SetWindowMinimumSize (host.hWnd, VID_MIN_WIDTH, VID_MIN_HEIGHT);
+
 	VID_SetWindowIcon (host.hWnd);
 
+	// [FWGS, 01.10.26]
 	if (glw_state.software)
 		{
-		// no support yet
-		return false;
+		/*// no support yet
+		return false;*/
+		char	cmd[64];
+
+		if (Sys_GetParmFromCmdLine ("-sdl_renderer", cmd))
+			{
+			int	sdl_renderer = Q_max (-1, Q_atoi (cmd));
+
+			sw.renderer = SDL_CreateRenderer (host.hWnd, sdl_renderer < 0 ? NULL : SDL_GetRenderDriver (sdl_renderer));
+
+			if (!sw.renderer)
+				{
+				Con_Printf (S_ERROR "%s: SDL_CreateRenderer: %s\n", __func__, SDL_GetError ());
+				goto cleanup;
+				}
+
+			Con_Printf ("SDL_Renderer %s initialized\n", SDL_GetRendererName (sw.renderer));
+			}
 		}
 	else
 		{
@@ -185,30 +290,59 @@ static qboolean VID_CreateWindow (const int input_width, const int input_height,
 
 		if (!glw_state.context)
 			{
+			// [FWGS, 01.10.26]
 			Con_PrintSDLError ("SDL_GL_CreateContext");
-			return false;
+			/*return false;*/
+			goto cleanup;
 			}
 
+		// [FWGS, 01.10.26]
 		if (!SDL_GL_MakeCurrent (host.hWnd, glw_state.context))
 			{
 			Con_PrintSDLError ("SDL_GL_MakeCurrent");
-			SDL_GL_DestroyContext (glw_state.context);
+			/*SDL_GL_DestroyContext (glw_state.context);
 			glw_state.context = NULL;
 
-			return false;
+			return false;*/
+			goto cleanup;
 			}
 		}
 
-	// update window size
+	// [FWGS, 01.10.26] update window size
 	SDL_GetWindowSize (host.hWnd, &rect.w, &rect.h);
-	VID_SaveWindowSize (host.hWnd, rect.w, rect.h);
+	/*VID_SaveWindowSize (host.hWnd, rect.w, rect.h);*/
+	VID_SaveWindowSize (rect.w, rect.h);
 
 	// update the window mode
 	if (window_mode != WINDOW_MODE_WINDOWED)
 		Cvar_DirectSetValue (&vid_fullscreen, SDL_GetWindowFullscreenMode (host.hWnd) != NULL ?
 			WINDOW_MODE_FULLSCREEN : WINDOW_MODE_BORDERLESS);
 
+	// [FWGS, 01.10.26]
+	VID_Info_f ();
 	return true;
+
+	// [FWGS, 01.10.26]
+cleanup:
+	if (glw_state.context)
+		{
+		SDL_GL_DestroyContext (glw_state.context);
+		glw_state.context = NULL;
+		}
+
+	if (sw.renderer)
+		{
+		SDL_DestroyRenderer (sw.renderer);
+		sw.renderer = NULL;
+		}
+
+	if (host.hWnd)
+		{
+		SDL_DestroyWindow (host.hWnd);
+		host.hWnd = NULL;
+		}
+
+	return false;
 	}
 
 // [FWGS, 01.08.26]
@@ -273,7 +407,7 @@ static void R_InitVideoModes (void)
 		int	j;
 		for (j = 0; j < vid_state.num_vidmodes; j++)
 			{
-			if (w == vid_state.vidmodes[j].width && h == vid_state.vidmodes[j].height)
+			if ((w == vid_state.vidmodes[j].width) && (h == vid_state.vidmodes[j].height))
 				break;
 			}
 
@@ -292,6 +426,21 @@ static void R_InitVideoModes (void)
 		}
 
 	SDL_free (modes);
+	}
+
+// [FWGS, 01.10.26]
+static void R_FreeVideoModes (void)
+	{
+	if (!vid_state.vidmodes)
+		return;
+
+	for (int i = 0; i < vid_state.num_vidmodes; i++)
+		Mem_Free ((char *)vid_state.vidmodes[i].desc);
+
+	Mem_Free (vid_state.vidmodes);
+
+	vid_state.vidmodes = NULL;
+	vid_state.num_vidmodes = 0;
 	}
 
 void Platform_Minimize_f (void)
@@ -342,10 +491,15 @@ void GL_UpdateSwapInterval (void)
 		}
 	}
 
-// [FWGS, 01.08.26]
 qboolean R_Init_Video (ref_graphic_apis_t type)
 	{
+	// [FWGS, 01.10.26]
 	qboolean	retval = false;
+	const SDL_DisplayMode	*display_mode = SDL_GetCurrentDisplayMode (SDL_GetPrimaryDisplay ());
+
+	// [FWGS, 01.10.26]
+	if (display_mode)
+		refState.desktopBitsPixel = SDL_BITSPERPIXEL (display_mode->format);
 
 	if (Sys_CheckParm ("-egl"))
 		Con_Printf (S_WARN "%s: -egl option is deprecated\n", __func__);
@@ -398,48 +552,39 @@ qboolean R_Init_Video (ref_graphic_apis_t type)
 	return true;
 	}
 
+// [FWGS, 01.10.26]
 void R_Free_Video (void)
 	{
-	SDL_GL_DestroyContext (glw_state.context);
-	glw_state.context = NULL;
+	/*SDL_GL_DestroyContext (glw_state.context);
+	glw_state.context = NULL;*/
+	if (glw_state.context)
+		{
+		SDL_GL_DestroyContext (glw_state.context);
+		glw_state.context = NULL;
+		}
 
-	SDL_DestroyWindow (host.hWnd);
-	host.hWnd = NULL;
+	/*SDL_DestroyWindow (host.hWnd);
+	host.hWnd = NULL;*/
+	if (host.hWnd)
+		{
+		SDL_DestroyWindow (host.hWnd);
+		host.hWnd = NULL;
+		}
 
 	refState.window_mode = WINDOW_MODE_WINDOWED;
 
-	Mem_Free (vid_state.vidmodes);
+	/*Mem_Free (vid_state.vidmodes);
 	vid_state.vidmodes = NULL;
-	vid_state.num_vidmodes = 0;
+	vid_state.num_vidmodes = 0;*/
+	R_FreeVideoModes ();
 
 	ref.dllFuncs.GL_ClearExtensions ();
 	}
 
-// [FWGS, 01.08.26]
 int GL_SetAttribute (int attr, int val)
 	{
 	switch (attr)
 		{
-/*define MAP_REF_API_ATTRIBUTE_TO_SDL( name ) case REF_##name: return SDL_GL_SetAttribute( SDL_##name, val );
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_RED_SIZE);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_GREEN_SIZE);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_BLUE_SIZE);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_ALPHA_SIZE);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_DOUBLEBUFFER);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_DEPTH_SIZE);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_STENCIL_SIZE);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_MULTISAMPLEBUFFERS);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_MULTISAMPLESAMPLES);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_ACCELERATED_VISUAL);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_MAJOR_VERSION);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_MINOR_VERSION);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_FLAGS);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_SHARE_WITH_CURRENT_CONTEXT);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_FRAMEBUFFER_SRGB_CAPABLE);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_PROFILE_MASK);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_RELEASE_BEHAVIOR);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_RESET_NOTIFICATION);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_NO_ERROR);*/
 #define MAP_REF_API_ATTRIBUTE_TO_SDL( name ) case REF_ ## name: return SDL_GL_SetAttribute( SDL_ ## name, val );
 		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_RED_SIZE);
 		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_GREEN_SIZE);
@@ -456,10 +601,23 @@ int GL_SetAttribute (int attr, int val)
 		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_FLAGS);
 		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_SHARE_WITH_CURRENT_CONTEXT);
 		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_FRAMEBUFFER_SRGB_CAPABLE);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_PROFILE_MASK);
+
+		// [FWGS, 01.10.26]
+		/*MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_PROFILE_MASK);*/
+		case REF_GL_CONTEXT_PROFILE_MASK:
+#if !XASH_WIN32
+			if (val == REF_GL_CONTEXT_PROFILE_ES)
+				{
+				SDL_SetHint (SDL_HINT_OPENGL_ES_DRIVER, "1");
+				SDL_SetHint (SDL_HINT_VIDEO_FORCE_EGL, "1");
+				}
+#endif
+			return SDL_GL_SetAttribute (SDL_GL_CONTEXT_PROFILE_MASK, val);
+
 		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_RELEASE_BEHAVIOR);
 		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_RESET_NOTIFICATION);
 		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_NO_ERROR);
+
 #undef MAP_REF_API_ATTRIBUTE_TO_SDL
 		}
 
@@ -471,26 +629,6 @@ int GL_GetAttribute (int attr, int *val)
 	{
 	switch (attr)
 		{
-/*define MAP_REF_API_ATTRIBUTE_TO_SDL( name ) case REF_##name: return SDL_GL_GetAttribute( SDL_##name, val );
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_RED_SIZE);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_GREEN_SIZE);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_BLUE_SIZE);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_ALPHA_SIZE);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_DOUBLEBUFFER);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_DEPTH_SIZE);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_STENCIL_SIZE);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_MULTISAMPLEBUFFERS);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_MULTISAMPLESAMPLES);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_ACCELERATED_VISUAL);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_MAJOR_VERSION);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_MINOR_VERSION);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_FLAGS);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_SHARE_WITH_CURRENT_CONTEXT);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_FRAMEBUFFER_SRGB_CAPABLE);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_PROFILE_MASK);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_RELEASE_BEHAVIOR);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_RESET_NOTIFICATION);
-		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_NO_ERROR);*/
 #define MAP_REF_API_ATTRIBUTE_TO_SDL( name ) case REF_ ## name: return SDL_GL_GetAttribute( SDL_ ## name, val );
 		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_RED_SIZE);
 		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_GREEN_SIZE);
@@ -511,6 +649,7 @@ int GL_GetAttribute (int attr, int *val)
 		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_RELEASE_BEHAVIOR);
 		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_RESET_NOTIFICATION);
 		MAP_REF_API_ATTRIBUTE_TO_SDL (GL_CONTEXT_NO_ERROR);
+
 #undef MAP_REF_API_ATTRIBUTE_TO_SDL
 		}
 
@@ -522,26 +661,178 @@ void GL_SwapBuffers (void)
 	SDL_GL_SwapWindow (host.hWnd);
 	}
 
+// [FWGS, 01.10.26]
 void *GL_GetProcAddress (const char *name)
 	{
-	return SDL_GL_GetProcAddress (name);
+	/*return SDL_GL_GetProcAddress (name);*/
+	void	*func = SDL_GL_GetProcAddress (name);
+	if (!func)
+		{
+		Con_Reportf (S_ERROR "%s failed for %s\n", __func__, name);
+		}
+
+	return func;
 	}
 
+// [FWGS, 01.10.26]
 qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *r, uint *g, uint *b)
 	{
-	// TODO
+	sw.width = width;
+	sw.height = height;
+
+	if (sw.renderer)
+		{
+		SDL_PixelFormat	format = SDL_GetWindowPixelFormat (host.hWnd);
+		SDL_SetRenderLogicalPresentation (sw.renderer, refState.width, refState.height, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+
+		if (sw.tex)
+			{
+			SDL_DestroyTexture (sw.tex);
+			sw.tex = NULL;
+			}
+
+		// guess
+		if (format == SDL_PIXELFORMAT_UNKNOWN)
+			{
+			if (refState.desktopBitsPixel == 16)
+				format = SDL_PIXELFORMAT_RGB565;
+			else
+				format = SDL_PIXELFORMAT_RGBA8888;
+			}
+
+		// we can only copy fast 16 or 32 bits
+		// SDL_Renderer does not allow zero-copy, so 24 bits will be ineffective
+		if ((SDL_BYTESPERPIXEL (format) != 2) && (SDL_BYTESPERPIXEL (format) != 4))
+			format = SDL_PIXELFORMAT_RGBA8888;
+
+		sw.tex = SDL_CreateTexture (sw.renderer, format, SDL_TEXTUREACCESS_STREAMING, width, height);
+
+		// fallback
+		if (!sw.tex && (format != SDL_PIXELFORMAT_RGBA8888))
+			{
+			format = SDL_PIXELFORMAT_RGBA8888;
+			sw.tex = SDL_CreateTexture (sw.renderer, format, SDL_TEXTUREACCESS_STREAMING, width, height);
+			}
+
+		if (!sw.tex)
+			{
+			SDL_DestroyRenderer (sw.renderer);
+			sw.renderer = NULL;
+			}
+		else
+			{
+			void	*pixels;
+			int		pitch;
+
+			if (SDL_LockTexture (sw.tex, NULL, &pixels, &pitch))
+				{
+				// lock successfull, release
+				SDL_UnlockTexture (sw.tex);
+
+				// enough for building blitter tables
+				int		bits;
+				uint	amask;
+
+				SDL_GetMasksForPixelFormat (format, &bits, r, g, b, &amask);
+				*bpp = SDL_BYTESPERPIXEL (format);
+				*stride = pitch / *bpp;
+
+				return true;
+				}
+
+			// fallback to surf
+			SDL_DestroyTexture (sw.tex);
+			sw.tex = NULL;
+			SDL_DestroyRenderer (sw.renderer);
+			sw.renderer = NULL;
+			}
+		}
+
+	if (!sw.renderer)
+		{
+		sw.win = SDL_GetWindowSurface (host.hWnd);
+
+		// sdl will create renderer if hw framebuffer unavailiable, so cannot fallback here
+		// if it is failed, it is not possible to draw with SDL in REF_SOFTWARE mode
+		if (!sw.win)
+			{
+			Sys_Warn ("failed to initialize software output, try running with -glblit flag");
+			return false;
+			}
+
+		const SDL_PixelFormatDetails	*details = SDL_GetPixelFormatDetails (sw.win->format);
+		if (!details)
+			{
+			Sys_Warn ("failed to initialize software output, try running with -glblit flag");
+			return false;
+			}
+
+		*bpp = details->bytes_per_pixel;
+		*r = details->Rmask;
+		*g = details->Gmask;
+		*b = details->Bmask;
+		*stride = sw.win->pitch / details->bytes_per_pixel;
+
+		return true;
+		}
+
+	// we can't create ref_soft buffer
 	return false;
 	}
 
+// [FWGS, 01.10.26]
 void *SW_LockBuffer (void)
 	{
-	// TODO
-	return NULL;
+	/*// TODO
+	return NULL;*/
+	if (sw.renderer)
+		{
+		void	*pixels;
+		int		stride;
+
+		if (!SDL_LockTexture (sw.tex, NULL, &pixels, &stride))
+			Sys_Error ("%s: %s", __func__, SDL_GetError ());
+
+		return pixels;
+		}
+
+	// ensure it not changed (do we really need this?)
+	sw.win = SDL_GetWindowSurface (host.hWnd);
+
+	// prevent buffer overrun
+	if (!sw.win || (sw.win->w < sw.width) || (sw.win->h < sw.height))
+		return NULL;
+
+	// real window pixels (x11 shm region, dma buffer, etc)
+	// or SDL_Renderer texture if not supported
+	SDL_LockSurface (sw.win);
+	return sw.win->pixels;
 	}
 
+// [FWGS, 01.10.26]
 void SW_UnlockBuffer (void)
 	{
-	// TODO
+	if (sw.renderer)
+		{
+		SDL_FRect	src =
+			{
+			.w = sw.width,
+			.h = sw.height,
+			};
+		SDL_FRect	dst = src;
+
+		SDL_UnlockTexture (sw.tex);
+		SDL_SetTextureBlendMode (sw.tex, SDL_BLENDMODE_NONE);
+
+		SDL_RenderTexture (sw.renderer, sw.tex, &src, &dst);
+		SDL_RenderPresent (sw.renderer);
+
+		return;
+		}
+
+	// already blitted
+	SDL_UnlockSurface (sw.win);
+	SDL_UpdateWindowSurface (host.hWnd);
 	}
 
 ref_window_type_t R_GetWindowHandle (void **handle, ref_window_type_t type)
@@ -581,7 +872,7 @@ ref_window_type_t R_GetWindowHandle (void **handle, ref_window_type_t type)
 		}
 	else if (!Q_strcmp (driver, "x11"))
 		{
-		if (!type || type == REF_WINDOW_TYPE_X11)
+		if (!type || (type == REF_WINDOW_TYPE_X11))
 			{
 			if (handle)
 				*handle = SDL_GetPointerProperty (pid, SDL_PROP_WINDOW_X11_DISPLAY_POINTER, NULL);
@@ -590,7 +881,7 @@ ref_window_type_t R_GetWindowHandle (void **handle, ref_window_type_t type)
 		}
 	else if (!Q_strcmp (driver, "wayland"))
 		{
-		if (!type || type == REF_WINDOW_TYPE_WAYLAND)
+		if (!type || (type == REF_WINDOW_TYPE_WAYLAND))
 			{
 			if (handle)
 				*handle = SDL_GetPointerProperty (pid, SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, NULL);
@@ -599,7 +890,7 @@ ref_window_type_t R_GetWindowHandle (void **handle, ref_window_type_t type)
 		}
 	else if (!Q_strcmp (driver, "cocoa"))
 		{
-		if (!type || type == REF_WINDOW_TYPE_MACOS)
+		if (!type || (type == REF_WINDOW_TYPE_MACOS))
 			{
 			if (handle)
 				*handle = SDL_GetPointerProperty (pid, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, NULL);
@@ -644,11 +935,9 @@ qboolean VID_SetMode (void)
 		}
 #endif
 
-	/*window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);*/
 	window_mode_t	window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);
 	SetBits (gl_vsync.flags, FCVAR_CHANGED);
 
-	/*err = R_ChangeDisplaySettings (screen_width, screen_height, window_mode);*/
 	rserr_t	err = R_ChangeDisplaySettings (screen_width, screen_height, window_mode);
 	switch (err)
 		{
@@ -691,10 +980,11 @@ qboolean VID_SetMode (void)
 	return true;
 	}
 
-// [FWGS, 01.08.26]
 static qboolean VID_GetDisplayBounds (SDL_DisplayID display_id, SDL_Window *hWnd, SDL_Rect *rect)
 	{
-	if (SDL_GetDisplayUsableBounds (display_id, rect) != 0)
+	// [FWGS, 01.10.26]
+	/*if (SDL_GetDisplayUsableBounds (display_id, rect) != 0)*/
+	if (!SDL_GetDisplayUsableBounds (display_id, rect))
 		{
 		memset (rect, 0, sizeof (*rect));
 		return false;
@@ -722,7 +1012,6 @@ static qboolean VID_GetDisplayBounds (SDL_DisplayID display_id, SDL_Window *hWnd
 	return true;
 	}
 
-// [FWGS, 01.08.26]
 static rserr_t VID_SetScreenResolution (int width, int height, window_mode_t window_mode, window_mode_t prev_window_mode)
 	{
 	const SDL_DisplayID		display_id = SDL_GetDisplayForWindow (host.hWnd);
@@ -811,7 +1100,9 @@ static rserr_t VID_SetScreenResolution (int width, int height, window_mode_t win
 				const SDL_DisplayMode	*dm;
 				qboolean center_window = false;
 
-				if (!(dm = SDL_GetDesktopDisplayMode (display_id)) && width >= dm->w && height >= dm->h)
+				// [FWGS, 01.10.26]
+				/*if (!(dm = SDL_GetDesktopDisplayMode (display_id)) && width >= dm->w && height >= dm->h)*/
+				if (((dm = SDL_GetDesktopDisplayMode (display_id)) != NULL) && (width >= dm->w) && (height >= dm->h))
 					{
 					SDL_SetWindowSize (host.hWnd, dm->w, dm->h);
 					// Con_Printf( "%s: activating fake fullscreen mode\n", __func__ );
@@ -827,7 +1118,7 @@ static rserr_t VID_SetScreenResolution (int width, int height, window_mode_t win
 						int	x, y;
 						SDL_GetWindowPosition (host.hWnd, &x, &y);
 
-						if (x <= r.x || y <= r.y)
+						if ((x <= r.x) || (y <= r.y))
 							center_window = true;
 						}
 					}
@@ -849,7 +1140,9 @@ static rserr_t VID_SetScreenResolution (int width, int height, window_mode_t win
 		(window_mode == WINDOW_MODE_BORDERLESS) ? "borderless" :
 		(window_mode == WINDOW_MODE_FULLSCREEN) ? "fullscreen" : "windowed");
 
-	VID_SaveWindowSize (host.hWnd, out_width, out_height);
+	// [FWGS, 01.10.26]
+	/*VID_SaveWindowSize (host.hWnd, out_width, out_height);*/
+	VID_SaveWindowSize (out_width, out_height);
 
 	// set icon that could've been lost after changing modes
 	VID_SetWindowIcon (host.hWnd);
@@ -857,7 +1150,6 @@ static rserr_t VID_SetScreenResolution (int width, int height, window_mode_t win
 	return rserr_ok;
 	}
 
-// [FWGS, 01.08.26]
 rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mode)
 	{
 	rserr_t	err;
@@ -870,18 +1162,42 @@ rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mod
 		}
 	else
 		{
-		/*// TODO: change current window mode
-		return rserr_invalid_fullscreen;*/
 		err = VID_SetScreenResolution (width, height, window_mode, refState.window_mode);
 		if (err != rserr_ok)
 			return err;
 		}
 
-	/*refState.desktopBitsPixel = 24;	// TODO: figure this out*/
+	// [FWGS, 01.10.26]
+	const SDL_DisplayMode	*display_mode = SDL_GetWindowFullscreenMode (host.hWnd);
+
+	if (!display_mode)
+		display_mode = SDL_GetCurrentDisplayMode (SDL_GetDisplayForWindow (host.hWnd));
+
+	if (display_mode)
+		refState.desktopBitsPixel = SDL_BITSPERPIXEL (display_mode->format);
+
 	refState.window_mode = window_mode;
-	refState.desktopBitsPixel = 24;
+	/*refState.desktopBitsPixel = 24;*/
 
 	return rserr_ok;
+	}
+
+// [FWGS, 01.10.26]
+void Platform_GetWindowInsets (void *window, float insets[4])
+	{
+	SDL_Rect	safe;
+	int		width, height;
+
+	insets[0] = insets[1] = insets[2] = insets[3] = 0.0f;
+	if (!window || !SDL_GetWindowSize (window, &width, &height) || (width <= 0) || (height <= 0))
+		return;
+	if (!SDL_GetWindowSafeArea (window, &safe) || (safe.w <= 0) || (safe.h <= 0))
+		return;
+
+	insets[0] = (float)safe.x / width;
+	insets[1] = (float)safe.y / height;
+	insets[2] = (float)(width - safe.x - safe.w) / width;
+	insets[3] = (float)(height - safe.y - safe.h) / height;
 	}
 
 // ESHQ: ограничение компиляции
