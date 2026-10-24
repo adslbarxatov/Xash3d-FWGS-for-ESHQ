@@ -54,6 +54,10 @@ static struct
 // with BUGCOMP_ALWAYS_ENABLE_TEXT_INPUT
 static qboolean key_textinput_enabled;
 
+// [FWGS, 01.11.26] text of the menu field, system keyboard opens with it on the next text input enable
+static char		key_textinput_buffer[1024];
+static qboolean	key_textinput_buffer_set;
+
 // [FWGS, 01.10.26]
 static const keyname_t	keynames[] =
 	{
@@ -594,7 +598,7 @@ void Key_Init (void)
 
 /***
 ===================
-Key_AddKeyCommands [FWGS, 01.07.26]
+Key_AddKeyCommands
 ===================
 ***/
 static void Key_AddKeyCommands (int key, const char *kb, qboolean down)
@@ -604,6 +608,30 @@ static void Key_AddKeyCommands (int key, const char *kb, qboolean down)
 
 	char	button[1024];
 	char	*buttonPtr = button;
+
+	// [FWGS, 01.11.26] GoldSrc doesn't split bindings, the key number goes after the whole string
+	// and "+cmd;-cmd" relies on that, as only the "-cmd" half carries the key number
+	if (FBitSet (host.bugcomp, BUGCOMP_BIND_NOSPLIT))
+		{
+		char	cmd[1024];
+
+		if (kb[0] == '+')
+			{
+			if (down)
+				Q_snprintf (cmd, sizeof (cmd), "%s %i\n", kb, key);
+			else
+				Q_snprintf (cmd, sizeof (cmd), "-%s %i\n", kb + 1, key);
+
+			Cbuf_AddText (cmd);
+			}
+		else if (down)
+			{
+			Q_snprintf (cmd, sizeof (cmd), "%s\n", kb);
+			Cbuf_AddText (cmd);
+			}
+
+		return;
+		}
 
 	for (int i = 0; ; i++)
 		{
@@ -925,16 +953,47 @@ void Key_SetTextInputRect (int x, int y, int w, int h)
 
 /***
 ================
+Key_SetTextInputBuffer [FWGS, 01.11.26]
+================
+***/
+void Key_SetTextInputBuffer (const char *text)
+	{
+	key_textinput_buffer_set = text != NULL;
+	Q_strncpy (key_textinput_buffer, text ? text : "", sizeof (key_textinput_buffer));
+	}
+
+/***
+================
+Key_GetTextInputBuffer [FWGS, 01.11.26]
+
+text for the system keyboard while Platform_EnableTextInput( true ) is called,
+NULL if the system keyboard isn't requested
+================
+***/
+const char *Key_GetTextInputBuffer (void)
+	{
+	return key_textinput_buffer_set ? key_textinput_buffer : NULL;
+	}
+
+/***
+================
 Key_EnableTextInput
 ================
 ***/
 void Key_EnableTextInput (qboolean enable, qboolean force)
 	{
+	// [FWGS, 01.11.26]
 	if (osk_enable.value)
 		{
 		OSK_EnableTextInput (enable, force);
+		Key_SetTextInputBuffer (NULL);
 		return;
 		}
+
+	// [FWGS, 01.11.26] the menu asks to open the system keyboard with its text,
+	// even if text input is enabled already
+	if (enable && key_textinput_buffer_set)
+		force = true;
 
 	// [FWGS, 01.10.26]
 	/*if (enable && (!host.textmode || force))*/
@@ -968,6 +1027,9 @@ void Key_EnableTextInput (qboolean enable, qboolean force)
 	// [FWGS, 01.10.26]
 	key_textinput_enabled = enable_platform;
 	host.textmode = enable;
+
+	// [FWGS, 01.11.26] only for this request
+	Key_SetTextInputBuffer (NULL);
 	}
 
 /***

@@ -3940,7 +3940,7 @@ static void GAME_EXPORT pfnFadeClientVolume (const edict_t *pEdict, int fadePerc
 
 /***
 =============
-pfnSetClientMaxspeed [FWGS, 25.12.24]
+pfnSetClientMaxspeed
 
 fakeclients can be changed speed to
 =============
@@ -3958,7 +3958,12 @@ static void GAME_EXPORT pfnSetClientMaxspeed (const edict_t *pEdict, float fNewM
 
 	// There isn't any reference to "maxspd" anywhere except some commented-out code in SDK
 	Info_SetValueForKeyf (cl->physinfo, "maxspd", MAX_INFO_STRING, "%.f", fNewMaxspeed);
-	cl->edict->v.maxspeed = fNewMaxspeed;
+	
+	// [FWGS, 01.11.26]
+	/*cl->edict->v.maxspeed = fNewMaxspeed;*/
+	// cl->edict is NULL once the client has dropped, but game dlls (e.g. Marine Bot)
+	// may still call this for its edict, so write to the edict we've been given
+	((edict_t *)pEdict)->v.maxspeed = fNewMaxspeed;
 	}
 
 /***

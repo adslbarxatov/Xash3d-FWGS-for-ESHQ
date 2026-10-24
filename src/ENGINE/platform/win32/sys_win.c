@@ -28,7 +28,6 @@ double Platform_DoubleTime (void)
 	{
 	static LARGE_INTEGER	g_PerformanceFrequency;
 	static LARGE_INTEGER	g_ClockStart;
-	/*LARGE_INTEGER		CurrentTime;*/
 
 	if (!g_PerformanceFrequency.QuadPart)
 		{
@@ -50,10 +49,27 @@ void Platform_Sleep (int msec)
 
 #endif
 
+// [FWGS, 01.11.26]
+double Win32_GetCPUTime (void)
+	{
+	FILETIME	createTime, exitTime, kernelTime, userTime;
+	ULARGE_INTEGER	k, u;
+
+	if (!GetProcessTimes (GetCurrentProcess (), &createTime, &exitTime, &kernelTime, &userTime))
+		return 0.0;
+
+	k.LowPart = kernelTime.dwLowDateTime;
+	k.HighPart = kernelTime.dwHighDateTime;
+	u.LowPart = userTime.dwLowDateTime;
+	u.HighPart = userTime.dwHighDateTime;
+
+	return (k.QuadPart + u.QuadPart) * 1e-7;	// 100ns units to seconds
+	}
+
 // [FWGS, 01.04.25]
 void Win32_Init (qboolean con_showalways)
 	{
-	HMODULE hModule = LoadLibraryW (L"kernel32.dll");
+	HMODULE	hModule = LoadLibraryW (L"kernel32.dll");
 	if (hModule)
 		{
 		HANDLE (__stdcall * pfnCreateWaitableTimerExW)(LPSECURITY_ATTRIBUTES lpTimerAttributes, LPCWSTR lpTimerName,
@@ -93,12 +109,10 @@ void Win32_Shutdown (void)
 // [FWGS, 01.07.26]
 qboolean Win32_NanoSleep (int nsec)
 	{
-	/*LARGE_INTEGER ts;*/
-
 	if (!g_waitable_timer)
 		return false;
 
-	LARGE_INTEGER ts;
+	LARGE_INTEGER	ts;
 	ts.QuadPart = -nsec / 100;
 
 	if (!SetWaitableTimer (g_waitable_timer, &ts, 0, NULL, NULL, FALSE))

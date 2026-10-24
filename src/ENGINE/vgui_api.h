@@ -32,7 +32,6 @@ For more information, please refer to <http://unlicense.org/>
 #define VGUI_API_H
 
 // [FWGS, 01.09.26]
-/*include "xash3d_types.h"*/
 #include <stddef.h>
 #include "key_modifiers.h"
 #include "cursor_type.h"
@@ -41,8 +40,6 @@ For more information, please refer to <http://unlicense.org/>
 
 typedef struct
 	{
-	/*vec2_t	point;
-	vec2_t	coord;*/
 	float	point[2];
 	float	coord[2];
 	} vpoint_t;
@@ -171,6 +168,7 @@ enum VGUI_KeyAction
 	KA_PRESSED,
 	KA_RELEASED
 	};
+
 enum VGUI_MouseAction
 	{
 	MA_PRESSED = 0,
@@ -179,10 +177,13 @@ enum VGUI_MouseAction
 	MA_WHEEL
 	};
 
-// [FWGS, 01.09.26]
-typedef struct  vguiapi_s
+/*// [FWGS, 01.09.26]
+typedef struct  vguiapi_s*/
+// [FWGS, 01.11.26] legacy VGUI support API, a single structure shared by both sides
+// only kept for compatibility with existing support libraries and client libraries,
+// new code should use vgui_support_api_t and vgui_support_interface_t below
+typedef struct legacy_vguiapi_s
 	{
-	/*qboolean initialized;*/
 	int		initialized;
 
 	// called from vgui_support
@@ -193,12 +194,10 @@ typedef struct  vguiapi_s
 	void	(*SetupDrawingImage)(int *pColor);
 	void	(*BindTexture)(int id);
 
-	/*void	(*EnableTexture)(qboolean enable);*/
 	void	(*EnableTexture)(int enable);
 	void	(*Reserved0)(int id, int width, int height);
 	void	(*UploadTexture)(int id, const char *buffer, int width, int height);
 
-	/*void	(*Reserved1)(int id, int drawX, int drawY, const byte *rgba, int blockWidth, int blockHeight);*/
 	void	(*Reserved1)(int id, int drawX, int drawY, const unsigned char *rgba, int blockWidth, int blockHeight);
 	void	(*DrawQuad)(const vpoint_t *ul, const vpoint_t *lr);
 	void	(*GetTextureSizes)(int *width, int *height);
@@ -206,9 +205,6 @@ typedef struct  vguiapi_s
 	void	*(*EngineMalloc)(size_t size);
 	void	(*CursorSelect)(VGUI_DefaultCursor cursor);
 
-	/*byte	(*GetColor)(int i, int j);
-	qboolean	(*IsInGame)(void);
-	void	(*EnableTextInput)(qboolean enable, qboolean force);*/
 	unsigned char	(*GetColor)(int i, int j);
 	int		(*IsInGame)(void);
 	void	(*EnableTextInput)(int enable, int force);
@@ -232,6 +228,85 @@ typedef struct  vguiapi_s
 	// translates 2D drawing for the everything that's not VGUI, used to simulate GoldSrc
 	// behavior which installs matrix in push/popMakeCurrent
 	void	(*SetPaintOffset)(int x, int y); 
-	} vguiapi_t;
+	/*} vguiapi_t;*/
+	} legacy_vguiapi_t;
+
+// [FWGS, 01.11.26] keep old name for existing support libraries source code
+#define vguiapi_t	legacy_vguiapi_t
+
+// [FWGS, 01.11.26]
+typedef void (*LEGACY_VGUISUPPORTAPI)(legacy_vguiapi_t *api);
+
+#define LEGACY_GET_VGUI_SUPPORT_API	"InitAPI"		// exported by vgui_support library
+#define LEGACY_CLIENT_GET_VGUI_SUPPORT_API	"InitVGUISupportAPI"		// exported by client library
+
+// [FWGS, 01.11.26] VGUI support API changelog:
+// 1. Initial revision
+#define VGUI_SUPPORT_API_VERSION	1
+
+// [FWGS, 01.11.26] VGUI support API versioning rules:
+// * engine calls GET_VGUI_SUPPORT_API export with the highest version it supports
+// * support library returns the version it's going to use, which must not be higher than
+// the one engine passed, or 0 if it can't work with this engine at all
+// * engine zeroes the interface table before the call, support library fills only fields
+// that are present in the negotiated version, engine never calls NULL functions
+// * engine functions table is owned by the engine and stays valid until the library is unloaded,
+// support library must not use the fields that aren't present in the negotiated version
+// * both structures are append only, never remove or reorder fields, never change their signature
+
+// [FWGS, 01.11.26] engine functions, called from support library
+typedef struct vgui_support_api_s
+	{
+	// version 1
+	void (*DrawInit)(void);
+	void (*DrawShutdown)(void);
+	void (*SetupDrawingText)(int *pColor);
+	void (*SetupDrawingRect)(int *pColor);
+	void (*SetupDrawingImage)(int *pColor);
+	void (*BindTexture)(int id);
+	void (*EnableTexture)(int enable);
+	void (*UploadTexture)(int id, const char *buffer, int width, int height);
+	void (*DrawQuad)(const vpoint_t *ul, const vpoint_t *lr);
+	void (*GetTextureSizes)(int *width, int *height);
+	int (*GenerateTexture)(void);
+	void *(*EngineMalloc)(size_t size);
+	void (*CursorSelect)(VGUI_DefaultCursor cursor);
+	unsigned char (*GetColor)(int i, int j);
+	int (*IsInGame)(void);
+	void (*EnableTextInput)(int enable, int force);
+	void (*GetCursorPos)(int *x, int *y);
+	int (*ProcessUtfChar)(int ch);
+	int (*GetClipboardText)(char *buffer, size_t bufferSize);
+	void (*SetClipboardText)(const char *text);
+	key_modifier_t (*GetKeyModifiers)(void);
+
+	void (*SetPaintOffset)(int x, int y);
+	// translates 2D drawing for the everything that's not VGUI, used to simulate GoldSrc
+	// behavior which installs matrix in push/popMakeCurrent
+
+	void *(*LoadLib)(const char *dllname, int build_ordinals_table, int directpath);
+	void (*FreeLib)(void *hInstance);
+	void *(*GetProcAddr)(void *hInstance, const char *name);
+	} vgui_support_api_t;
+
+// [FWGS, 01.11.26] support library functions, called from engine
+typedef struct vgui_support_interface_s
+	{
+	// version 1
+	void (*Startup)(int width, int height);		// called on startup and on every resolution change
+	void (*Shutdown)(void);
+	void *(*GetPanel)(void);
+	void (*Paint)(void);
+	void (*Mouse)(enum VGUI_MouseAction action, int code);
+	void (*Key)(enum VGUI_KeyAction action, enum VGUI_KeyCode code);
+	void (*MouseMove)(int x, int y);
+	void (*TextInput)(const char *text);
+	void (*ClientStartup)(void *clientInstance, int width, int height);		// called once after client library has been loaded
+	} vgui_support_interface_t;
+
+// [FWGS, 01.11.26]
+typedef int (*VGUISUPPORTAPI)(int version, vgui_support_interface_t *pFunctionTable, const vgui_support_api_t *engfuncs);
+
+#define GET_VGUI_SUPPORT_API	"GetVGUISupportAPI"		// exported by vgui_support library or client library
 
 #endif

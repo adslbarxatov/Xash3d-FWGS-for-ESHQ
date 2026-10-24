@@ -715,7 +715,7 @@ static void SV_PrepWorldFrame (void)
 
 /***
 =================
-SV_IsSimulating [FWGS, 01.08.24]
+SV_IsSimulating
 =================
 ***/
 static qboolean SV_IsSimulating (void)
@@ -726,6 +726,10 @@ static qboolean SV_IsSimulating (void)
 	if (sv.background && SV_Active () && CL_Active ())
 		{
 		if (CL_IsInConsole ())
+			return false;
+
+		// [FWGS, 01.11.26]
+		if (sv.paused)
 			return false;
 
 		// force simulating for background map

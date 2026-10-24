@@ -4084,11 +4084,12 @@ qboolean CL_LoadProgs (const char *name)
 
 	endif*/
 
-	// NOTE: important stuff!
+	// [FWGS, 01.11.26] NOTE: important stuff!
 	// vgui must startup BEFORE loading client.dll to avoid get error
 	// ERROR_NOACESS during LoadLibrary
 	if (!try_internal_vgui_support && VGui_LoadProgs (NULL))
-		VGui_Startup (refState.width, refState.height);
+		/*VGui_Startup (refState.width, refState.height);*/
+		VGui_Startup (NULL, refState.width, refState.height);
 
 	// we failed to load vgui_support, but let's probe client.dll for support anyway
 	else
@@ -4112,9 +4113,10 @@ qboolean CL_LoadProgs (const char *name)
 		CL_CheckLoadedSDL2 (name);
 #endif
 
-	// delayed vgui initialization for internal support
+	// [FWGS, 01.11.26] delayed vgui initialization for internal support
 	if (try_internal_vgui_support && VGui_LoadProgs (clgame.hInstance))
-		VGui_Startup (refState.width, refState.height);
+		/*VGui_Startup (refState.width, refState.height);*/
+		VGui_Startup (NULL, refState.width, refState.height);
 
 	// clear exports
 	ClearExports (cdll_exports, HLARRAYSIZE (cdll_exports));
@@ -4190,6 +4192,9 @@ qboolean CL_LoadProgs (const char *name)
 		clgame.hInstance = NULL;
 		return false;
 		}
+
+	// [FWGS, 01.11.26] let the support library know about the client library
+	VGui_Startup (clgame.hInstance, refState.width, refState.height);
 
 	Cvar_FullSet ("host_clientloaded", "1", FCVAR_READ_ONLY);
 

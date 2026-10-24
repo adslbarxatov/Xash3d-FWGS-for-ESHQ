@@ -296,7 +296,7 @@ static void GAME_EXPORT UI_DrawLogo (const char *filename, float x, float y, flo
 	if (!AVI_IsActive (cin_state))
 		{
 		string		path;
-		const char *fullpath;
+		const char	*fullpath;
 
 		// run cinematic if not
 		Q_snprintf (path, sizeof (path), "media/%s", filename);
@@ -1251,6 +1251,12 @@ static void pfnSetTextInputRect (int x, int y, int w, int h)
 	Key_SetTextInputRect (x, y, w, h);
 	}
 
+// [FWGS, 01.11.26]
+static void pfnSetTextInputBuffer (const char *text)
+	{
+	Key_SetTextInputBuffer (text);
+	}
+
 // [FWGS, 01.04.25]
 static int pfnGetRenderers (unsigned int num, char *short_name, size_t size1, char *long_name, size_t size2)
 	{
@@ -1306,7 +1312,6 @@ static int pfnIsCvarReadOnly (const char *name)
 	return FBitSet (cv->flags, FCVAR_READ_ONLY) ? 1 : 0;
 	}
 
-// [FWGS, 01.09.26]
 static ui_extendedfuncs_t	gExtendedfuncs =
 	{
 	pfnEnableTextInput,
@@ -1324,6 +1329,7 @@ static ui_extendedfuncs_t	gExtendedfuncs =
 	pfnGetModInfo,
 	pfnIsCvarReadOnly,
 	pfnSetTextInputRect,
+	pfnSetTextInputBuffer,	// [FWGS, 01.11.26]
 	};
 
 // [FWGS, 01.09.24]

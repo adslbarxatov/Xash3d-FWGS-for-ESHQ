@@ -243,6 +243,7 @@ void SCR_DrawUserCmd (void)
 			{ IN_ALT1, "alt1" },
 			{ IN_SCORE, "score" },
 			};
+
 	cl_font_t	*font = Con_GetCurFont ();
 	string	msg;
 	int		ypos = 100;
@@ -767,7 +768,6 @@ void SCR_LoadCreditsFont (void)
 
 	// [FWGS, 01.09.26] it's a Quake font, we need to keep source texture for it
 	if (!success)
-		/*success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, &hud_fontrender, TF_FONT | TF_NEAREST);*/
 		success = Con_LoadFixedWidthFont ("gfx/conchars", font, scale, &hud_fontrender, TF_FONT | TF_NEAREST | TF_KEEP_SOURCE);
 
 	// [FWGS, 01.07.26] copy font size for client.dll
@@ -923,9 +923,11 @@ void SCR_VidInit (void)
 		gameui.globals->scrHeight = refState.height;
 		}
 	
-	// notify vgui about screen size change
+	// [FWGS, 01.11.26] notify vgui about screen size change
 	if (clgame.hInstance)
-		VGui_Startup (refState.width, refState.height);
+		// do not pass client library here, it's only passed once after loading
+		VGui_Startup (NULL, refState.width, refState.height);
+		/*VGui_Startup (refState.width, refState.height);*/
 
 	CL_ClearSpriteTextures ();	// now all hud sprites are invalid
 

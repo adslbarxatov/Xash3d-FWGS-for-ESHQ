@@ -590,6 +590,9 @@ void SV_EndRedirect (host_redirect_t *rd);
 void SV_RejectConnection (netadr_t from, const char *fmt, ...) FORMAT_CHECK (2);
 void SV_GetPlayerCount (int *clients, int *bots);
 
+// [FWGS, 01.11.26]
+int SV_GetUserIDCount (void);
+
 // [FWGS, 01.08.26]
 int SV_CreateChallenge (netadr_t from, qboolean *error);
 qboolean SV_ValidateChallenge (netadr_t from, int challenge);

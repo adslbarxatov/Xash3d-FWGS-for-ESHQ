@@ -284,7 +284,7 @@ typedef struct soundlist_e
 	double		forcedEnd;
 	} soundlist_t;
 
-// [FWGS, 01.10.26]
+// [FWGS, 01.11.26]
 typedef enum bugcomp_e
 	{
 	// reverts fix for pfnPEntityOfEntIndex for bug compatibility with GoldSrc
@@ -308,6 +308,9 @@ typedef enum bugcomp_e
 
 	// keep BSP texture names in their original case, like in GoldSrc
 	BUGCOMP_PRESERVE_TEXTURE_NAME_CASE = BIT (6),
+
+	// don't split key bindings by semicolon, like in GoldSrc
+	BUGCOMP_BIND_NOSPLIT = BIT (7),
 	} bugcomp_t;
 
 typedef struct host_parm_s

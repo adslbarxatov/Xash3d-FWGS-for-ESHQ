@@ -1162,13 +1162,41 @@ static studiohdr_t *Mod_MaybeTruncateStudioTextureData (model_t *mod)
 
 /***
 =================
+Mod_StudioTexSizes [FWGS, 01.11.26]
+
+Texture and skinref block sizes of a companion T.mdl.
+Returns false when the blocks do not fit into the file
+=================
+***/
+MAYBE_UNUSED static qboolean Mod_StudioTexSizes (studiohdr_t *thdr, size_t texsize, size_t *size1, size_t *size2)
+	{
+	if ((thdr->numtextures < 0) || (thdr->numskinfamilies < 0) || (thdr->numskinref < 0) || (thdr->textureindex < 0))
+		return false;
+
+	// wider than size_t: the multiply wraps around on 32-bit
+	const uint64_t	texbytes = (uint64_t)thdr->numtextures * sizeof (mstudiotexture_t);
+	const uint64_t	skinbytes = (uint64_t)thdr->numskinfamilies * (uint64_t)thdr->numskinref * sizeof (short);
+
+	// the copy in Mod_LoadStudioModel starts at textureindex and reads both blocks
+	if ((uint64_t)thdr->textureindex + texbytes + skinbytes > texsize)
+		return false;
+
+	*size1 = texbytes;
+	*size2 = skinbytes;
+
+	return true;
+	}
+
+/***
+=================
 Mod_LoadStudioModel
 =================
 ***/
 void Mod_LoadStudioModel (model_t *mod, void *buffer, size_t buffersize, qboolean *loaded)
 	{
+	// [FWGS, 01.11.26]
 	char		poolname[MAX_VA_STRING];
-	studiohdr_t	*phdr;
+	/*studiohdr_t	*phdr;*/
 	qboolean	textures_loaded = false;
 
 	Q_snprintf (poolname, sizeof (poolname), "^2%s^7", mod->name);
@@ -1178,34 +1206,46 @@ void Mod_LoadStudioModel (model_t *mod, void *buffer, size_t buffersize, qboolea
 	mod->mempool = Mem_AllocPool (poolname);
 	mod->type = mod_studio;
 
-	phdr = R_StudioLoadHeader (mod, buffer, buffersize);
+	// [FWGS, 01.11.26]
+	/*phdr = R_StudioLoadHeader (mod, buffer, buffersize);
 
 	// garbage value in length
-	if (!phdr || (phdr->length < sizeof (studiohdr_t)))
+	if (!phdr || (phdr->length < sizeof (studiohdr_t)))*/
+	studiohdr_t	*phdr = R_StudioLoadHeader (mod, buffer, buffersize);
+
+	// garbage value in length
+	if (!phdr || (phdr->length < (int32_t)sizeof (studiohdr_t)) || ((size_t)phdr->length > buffersize))
 		return;	// bad model
 
 #if !XASH_DEDICATED
 	if (!Host_IsDedicated () && (phdr->numtextures == 0))
 		{
-		studiohdr_t	*thdr;
-		void	*buffer2;
+		// [FWGS, 01.11.26]
+		/*studiohdr_t	*thdr;
+		void	*buffer2;*/
 		fs_offset_t	size2_len;
+		size_t	size1 = 0, size2 = 0;
 
-		buffer2 = FS_LoadFile (Mod_StudioTexName (mod->name), &size2_len, false);
-		thdr = R_StudioLoadHeader (mod, buffer2, size2_len);
+		/*buffer2 = FS_LoadFile (Mod_StudioTexName (mod->name), &size2_len, false);
+		thdr = R_StudioLoadHeader (mod, buffer2, size2_len);*/
+		void	*buffer2 = FS_LoadFile (Mod_StudioTexName (mod->name), &size2_len, false);
+		studiohdr_t		*thdr = R_StudioLoadHeader (mod, buffer2, size2_len);
 
-		if (thdr != NULL)
+		/*if (thdr != NULL)*/
+		// [FWGS, 01.11.26] NOTE: keep phdr->length + size1 + size2 from wrapping
+		if ((thdr != NULL) && Mod_StudioTexSizes (thdr, size2_len, &size1, &size2) &&
+			(size1 + size2 <= SIZE_MAX - (size_t)phdr->length))
 			{
-			byte	*in, *out;
-			size_t	size1, size2;
+			/*byte	*in, *out;
+			size_t	size1, size2;*/
 
 			// TODO: Mod_StudioLoadTextures will crash if passed a merged studio model!
 			ref.dllFuncs.Mod_StudioLoadTextures (mod, thdr);
 			textures_loaded = true;
 
 			// give space for textures and skinrefs
-			size1 = thdr->numtextures * sizeof (mstudiotexture_t);
-			size2 = thdr->numskinfamilies * thdr->numskinref * sizeof (short);
+			/*size1 = thdr->numtextures * sizeof (mstudiotexture_t);
+			size2 = thdr->numskinfamilies * thdr->numskinref * sizeof (short);*/
 			mod->cache.data = Mem_Calloc (mod->mempool, phdr->length + size1 + size2);
 			memcpy (mod->cache.data, buffer, phdr->length);	// copy main mdl buffer
 
@@ -1216,8 +1256,11 @@ void Mod_LoadStudioModel (model_t *mod, void *buffer, size_t buffersize, qboolea
 			phdr->textureindex = phdr->length;
 			phdr->skinindex = phdr->textureindex + size1;
 
-			in = (byte *)thdr + thdr->textureindex;
-			out = (byte *)phdr + phdr->textureindex;
+			/*in = (byte *)thdr + thdr->textureindex;
+			out = (byte *)phdr + phdr->textureindex;*/
+			byte	*in = (byte *)thdr + thdr->textureindex;
+			byte	*out = (byte *)phdr + phdr->textureindex;
+
 			memcpy (out, in, size1 + size2);	// copy textures + skinrefs
 			phdr->length += size1 + size2;
 			}

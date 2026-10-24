@@ -56,9 +56,11 @@ typedef struct dll_info_s
 extern int error_on_exit;	// [FWGS, 01.05.24]
 
 // [FWGS, 01.03.26]
-/*double Sys_DoubleTime (void);*/
 double GAME_EXPORT Sys_DoubleTime (void);	// only for binary compatibility, use Platform_DoubleTime instead
 float GAME_EXPORT Sys_FloatTime (void);		// only for binary compatibility, use Platform_DoubleTime instead
+
+// [FWGS, 01.11.26]
+double Sys_GetCPUUsage (void);		// process CPU usage as fraction of one core, 0.0 if unsupported
 char *Sys_GetClipboardData (void);
 const char *Sys_GetCurrentUser (void);
 int Sys_CheckParm (const char *parm);
@@ -66,7 +68,6 @@ void Sys_Warn (const char *format, ...) FORMAT_CHECK (1);
 void Sys_Error (const char *error, ...) FORMAT_CHECK (1);
 qboolean Sys_LoadLibrary (dll_info_t *dll);
 qboolean Sys_FreeLibrary (dll_info_t *dll);
-/*void Sys_ParseCommandLine (int argc, char **argv);*/
 void Sys_ParseCommandLine (int argc, const char **argv);
 void Sys_DebugBreak (void);
 

@@ -21,7 +21,10 @@ GNU General Public License for more details
 //
 void VGui_RegisterCvars (void);
 qboolean VGui_LoadProgs (HINSTANCE hInstance);
-void VGui_Startup (int width, int height);
+
+// [FWGS, 01.11.26]
+/*void VGui_Startup (int width, int height);*/
+void VGui_Startup (HINSTANCE clientInstance, int width, int height);
 void VGui_Shutdown (void);
 void VGui_Paint (void);
 void VGui_RunFrame (void);

@@ -80,8 +80,9 @@ platform_orientation_t Platform_GetDisplayOrientation (void);
 	qboolean Platform_CheckLibraryDirectDependency (const byte *data, size_t size, const char *depname);
 #endif
 
-// [FWGS, 01.09.26]
+// [FWGS, 01.11.26]
 #if XASH_POSIX
+	double Posix_GetCPUTime (void);
 	void Posix_Daemonize (void);
 	void Posix_SetupSigtermHandling (void);
 	char *Posix_Input (void);
@@ -118,8 +119,9 @@ platform_orientation_t Platform_GetDisplayOrientation (void);
 	void Android_Shutdown (void);
 #endif
 
-// [FWGS, 01.03.25]
+// [FWGS, 01.11.26]
 #if XASH_WIN32
+	double Win32_GetCPUTime (void);
 	void Win32_Init (qboolean con_showalways);
 	void Win32_Shutdown (void);
 	qboolean Win32_NanoSleep (int nsec);
@@ -132,6 +134,18 @@ platform_orientation_t Platform_GetDisplayOrientation (void);
 	char *Wcon_Input (void);
 	void Wcon_WinPrint (const char *pMsg);
 #endif
+
+// [FWGS, 01.11.26] returns the total CPU time used by this process, in seconds
+static inline double Platform_GetCPUTime (void)
+	{
+#if XASH_WIN32
+	return Win32_GetCPUTime ();
+#elif XASH_POSIX && HAVE_GETRUSAGE
+	return Posix_GetCPUTime ();
+#else
+	return 0.0;
+#endif
+	}
 
 #if XASH_NSWITCH
 	void NSwitch_Init (void);
