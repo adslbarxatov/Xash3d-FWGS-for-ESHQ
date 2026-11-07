@@ -136,7 +136,7 @@ void CItem::Spawn (void)
 		}
 	if (FStrEq (STRING (pev->classname), "item_security") && (pev->spawnflags & SF_SIMPLE_DOCUMENT))
 		{
-		pev->skin = RANDOM_LONG (1, 4);
+		pev->skin = RANDOM_LONG (1, 6);
 		}
 
 	UTIL_SetOrigin (pev, pev->origin);
@@ -397,6 +397,7 @@ class CItemAntidote : public CItem
 		else if ((lowestMinimumToTrigger != minimumToTrigger) &&
 			(itemsCount < lowestMinimumToTrigger))
 			{
+			// Для контейнеров это обязательно
 			sprintf (getMessage, "%s: %u / %u\n%s", DereferenceTextMessage ("HDFOUND"),
 				itemsCount, minimumToTrigger, DereferenceTextMessage ("HCFOUND1"));
 			}
@@ -473,11 +474,13 @@ class CItemSecurity : public CItem
 		else if ((lowestMinimumToTrigger != minimumToTrigger) &&
 			(itemsCount < lowestMinimumToTrigger))
 			{
-			sprintf (getMessage, "%s: %u / %u\n%s", DereferenceTextMessage ("HDFOUND"),
-				itemsCount, minimumToTrigger, DereferenceTextMessage ("HCFOUND1"));
+			// ESHQ / 7.11.26: не думаю, что в этом сообщении есть необходимость в конце каждой карты
+			//sprintf (getMessage, "%s: %u / %u\n%s", DereferenceTextMessage ("HDFOUND"),
+			//	itemsCount, minimumToTrigger, DereferenceTextMessage ("HCFOUND1"));
+			sprintf (getMessage, "%s: %3u", DereferenceTextMessage ("HDFOUND"), itemsCount);
 			}
 
-		// Значение больше нижнего порога - этого достаточно, но это не круто
+		// Значение больше нижнего порога – этого достаточно, но есть, куда расти
 		else if (itemsCount < minimumToTrigger)
 			{
 			sprintf (getMessage, "%s: %u / %u\n%s", DereferenceTextMessage ("HDFOUND"),
