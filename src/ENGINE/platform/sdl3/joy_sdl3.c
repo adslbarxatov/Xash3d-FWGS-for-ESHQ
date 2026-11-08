@@ -164,6 +164,31 @@ static void SDLash_GamepadAddMappings (const char *name)
 	Mem_Free (p);
 	}
 
+// [FWGS, 08.11.26]
+static const char *SDLash_GamepadPreset (SDL_Gamepad *gc)
+	{
+	// Steam Input virtual gamepad reports the real controller's IDs and type,
+	// but its buttons are remapped to the Xbox layout
+	if (SDL_GetGamepadSteamHandle (gc))
+		return "xbox";
+
+	const char	*preset = Joy_SteamControllerPreset (SDL_GetGamepadVendor (gc), SDL_GetGamepadProduct (gc));
+
+	if (preset)
+		return preset;
+
+	switch (SDL_GetGamepadType (gc))
+		{
+		case SDL_GAMEPAD_TYPE_PS3:
+		case SDL_GAMEPAD_TYPE_PS4:
+		case SDL_GAMEPAD_TYPE_PS5:
+			return "playstation";
+
+		default:
+			return "xbox";
+		}
+	}
+
 static void SDLash_SetActiveGamepad (SDL_JoystickID id)
 	{
 	if (g_current_gamepad_id == id)
@@ -177,10 +202,11 @@ static void SDLash_SetActiveGamepad (SDL_JoystickID id)
 
 	if (id == 0)
 		{
-		// [FWGS, 01.10.26]
+		// [FWGS, 08.11.26]
 		g_current_gamepad = NULL;
-		/*Joy_SetCapabilities (false);*/
-		Joy_SetCapabilities (false, 0);
+		/*Joy_SetCapabilities (false);
+		Joy_SetCapabilities (false, 0);*/
+		Joy_SetCapabilities (false, 0, NULL);
 		Joy_SetCalibrationState (JOY_NOT_CALIBRATED);
 		}
 	else
@@ -196,9 +222,11 @@ static void SDLash_SetActiveGamepad (SDL_JoystickID id)
 			SDLash_RestartCalibration ();
 			}
 
-		// [FWGS, 01.10.26]
-		/*Joy_SetCapabilities (have_gyro);*/
-		Joy_SetCapabilities (have_gyro, SDL_GetNumGamepadTouchpads (g_current_gamepad));
+		// [FWGS, 08.11.26]
+		/*Joy_SetCapabilities (have_gyro);
+		Joy_SetCapabilities (have_gyro, SDL_GetNumGamepadTouchpads (g_current_gamepad));*/
+		Joy_SetCapabilities (have_gyro, SDL_GetNumGamepadTouchpads (g_current_gamepad),
+			SDLash_GamepadPreset (g_current_gamepad));
 		}
 	}
 

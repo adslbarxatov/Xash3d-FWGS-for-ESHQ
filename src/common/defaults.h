@@ -58,14 +58,23 @@ SETUP BACKENDS DEFINITIONS
 		#define XASH_NO_TOUCH 1
 		#define XASH_NO_ZIP 1
 
+	// [FWGS, 08.11.26]
+	#elif XASH_PS4	// the video, sound and input are ours, see engine/platform/ps4
+
+		#define XASH_VIDEO VIDEO_PS4
+		#define XASH_INPUT INPUT_PS4
+		#define XASH_SOUND SOUND_PS4
+
 	#endif
 
 #endif
 
-// [FWGS, 01.03.26] select messagebox implementation
+// [FWGS, 08.11.26] select messagebox implementation
 #ifndef XASH_MESSAGEBOX
-	/*if XASH_SDL == 2 && !XASH_NSWITCH	// SDL2 messageboxes are not available on NSW*/
-	#if XASH_SDL >= 2 && !XASH_NSWITCH	// SDL2 messageboxes are not available on NSW
+	/*if XASH_SDL >= 2 && !XASH_NSWITCH	// SDL2 messageboxes are not available on NSW*/
+	#if XASH_SAILFISH && !XASH_DEDICATED	// SDL2 needs zenity or kdialog there
+		#define XASH_MESSAGEBOX MSGBOX_SAILFISH
+	#elif XASH_SDL >= 2 && !XASH_NSWITCH	// SDL2 messageboxes are not available on NSW
 		#define XASH_MESSAGEBOX MSGBOX_SDL
 	#elif XASH_WIN32
 		#define XASH_MESSAGEBOX MSGBOX_WIN32
@@ -79,9 +88,8 @@ SETUP BACKENDS DEFINITIONS
 
 #endif
 
-// [FWGS, 01.03.26] no timer - no xash
+// [FWGS, 08.11.26] no timer - no xash
 #ifndef XASH_TIMER
-	/*if XASH_SDL == 2*/
 	#if XASH_SDL >= 2
 		#define XASH_TIMER TIMER_SDL
 	#elif XASH_WIN32
@@ -90,6 +98,8 @@ SETUP BACKENDS DEFINITIONS
 		#define XASH_TIMER TIMER_DOS
 	#elif XASH_PSP
 		#define XASH_TIMER TIMER_PSP
+	#elif XASH_PS4
+		#define XASH_TIMER TIMER_PS4
 	#else
 		#define XASH_TIMER TIMER_POSIX
 	#endif
@@ -136,30 +146,52 @@ Default build-depended cvar and constant values
 =========================================================================
 ***/
 
-// [FWGS, 01.03.26] Platform overrides
-/*if XASH_NSWITCH*/
+// Platform overrides
 #if XASH_WIN32
+
 	// set up windowed by default on Windows to avoid problems with
 	// Xbox Game Bar
 	#define DEFAULT_FULLSCREEN		"0"
+
 #elif XASH_NSWITCH
+
 	#define DEFAULT_TOUCH_ENABLE	"1"
 	#define DEFAULT_M_IGNORE		"1"
 
 	#define DEFAULT_MODE_WIDTH		1280
 	#define DEFAULT_MODE_HEIGHT		720
 	#define DEFAULT_ALLOWCONSOLE	1
+
 #elif XASH_PSVITA
+
 	#define DEFAULT_TOUCH_ENABLE	"1"
 	#define DEFAULT_M_IGNORE		"1"
 	#define DEFAULT_MODE_WIDTH		960
 	#define DEFAULT_MODE_HEIGHT		544
 	#define DEFAULT_ALLOWCONSOLE	1
+
+// [FWGS, 08.11.26]
+#elif XASH_PS4
+
+	#define DEFAULT_ALLOWCONSOLE	1
+
 #elif XASH_ANDROID
+
 	#define DEFAULT_TOUCH_ENABLE	"1"
-#elif XASH_MOBILE_PLATFORM
+
+// [FWGS, 08.11.26]
+#elif XASH_SAILFISH
+
 	#define DEFAULT_TOUCH_ENABLE	"1"
 	#define DEFAULT_M_IGNORE		"1"
+	#define DEFAULT_VID_ROTATE		"1"
+	// picks the landscape orientation the compositor rotates our window to
+
+#elif XASH_MOBILE_PLATFORM
+
+	#define DEFAULT_TOUCH_ENABLE	"1"
+	#define DEFAULT_M_IGNORE		"1"
+
 #endif
 
 // [FWGS, 01.11.25] Defaults
@@ -169,6 +201,11 @@ Default build-depended cvar and constant values
 
 #ifndef DEFAULT_M_IGNORE
 	#define DEFAULT_M_IGNORE		"0"
+#endif
+
+// [FWGS, 08.11.26]
+#ifndef DEFAULT_VID_ROTATE
+	#define DEFAULT_VID_ROTATE		"0"
 #endif
 
 #ifndef DEFAULT_JOY_DEADZONE
@@ -185,12 +222,11 @@ Default build-depended cvar and constant values
 
 // [FWGS, 01.03.26]
 #ifndef DEFAULT_FULLSCREEN
-	/*define DEFAULT_FULLSCREEN		"1"	// must be a string*/
-	#define DEFAULT_FULLSCREEN		"2"	// must be a string
+	#define DEFAULT_FULLSCREEN		"2"		// must be a string
 #endif
 
 #ifndef DEFAULT_MAX_EDICTS
-	#define DEFAULT_MAX_EDICTS 1200 // was 900 before HL25
+	#define DEFAULT_MAX_EDICTS		1200	// was 900 before HL25
 #endif
 
 // [FWGS, 01.11.25]

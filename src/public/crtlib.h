@@ -115,6 +115,10 @@ int Q_snprintf (char *buffer, size_t buffersize, const char *format, ...) FORMAT
 // [FWGS, 01.04.26]
 #define Q_strpbrk strpbrk
 void COM_StripColors (const char *in, char *out);
+
+// [FWGS, 08.11.26]
+void COM_StripControlChars (char *dst, const char *src, size_t size);	// drops what a terminal would act on instead of printing
+
 #define Q_memprint( val ) Q_pretifymem( val, 2 )
 char *Q_pretifymem (float value, int digitsafterdecimal) RETURNS_NONNULL;
 void COM_FileBase (const char *in, char *out, size_t size);
@@ -440,7 +444,6 @@ static inline void COM_FixSlashes (char *pname)
 	while ((s = Q_strchr (s, '\\')))
 		*s = '/';
 
-	/*for (i = 0, j = 0; pname[i]; i++)*/
 	// a leading '//' is an UNC path prefix and must be preserved
 	i = j = ((pname[0] == '/') && (pname[1] == '/')) ? 2 : 0;
 

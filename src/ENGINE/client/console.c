@@ -85,6 +85,23 @@ rgba_t g_color_table[8] =
 	{ 240, 180,  24, 255 },	// default color (can be changed by user)
 	};
 
+// [FWGS, 01.11.26]
+enum
+	{
+	CON_BUTTON_SELECT_ALL,
+	CON_BUTTON_COPY,
+	CON_BUTTON_PASTE,
+	CON_BUTTON_COUNT
+	};
+
+// [FWGS, 01.11.26]
+static const char *const con_buttons[CON_BUTTON_COUNT] =
+	{
+	"Select all",
+	"Copy",
+	"Paste",
+	};
+
 typedef struct
 	{
 	string	szNotify;
@@ -98,6 +115,9 @@ typedef struct con_lineinfo_s
 	char	*start;
 	size_t	length;
 	double	addtime;	// notify stuff
+
+	// [FWGS, 01.11.26] line was cut at console width, text continues on the next line
+	qboolean	wrapped;
 	} con_lineinfo_t;
 
 // [FWGS, 01.07.25]
@@ -163,7 +183,22 @@ typedef struct
 	notify_t		notify[MAX_DBG_NOTIFY]; // for Con_NXPrintf
 	qboolean		draw_notify;	// true if we have NXPrint message
 
-	// [FWGS, 01.11.25]
+	// [FWGS, 01.11.26] scrollback text selection, lines are counted from lines_first
+	struct
+		{
+		int		anchor_line, anchor_offset;
+		int		caret_line, caret_offset;
+		qboolean	dragging;
+		} sel;
+
+	// [FWGS, 01.11.26] scrollback layout from the last frame, for mouse hit testing
+	int		draw_firstline;
+	int		draw_lastline;	// -1 if nothing was drawn
+	int		draw_x;
+	int		draw_y;		// top of the last line
+
+	wrect_t	buttons[CON_BUTTON_COUNT];
+	int		mouse_x, mouse_y;
 	} console_t;
 
 static console_t	con;
@@ -175,6 +210,19 @@ static void Con_InvalidateFonts (void);
 
 static void Con_LoadHistory (con_history_t *self);
 static void Con_SaveHistory (con_history_t *self);
+
+// [FWGS, 01.11.26]
+static qboolean Con_HasSelection (void)
+	{
+	return (con.sel.anchor_line != con.sel.caret_line) ||
+		(con.sel.anchor_offset != con.sel.caret_offset);
+	}
+
+// [FWGS, 01.11.26]
+static void Con_ClearSelection (void)
+	{
+	memset (&con.sel, 0, sizeof (con.sel));
+	}
 
 /***
 ================
@@ -195,6 +243,9 @@ static void Con_Clear_f (void)
 	{
 	con.lines_count = 0;
 	con.backscroll = 0;	// go to end
+
+	// [FWGS, 01.11.26]
+	Con_ClearSelection ();
 	}
 
 /***
@@ -241,13 +292,13 @@ void Con_ClearNotify (void)
 
 /***
 ================
-Con_ClearTyping
+Con_ClearTyping [FWGS, 01.11.26]
 ================
 ***/
 static void Con_ClearTyping (void)
 	{
 	Con_ClearField (&con.input);
-	con.input.widthInChars = con.linewidth;
+	/*con.input.widthInChars = con.linewidth;*/
 
 	Cmd_AutoCompleteClear ();
 	}
@@ -378,6 +429,13 @@ static void Con_DeleteLine (void)
 
 	con.lines_count--;
 	con.lines_first = (con.lines_first + 1) % con.maxlines;
+
+	// [FWGS, 01.11.26]
+	con.sel.anchor_line--;
+	con.sel.caret_line--;
+
+	if ((con.sel.anchor_line < 0) || (con.sel.caret_line < 0))
+		Con_ClearSelection ();
 	}
 
 /***
@@ -393,6 +451,10 @@ static void Con_DeleteLastLine (void)
 		return;
 
 	con.lines_count--;
+
+	// [FWGS, 01.11.26]
+	if ((con.sel.anchor_line >= con.lines_count) || (con.sel.caret_line >= con.lines_count))
+		Con_ClearSelection ();
 	}
 
 /***
@@ -443,7 +505,7 @@ static char *Con_BytesLeft (int length)
 
 /***
 ================
-Con_AddLine [FWGS, 01.07.26]
+Con_AddLine
 
 Appends a given string as a new line to the console
 ================
@@ -474,6 +536,9 @@ static void Con_AddLine (const char *line, int length, qboolean newline)
 		p->start = putpos;
 		p->length = length;
 		p->addtime = cl.time;
+
+		// [FWGS, 01.11.26]
+		p->wrapped = false;
 		}
 	else
 		{
@@ -502,6 +567,33 @@ static void Con_GetSafeArea (int lines, wrect_t *rc)
 
 /***
 ================
+Con_LayoutButtons [FWGS, 01.11.26]
+================
+***/
+static void Con_LayoutButtons (const wrect_t *safe)
+	{
+	int	pad = con.curFont->charWidths[' '];
+	int	right = safe->right - pad;
+	int	top = safe->bottom - con.curFont->charHeight * 2;
+
+	// right aligned on the input line
+	for (int i = CON_BUTTON_COUNT - 1; i >= 0; i--)
+		{
+		wrect_t	*rc = &con.buttons[i];
+		int		width;
+
+		CL_DrawStringLen (con.curFont, con_buttons[i], &width, NULL, 0);
+
+		rc->left = right - width - pad * 2;
+		rc->right = right;
+		rc->top = top;
+		rc->bottom = top + con.curFont->charHeight;
+		right = rc->left - pad;
+		}
+	}
+
+/***
+================
 Con_CheckResize
 
 If the line width has changed, reformat the buffer
@@ -523,6 +615,15 @@ static void Con_CheckResize (void)
 	if (!ref.initialized)
 		width = (640 / 5);
 
+	// [FWGS, 01.11.26] don't let typed text go under the buttons
+	int	buttons = 0;
+	if (con.curFont)
+		{
+		Con_LayoutButtons (&safe);
+		buttons = (safe.right - con.buttons[0].left) / charWidth;
+		}
+	con.input.widthInChars = width - buttons;
+
 	if (width == con.linewidth)
 		return;
 
@@ -530,7 +631,8 @@ static void Con_CheckResize (void)
 	con.linewidth = width;
 	con.backscroll = 0;
 
-	con.input.widthInChars = con.linewidth;
+	// [FWGS, 01.11.26]
+	/*con.input.widthInChars = con.linewidth;*/
 	}
 
 /***
@@ -854,8 +956,9 @@ void Con_Init (void)
 
 	Con_CheckResize ();
 
+	// [FWGS, 01.11.26]
 	Con_ClearField (&con.input);
-	con.input.widthInChars = con.linewidth;
+	/*con.input.widthInChars = con.linewidth;*/
 
 	Con_ClearField (&con.chat);
 	con.chat.widthInChars = con.linewidth;
@@ -979,9 +1082,11 @@ void Con_Print (const char *txt)
 					charpos++;
 					}
 
+				// [FWGS, 01.11.26]
 				if ((bufpos >= sizeof (buf) - 1) || (charpos >= (con.linewidth - 1)))
 					{
 					Con_AddLine (buf, bufpos, true);
+					CON_LINES_LAST ().wrapped = true;
 					lastlength = CON_LINES_LAST ().length;
 					bufpos = 0;
 					charpos = 0;
@@ -1141,7 +1246,7 @@ MAYBE_UNUSED static void Field_Set (field_t *f, const char *string)
 
 /***
 ================
-Field_Paste [FWGS, 01.07.26]
+Field_Paste
 ================
 ***/
 static void Field_Paste (field_t *edit)
@@ -1150,10 +1255,22 @@ static void Field_Paste (field_t *edit)
 	if (!cbd)
 		return;
 
-	// send as if typed, so insert / overstrike works properly
+	// [FWGS, 01.11.26] send as if typed, so insert / overstrike works properly
 	int	pasteLen = Q_strlen (cbd);
 	for (int i = 0; i < pasteLen; i++)
-		Field_CharEvent (edit, cbd[i]);
+		/*Field_CharEvent (edit, cbd[i]);*/
+		{
+		// every pasted line is executed in console, like in terminal
+		if ((cbd[i] == '\n') && (edit == &con.input))
+			{
+			if (!COM_StringEmpty (con.input.buffer))
+				Key_Console (K_ENTER);
+			}
+		else
+			{
+			Field_CharEvent (edit, cbd[i]);
+			}
+		}
 	}
 
 /***
@@ -1532,8 +1649,267 @@ static void Con_InputCompletion (void)
 	}
 
 /***
+=============================================================================
+TEXT SELECTION
+=============================================================================
+***/
+
+/***
+================
+Con_LineWidth [FWGS, 08.11.26]
+================
+***/
+static int Con_LineWidth (const char *s, int len)
+	{
+	char	buf[MAX_PRINT_MSG];
+	int		width;
+
+	Q_strncpy (buf, s, Q_min (len + 1, (int)sizeof (buf)));
+	CL_DrawStringLen (con.curFont, buf, &width, NULL, FONT_DRAW_UTF8);
+
+	return width;
+	}
+
+/***
+================
+Con_LineOffsetAt [FWGS, 08.11.26]
+================
+***/
+static int Con_LineOffsetAt (char *s, int x)
+	{
+	int	len = Q_strlen (s);
+	int	prev = 0;
+
+	for (int i = 0; i < len; )
+		{
+		int	next = IsColorString (s + i) ? i + 2 : Con_UtfMoveRight (s, i, len);
+		int	width = Con_LineWidth (s, next);
+
+		// snap to the nearest character boundary
+		if (x < (prev + width) / 2)
+			return i;
+
+		prev = width;
+		i = next;
+		}
+
+	return len;
+	}
+
+/***
+================
+Con_TextAt [FWGS, 08.11.26]
+================
+***/
+static qboolean Con_TextAt (int x, int y, int *line, int *offset)
+	{
+	if (!con.curFont || (con.draw_lastline < 0) || (con.draw_lastline >= CON_LINES_COUNT))
+		return false;
+
+	int	i = con.draw_lastline;
+	int	top = con.draw_y;
+
+	// walk up the same way as Con_DrawSolidConsole, notify-only lines aren't drawn
+	while ((i > con.draw_firstline) && ((y < top) || (CON_LINES (i).start[0] == '\1')))
+		{
+		if (CON_LINES (i).start[0] != '\1')
+			top -= con.curFont->charHeight;
+		i--;
+		}
+
+	*line = i;
+	*offset = Con_LineOffsetAt (CON_LINES (i).start, x - con.draw_x);
+
+	return true;
+	}
+
+/***
+================
+Con_SelectionRange [FWGS, 08.11.26]
+================
+***/
+static qboolean Con_SelectionRange (int line, int *from, int *to)
+	{
+	if (!Con_HasSelection ())
+		return false;
+
+	qboolean	forward = (con.sel.anchor_line < con.sel.caret_line) ||
+		((con.sel.anchor_line == con.sel.caret_line) && (con.sel.anchor_offset < con.sel.caret_offset));
+	int	start_line = forward ? con.sel.anchor_line : con.sel.caret_line;
+	int	start_offset = forward ? con.sel.anchor_offset : con.sel.caret_offset;
+	int	end_line = forward ? con.sel.caret_line : con.sel.anchor_line;
+	int	end_offset = forward ? con.sel.caret_offset : con.sel.anchor_offset;
+
+	if ((line < start_line) || (line > end_line))
+		return false;
+
+	int	len = Q_strlen (CON_LINES (line).start);
+	*from = line == start_line ? Q_min (start_offset, len) : 0;
+	*to = line == end_line ? Q_min (end_offset, len) : len;
+
+	return true;
+	}
+
+/***
+================
+Con_CopySelection [FWGS, 08.11.26]
+================
+***/
+static void Con_CopySelection (void)
+	{
+	int		first = Q_min (con.sel.anchor_line, con.sel.caret_line);
+	int		last = Q_max (con.sel.anchor_line, con.sel.caret_line);
+	size_t	size = 1;
+	int		from, to;
+
+	if (!Con_HasSelection ())
+		return;
+
+	// CP1251 and CP1252 characters take up to 3 bytes in UTF-8
+	for (int i = first; i <= last; i++)
+		{
+		if (Con_SelectionRange (i, &from, &to))
+			size += (to - from) * 3 + 1;
+		}
+
+	char	*text = Z_Malloc (size);
+	size_t	len = 0;
+
+	for (int i = first; i <= last; i++)
+		{
+		const con_lineinfo_t	*li = &CON_LINES (i);
+
+		if ((li->start[0] == '\1') || !Con_SelectionRange (i, &from, &to))
+			continue;
+
+		for (int j = from; j < to; j++)
+			{
+			byte	c = li->start[j];
+
+			if (IsColorString (li->start + j))
+				{
+				j++;
+				continue;
+				}
+
+			// console text is either UTF-8 or in the font codepage
+			if (cls.accept_utf8 || (c < 0x80))
+				text[len++] = c;
+			else if (g_codepage == 1251)
+				len += Q_EncodeUTF8 (text + len, Q_CP1251ToUnicode (c));
+			else
+				len += Q_EncodeUTF8 (text + len, Q_CP1252ToUnicode (c));
+			}
+
+		if ((i != last) && !li->wrapped)
+			text[len++] = '\n';
+		}
+
+	text[len] = '\0';
+	Platform_SetClipboardText (text);
+	Z_Free (text);
+	}
+
+/***
+================
+Con_SelectAll [FWGS, 08.11.26]
+================
+***/
+static void Con_SelectAll (void)
+	{
+	if (CON_LINES_COUNT == 0)
+		return;
+
+	con.sel.anchor_line = 0;
+	con.sel.anchor_offset = 0;
+	con.sel.caret_line = CON_LINES_COUNT - 1;
+	con.sel.caret_offset = Q_strlen (CON_LINES_LAST ().start);
+	con.sel.dragging = false;
+	}
+
+/***
+================
+Con_ButtonAt [FWGS, 08.11.26]
+================
+***/
+static int Con_ButtonAt (int x, int y)
+	{
+	for (int i = 0; i < CON_BUTTON_COUNT; i++)
+		{
+		const wrect_t	*rc = &con.buttons[i];
+
+		if ((x >= rc->left) && (x < rc->right) && (y >= rc->top) && (y < rc->bottom))
+			return i;
+		}
+
+	return -1;
+	}
+
+/***
+================
+Con_IsButtonAt [FWGS, 08.11.26]
+================
+***/
+qboolean Con_IsButtonAt (int x, int y)
+	{
+	return (cls.key_dest == key_console) && (Con_ButtonAt (x, y) >= 0);
+	}
+
+/***
+================
+Con_MouseMove [FWGS, 08.11.26]
+================
+***/
+void Con_MouseMove (int x, int y)
+	{
+	con.mouse_x = x;
+	con.mouse_y = y;
+
+	if (!con.sel.dragging)
+		return;
+
+	if (Key_IsDown (K_MOUSE1))
+		Con_TextAt (x, y, &con.sel.caret_line, &con.sel.caret_offset);
+	else
+		con.sel.dragging = false;
+	}
+
+/***
+================
+Con_MouseClick [FWGS, 08.11.26]
+================
+***/
+static void Con_MouseClick (void)
+	{
+	switch (Con_ButtonAt (con.mouse_x, con.mouse_y))
+		{
+		case CON_BUTTON_SELECT_ALL:
+			Con_SelectAll ();
+			return;
+
+		case CON_BUTTON_COPY:
+			Con_CopySelection ();
+			return;
+
+		case CON_BUTTON_PASTE:
+			Field_Paste (&con.input);
+			Con_InputCompletion ();
+			return;
+		}
+
+	Con_ClearSelection ();
+
+	if (Con_TextAt (con.mouse_x, con.mouse_y, &con.sel.anchor_line, &con.sel.anchor_offset))
+		{
+		con.sel.caret_line = con.sel.anchor_line;
+		con.sel.caret_offset = con.sel.anchor_offset;
+		con.sel.dragging = true;
+		}
+	}
+
+/***
 ====================
-Key_Console [FWGS, 01.03.26]
+Key_Console
 
 Handles history and console scrollback
 ====================
@@ -1557,6 +1933,13 @@ void Key_Console (int key)
 		return;
 		}
 
+	// [FWGS, 08.11.26]
+	if (key == K_MOUSE1)
+		{
+		Con_MouseClick ();
+		return;
+		}
+
 	// ctrl-L clears screen
 	if ((key == 'l') && Key_IsDown (K_CTRL))
 		{
@@ -1567,8 +1950,9 @@ void Key_Console (int key)
 	// enter or A finish the line
 	if ((key == K_ENTER) || (key == K_KP_ENTER) || (key == K_A_BUTTON))
 		{
-		// backslash text are commands, else chat
-		if ((con.input.buffer[0] == '\\') || (con.input.buffer[0] == '/'))
+		// [FWGS, 08.11.26] backslash text are commands, else chat
+		/*if ((con.input.buffer[0] == '\\') || (con.input.buffer[0] == '/'))*/
+		if ((con.input.buffer[0] == '\\') || ((con.input.buffer[0] == '/') && (con.input.buffer[1] != '/')))
 			Cbuf_AddText (con.input.buffer + 1);	// skip backslash
 		else
 			Cbuf_AddText (con.input.buffer);		// valid command
@@ -1583,8 +1967,9 @@ void Key_Console (int key)
 		COM_RemoveLineFeed (con.input.buffer, sizeof (con.input.buffer));
 		Con_HistoryAppend (&con.history, &con.input);
 
+		// [FWGS, 08.11.26]
 		Con_ClearField (&con.input);
-		con.input.widthInChars = con.linewidth;
+		/*con.input.widthInChars = con.linewidth;*/
 		Con_Bottom ();
 
 		// [FWGS, 01.03.26]
@@ -1773,6 +2158,36 @@ static void Con_DrawInput (const wrect_t *safe)
 
 /***
 ================
+Con_DrawButtons [FWGS, 08.11.26]
+================
+***/
+static void Con_DrawButtons (const wrect_t *safe)
+	{
+	if ((cls.key_dest != key_console) || !con.curFont)
+		return;
+
+	Con_LayoutButtons (safe);
+
+	for (int i = 0; i < CON_BUTTON_COUNT; i++)
+		{
+		const wrect_t	*rc = &con.buttons[i];
+		rgba_t	color;
+
+		memcpy (color, g_color_table[7], sizeof (color));
+
+		// nothing to copy
+		if ((i == CON_BUTTON_COPY) && !Con_HasSelection ())
+			color[3] = 96;
+
+		ref.dllFuncs.FillRGBA (kRenderTransTexture, rc->left, rc->top, rc->right - rc->left,
+			rc->bottom - rc->top, 0, 0, 0, 160);
+		CL_DrawString (rc->left + con.curFont->charWidths[' '], rc->top, con_buttons[i], color,
+			con.curFont, 0);
+		}
+	}
+
+/***
+================
 Con_DrawDebugLines [FWGS, 01.07.26]
 
 Custom debug messages
@@ -1909,7 +2324,7 @@ static void Con_DrawNotify (void)
 
 /***
 ================
-Con_DrawConsoleLine [FWGS, 01.10.26]
+Con_DrawConsoleLine [FWGS, 08.11.26]
 
 Draws a line of the console; returns its height in lines.
 If alpha is 0, the line is not drawn, but still wrapped and its height
@@ -1929,6 +2344,17 @@ static int Con_DrawConsoleLine (const wrect_t *safe, int y, int lineno)
 		{
 		/*float	x = con.curFont->charWidths[' '];*/
 		float	x = safe->left + con.curFont->charWidths[' '];
+		int		from, to;
+
+		if (Con_SelectionRange (lineno, &from, &to) && from < to)
+			{
+			int	x1 = Con_LineWidth (li->start, from);
+			int	x2 = Con_LineWidth (li->start, to);
+
+			ref.dllFuncs.FillRGBA (kRenderTransTexture, x + x1, y, x2 - x1, con.curFont->charHeight,
+				60, 100, 180, 160);
+			}
+
 		CL_DrawString (x, y, li->start, g_color_table[7], con.curFont, FONT_DRAW_UTF8);
 		}
 
@@ -2027,7 +2453,8 @@ static void Con_DrawSolidConsole (int lines)
 	Con_DrawString (start, safe.top, curbuild, color);
 #endif
 
-	// draw the text
+	// [FWGS, 08.11.26] draw the text
+	con.draw_lastline = -1;
 	if (CON_LINES_COUNT > 0)
 		{
 		// [FWGS, 01.10.26]
@@ -2053,6 +2480,10 @@ static void Con_DrawSolidConsole (int lines)
 			y -= con.curFont->charHeight;
 			}
 
+		// [FWGS, 08.11.26]
+		con.draw_lastline = lastline;
+		con.draw_x = safe.left + con.curFont->charWidths[' '];
+		con.draw_y = y;
 		x = lastline;
 
 		while (1)
@@ -2068,11 +2499,17 @@ static void Con_DrawSolidConsole (int lines)
 
 			x--;
 			}
+
+		// [FWGS, 08.11.26]
+		con.draw_firstline = x;
 		}
 
 	// [FWGS, 01.10.26] draw the input prompt, user text, and cursor if desired
 	/*Con_DrawInput (lines);*/
 	Con_DrawInput (&safe);
+
+	// [FWGS, 08.11.26]
+	Con_DrawButtons (&safe);
 
 	y = lines - (con.curFont->charHeight * 1.2f);
 	SCR_DrawFPS (Q_max (y, 4));	// to avoid to hide fps counter
@@ -2343,6 +2780,22 @@ CONSOLE INTERFACE
 
 /***
 ================
+Con_GetEditText [FWGS, 08.11.26]
+
+text being edited in the console or the chat line,
+for platforms that edit it in a system keyboard dialog
+================
+***/
+const char *Con_GetEditText (void)
+	{
+	if (cls.key_dest == key_message)
+		return con.chat.buffer;
+
+	return con.input.buffer;
+	}
+
+/***
+================
 Con_CharEvent
 
 Console input
@@ -2357,6 +2810,13 @@ void Con_CharEvent (int key)
 		if ((key == '`') || (key == '~'))
 			{
 			Con_ToggleConsole_f ();
+			return;
+			}
+
+		// [FWGS, 08.11.26] ctrl-c copies the selection, without it clears the input line
+		if ((key == 'c' - 'a' + 1) && Con_HasSelection ())
+			{
+			Con_CopySelection ();
 			return;
 			}
 

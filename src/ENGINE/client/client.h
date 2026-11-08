@@ -772,7 +772,6 @@ extern client_textmessage_t cl_textmessage[MAX_TEXTCHANNELS];
 void CL_Quit_f (void);
 void CL_RequestQuit (const char *reason);
 void CL_GenericShot_f (void);
-/*void CL_PlayCDTrack_f (void);*/
 void CL_CD_f (void);
 void CL_MP3_f (void);
 void CL_LevelShot_f (void);
@@ -1171,10 +1170,19 @@ void Con_RunConsole (void);
 
 // [FWGS, 01.09.26]
 qboolean Con_GetInputRect (int *x, int *y, int *w, int *h);
+
+// [FWGS, 08.11.26]
+qboolean Con_IsButtonAt (int x, int y);
+void Con_MouseMove (int x, int y);
+
 void Con_DrawConsole (void);
 void Con_DrawVersion (void);
 int Con_UtfProcessChar (int in);
 int Con_UtfProcessCharForce (int in);
+
+// [FWGS, 08.11.26]
+const char *Con_GetEditText (void);
+
 int Con_UtfMoveLeft (char *str, int pos);
 int Con_UtfMoveRight (char *str, int pos, int length);
 void Con_DefaultColor (int r, int g, int b, qboolean gameui);
@@ -1300,6 +1308,10 @@ void Key_Event (int key, int down);
 void Key_Init (void);
 void Key_WriteBindings (file_t *f);
 const char *Key_GetBinding (int keynum);
+
+// [FWGS, 08.11.26]
+const char *Key_GetDefaultBinding (int keynum);
+
 void Key_SetBinding (int keynum, const char *binding);
 const char *Key_LookupBinding (const char *pBinding);
 void Key_ClearStates (void);

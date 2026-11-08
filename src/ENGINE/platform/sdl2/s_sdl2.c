@@ -44,19 +44,13 @@ static char sdl_backend_name[32];
 // [FWGS, 01.07.26]
 static void SDL_SoundCallback (void *userdata, Uint8 *stream, int len)
 	{
-	const int size = snd.samples << 1;
-
-	/*int pos;
-	int wrapped;
-
-	pos = snd.samplepos << 1;*/
-	int pos = snd.samplepos << 1;
+	const int	size = snd.samples << 1;
+	
+	int	pos = snd.samplepos << 1;
 	if (pos >= size)
 		pos = snd.samplepos = 0;
 
-	/*// [FWGS, 15.04.26]
-	wrapped = pos + len - size;*/
-	int wrapped = pos + len - size;
+	int	wrapped = pos + len - size;
 	if (wrapped < 0)
 		{
 		memcpy (stream, snd.buffer + pos, len);
@@ -64,7 +58,7 @@ static void SDL_SoundCallback (void *userdata, Uint8 *stream, int len)
 		}
 	else
 		{
-		int remaining = size - pos;
+		int	remaining = size - pos;
 		memcpy (stream, snd.buffer + pos, remaining);
 		memcpy (stream + remaining, snd.buffer, wrapped);
 		snd.samplepos = wrapped >> 1;
@@ -76,7 +70,7 @@ static void SDL_SoundCallback (void *userdata, Uint8 *stream, int len)
 
 /***
 ==================
-SNDDMA_Init [FWGS, 01.07.26]
+SNDDMA_Init
 
 Try to find a sound device to mix for.
 Returns false if nothing is found
@@ -84,10 +78,8 @@ Returns false if nothing is found
 ***/
 qboolean SNDDMA_Init (void)
 	{
-	/*SDL_AudioSpec	desired, obtained;*/
 	SDL_AudioSpec	obtained;
 	int		samplecount;
-	/*const char	*driver = NULL;*/
 
 	// Modders often tend to use proprietary crappy solutions
 	// like FMOD to play music, sometimes even with versions outdated by a few decades!
@@ -106,8 +98,7 @@ qboolean SNDDMA_Init (void)
 	// reference SDL audio functions there. It's probably has DirectSound backend, that's
 	// why modders never stumble upon this bug
 #if XASH_WIN32
-	/*driver = "directsound";*/
-	const char *driver = "directsound";
+	const char	*driver = "directsound";
 
 	if (SDL_getenv ("SDL_AUDIODRIVER"))
 		driver = NULL;	// let SDL2 and user decide
@@ -118,7 +109,14 @@ qboolean SNDDMA_Init (void)
 	// even if we don't have PA
 	// we still can safely set env variables
 	SDL_setenv ("PULSE_PROP_application.name", GI->title, 1);
+
+	// [FWGS, 08.11.26]
+#if XASH_SAILFISH
+	// Sailfish audio policy only lets volume keys control streams with this role
+	SDL_setenv ("PULSE_PROP_media.role", "x-maemo", 1);
+#else
 	SDL_setenv ("PULSE_PROP_media.role", "game", 1);
+#endif
 
 	// reinitialize SDL with our driver just in case
 	if (SDL_WasInit (SDL_INIT_AUDIO))
@@ -130,14 +128,7 @@ qboolean SNDDMA_Init (void)
 		return false;
 		}
 
-	/*// [FWGS, 01.05.26]
-	memset (&desired, 0, sizeof (desired));
-	desired.freq = SOUND_DMA_SPEED;
-	desired.format = AUDIO_S16SYS;
-	desired.samples = 1024;
-	desired.channels = 2;
-	desired.callback = SDL_SoundCallback;*/
-	SDL_AudioSpec desired =
+	SDL_AudioSpec	desired =
 		{
 		.freq = SOUND_DMA_SPEED,
 		.format = AUDIO_S16SYS,
@@ -278,7 +269,7 @@ SDL_SoundInputCallback
 ***/
 static void SDL_SoundInputCallback (void *userdata, Uint8 *stream, int len)
 	{
-	int size = Q_min (len, sizeof (voice.input_buffer) - voice.input_buffer_pos);
+	int	size = Q_min (len, sizeof (voice.input_buffer) - voice.input_buffer_pos);
 
 	// engine can't keep up, skip audio
 	if (!size)
@@ -295,7 +286,7 @@ VoiceCapture_Init
 ***/
 qboolean VoiceCapture_Init (void)
 	{
-	SDL_AudioSpec wanted, spec;
+	SDL_AudioSpec	wanted, spec;
 
 	if (!SDLash_IsAudioError (in_dev))
 		VoiceCapture_Shutdown ();

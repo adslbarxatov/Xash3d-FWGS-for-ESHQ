@@ -12,11 +12,10 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details
 ***/
+
 #ifndef UTFLIB_H
 #define UTFLIB_H
 
-/*define STDINT_H <stdint.h>
-include STDINT_H*/
 #include <stdint.h>		// [ESHQ: переопределение]
 #include <stddef.h>
 
@@ -34,6 +33,17 @@ uint32_t Q_DecodeUTF8 (utfstate_t *s, uint32_t ch);
 uint32_t Q_DecodeUTF16 (utfstate_t *s, uint32_t ch);
 size_t Q_EncodeUTF8 (char dst[4], uint32_t ch);
 
+// [FWGS, 08.11.26] decodes one code point, invalid, overlong and truncated sequences yield U+FFFD
+// returns the number of bytes consumed, at least one when len isn't zero
+size_t Q_DecodeUTF8Char (const char *s, size_t len, uint32_t *uc);
+
+// [FWGS, 08.11.26] sequence length announced by a lead byte, 1 for ASCII and invalid lead bytes
+size_t Q_UTF8SequenceLength (uint8_t lead);
+
+// [FWGS, 08.11.26] byte offsets of the code points before and after pos
+size_t Q_UTF8PrevChar (const char *s, size_t pos);
+size_t Q_UTF8NextChar (const char *s, size_t len, size_t pos);
+
 size_t Q_UTF8Length (const char *s);
 
 // srcsize in byte pairs
@@ -42,5 +52,9 @@ size_t Q_UTF16ToUTF8 (char *dst, size_t dstsize, const uint16_t *src, size_t src
 // function to convert Unicode codepoints into CP1251 or CP1252
 uint32_t Q_UnicodeToCP1251 (uint32_t uc);
 uint32_t Q_UnicodeToCP1252 (uint32_t uc);
+
+// [FWGS, 08.11.26] function to convert CP1251 or CP1252 codepoints into Unicode
+uint32_t Q_CP1251ToUnicode (uint32_t cp);
+uint32_t Q_CP1252ToUnicode (uint32_t cp);
 
 #endif

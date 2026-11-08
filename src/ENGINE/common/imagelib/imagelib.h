@@ -43,12 +43,13 @@ typedef enum
 	IL_HINT_HL,
 	} image_hint_t;
 
-// [FWGS, 01.04.25]
+// [FWGS, 08.11.26]
 typedef struct loadformat_s
 	{
 	const char		*ext;
 	qboolean		(*loadfunc)(const char *name, const byte *buffer, fs_offset_t filesize);
 	image_hint_t	hint;
+	qboolean		explicit_only;	// never probed for names without extension
 	} loadpixformat_t;
 
 // [FWGS, 01.04.25]
@@ -110,7 +111,7 @@ typedef struct imglib_s
 #define PLDECAL_MAXHEIGHT	768
 
 // [FWGS, 01.09.25]
-#define IMAGE_GRADIENT_DECAL (1<<10) // TYP_PALETTE lump in WAD
+#define IMAGE_GRADIENT_DECAL	(1<<10)		// TYP_PALETTE lump in WAD
 
 // [FWGS, 01.08.24]
 enum

@@ -185,7 +185,6 @@ void Image_Reset (void)
 // [FWGS, 01.07.26]
 static MALLOC_LIKE (FS_FreeImage, 1) rgbdata_t *ImagePack (const char *name)
 	{
-	/*rgbdata_t *pack;*/
 	Image_ReportLookupsCount (name);
 
 	if (Image_CheckFlag (IL_LOAD_PLAYER_DECAL))
@@ -198,7 +197,6 @@ static MALLOC_LIKE (FS_FreeImage, 1) rgbdata_t *ImagePack (const char *name)
 	if (image.cubemap && (image.num_sides != 6))
 		return NULL;
 
-	/*pack = Mem_Calloc (host.imagepool, sizeof (*pack));*/
 	rgbdata_t	*pack = Mem_Calloc (host.imagepool, sizeof (*pack));
 
 	if (image.cubemap)
@@ -241,7 +239,6 @@ FS_AddSideToPack [FWGS, 01.07.26]
 ***/
 static qboolean FS_AddSideToPack (int adjust_flags)
 	{
-	/*byte *out, *flipped;*/
 	qboolean	resampled = false;
 
 	// first side set average size for all cubemap sides!
@@ -260,7 +257,6 @@ static qboolean FS_AddSideToPack (int adjust_flags)
 		return false;
 
 	// flip image if needed
-	/*flipped = Image_FlipInternal (image.rgba, &image.width, &image.height, image.source_type, adjust_flags);*/
 	byte	*flipped = Image_FlipInternal (image.rgba, &image.width, &image.height, image.source_type, adjust_flags);
 	if (!flipped) 
 		return false;	// try to reasmple dxt?
@@ -269,8 +265,6 @@ static qboolean FS_AddSideToPack (int adjust_flags)
 		image.rgba = Image_Copy (image.size);
 
 	// resampling image if needed
-	/*out = Image_ResampleInternal ((uint *)image.rgba, image.width, image.height, image.source_width, 
-		image.source_height, image.source_type, &resampled);*/
 	byte	*out = Image_ResampleInternal ((uint *)image.rgba, image.width, image.height, image.source_width,
 		image.source_height, image.source_type, &resampled);
 	if (!out) 
@@ -292,13 +286,9 @@ static qboolean FS_AddSideToPack (int adjust_flags)
 // [FWGS, 01.07.26]
 static const loadpixformat_t *Image_GetLoadFormatForExtension (const char *ext)
 	{
-	/*const loadpixformat_t *format;
-
-	// [FWGS, 01.03.26]*/
 	if (COM_StringEmpty (ext))
 		return NULL;
 
-	/*for (format = image.loadformats; format->ext; format++)*/
 	for (const loadpixformat_t *format = image.loadformats; format->ext; format++)
 		{
 		if (!Q_stricmp (ext, format->ext))
@@ -319,7 +309,6 @@ static qboolean Image_ProbeLoadBuffer_ (const loadpixformat_t *fmt, const char *
 	return fmt->loadfunc (name, buf, size);
 	}
 
-// [FWGS, 01.09.25]
 static qboolean Image_ProbeLoadBuffer (const loadpixformat_t *fmt, const char *name, const byte *buf, 
 	size_t size, int override_hint)
 	{
@@ -329,8 +318,12 @@ static qboolean Image_ProbeLoadBuffer (const loadpixformat_t *fmt, const char *n
 	// bruteforce all loaders
 	if (!fmt)
 		{
+		// [FWGS, 08.11.26]
 		for (fmt = image.loadformats; fmt->ext; fmt++)
 			{
+			if (fmt->explicit_only)
+				continue;
+
 			if (Image_ProbeLoadBuffer_ (fmt, name, buf, size, override_hint))
 				return true;
 			}
@@ -347,10 +340,9 @@ static qboolean Image_ProbeLoad_ (const loadpixformat_t *fmt, const char *name, 
 	qboolean	success = false;
 	fs_offset_t	filesize;
 	string		path;
-	/*byte		*f;*/
 
 	Q_snprintf (path, sizeof (path), "%s%s.%s", name, suffix, fmt->ext);
-	/*f = FS_LoadFile (path, &filesize, false);*/
+
 	byte	*f = FS_LoadFile (path, &filesize, false);
 
 	Image_IncrementLookupTime ();
@@ -364,28 +356,25 @@ static qboolean Image_ProbeLoad_ (const loadpixformat_t *fmt, const char *name, 
 	return success;
 	}
 
-// [FWGS, 01.07.26]
 static qboolean Image_ProbeLoad2 (const char *name, const char *suffix, int override_hint)
 	{
-	/*const loadpixformat_t	*fmt;
-	search_t	*t;*/
 	string	pattern;
-	/*int			i;*/
 
 	Q_snprintf (pattern, sizeof (pattern), "%s%s.*", name, suffix);
 
-	/*t = FS_Search (pattern, true, false);*/
 	search_t	*t = FS_Search (pattern, true, false);
 	if (!t)
 		return false;
 
 	// we now have to check every extension to keep the loading order
-	/*for (fmt = image.loadformats; fmt->ext; fmt++)*/
 	for (const loadpixformat_t *fmt = image.loadformats; fmt->ext; fmt++)
 		{
 		fs_offset_t		filesize;
-		/*byte *data;*/
 		int		i;
+
+		// [FWGS, 08.11.26]
+		if (fmt->explicit_only)
+			continue;
 
 		for (i = 0; i < t->numfilenames; i++)
 			{
@@ -399,8 +388,8 @@ static qboolean Image_ProbeLoad2 (const char *name, const char *suffix, int over
 		if (i == t->numfilenames)
 			continue;
 
-		/*data = FS_LoadFile (t->filenames[i], &filesize, false);*/
 		byte	*data = FS_LoadFile (t->filenames[i], &filesize, false);
+
 		Image_IncrementLookupTime ();
 
 		// can't load file, ignore
@@ -419,7 +408,6 @@ static qboolean Image_ProbeLoad2 (const char *name, const char *suffix, int over
 	return false;
 	}
 
-// [FWGS, 01.09.25]
 static qboolean Image_ProbeLoad (const loadpixformat_t *fmt, const char *name, const char *suffix, int override_hint)
 	{
 	if (!fmt)
@@ -427,10 +415,12 @@ static qboolean Image_ProbeLoad (const loadpixformat_t *fmt, const char *name, c
 #if USE_FS_SEARCH_FOR_LOOKUPS
 		return Image_ProbeLoad2 (name, suffix, override_hint);
 #else
-
-		// bruteforce all formats to allow implicit extension
+		// [FWGS, 08.11.26] bruteforce all formats to allow implicit extension
 		for (fmt = image.loadformats; fmt->ext; fmt++)
 			{
+			if (fmt->explicit_only)
+				continue;
+
 			if (Image_ProbeLoad_ (fmt, name, suffix, override_hint))
 				return true;
 			}
@@ -453,15 +443,12 @@ rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size)
 	{
 	const char	*ext = COM_FileExtension (filename);
 	string		loadname;
-	/*int			i, j;
-	const loadpixformat_t	*extfmt;*/
 
 	Q_strncpy (loadname, filename, sizeof (loadname));
 
 	// we needs to compare file extension with list of supported formats
 	// and be sure what is real extension, not a filename with dot
-	/*if ((extfmt = Image_GetLoadFormatForExtension (ext)))*/
-	const loadpixformat_t *extfmt = Image_GetLoadFormatForExtension (ext);
+	const loadpixformat_t	*extfmt = Image_GetLoadFormatForExtension (ext);
 	if (extfmt)
 		COM_StripExtension (loadname);
 
@@ -476,10 +463,8 @@ rgbdata_t *FS_LoadImage (const char *filename, const byte *buffer, size_t size)
 		return ImagePack (filename);
 
 	// check all cubemap sides with package suffix
-	/*for (j = 0; j < HLARRAYSIZE (load_cubemap); j++)*/
 	for (int j = 0; j < HLARRAYSIZE (load_cubemap); j++)
 		{
-		/*for (i = 0; i < 6; i++)*/
 		for (int i = 0; i < 6; i++)
 			{
 			const cubepack_t	*cmap = &load_cubemap[j];
@@ -548,7 +533,6 @@ qboolean FS_SaveImage (const char *filename, rgbdata_t *pix)
 	const char	*ext = COM_FileExtension (filename);
 	qboolean	anyformat = COM_StringEmpty (ext);
 	string		path, savename;
-	/*const savepixformat_t *format;*/
 
 	if (!pix || !pix->buffer || anyformat)
 		{
@@ -563,7 +547,6 @@ qboolean FS_SaveImage (const char *filename, rgbdata_t *pix)
 	if (pix->flags & (IMAGE_CUBEMAP | IMAGE_SKYBOX))
 		{
 		size_t	realSize = pix->size;	// keep real pic size
-		/*byte *picBuffer;	// to avoid corrupt memory on free data*/
 		const suffix_t	*box;
 		int		i;
 
@@ -583,11 +566,10 @@ qboolean FS_SaveImage (const char *filename, rgbdata_t *pix)
 			}
 
 		pix->size /= 6;	// now set as side size
-		/*picBuffer = pix->buffer;*/
+
 		byte	*picBuffer = pix->buffer;
 
 		// save all sides seperately
-		/*for (format = image.saveformats; format && format->ext; format++)*/
 		for (const savepixformat_t *format = image.saveformats; format && format->ext; format++)
 			{
 			if (!Q_stricmp (ext, format->ext))
@@ -614,7 +596,6 @@ qboolean FS_SaveImage (const char *filename, rgbdata_t *pix)
 		}
 	else
 		{
-		/*for (format = image.saveformats; format && format->ext; format++)*/
 		for (const savepixformat_t *format = image.saveformats; format && format->ext; format++)
 			{
 			if (!Q_stricmp (ext, format->ext))
@@ -664,13 +645,11 @@ make an image copy
 ***/
 rgbdata_t *FS_CopyImage (const rgbdata_t *in)
 	{
-	/*rgbdata_t *out;*/
 	int	palSize = 0;
 
 	if (!in)
 		return NULL;
 
-	/*out = Mem_Malloc (host.imagepool, sizeof (*out));*/
 	rgbdata_t	*out = Mem_Malloc (host.imagepool, sizeof (*out));
 	*out = *in;
 
@@ -805,7 +784,6 @@ IMPLEMENT_IMAGELIB_FUZZ_TARGET (Fuzz_Image_LoadDDS, Image_LoadDDS)
 IMPLEMENT_IMAGELIB_FUZZ_TARGET (Fuzz_Image_LoadTGA, Image_LoadTGA)
 
 // [FWGS, 01.08.26]
-/*endif*/
 int EXPORT Fuzz_Image_LoadSPR (const uint8_t *Data, size_t Size);
 
 int EXPORT Fuzz_Image_LoadSPR (const uint8_t *Data, size_t Size)

@@ -20,7 +20,7 @@ GNU General Public License for more details
 
 static rgbdata_t *CustomDecal_LoadImage (const char *path, void *raw, int size)
 	{
-	const char *testname;
+	const char	*testname;
 
 	// [FWGS, 01.04.26] this way we limit file types
 	if (!Q_stricmp (COM_FileExtension (path), "png"))
@@ -48,13 +48,10 @@ static qboolean CustomDecal_Validate (const char *path, void *raw, int nFileSize
 	return false;
 	}
 
-// [FWGS, 01.07.26]
 void COM_ClearCustomizationList (customization_t *pHead, qboolean bCleanDecals)
 	{
-	/*customization_t *pCurrent;*/
 	customization_t *pNext;
 
-	/*for (pCurrent = pHead->pNext; pCurrent != NULL; pCurrent = pNext)*/
 	for (customization_t *pCurrent = pHead->pNext; pCurrent != NULL; pCurrent = pNext)
 		{
 		pNext = pCurrent->pNext;
@@ -65,9 +62,11 @@ void COM_ClearCustomizationList (customization_t *pHead, qboolean bCleanDecals)
 		if (pCurrent->bInUse && pCurrent->pInfo)
 			{
 #if !XASH_DEDICATED
+			// [FWGS, 08.11.26]
 			if (pCurrent->resource.type == t_decal)
 				{
-				if (bCleanDecals && CL_Active ())
+				/*if (bCleanDecals && CL_Active ())*/
+				if (bCleanDecals && CL_Active () && pCurrent->nUserData1)
 					ref.dllFuncs.R_DecalRemoveAll (pCurrent->nUserData1);
 				}
 #endif
@@ -86,14 +85,11 @@ qboolean COM_CreateCustomization (customization_t *pListHead, resource_t *pResou
 	int flags, customization_t **pOut, int *nLumps)
 	{
 	qboolean	bError = false;
-	/*fs_offset_t		checksize = 0;
-	customization_t	*pCust;*/
 
 	if (pOut)
 		*pOut = NULL;
 
-	/*pCust = Z_Calloc (sizeof (customization_t));*/
-	customization_t *pCust = Z_Calloc (sizeof (customization_t));
+	customization_t	*pCust = Z_Calloc (sizeof (customization_t));
 	pCust->resource = *pResource;
 
 	if (pResource->nDownloadSize <= 0)
@@ -173,11 +169,9 @@ CustomizationError:
 int COM_SizeofResourceList (resource_t *pList, resourceinfo_t *ri)
 	{
 	int	nSize = 0;
-	/*resource_t	*p;*/
 
 	memset (ri, 0, sizeof (*ri));
 
-	/*for (p = pList->pNext; p != pList; p = p->pNext)*/
 	for (resource_t *p = pList->pNext; p != pList; p = p->pNext)
 		{
 		nSize += p->nDownloadSize;

@@ -165,6 +165,46 @@ static void SDLash_GameControllerAddMappings (const char *name)
 	Mem_Free (p);
 	}
 
+// [FWGS, 08.11.26]
+static const char *SDLash_GameControllerPreset (SDL_GameController *gc)
+	{
+#if XASH_PSVITA
+
+	return "psvita";
+
+#elif SDL_VERSION_ATLEAST( 2, 0, 14 )
+
+#if SDL_VERSION_ATLEAST( 2, 30, 0 )
+	// Steam Input virtual gamepad reports the real controller's IDs and type,
+	// but its buttons are remapped to the Xbox layout
+	if (SDL_GameControllerGetSteamHandle (gc))
+		return "xbox";
+#endif
+
+	const char	*preset = Joy_SteamControllerPreset (SDL_GameControllerGetVendor (gc),
+		SDL_GameControllerGetProduct (gc));
+
+	if (preset)
+		return preset;
+
+	switch (SDL_GameControllerGetType (gc))
+		{
+		case SDL_CONTROLLER_TYPE_PS3:
+		case SDL_CONTROLLER_TYPE_PS4:
+		case SDL_CONTROLLER_TYPE_PS5:
+			return "playstation";
+
+		default:
+			return "xbox";
+		}
+
+#else
+
+	return NULL;
+
+#endif
+	}
+
 static void SDLash_SetActiveGameController (SDL_JoystickID id)
 	{
 	if (g_current_gamepad_id == id)
@@ -179,10 +219,11 @@ static void SDLash_SetActiveGameController (SDL_JoystickID id)
 	g_current_gamepad_id = id;
 	if (id < 0)
 		{
-		// [FWGS, 01.10.26]
+		// [FWGS, 08.11.26]
 		g_current_gamepad = NULL;
-		/*Joy_SetCapabilities (false);*/
-		Joy_SetCapabilities (false, 0);
+		/*Joy_SetCapabilities (false);
+		Joy_SetCapabilities (false, 0);*/
+		Joy_SetCapabilities (false, 0, NULL);
 		Joy_SetCalibrationState (JOY_NOT_CALIBRATED);
 		}
 	else
@@ -205,9 +246,10 @@ static void SDLash_SetActiveGameController (SDL_JoystickID id)
 			}
 #endif
 
-		// [FWGS, 01.10.26]
-		/*Joy_SetCapabilities (have_gyro);*/
-		Joy_SetCapabilities (have_gyro, num_touchpads);
+		// [FWGS, 08.11.26]
+		/*Joy_SetCapabilities (have_gyro);
+		Joy_SetCapabilities (have_gyro, num_touchpads);*/
+		Joy_SetCapabilities (have_gyro, num_touchpads, SDLash_GameControllerPreset (g_current_gamepad));
 		}
 	}
 

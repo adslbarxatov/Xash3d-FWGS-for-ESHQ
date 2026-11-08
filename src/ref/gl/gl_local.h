@@ -41,6 +41,11 @@ GNU General Public License for more details
 	#include "gl2_shim/gl2_shim.h"
 #endif
 
+// [FWGS, 08.11.26]
+#if XASH_PS4
+	#include "gnm_shim/gnm_shim.h"
+#endif
+
 #ifndef offsetof
 #ifdef __GNUC__
 #define offsetof(s,m) __builtin_offsetof(s,m)
@@ -274,6 +279,9 @@ typedef struct
 	uint		max_entities;
 
 	ref_screen_rotation_t	rotation;
+
+	// [FWGS, 08.11.26] picture position in the window, see R_SetDisplayTransform
+	int		offset_x, offset_y;
 
 	// [FWGS, 01.10.26]
 	gl_rendertargets_t		targets;
@@ -525,6 +533,10 @@ void GL_SetupAttributes (int safegl);
 void GL_OnContextCreated (void);
 void GL_InitExtensions (void);
 void GL_ClearExtensions (void);
+
+// [FWGS, 08.11.26]
+void GAME_EXPORT *GL_GetProcAddress (const char *name);
+
 int GL_LoadTexture (const char *name, const byte *buf, size_t size, int flags);
 qboolean VID_ScreenShot (const char *filename, int shot_type);
 qboolean VID_CubemapShot (const char *base, uint size, const float *vieworg, qboolean skyshot);
@@ -550,7 +562,6 @@ void R_DecalRemoveAll (int texture);
 int R_CreateDecalList (decallist_t *pList);
 
 // [FWGS, 01.10.26]
-/*void R_ClearAllDecals (void);*/
 void R_ClearAllDecals (qboolean includePermanent);
 byte *Mod_GetCurrentVis (void);
 void Mod_SetOrthoBounds (const float *mins, const float *maxs);

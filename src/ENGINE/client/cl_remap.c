@@ -44,8 +44,7 @@ return true if equal
 ***/
 static qboolean CL_CmpStudioTextures (int numtexs, mstudiotexture_t *p1, remap_info_t *remap)
 	{
-	/*int	i;*/
-	mstudiotexture_t *p2;
+	mstudiotexture_t	*p2;
 
 	// no textures
 	if (!p1)
@@ -64,7 +63,6 @@ static qboolean CL_CmpStudioTextures (int numtexs, mstudiotexture_t *p1, remap_i
 
 	p2 = remap->ptexture;
 
-	/*for (i = 0; i < numtexs; i++, p1++, p2++)*/
 	for (int i = 0; i < numtexs; i++, p1++, p2++)
 		{
 		if (p1->flags & STUDIO_NF_COLORMAP)
@@ -111,7 +109,23 @@ static byte *CL_CreateRawTextureFromPixels (texture_t *tx, size_t *size, int top
 
 /***
 ====================
-CL_DuplicateTexture [FWGS, 01.07.26]
+CL_FindRemapTexture [FWGS, 01.11.26]
+====================
+***/
+static texture_t *CL_FindRemapTexture (model_t *model, int gl_texturenum)
+	{
+	for (int i = 0; i < model->numtextures; i++)
+		{
+		if (model->textures[i]->gl_texturenum == gl_texturenum)
+			return model->textures[i];
+		}
+
+	return NULL;
+	}
+
+/***
+====================
+CL_DuplicateTexture [FWGS, 08.11.26]
 
 Dupliacte texture with remap pixels
 ====================
@@ -120,30 +134,32 @@ static void CL_DuplicateTexture (cl_entity_t *entity, model_t *model, mstudiotex
 	int bottomcolor)
 	{
 	const char	*name;
-	texture_t	*tx = NULL;
+	/*texture_t	*tx = NULL;*/
+	texture_t	*tx;
 	char	texname[128];
-	/*int			i, index;*/
 	size_t	size;
 	byte	paletteBackup[768];
 	byte	*raw, *pal;
 	int		index = ptexture->index;
 
 	// save off the real texture index
-	/*index = ptexture->index;*/
 	name = ref.dllFuncs.GL_TextureName (index);
 	Q_snprintf (texname, sizeof (texname), "#%i_%s", entity->curstate.number, name + 1);
 
-	// search for pixels
-	/*for (i = 0; i < model->numtextures; i++)*/
+	/*// search for pixels
 	for (int i = 0; i < model->numtextures; i++)
 		{
 		tx = model->textures[i];
 		if (tx->gl_texturenum == index)
 			break;	// found
-		}
-
+		}*/
+	tx = CL_FindRemapTexture (model, index);
 	if (!tx)
+		{
+		// keep the model's own texture, it must not be released with remap info
+		ClearBits (ptexture->flags, STUDIO_NF_COLORMAP);
 		return;
+		}
 
 	// backup original palette
 	pal = (byte *)(tx + 1) + (tx->width * tx->height);
@@ -158,18 +174,19 @@ static void CL_DuplicateTexture (cl_entity_t *entity, model_t *model, mstudiotex
 
 /***
 ====================
-CL_UpdateStudioTexture [FWGS, 01.07.26]
+CL_UpdateStudioTexture [FWGS, 08.11.26]
 
 Update texture top and bottom colors
 ====================
 ***/
-static void CL_UpdateStudioTexture (cl_entity_t *entity, mstudiotexture_t *ptexture, int topcolor, int bottomcolor)
+/*static void CL_UpdateStudioTexture (cl_entity_t *entity, mstudiotexture_t *ptexture, int topcolor, int bottomcolor)*/
+static void CL_UpdateStudioTexture (model_t *model, mstudiotexture_t *ptexture, int topcolor, int bottomcolor)
 	{
 	rgbdata_t	*pic;
-	texture_t	*tx = NULL;
+	/*texture_t	*tx = NULL;*/
+	texture_t	*tx;
 	char		texname[128], name[128], mdlname[128];
 	const char	*origtexname;
-	/*int			i, index;*/
 	int		index;
 	size_t	size;
 	byte	paletteBackup[768];
@@ -179,7 +196,8 @@ static void CL_UpdateStudioTexture (cl_entity_t *entity, mstudiotexture_t *ptext
 	origtexname = ref.dllFuncs.GL_TextureName (ptexture->index);
 
 	// build name of original texture
-	Q_strncpy (mdlname, entity->model->name, sizeof (mdlname));
+	/*Q_strncpy (mdlname, entity->model->name, sizeof (mdlname));*/
+	Q_strncpy (mdlname, model->name, sizeof (mdlname));
 	COM_FileBase (ptexture->name, name, sizeof (name));
 	COM_StripExtension (mdlname);
 
@@ -188,15 +206,14 @@ static void CL_UpdateStudioTexture (cl_entity_t *entity, mstudiotexture_t *ptext
 	if (!index)
 		return;	// couldn't find texture
 
-	// search for pixels
-	/*for (i = 0; i < entity->model->numtextures; i++)*/
+	/*// search for pixels
 	for (int i = 0; i < entity->model->numtextures; i++)
 		{
 		tx = entity->model->textures[i];
 		if (tx->gl_texturenum == index)
 			break;	// found
-		}
-
+		}*/
+	tx = CL_FindRemapTexture (model, index);
 	if (!tx)
 		return;	// couldn't find texture
 
@@ -206,6 +223,10 @@ static void CL_UpdateStudioTexture (cl_entity_t *entity, mstudiotexture_t *ptext
 
 	raw = CL_CreateRawTextureFromPixels (tx, &size, topcolor, bottomcolor);
 	pic = FS_LoadImage (origtexname, raw, size);
+
+	// restore original palette
+	memcpy (pal, paletteBackup, 768);
+
 	if (!pic)
 		{
 		Con_DPrintf (S_ERROR "Couldn't update texture %s\n", origtexname);
@@ -215,36 +236,41 @@ static void CL_UpdateStudioTexture (cl_entity_t *entity, mstudiotexture_t *ptext
 	index = GL_UpdateTextureInternal (origtexname, pic, 0);
 	FS_FreeImage (pic);
 
-	// restore original palette
-	memcpy (pal, paletteBackup, 768);
+	/*// restore original palette
+	memcpy (pal, paletteBackup, 768);*/
 
 	Assert (index == ptexture->index);
 	}
 
 /***
 ====================
-CL_UpdateAliasTexture [FWGS, 01.01.24]
+CL_UpdateAliasTexture [FWGS, 08.11.26]
 
 Update texture top and bottom colors
 ====================
 ***/
-static void CL_UpdateAliasTexture (cl_entity_t *entity, unsigned short *texture, int skinnum, int topcolor,
-	int bottomcolor)
+/*static void CL_UpdateAliasTexture (cl_entity_t *entity, unsigned short *texture, int skinnum, int topcolor,
+	int bottomcolor)*/
+static void CL_UpdateAliasTexture (cl_entity_t *entity, model_t *model, unsigned short *texture,
+	int skinnum, int topcolor, int bottomcolor)
 	{
 	char		texname[MAX_QPATH];
 	rgbdata_t	skin, *pic;
 	texture_t	*tx;
 
-	if (!texture || !entity->model->textures)
+	/*if (!texture || !entity->model->textures)*/
+	if (!texture || !model->textures)
 		return;	// no remapinfo in model
 
-	tx = entity->model->textures[skinnum];
+	/*tx = entity->model->textures[skinnum];*/
+	tx = model->textures[skinnum];
 	if (!tx)
 		return;	// missing texture ?
 
 	if (*texture == 0)
 		{
-		Q_snprintf (texname, sizeof (texname), "%s:remap%i_%i", entity->model->name, skinnum, entity->index);
+		/*Q_snprintf (texname, sizeof (texname), "%s:remap%i_%i", entity->model->name, skinnum, entity->index);*/
+		Q_snprintf (texname, sizeof (texname), "%s:remap%i_%i", model->name, skinnum, entity->index);
 		skin.width = tx->width;
 		skin.height = tx->height;
 		skin.depth = skin.numMips = 1;
@@ -264,29 +290,40 @@ static void CL_UpdateAliasTexture (cl_entity_t *entity, unsigned short *texture,
 
 /***
 ====================
-CL_FreeRemapInfo [FWGS, 01.07.26]
+CL_FreeRemapInfo [FWGS, 08.11.26]
 
 Release remap info per entity
 ====================
 ***/
 static void CL_FreeRemapInfo (remap_info_t *info)
 	{
-	/*int i;*/
-
 	Assert (info != NULL);
 
-	// release all colormap texture copies
-	/*for (i = 0; i < info->numtextures; i++)*/
-	for (int i = 0; i < info->numtextures; i++)
+	/*// release all colormap texture copies
+	for (int i = 0; i < info->numtextures; i++)*/
+	if (info->ptexture != NULL)
 		{
-		if (info->ptexture != NULL)
+		/*if (info->ptexture != NULL)*/
+		// studio model: release all colormap texture copies
+		for (int i = 0; i < info->numtextures; i++)
 			{
 			if (FBitSet (info->ptexture[i].flags, STUDIO_NF_COLORMAP))
 				ref.dllFuncs.GL_FreeTexture (info->ptexture[i].index);
 			}
 
-		if (info->textures[i] != 0)
-			ref.dllFuncs.GL_FreeTexture (info->textures[i]);
+		/*if (info->textures[i] != 0)
+			ref.dllFuncs.GL_FreeTexture (info->textures[i]);*/
+		}
+	else
+		{
+		// alias model: release remapped skins
+		// textures array is only MAX_SKINS long, while a studio model may have
+		// more textures than that, so never index it with studio texture count
+		for (int i = 0; (i < info->numtextures) && (i < HLARRAYSIZE (info->textures)); i++)
+			{
+			if (info->textures[i] != 0)
+				ref.dllFuncs.GL_FreeTexture (info->textures[i]);
+			}
 		}
 
 	Mem_Free (info);	// release struct
@@ -294,7 +331,7 @@ static void CL_FreeRemapInfo (remap_info_t *info)
 
 /***
 ====================
-CL_UpdateRemapInfo [FWGS, 01.01.24]
+CL_UpdateRemapInfo
 
 Update all remaps per entity
 ====================
@@ -312,16 +349,19 @@ static void CL_UpdateRemapInfo (cl_entity_t *entity, int topcolor, int bottomcol
 	if ((info->topcolor == topcolor) && (info->bottomcolor == bottomcolor))
 		return;	// values is valid
 
+	// [FWGS, 01.11.26]
 	for (i = 0; i < info->numtextures; i++)
 		{
 		if (info->ptexture != NULL)
 			{
 			if (FBitSet (info->ptexture[i].flags, STUDIO_NF_COLORMAP))
-				CL_UpdateStudioTexture (entity, &info->ptexture[i], topcolor, bottomcolor);
+				CL_UpdateStudioTexture (info->model, &info->ptexture[i], topcolor, bottomcolor);
+				/*CL_UpdateStudioTexture (entity, &info->ptexture[i], topcolor, bottomcolor);*/
 			}
-		else
+		else if (i < HLARRAYSIZE (info->textures))
 			{
-			CL_UpdateAliasTexture (entity, &info->textures[i], i, topcolor, bottomcolor);
+			/*CL_UpdateAliasTexture (entity, &info->textures[i], i, topcolor, bottomcolor);*/
+			CL_UpdateAliasTexture (entity, info->model, &info->textures[i], i, topcolor, bottomcolor);
 			}
 		}
 
@@ -374,7 +414,6 @@ static void CL_AllocRemapInfo (cl_entity_t *entity, model_t *model, int topcolor
 		return;
 		}
 
-	// [FWGS, 01.03.26]
 	if (model->type == mod_studio)
 		{
 		phdr = (studiohdr_t *)model->cache.data;
@@ -401,6 +440,8 @@ static void CL_AllocRemapInfo (cl_entity_t *entity, model_t *model, int topcolor
 			return;
 			}
 
+		// [FWGS, 01.11.26]
+		info->model = model;
 		info->numtextures = phdr->numtextures;
 		info->topcolor = topcolor;
 		info->bottomcolor = bottomcolor;
@@ -418,8 +459,6 @@ static void CL_AllocRemapInfo (cl_entity_t *entity, model_t *model, int topcolor
 				CL_DuplicateTexture (entity, model, &dst[i], topcolor, bottomcolor);
 			}
 		}
-
-	// [FWGS, 01.03.26]
 	else if (model->type == mod_alias)
 		{
 		ahdr = (aliashdr_t *)model->cache.data;
@@ -441,18 +480,22 @@ static void CL_AllocRemapInfo (cl_entity_t *entity, model_t *model, int topcolor
 			return;
 			}
 
+		// [FWGS, 01.11.26]
+		info->model = model;
 		info->numtextures = model->numtextures;
 
 		// alias remapping is easy
 		CL_UpdateRemapInfo (entity, topcolor, bottomcolor);
 		}
-	else
+
+	// [FWGS, 01.11.26]
+	/*else
 		{
 		// only alias & studio models are supposed for remapping
 		return;
 		}
 
-	info->model = model;
+	info->model = model;*/
 	}
 
 // [FWGS, 01.01.24] removed CL_UpdateRemapInfo, CL_FreeRemapInfo
@@ -466,11 +509,8 @@ Release all remap infos
 ***/
 void CL_ClearAllRemaps (void)
 	{
-	/*int	i;*/
-
 	if (clgame.remap_info)
 		{
-		/*for (i = 0; i < clgame.maxRemapInfos; i++)*/
 		for (int i = 0; i < clgame.maxRemapInfos; i++)
 			{
 			if (clgame.remap_info[i])

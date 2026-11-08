@@ -23,24 +23,11 @@ GNU General Public License for more details
 #endif
 
 // [FWGS, 01.03.26]
-/*if XASH_EMSCRIPTEN
-	include <emscripten.h>
-endif*/
-
-// [FWGS, 01.08.24]
 #ifndef XASH_GAMEDIR
 	#define XASH_GAMEDIR "valve" // ! Replace with your default (base) game directory !
 #endif
 
 // [FWGS, 05.04.26]
-/*if XASH_WIN32
-	error "Single-binary or dedicated builds aren't supported for Windows!"
-endif*/
-
-// [FWGS, 01.04.26]
-/*static char		szGameDir[128]; // safe place to keep gamedir
-static int		szArgc;
-static char		**szArgv;*/
 static int	szArgc;
 static char	**szArgv;
 
@@ -50,23 +37,17 @@ static void Sys_ChangeGame (const char *progname)
 	// stub
 	}
 
-// [FWGS, 01.04.26] removed Sys_Start
+// [FWGS, 08.11.26]
+#if XASH_PS4
 
-/*// [FWGS, 01.07.25]
-static int Sys_Start (void)
+static int PS4_HostMain (void *unused)
 	{
-	Q_strncpy (szGameDir, XASH_GAMEDIR, sizeof (szGameDir));
+	return Host_Main (szArgc, szArgv, XASH_GAMEDIR, 0, Sys_ChangeGame);
+	}
 
-// [FWGS, 01.03.26]
+#endif
 
-// [FWGS, 01.11.25]
-if XASH_IOS
-	IOS_LaunchDialog ();
-	szArgc = IOS_GetArgs (&szArgv);
-endif
-
-	return Host_Main (szArgc, szArgv, szGameDir, 0, Sys_ChangeGame);
-	}*/
+// [FWGS, 01.04.26] removed Sys_Start
 
 int main (int argc, char **argv)
 	{
@@ -74,6 +55,13 @@ int main (int argc, char **argv)
 	
 	// inject -dev -console into args if required
 	szArgc = PSVita_GetArgv (argc, argv, &szArgv);
+
+	// [FWGS, 08.11.26]
+#elif XASH_PS4
+
+	// read command line from file
+	szArgc = PS4_GetArgv (argc, argv, &szArgv);
+	return PS4_RunOnBigStack (PS4_HostMain, NULL);
 
 	// [FWGS, 01.04.26]
 #elif XASH_IOS
@@ -89,7 +77,6 @@ int main (int argc, char **argv)
 #endif
 
 	// [FWGS, 01.04.26]
-	/*return Sys_Start ();*/
 	return Host_Main (szArgc, szArgv, XASH_GAMEDIR, 0, Sys_ChangeGame);
 	}
 

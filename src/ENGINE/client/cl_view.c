@@ -596,6 +596,9 @@ void V_PostRender (void)
 		Touch_Draw ();
 		OSK_Draw ();
 
+		// [FWGS, 01.11.26]
+		Platform_DrawCursor ();
+
 		S_ExtraUpdate ();
 		}
 

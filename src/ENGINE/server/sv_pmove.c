@@ -20,7 +20,8 @@ GNU General Public License for more details
 #include "event_flags.h"
 #include "studio.h"
 
-static qboolean has_update = false;
+static qboolean	has_update = false;
+
 static void SV_GetTrueOrigin (sv_client_t *cl, int edictnum, vec3_t origin);
 
 // [FWGS, 01.02.25] removed SV_PlayerIsFrozen
@@ -539,10 +540,10 @@ static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd
 	// [FWGS, 01.10.26]
 	/*pmove->frametime = ucmd->msec * 0.001f;*/
 	pmove->frametime = ucmd->msec / 1000.0f;
-
 	pmove->player_index = NUM_FOR_EDICT (clent) - 1;
 	pmove->multiplayer = (svs.maxclients > 1) ? true : false;
 	pmove->time = (float)(cl->timebase * 1000.0);
+
 	VectorCopy (clent->v.origin, pmove->origin);
 	VectorCopy (clent->v.v_angle, pmove->angles);
 	VectorCopy (clent->v.v_angle, pmove->oldangles);
@@ -550,6 +551,7 @@ static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd
 	VectorCopy (clent->v.basevelocity, pmove->basevelocity);
 	VectorCopy (clent->v.view_ofs, pmove->view_ofs);
 	VectorCopy (clent->v.movedir, pmove->movedir);
+
 	pmove->flDuckTime = clent->v.flDuckTime;
 	pmove->bInDuck = clent->v.bInDuck;
 	pmove->usehull = (clent->v.flags & FL_DUCKING) ? 1 : 0;	// reset hull
@@ -557,7 +559,9 @@ static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd
 	pmove->iStepLeft = clent->v.iStepLeft;
 	pmove->flFallVelocity = clent->v.flFallVelocity;
 	pmove->flSwimTime = clent->v.flSwimTime;
+
 	VectorCopy (clent->v.punchangle, pmove->punchangle);
+
 	pmove->effects = clent->v.effects;
 	pmove->flags = clent->v.flags;
 	pmove->gravity = clent->v.gravity;
@@ -568,8 +572,10 @@ static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd
 	pmove->deadflag = clent->v.deadflag;
 	pmove->spectator = 0;	// spectator physic all execute on client
 	pmove->movetype = clent->v.movetype;
-	if (pmove->multiplayer)
-		pmove->onground = -1;
+
+	// [FWGS, 08.11.26]
+	/*if (pmove->multiplayer)
+		pmove->onground = -1;*/
 	pmove->waterlevel = clent->v.waterlevel;
 	pmove->watertype = clent->v.watertype;
 	pmove->maxspeed = svgame.movevars.maxspeed;	// GoldSrc uses sv_maxspeed here?
@@ -586,6 +592,7 @@ static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd
 	pmove->fuser2 = clent->v.fuser2;
 	pmove->fuser3 = clent->v.fuser3;
 	pmove->fuser4 = clent->v.fuser4;
+
 	VectorCopy (clent->v.vuser1, pmove->vuser1);
 	VectorCopy (clent->v.vuser2, pmove->vuser2);
 	VectorCopy (clent->v.vuser3, pmove->vuser3);
@@ -615,6 +622,23 @@ static void SV_SetupPMove (playermove_t *pmove, sv_client_t *cl, usercmd_t *ucmd
 
 	SV_AddLinksToPmove (sv_areanodes, absmin, absmax);
 	SV_AddLaddersToPmove (sv_areanodes, absmin, absmax);
+
+	// [FWGS, 08.11.26] restore onground from the player's previous move, like the client prediction does
+	// mods that skip PM_CategorizePosition (Firearms bipod) rely on it
+	pmove->onground = -1;
+	if (FBitSet (clent->v.flags, FL_ONGROUND))
+		{
+		int	ground = SV_IsValidEdict (clent->v.groundentity) ? NUM_FOR_EDICT (clent->v.groundentity) : 0;
+
+		for (int i = 0; i < pmove->numphysent; i++)
+			{
+			if (pmove->physents[i].info == ground)
+				{
+				pmove->onground = i;
+				break;
+				}
+			}
+		}
 	}
 
 static void SV_FinishPMove (playermove_t *pmove, sv_client_t *cl)

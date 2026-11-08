@@ -85,7 +85,6 @@ GNU General Public License for more details
 // Their entries never exceed 1023, so the narrowing is lossless.
 // 19. Added R_Set2DOffset. Translates everything drawn in 2D mode, including TriAPI, by the given
 // screen-space offset until it's changed again. Used to draw VGUI panels in their own coordinates
-/*define REF_API_VERSION		19*/
 // 20. [FWGS, 01.10.26] R_ClearAllDecals now accepts includePermanent argument
 #define REF_API_VERSION 20
 
@@ -148,7 +147,7 @@ typedef enum window_mode_e
 	WINDOW_MODE_COUNT,
 	} window_mode_t;
 
-// [FWGS, 01.03.26]
+// [FWGS, 08.11.26]
 typedef enum ref_window_type_e
 	{
 	REF_WINDOW_TYPE_NULL = 0,
@@ -158,6 +157,7 @@ typedef enum ref_window_type_e
 	REF_WINDOW_TYPE_MACOS,		// NSWindow*
 	REF_WINDOW_TYPE_SDL2,		// SDL2 SDL_Window*
 	REF_WINDOW_TYPE_SDL3,		// SDL3 SDL_Window*
+	REF_WINDOW_TYPE_GNM,		// PS4 gnm_dev_api_t*
 	} ref_window_type_t;
 
 typedef struct
@@ -548,7 +548,8 @@ typedef struct ref_interface_s
 	qboolean	(*R_Init)(void);	// context is true if you need context management
 	void		(*R_Shutdown)(void);
 	const char	*(*R_GetConfigName)(void);	// returns config name without extension
-	/*qboolean	(*R_SetDisplayTransform)(ref_screen_rotation_t rotate, int x, int y, float scale_x, float scale_y);*/
+
+	// x and y are the picture's bottom left corner in the window, in pixels, counted from the window's bottom left corner
 	qboolean	(*R_SetDisplayTransform)(ref_screen_rotation_t rotate, int x, int y, float unused1_default_at_1, float unused2_default_at_1);
 
 	// only called for GL contexts
@@ -604,7 +605,6 @@ typedef struct ref_interface_s
 	void		(*R_DecalShoot)(int textureIndex, int entityIndex, int modelIndex, vec3_t pos, int flags, float scale);
 	void		(*R_DecalRemoveAll)(int texture);
 	int			(*R_CreateDecalList)(struct decallist_s *pList);
-	/*void		(*R_ClearAllDecals)(void);*/
 	void		(*R_ClearAllDecals)(qboolean includePermanent);
 
 	// [FWGS, 01.05.26] studio interface

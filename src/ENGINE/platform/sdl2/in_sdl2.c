@@ -209,16 +209,17 @@ int Platform_TranslateKeyLayout (int keynum)
 
 /***
 =============
-SDLash_EnableTextInput [FWGS, 01.09.26]
+SDLash_EnableTextInput
 =============
 ***/
-/*void Platform_EnableTextInput (qboolean enable)*/
 void Platform_EnableTextInput (qboolean enable, int x, int y, int w, int h)
 	{
-	/*if (enable)
-		SDL_StartTextInput ();
-	else
-		SDL_StopTextInput ();*/
+	// [FWGS, 08.11.26]
+#if XASH_SAILFISH
+	// SDL can't show the on-screen keyboard there
+	Sailfish_EnableTextInput (enable, x, y, w, h);
+#endif
+
 	if (!enable)
 		{
 		SDL_StopTextInput ();

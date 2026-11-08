@@ -70,8 +70,9 @@ platform_orientation_t Platform_GetDisplayOrientation (void);
 	#undef XASH_PLATFORM_HAVE_STATUS
 #endif
 
-// [FWGS, 01.10.26] walks the direct dependency list of a game library image loaded from disk
-#if XASH_LIB == LIB_STATIC || XASH_ANDROID || XASH_IOS || XASH_PSVITA || XASH_NSWITCH
+// [FWGS, 08.11.26] walks the direct dependency list of a game library image loaded from disk
+/*if XASH_LIB == LIB_STATIC || XASH_ANDROID || XASH_IOS || XASH_PSVITA || XASH_NSWITCH*/
+#if XASH_LIB == LIB_STATIC || XASH_ANDROID || XASH_IOS || XASH_PSVITA || XASH_NSWITCH || XASH_PS4
 	static inline qboolean Platform_CheckLibraryDirectDependency (const byte *data, size_t size, const char *depname)
 		{
 		return false;
@@ -80,12 +81,17 @@ platform_orientation_t Platform_GetDisplayOrientation (void);
 	qboolean Platform_CheckLibraryDirectDependency (const byte *data, size_t size, const char *depname);
 #endif
 
-// [FWGS, 01.11.26]
+// [FWGS, 08.11.26]
 #if XASH_POSIX
 	double Posix_GetCPUTime (void);
 	void Posix_Daemonize (void);
 	void Posix_SetupSigtermHandling (void);
 	char *Posix_Input (void);
+
+	void Posix_InitConsole (void);
+	void Posix_ShutdownConsole (void);
+	void Posix_ConsolePrintBegin (void);
+	void Posix_ConsolePrintEnd (const char *msg);
 
 	// returns the number of stable network device MAC addresses, each packed into low 48 bits
 	int Posix_GetNetDeviceAddresses (uint64_t *addresses, int max);
@@ -113,10 +119,27 @@ platform_orientation_t Platform_GetDisplayOrientation (void);
 	void Android_Init (void);
 	void *Android_GetNativeObject (const char *name);
 
-	// [FWGS, 01.10.26]
+	// [FWGS, 08.11.26]
 	void Android_GetWindowInsets (float insets[4]);
-	int Android_GetKeyboardHeight (void);
+	/*int Android_GetKeyboardHeight (void);*/
 	void Android_Shutdown (void);
+#endif
+
+// [FWGS, 08.11.26]
+#if XASH_SAILFISH && !XASH_DEDICATED
+	void Sailfish_Init (void);
+	void Sailfish_Shutdown (void);
+	void Sailfish_SetActive (qboolean active);
+	void Sailfish_RunEvents (void);
+	void Sailfish_EnableTextInput (qboolean enable, int x, int y, int w, int h);
+	void Sailfish_SuspendTextInput (qboolean suspend);
+	void Sailfish_ShutdownTextInput (void);
+	void Sailfish_SetOrientation (int rotate);
+	int Sailfish_OrientationAngle (void);
+	void Sailfish_KeepWindowSize (int *width, int *height, int *render_w, int *render_h);
+	void Sailfish_GetDisplayOffset (int *x, int *y);
+	void Sailfish_SetTextInputArea (int y, int h);
+	void Sailfish_MapTouch (int64_t device, float *x, float *y, float *dx, float *dy);
 #endif
 
 // [FWGS, 01.11.26]
@@ -160,6 +183,24 @@ static inline double Platform_GetCPUTime (void)
 	void PSVita_InputUpdate (void);
 #endif
 
+// [FWGS, 08.11.26]
+#if XASH_PS4
+	void PS4_Init (void);
+	void PS4_Shutdown (void);
+	qboolean PS4_GetBasePath (char *buf, const size_t buflen);
+	int PS4_GetArgv (int in_argc, char **in_argv, char ***out_argv);
+	int PS4_RunOnBigStack (int (*func)(void *arg), void *arg);
+	void PS4_Log (const char *fmt, ...) FORMAT_CHECK (1);
+	void PS4_KbmInit (void);
+	void PS4_KbmUpdate (void);
+	void PS4_KbmShutdown (void);
+	qboolean PS4_KeyboardActive (void);
+	void PS4_InitKeyboard (void);
+	qboolean PS4_PackageLibraryExists (const char *name);
+	void PS4_FramePresented (void);
+	void PS4_AllowHideSplash (void);
+#endif
+
 #if XASH_DOS
 	void DOS_Init (void);
 	void DOS_Shutdown (void);
@@ -173,7 +214,6 @@ static inline double Platform_GetCPUTime (void)
 	int Linux_GetProcessID (void);
 #endif
 
-// [FWGS, 05.04.26]
 static inline void Platform_Init (qboolean con_showalways)
 	{
 #if XASH_POSIX
@@ -185,18 +225,32 @@ static inline void Platform_Init (qboolean con_showalways)
 	SDLash_Init ();
 #endif
 
+// [FWGS, 08.11.26]
+#if XASH_POSIX && !XASH_MOBILE_PLATFORM && !XASH_LOW_MEMORY
+	// after SDL, so it can install its Ctrl-C handler first
+	Posix_InitConsole ();
+#endif
+
 #if XASH_ANDROID
 	Android_Init ();
 #elif XASH_NSWITCH
 	NSwitch_Init ();
 #elif XASH_PSVITA
 	PSVita_Init ();
+// [FWGS, 08.11.26]
+#elif XASH_PS4
+	PS4_Init ();
 #elif XASH_DOS
 	DOS_Init ();
 #elif XASH_WIN32
 	Win32_Init (con_showalways);
 #elif XASH_LINUX
 	Linux_Init ();
+#endif
+
+// [FWGS, 08.11.26]
+#if XASH_SAILFISH && !XASH_DEDICATED
+	Sailfish_Init ();
 #endif
 	}
 
@@ -210,19 +264,31 @@ static inline qboolean Sys_DebuggerPresent (void)
 #endif
 	}
 
-// [FWGS, 01.03.25]
 static inline void Platform_Shutdown (void)
 	{
+// [FWGS, 08.11.26]
+#if XASH_SAILFISH && !XASH_DEDICATED
+	Sailfish_Shutdown ();
+#endif
+
 #if XASH_NSWITCH
 	NSwitch_Shutdown ();
 #elif XASH_PSVITA
 	PSVita_Shutdown ();
+// [FWGS, 08.11.26]
+#elif XASH_PS4
+	PS4_Shutdown ();
 #elif XASH_DOS
 	DOS_Shutdown ();
 #elif XASH_WIN32
 	Win32_Shutdown ();
 #elif XASH_LINUX
 	Linux_Shutdown ();
+#endif
+
+// [FWGS, 08.11.26]
+#if XASH_POSIX && !XASH_MOBILE_PLATFORM && !XASH_LOW_MEMORY
+	Posix_ShutdownConsole ();
 #endif
 
 #if XASH_SDL
@@ -276,13 +342,19 @@ static inline void Sys_SetupCrashHandler (const char *argv0) { }
 static inline void Sys_RestoreCrashHandler (void) { }
 #endif
 
-// [FWGS, 01.05.26]
+// [FWGS, 08.11.26]
 static inline qboolean Platform_LibraryExists (const char *name, qboolean gamedironly)
 	{
 #if XASH_ANDROID
 	// when libs come from a separate APK (cs16client, tf15client, …) we can't see them
 	// from the VFS; trust the launcher
 	if (!COM_StringEmptyOrNULL (getenv ("XASH3D_GAMELIBDIR")))
+		return true;
+#endif
+
+#if XASH_PS4
+	// game libraries can be shipped in the package, see lib_ps4.c
+	if (PS4_PackageLibraryExists (name))
 		return true;
 #endif
 
@@ -296,8 +368,9 @@ MOBILE API
 ==============================================================================
 ***/
 
-// [FWGS, 01.06.25]
-#if XASH_SDL >= 2
+// [FWGS, 08.11.26]
+/*if XASH_SDL >= 2*/
+#if XASH_SDL >= 2 || XASH_PS4
 void Platform_Vibrate (float life, char flags);	// left for compatibility
 void Platform_Vibrate2 (float time, int low_freq, int high_freq, uint flags);
 #else
@@ -325,12 +398,28 @@ void Platform_SetClipboardText (const char *buffer);
 
 #else
 
+// [FWGS, 08.11.26]
 static inline void Platform_PreCreateMove (void) {}
-static inline void GAME_EXPORT Platform_SetMousePos (int x, int y) {}
+/*static inline void GAME_EXPORT Platform_SetMousePos (int x, int y) {}
 static inline void Platform_SetMouseGrab (qboolean enable) {}
-static inline void Platform_SetCursorType (VGUI_DefaultCursor type) {}
+static inline void Platform_SetCursorType (VGUI_DefaultCursor type) {}*/
 static inline int Platform_GetClipboardText (char *buffer, size_t size) { return 0; }
 static inline void Platform_SetClipboardText (const char *buffer) {}
+
+// [FWGS, 08.11.26]
+#if XASH_PS4 // platform/ps4/kbm_ps4.c
+
+void Platform_SetCursorType (VGUI_DefaultCursor type);
+void GAME_EXPORT Platform_GetMousePos (int *x, int *y);
+void GAME_EXPORT Platform_SetMousePos (int x, int y);
+qboolean Platform_GetMouseGrab (void);
+void Platform_SetMouseGrab (qboolean enable);
+
+#else
+
+static inline void Platform_SetCursorType (VGUI_DefaultCursor type) {}
+static inline void GAME_EXPORT Platform_SetMousePos (int x, int y) {}
+static inline void Platform_SetMouseGrab (qboolean enable) {}
 static inline qboolean Platform_GetMouseGrab (void) { return false; }
 
 static inline void GAME_EXPORT Platform_GetMousePos (int *x, int *y)
@@ -343,8 +432,28 @@ static inline void GAME_EXPORT Platform_GetMousePos (int *x, int *y)
 
 #endif
 
-// [FWGS, 01.06.25]
+#endif
+
+// [FWGS, 08.11.26] the platform without a cursor of its own draws it after everything else
+#if XASH_PS4
+void Platform_DrawCursor (void);
+#else
+static inline void Platform_DrawCursor (void) {}
+#endif
+
+// [FWGS, 08.11.26] platforms that can't detect a mouse assume it's there
+#if XASH_PS4
+qboolean Platform_MouseConnected (void);
+#else
+static inline qboolean Platform_MouseConnected (void) { return true; }
+
+#endif
+
+// [FWGS, 08.11.25]
 #if XASH_SDL || XASH_DOS
+void Platform_RunEvents (void);
+void Platform_MouseMove (float *x, float *y);
+#elif XASH_PS4		// the gamepad, keyboard and mouse are polled in Platform_RunEvents
 void Platform_RunEvents (void);
 void Platform_MouseMove (float *x, float *y);
 #else
@@ -358,9 +467,10 @@ static inline void Platform_MouseMove (float *x, float *y)
 	}
 #endif
 
-// [FWGS, 01.09.26] rect is the area where the text is edited, in render coordinates, so the platform
+// [FWGS, 08.11.26] rect is the area where the text is edited, in render coordinates, so the platform
 // might keep it visible when it shows the on-screen keyboard over the game
-#if (XASH_SDL >= 2) || XASH_PSVITA || XASH_DOS || XASH_USE_EVDEV
+/*if (XASH_SDL >= 2) || XASH_PSVITA || XASH_DOS || XASH_USE_EVDEV*/
+#if XASH_SDL >= 2 || XASH_PSVITA || XASH_DOS || XASH_USE_EVDEV || XASH_PS4
 void Platform_EnableTextInput (qboolean enable, int x, int y, int w, int h);
 #else
 static inline void Platform_EnableTextInput (qboolean enable, int x, int y, int w, int h) {}
@@ -376,8 +486,9 @@ int Platform_TranslateKeyLayout (int keynum);
 static inline int Platform_TranslateKeyLayout (int keynum) { return keynum; }
 #endif
 
-// [FWGS, 01.06.25]
-#if XASH_SDL >= 2
+// [FWGS, 08.11.26]
+/*if XASH_SDL >= 2*/
+#if XASH_SDL >= 2 || XASH_PS4
 int Platform_JoyInit (void);	// returns number of connected gamepads, negative if error
 void Platform_JoyShutdown (void);
 void Platform_CalibrateGamepadGyro (void);
@@ -409,6 +520,22 @@ static inline char *Platform_Input (void)
 #endif
 	}
 
+// [FWGS, 08.11.26] hide and redraw the terminal input line around stdout prints
+static inline void Platform_ConsolePrintBegin (void)
+	{
+#if XASH_POSIX && !XASH_MOBILE_PLATFORM && !XASH_LOW_MEMORY
+	Posix_ConsolePrintBegin ();
+#endif
+	}
+
+// [FWGS, 08.11.26]
+static inline void Platform_ConsolePrintEnd (const char *msg)
+	{
+#if XASH_POSIX && !XASH_MOBILE_PLATFORM && !XASH_LOW_MEMORY
+	Posix_ConsolePrintEnd (msg);
+#endif
+	}
+
 /***
 ==============================================================================
 WINDOW MANAGEMENT
@@ -436,13 +563,13 @@ typedef enum ref_graphic_apis_e ref_graphic_apis_t;
 
 // Window [FWGS, 01.03.26]
 qboolean R_Init_Video (ref_graphic_apis_t type);
-void      R_Free_Video (void);
-qboolean  VID_SetMode (void);
-rserr_t   R_ChangeDisplaySettings (int width, int height, window_mode_t window_mode);
-int       R_MaxVideoModes (void);
+void R_Free_Video (void);
+qboolean VID_SetMode (void);
+rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mode);
+int R_MaxVideoModes (void);
 struct vidmode_s *R_GetVideoMode (int num);
 void *GL_GetProcAddress (const char *name);		// RenderAPI requirement
-void      GL_UpdateSwapInterval (void);
+void GL_UpdateSwapInterval (void);
 int GL_SetAttribute (int attr, int val);
 int GL_GetAttribute (int attr, int *val);
 void GL_SwapBuffers (void);

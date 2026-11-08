@@ -66,7 +66,9 @@ GNU General Public License for more details
 #define S_ISDIR( m ) ( FBitSet( m, S_IFMT ) == S_IFDIR )
 #endif
 
-#if !XASH_PSVITA && !XASH_NSWITCH
+// [FWGS, 08.11.26]
+/*if !XASH_PSVITA && !XASH_NSWITCH*/
+#if !XASH_PSVITA && !XASH_NSWITCH && !XASH_PS4
 #define HAVE_DUP
 #endif
 
@@ -210,9 +212,13 @@ MAYBE_UNUSED static const wchar_t *FS_PathToWideChar (const char *path)
 
 	MultiByteToWideChar (CP_UTF8, 0, path, -1, pathBuffer, MAX_PATH);
 	return pathBuffer;
+#else
+	// [FWGS, 08.11.26]
+	return NULL;
 #endif
 
-	return L"";
+	// [FWGS, 08.11.26]
+	/*return L"";*/
 	}
 
 /***

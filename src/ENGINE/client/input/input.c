@@ -69,6 +69,19 @@ CVAR_DEFINE_AUTO (touch_enable, DEFAULT_TOUCH_ENABLE, FCVAR_ARCHIVE | FCVAR_FILT
 
 /***
 ================
+IN_MouseConnected [FWGS, 08.11.26]
+================
+***/
+qboolean IN_MouseConnected (void)
+	{
+	if (m_ignore.value)
+		return false;
+
+	return Platform_MouseConnected ();
+	}
+
+/***
+================
 IN_CollectInputDevices
 
 Returns a bit mask representing connected devices or, at least, enabled
@@ -78,7 +91,9 @@ uint IN_CollectInputDevices (void)
 	{
 	uint	ret = 0;
 
-	if (!m_ignore.value)	// no way to check is mouse connected, so use cvar only
+	// [FWGS, 08.11.26]
+	/*if (!m_ignore.value)	// no way to check is mouse connected, so use cvar only*/
+	if (IN_MouseConnected ())
 		ret |= INPUT_DEVICE_MOUSE;
 
 	if (touch_enable.value)
@@ -383,6 +398,10 @@ static void IN_MouseMove (void)
 	oldy = y;
 
 	VGui_MouseMove (x, y);
+
+	// [FWGS, 08.11.26]
+	if (cls.key_dest == key_console)
+		Con_MouseMove (x, y);
 
 	// if the menu is visible, move the menu cursor
 	UI_MouseMove (x, y);

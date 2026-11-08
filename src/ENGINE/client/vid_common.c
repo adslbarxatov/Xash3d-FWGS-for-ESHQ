@@ -23,8 +23,13 @@ GNU General Public License for more details
 // [FWGS, 01.10.26]
 static CVAR_DEFINE_AUTO (vid_mode, "0", FCVAR_RENDERINFO,
 	"current video mode index (used only for storage)");
-static CVAR_DEFINE_AUTO (vid_rotate, "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
+
+// [FWGS, 08.11.26]
+/*static CVAR_DEFINE_AUTO (vid_rotate, "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
+	"screen rotation (0-3)");*/
+static CVAR_DEFINE_AUTO (vid_rotate, DEFAULT_VID_ROTATE, FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"screen rotation (0-3)");
+
 /*static CVAR_DEFINE_AUTO (vid_scale, "1.0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"pixel scale");*/
 
@@ -156,15 +161,30 @@ notify ref dll about screen transformations
 ***/
 void VID_SetDisplayTransform (int *render_w, int *render_h)
 	{
+	// [FWGS, 08.11.26]
 	uint	rotate = vid_rotate.value;
+	int		offset_x = 0, offset_y = 0;
 
 	// [FWGS, 01.11.25]
 	if ((rotate < REF_ROTATE_NONE) || (rotate > REF_ROTATE_CCW))
 		rotate = REF_ROTATE_NONE;
 
-	// [FWGS, 01.10.26]
-	/*if (ref.dllFuncs.R_SetDisplayTransform (rotate, 0, 0, vid_scale.value, vid_scale.value))*/
-	if (ref.dllFuncs.R_SetDisplayTransform (rotate, 0, 0, 1.0f, 1.0f))
+	// [FWGS, 08.11.26]
+	/*if (ref.dllFuncs.R_SetDisplayTransform (rotate, 0, 0, vid_scale.value, vid_scale.value))
+	if (ref.dllFuncs.R_SetDisplayTransform (rotate, 0, 0, 1.0f, 1.0f))*/
+#if XASH_SAILFISH
+	// only landscape and inverted landscape make sense on a phone
+	if ((rotate != REF_ROTATE_CW) && (rotate != REF_ROTATE_CCW))
+		rotate = REF_ROTATE_CW;
+
+	// the compositor rotates the window itself, it has to know the orientation to put the keyboard right anyway
+	Sailfish_SetOrientation (rotate);
+	Sailfish_GetDisplayOffset (&offset_x, &offset_y);
+	rotate = REF_ROTATE_NONE;
+#endif
+
+	// [FWGS, 08.11.26]
+	if (ref.dllFuncs.R_SetDisplayTransform (rotate, offset_x, offset_y, 1.0f, 1.0f))
 		{
 		if (rotate & 1)
 			{

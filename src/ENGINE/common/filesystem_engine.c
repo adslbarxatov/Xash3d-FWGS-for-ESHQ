@@ -311,8 +311,17 @@ static qboolean FS_DetermineRootDirectory (char *out, size_t size)
 
 	if (PSVita_GetBasePath (out, size))
 		return true;
-	Sys_Error ("couldn't find %s data directory", XASH_ENGINE_NAME);
 
+	Sys_Error ("couldn't find %s data directory", XASH_ENGINE_NAME);
+	return false;
+
+	// [FWGS, 08.11.26]
+#elif XASH_PS4
+
+	if (PS4_GetBasePath (out, size))
+		return true;
+
+	Sys_Error ("couldn't find %s data directory", XASH_ENGINE_NAME);
 	return false;
 
 #elif ( XASH_SDL >= 2 ) && !XASH_NSWITCH	// GetBasePath not impl'd in switch-sdl2

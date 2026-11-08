@@ -108,9 +108,6 @@ qboolean SW_CreateBuffer (int width, int height, uint *stride, uint *bpp, uint *
 			// [FWGS, 01.07.26]
 			if (!SDL_LockTexture (sw.tex, NULL, &pixels, &pitch))
 				{
-				/*int		bits;
-				uint	amask;*/
-
 				// lock successfull, release
 				SDL_UnlockTexture (sw.tex);
 
@@ -198,17 +195,12 @@ void SW_UnlockBuffer (void)
 	{
 	if (sw.renderer)
 		{
-		/*SDL_Rect src, dst;
-		src.x = src.y = 0;
-		src.w = sw.width;
-		src.h = sw.height;
-		dst = src;*/
-		SDL_Rect src =
+		SDL_Rect	src =
 			{
 			.w = sw.width,
 			.h = sw.height,
 			};
-		SDL_Rect dst = src;
+		SDL_Rect	dst = src;
 
 		SDL_UnlockTexture (sw.tex);
 
@@ -223,17 +215,12 @@ void SW_UnlockBuffer (void)
 	// blit if blitting surface availiable
 	if (sw.surf)
 		{
-		/*SDL_Rect src, dst;
-		src.x = src.y = 0;
-		src.w = sw.width;
-		src.h = sw.height;
-		dst = src;*/
-		SDL_Rect src =
+		SDL_Rect	src =
 			{
 			.w = sw.width,
 			.h = sw.height,
 			};
-		SDL_Rect dst = src;
+		SDL_Rect	dst = src;
 
 		SDL_UnlockSurface (sw.surf);
 		SDL_BlitSurface (sw.surf, &src, sw.win, &dst);
@@ -262,26 +249,21 @@ vidmode_t *R_GetVideoMode (int num)
 // [FWGS, 01.07.26]
 static void R_InitVideoModes (void)
 	{
-	/*char	buf[MAX_VA_STRING];*/
-	int		display_index = 0;
-	/*int		i, modes;*/
+	int	display_index = 0;
 
 	num_vidmodes = 0;
 
-	/*modes = SDL_GetNumDisplayModes (display_index);*/
-	int modes = SDL_GetNumDisplayModes (display_index);
+	int	modes = SDL_GetNumDisplayModes (display_index);
 	if (!modes)
 		return;
 
 	vidmodes = Mem_Malloc (host.mempool, modes * sizeof (vidmode_t));
 
-	/*for (i = 0; i < modes; i++)*/
-	char buf[MAX_VA_STRING];
+	char	buf[MAX_VA_STRING];
 
 	for (int i = 0; i < modes; i++)
 		{
-		/*int j;*/
-		SDL_DisplayMode mode;
+		SDL_DisplayMode	mode;
 
 		if (SDL_GetDisplayMode (display_index, i, &mode) < 0)
 			{
@@ -292,7 +274,7 @@ static void R_InitVideoModes (void)
 		if ((mode.w < VID_MIN_WIDTH) || (mode.h < VID_MIN_HEIGHT))
 			continue;
 
-		int j;
+		int	j;
 		for (j = 0; j < num_vidmodes; j++)
 			{
 			if ((mode.w == vidmodes[j].width) && (mode.h == vidmodes[j].height))
@@ -315,12 +297,9 @@ static void R_InitVideoModes (void)
 // [FWGS, 01.07.26]
 static void R_FreeVideoModes (void)
 	{
-	/*int i;*/
-
 	if (!vidmodes)
 		return;
 
-	/*for (i = 0; i < num_vidmodes; i++)*/
 	for (int i = 0; i < num_vidmodes; i++)
 		Mem_Free ((char *)vidmodes[i].desc);
 
@@ -334,7 +313,8 @@ static void R_FreeVideoModes (void)
 
 static qboolean WIN_SetWindowIcon (HICON ico)
 	{
-	SDL_SysWMinfo wminfo;
+	SDL_SysWMinfo	wminfo;
+
 	SDL_VERSION (&wminfo.version);
 	
 	if ((SDL_GetWindowWMInfo (host.hWnd, &wminfo) == SDL_TRUE) && (wminfo.subsystem == SDL_SYSWM_WINDOWS))
@@ -358,7 +338,7 @@ GL_GetProcAddress [FWGS, 01.11.25]
 ***/
 void *GL_GetProcAddress (const char *name)
 	{
-	void *func = SDL_GL_GetProcAddress (name);
+	void	*func = SDL_GL_GetProcAddress (name);
 
 #if XASH_PSVITA
 	// try to find in main module
@@ -418,13 +398,17 @@ static void VID_GetWindowSizeInPixels (SDL_Window *window, SDL_Renderer *rendere
 #endif
 	}
 
-// [FWGS, 01.03.26]
 void VID_SaveWindowSize (int width, int height)
 	{
-	qboolean maximized = FBitSet (SDL_GetWindowFlags (host.hWnd), SDL_WINDOW_MAXIMIZED);
-	int render_w = width, render_h = height;
+	qboolean	maximized = FBitSet (SDL_GetWindowFlags (host.hWnd), SDL_WINDOW_MAXIMIZED);
+	int		render_w = width, render_h = height;
 
 	VID_GetWindowSizeInPixels (host.hWnd, sw.renderer, &render_w, &render_h);
+
+	// [FWGS, 08.11.26]
+#if XASH_SAILFISH
+	Sailfish_KeepWindowSize (&width, &height, &render_w, &render_h);
+#endif
 
 	VID_SetDisplayTransform (&render_w, &render_h);
 	R_SaveVideoMode (width, height, render_w, render_h, maximized);
@@ -463,13 +447,10 @@ static qboolean VID_GuessFullscreenMode (int display_index, const SDL_DisplayMod
 // [FWGS, 01.07.26]
 static int VID_GetDisplayIndex (const char *caller, SDL_Window *window)
 	{
-	/*int display_index;*/
-
 	if (!window)
 		return 0;
 
-	/*display_index = SDL_GetWindowDisplayIndex (window);*/
-	int display_index = SDL_GetWindowDisplayIndex (window);
+	int	display_index = SDL_GetWindowDisplayIndex (window);
 	if (display_index < 0)
 		{
 		Con_Printf (S_ERROR "%s: SDL_GetWindowDisplayIndex: %s\n", caller, SDL_GetError ());
@@ -482,15 +463,15 @@ static int VID_GetDisplayIndex (const char *caller, SDL_Window *window)
 // [FWGS, 01.03.26]
 static void VID_SetWindowIcon (SDL_Window *hWnd)
 	{
-	char iconpath[MAX_STRING];
+	char	iconpath[MAX_STRING];
 
 	Q_strncpy (iconpath, GI->iconpath, sizeof (iconpath));
 	COM_ReplaceExtension (iconpath, ".tga", sizeof (iconpath));
 
-	rgbdata_t *icon = FS_LoadImage (iconpath, NULL, 0);
+	rgbdata_t	*icon = FS_LoadImage (iconpath, NULL, 0);
 	if (icon)
 		{
-		SDL_Surface *surface = SDL_CreateRGBSurfaceFrom (icon->buffer,
+		SDL_Surface	*surface = SDL_CreateRGBSurfaceFrom (icon->buffer,
 			icon->width, icon->height, 32, 4 * icon->width,
 			0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
 
@@ -638,9 +619,6 @@ static rserr_t VID_SetScreenResolution (int width, int height, window_mode_t win
 				// [FWGS, 01.07.26]
 				else
 					{
-					/*SDL_Rect r;
-					int x, y;*/
-
 					SDL_SetWindowSize (host.hWnd, width, height);
 
 					SDL_Rect	r;
@@ -744,11 +722,11 @@ static rserr_t VID_CreateWindow (const int input_width, const int input_height, 
 
 	if (glw_state.software)
 		{
-		char cmd[64];
+		char	cmd[64];
 
 		if (Sys_GetParmFromCmdLine ("-sdl_renderer", cmd))
 			{
-			int sdl_renderer = Q_max (-1, Q_atoi (cmd));
+			int	sdl_renderer = Q_max (-1, Q_atoi (cmd));
 
 			sw.renderer = SDL_CreateRenderer (host.hWnd, sdl_renderer, 0);
 			if (!sw.renderer)
@@ -758,7 +736,7 @@ static rserr_t VID_CreateWindow (const int input_width, const int input_height, 
 				goto cleanup;
 				}
 
-			SDL_RendererInfo info;
+			SDL_RendererInfo	info;
 			SDL_GetRendererInfo (sw.renderer, &info);
 			Con_Printf ("SDL_Renderer %s initialized\n", info.name);
 			}
@@ -945,7 +923,7 @@ int GL_GetAttribute (int attr, int *val)
 
 /***
 ==================
-R_Init_Video [FWGS, 01.03.26]
+R_Init_Video
 ==================
 ***/
 qboolean R_Init_Video (ref_graphic_apis_t type)
@@ -968,7 +946,8 @@ qboolean R_Init_Video (ref_graphic_apis_t type)
 		SDL_SetHint (SDL_HINT_VIDEO_X11_FORCE_EGL, "1");
 		}
 
-	SDL_SetHint (SDL_HINT_QTWAYLAND_WINDOW_FLAGS, "OverridesSystemGestures");
+	// [FWGS, 08.11.26]
+	/*SDL_SetHint (SDL_HINT_QTWAYLAND_WINDOW_FLAGS, "OverridesSystemGestures");*/
 	SDL_SetHint (SDL_HINT_QTWAYLAND_CONTENT_ORIENTATION, "landscape");
 	SDL_SetHint (SDL_HINT_VIDEO_X11_XRANDR, "1");
 	SDL_SetHint (SDL_HINT_VIDEO_X11_XVIDMODE, "1");
@@ -1023,7 +1002,6 @@ qboolean R_Init_Video (ref_graphic_apis_t type)
 rserr_t R_ChangeDisplaySettings (int width, int height, window_mode_t window_mode)
 	{
 	rserr_t	err;
-	/*SDL_DisplayMode	display_mode;*/
 
 	if (!host.hWnd)
 		err = VID_CreateWindow (width, height, window_mode);
@@ -1050,12 +1028,7 @@ Set the described video mode
 ***/
 qboolean VID_SetMode (void)
 	{
-	/*int		width, height;*/
 	rserr_t	err;
-	/*window_mode_t	window_mode;
-
-	width = window_width.value;
-	height = window_height.value;*/
 	int		width = window_width.value;
 	int		height = window_height.value;
 
@@ -1063,7 +1036,7 @@ qboolean VID_SetMode (void)
 	if ((width < VID_MIN_WIDTH) || (height < VID_MIN_HEIGHT))
 		{
 #if !defined( DEFAULT_MODE_WIDTH ) || !defined( DEFAULT_MODE_HEIGHT )
-		SDL_DisplayMode mode;
+		SDL_DisplayMode	mode;
 
 		SDL_GetDesktopDisplayMode (0, &mode);
 
@@ -1083,8 +1056,7 @@ qboolean VID_SetMode (void)
 		}
 #endif
 
-	/*window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);*/
-	window_mode_t window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);
+	window_mode_t	window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);
 	SetBits (gl_vsync.flags, FCVAR_CHANGED);
 	
 	err = R_ChangeDisplaySettings (width, height, window_mode);
@@ -1146,7 +1118,7 @@ qboolean VID_SetMode (void)
 // [FWGS, 01.03.26]
 ref_window_type_t R_GetWindowHandle (void **handle, ref_window_type_t type)
 	{
-	SDL_SysWMinfo wmInfo;
+	SDL_SysWMinfo	wmInfo;
 
 	if (type == REF_WINDOW_TYPE_SDL2)
 		{
@@ -1238,8 +1210,6 @@ void VID_Info_f (void)
 	int		width, height;
 	int		render_width, render_height;
 	int		x, y;
-	/*int		display_index;
-	SDL_DisplayMode	dm;*/
 
 	SDL_GetWindowSize (host.hWnd, &width, &height);
 	VID_GetWindowSizeInPixels (host.hWnd, sw.renderer, &render_width, &render_height);
@@ -1261,14 +1231,13 @@ void VID_Info_f (void)
 	Con_Printf ("Window maximized: %s" S_DEFAULT "\n", FBitSet (flags, SDL_WINDOW_MAXIMIZED) ?
 		S_GREEN "true" : S_RED "false");
 
-	/*display_index = SDL_GetWindowDisplayIndex (host.hWnd);*/
-	int display_index = SDL_GetWindowDisplayIndex (host.hWnd);
+	int	display_index = SDL_GetWindowDisplayIndex (host.hWnd);
 	if (display_index >= 0)
 		Con_Printf ("Window display index: " S_GREEN "%d" S_DEFAULT "\n", display_index);
 	else
 		Con_Printf ("Window display index: " S_RED "fail: " S_DEFAULT "%s\n", SDL_GetError ());
 
-	SDL_DisplayMode dm;
+	SDL_DisplayMode	dm;
 	if (SDL_GetWindowDisplayMode (host.hWnd, &dm) >= 0)
 		Con_Printf ("Window display mode: " S_GREEN "%dx%d@%d" S_DEFAULT "\n", dm.w, dm.h, dm.refresh_rate);
 	else
@@ -1280,7 +1249,7 @@ platform_orientation_t Platform_GetDisplayOrientation (void)
 	{
 	if (host.hWnd)
 		{
-		int display_index = SDL_GetWindowDisplayIndex (host.hWnd);
+		int	display_index = SDL_GetWindowDisplayIndex (host.hWnd);
 		if (display_index >= 0)
 			{
 			switch (SDL_GetDisplayOrientation (display_index))
