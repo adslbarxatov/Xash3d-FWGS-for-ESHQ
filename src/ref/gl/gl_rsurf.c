@@ -757,7 +757,6 @@ Combine and scale multiple lightmaps into the floating
 format in r_blocklights
 =================
 ***/
-/*static void R_BuildLightMap (const msurface_t *surf, byte *dest, int stride, qboolean dynamic)*/
 static void R_BuildLightMap (const msurface_t *surf, byte *__restrict dest, int stride, qboolean dynamic)
 	{
 	const mextrasurf_t	*info = surf->info;
@@ -776,23 +775,15 @@ static void R_BuildLightMap (const msurface_t *surf, byte *__restrict dest, int 
 
 	if (gl_overbright.value)
 		lightscale = (R_HasEnabledVBO () && !r_vbo_overbrightmode.value) ? 171 : 256;
-	/*
-	else
-		lightscale = (pow (2.0f, 1.0f / v_lightgamma->value) * 256) + 0.5;*/
 	else
 		lightscale = (pow (2.0f, 1.0f / v_lightgamma->value) * 256) + 0.5;
 
-	/*memset (r_blocklights, 0, sizeof (uint) * size * 3);*/
 	int	map;
 	qboolean	init = false;
 
-	/*// add all the lightmaps
-	for (int map = 0; (map < MAXLIGHTMAPS) && surf->samples; map++)*/
 	// init the lightmap
 	for (map = 0; (map < MAXLIGHTMAPS) && surf->samples; map++)
 		{
-		/*const color24	*lm = &surf->samples[map * size];*/
-
 		if (surf->styles[map] >= 255)
 			break;
 
@@ -801,9 +792,6 @@ static void R_BuildLightMap (const msurface_t *surf, byte *__restrict dest, int 
 
 		for (int i = 0; i < size; i++)
 			{
-			/*r_blocklights[i * 3 + 0] += lm[i].r * scale;
-			r_blocklights[i * 3 + 1] += lm[i].g * scale;
-			r_blocklights[i * 3 + 2] += lm[i].b * scale;*/
 			r_blocklights[i * 3 + 0] = lm[i].r * scale;
 			r_blocklights[i * 3 + 1] = lm[i].g * scale;
 			r_blocklights[i * 3 + 2] = lm[i].b * scale;
@@ -845,8 +833,6 @@ static void R_BuildLightMap (const msurface_t *surf, byte *__restrict dest, int 
 		{
 		for (int s = 0; s < smax; s++)
 			{
-			/*const uint	*bl = &r_blocklights[(s + (t * smax)) * 3];
-			byte	*dst = &dest[(t * stride) + (s * 4)];*/
 			const uint *__restrict	bl = &r_blocklights[(s + (t * smax)) * 3];
 			byte *__restrict		dst = &dest[(t * stride) + (s * 4)];
 
@@ -856,7 +842,6 @@ static void R_BuildLightMap (const msurface_t *surf, byte *__restrict dest, int 
 
 				// amp up water lightmap to avoid too dark water
 				// when the it wasn't properly lit by the level designer
-				/*if (FBitSet (surf->flags, SURF_DRAWTURB))*/
 				if (turb)
 					{
 					float	ft = t * litwater_scale;
@@ -866,7 +851,6 @@ static void R_BuildLightMap (const msurface_t *surf, byte *__restrict dest, int 
 				if (t > 1023)
 					t = 1023;
 
-				/*dst[i] = LightToTexGamma (t) >> 2;*/
 				if (linear_gamma)
 					dst[i] = t >> 2;
 				else
@@ -1403,7 +1387,7 @@ static void R_RenderFullbrights (qboolean allow_vbo)
 
 /***
 ================
-R_RenderDetails [FWGS, 01.07.26]
+R_RenderDetails
 ================
 ***/
 static void R_RenderDetails (int passes)
@@ -1427,6 +1411,9 @@ static void R_RenderDetails (int passes)
 		pglEnable (GL_POLYGON_OFFSET_FILL);
 		}
 
+	// [FWGS, 08.11.26]
+	qboolean	equal = (passes == 3);
+
 	for (int i = draw_details.first; i <= draw_details.last; i++)
 		{
 		mextrasurf_t	*es = detail_surfaces[i];
@@ -1439,6 +1426,24 @@ static void R_RenderDetails (int passes)
 			{
 			msurface_t	*fa = p->surf;
 			gl_texture_t	*glt = R_GetTexture (fa->texinfo->texture->gl_texturenum);	// get texture scale
+
+			// [FWGS, 08.11.26] transparent surfaces aren't in VBO, match their depth exactly to keep alpha tested holes untouched
+			if ((passes != 3) && (equal != !!FBitSet (fa->flags, SURF_TRANSPARENT)))
+				{
+				equal = !equal;
+
+				if (equal)
+					{
+					pglDepthFunc (GL_EQUAL);
+					if (!glState.num_polyoffsets)
+						pglDisable (GL_POLYGON_OFFSET_FILL);
+					}
+				else
+					{
+					pglDepthFunc (GL_LEQUAL);
+					pglEnable (GL_POLYGON_OFFSET_FILL);
+					}
+				}
 
 			DrawGLPoly (fa->polys, glt->xscale, glt->yscale);
 			}
@@ -1517,8 +1522,6 @@ static void R_RenderDecalsForSurface (msurface_t *fa, int cull_type)
 // [FWGS, 01.09.26]
 static qboolean R_CheckLightMap (msurface_t *fa)
 	{
-	/*int	maps;*/
-
 	if (unlikely (!r_dynamic->value))
 		return false;
 
@@ -1526,17 +1529,10 @@ static qboolean R_CheckLightMap (msurface_t *fa)
 		return true;	// dlighted surfaces are always dynamic
 
 	// check for light styles
-	/*for (maps = 0; (maps < MAXLIGHTMAPS) && (fa->styles[maps] != 255); maps++)*/
 	for (int maps = 0; (maps < MAXLIGHTMAPS) && (fa->styles[maps] != 255); maps++)
 		{
-		/*if (g_lightstylevalue[fa->styles[maps]] == fa->cached_light[maps])
-			continue;*/
-
 		const int	style = fa->styles[maps];
 
-		/*// flickering light styles can go to dynamic chain
-		if (!((style >= 32) || (style == 0) || (style == 20)))
-			return true;*/
 		if (g_lightstylevalue[style] == fa->cached_light[maps])
 			continue;
 
@@ -1719,13 +1715,17 @@ void R_DrawAlphaTextureChains (void)
 	pglEnable (GL_ALPHA_TEST);
 	pglAlphaFunc (GL_GREATER, 0.25f);
 
-	GL_SetupFogColorForSurfaces ();
+	// [FWGS, 08.11.26]
+	/*GL_SetupFogColorForSurfaces ();*/
 
 	// restore worldmodel
 	RI.currententity = CL_GetEntityByIndex (0);
 	RI.currentmodel = RI.currententity->model;
 	RI.currententity->curstate.rendermode = kRenderTransAlpha;
 	
+	// [FWGS, 08.11.26]
+	GL_SetupFogColorForSurfaces ();
+
 	for (int i = draw_alpha_surfaces.first; i <= draw_alpha_surfaces.last; i++)
 		{
 		texture_t	*t = WORLDMODEL->textures[i];
@@ -2044,13 +2044,11 @@ void R_DrawBrushModel (cl_entity_t *e)
 	// [FWGS, 01.09.26] draw sorted translucent surfaces
 	for (int i = 0; i < num_sorted; i++)
 		{
-		/*if (!allow_vbo || !R_AddSurfToVBO (gpGlobals->draw_surfaces[i].surf, true))*/
 		if (!allow_vbo || !R_AddSurfToVBO (gpGlobals->draw_surfaces[i].surf, drawlightmap))
 			R_RenderBrushPoly (gpGlobals->draw_surfaces[i].surf, gpGlobals->draw_surfaces[i].cull);
 		}
 
 	// [FWGS, 01.09.26]
-	/*R_DrawVBO (R_HasLightmap (), true);*/
 	R_DrawVBO (drawlightmap, true);
 
 	if (e->curstate.rendermode == kRenderTransColor)
@@ -2844,8 +2842,6 @@ static void R_SetupVBOArrayDecalDlight (int decalcount)
 	}
 
 // [FWGS, 01.09.26]
-/*static void R_AdditionalPasses (vboarray_t *vbo, int indexlen, void *indexarray, texture_t *tex,
-	qboolean resetvbo, size_t offset)*/
 static void R_AdditionalPasses (vboarray_t *vbo, int indexlen, void *indexarray, texture_t *tex, qboolean resetvbo,
 	size_t offset, uint minindex, uint maxindex)
 	{
@@ -2878,12 +2874,6 @@ static void R_AdditionalPasses (vboarray_t *vbo, int indexlen, void *indexarray,
 		pglScalef (glt->xscale, glt->yscale, 1);
 
 		// draw
-		/*if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN		// WebGL need to know array sizes
-		if (pglDrawRangeElements)
-			pglDrawRangeElements (GL_TRIANGLES, 0, vbo->array_len, indexlen, GL_VBOINDEX_TYPE, indexarray);
-		else
-		endif
-			pglDrawElements (GL_TRIANGLES, indexlen, GL_VBOINDEX_TYPE, indexarray);*/
 		GL_DrawRangeElements (GL_TRIANGLES, minindex, maxindex, indexlen, GL_VBOINDEX_TYPE, indexarray);
 
 		// restore state
@@ -2953,9 +2943,6 @@ static void R_DrawDlightedDecals (vboarray_t *vbo, msurface_t *newsurf, msurface
 			pglDrawArrays (GL_TRIANGLE_FAN, decali * DECAL_VERTS_MAX, vbos.decal_numverts[decali]);
 			decali++;
 			}
-
-		// [FWGS, 01.09.26]
-		/*newsurf = surf;*/
 		}
 
 #if SPARSE_DECALS_UPLOAD
@@ -2983,22 +2970,16 @@ static void R_FlushDlights (vboarray_t *vbo, int min_index, int max_index, int d
 		// [FWGS, 01.09.26]
 #ifndef MINIMIZE_UPLOAD
 		pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbos.dlight_vbo);
-		/*pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vec2_t) * (max_index - min_index),
-			vbos.dlight_tc + min_index, GL_STREAM_DRAW_ARB);*/
 		pglBufferDataARB (GL_ARRAY_BUFFER_ARB, sizeof (vec2_t) * (max_index - min_index),
 			vbos.dlight_tc + min_index, GL_STREAM_DRAW_ARB);
 #endif
 
 		// [FWGS, 01.09.26]
 		pglBindBufferARB (GL_ARRAY_BUFFER_ARB, vbo->glindex);
-		/*pglVertexPointer (3, GL_FLOAT, sizeof (vbovertex_t), (void *)(min_index * sizeof (vbovertex_t) +
-			offsetof (vbovertex_t, pos)));*/
 		pglVertexPointer (3, GL_FLOAT, sizeof (vbovertex_t), (void *)(min_index * sizeof (vbovertex_t) +
 			offsetof (vbovertex_t, pos)));
 
 		GL_SelectTexture (mtst.tmu_gl);
-		/*pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)(min_index * sizeof (vbovertex_t) +
-			offsetof (vbovertex_t, gl_tc)));*/
 		pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)(min_index * sizeof (vbovertex_t) +
 			offsetof (vbovertex_t, gl_tc)));
 
@@ -3006,8 +2987,6 @@ static void R_FlushDlights (vboarray_t *vbo, int min_index, int max_index, int d
 		if (mtst.details_enabled && (mtst.tmu_dt != -1))
 			{
 			GL_SelectTexture (mtst.tmu_dt);
-			/*pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)(min_index * sizeof (vbovertex_t) +
-				offsetof (vbovertex_t, gl_tc)));*/
 			pglTexCoordPointer (2, GL_FLOAT, sizeof (vbovertex_t), (void *)(min_index * sizeof (vbovertex_t) +
 				offsetof (vbovertex_t, gl_tc)));
 			}
@@ -3022,12 +3001,6 @@ static void R_FlushDlights (vboarray_t *vbo, int min_index, int max_index, int d
 	LM_UploadDynamicBlock ();
 
 	// [FWGS, 01.09.26]
-	/*if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN		// WebGL need to know array sizes
-	if (pglDrawRangeElements)
-		pglDrawRangeElements (GL_TRIANGLES, min_index, max_index, dlightindex, GL_VBOINDEX_TYPE, dlightarray);
-	else
-	endif
-		pglDrawElements (GL_TRIANGLES, dlightindex, GL_VBOINDEX_TYPE, dlightarray);*/
 	if (dlightindex)
 		GL_DrawRangeElements (GL_TRIANGLES, 0, max_index - min_index - 1, dlightindex, GL_VBOINDEX_TYPE, dlightarray);
 	}
@@ -3171,7 +3144,6 @@ static void R_DrawVBODlights (vboarray_t *vbo, vbotexture_t *vbotex, texture_t *
 				// [FWGS, 01.09.26] out of free block space. Draw all generated index array and clear it
 				// upload already generated block
 				R_FlushDlights (vbo, min_index, max_index, dlightindex, dlightarray);
-				/*R_AdditionalPasses (vbo, dlightindex, dlightarray, texture, true, min_index * sizeof (vbovertex_t));*/
 				R_AdditionalPasses (vbo, dlightindex, dlightarray, texture, true, min_index * sizeof (vbovertex_t),
 					0, max_index - min_index - 1);
 
@@ -3257,7 +3229,6 @@ static void R_DrawVBODlights (vboarray_t *vbo, vbotexture_t *vbotex, texture_t *
 		if (dlightindex)
 			{
 			R_FlushDlights (vbo, min_index, max_index, dlightindex, dlightarray);
-			/*R_AdditionalPasses (vbo, dlightindex, dlightarray, texture, true, min_index * sizeof (vbovertex_t));*/
 			R_AdditionalPasses (vbo, dlightindex, dlightarray, texture, true, min_index * sizeof (vbovertex_t),
 				0, max_index - min_index - 1);
 
@@ -3297,13 +3268,6 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 	if (vbotex->curindex)
 		{
 		// [FWGS, 01.09.26]
-		/*if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN		// WebGL need to know array sizes
-		if (pglDrawRangeElements)
-			pglDrawRangeElements (GL_TRIANGLES, 0, vbo->array_len, vbotex->curindex, GL_VBOINDEX_TYPE,
-				vbotex->indexarray);
-		else
-		endif
-			pglDrawElements (GL_TRIANGLES, vbotex->curindex, GL_VBOINDEX_TYPE, vbotex->indexarray);*/
 		GL_DrawRangeElements (GL_TRIANGLES, vbotex->firstindex, vbotex->firstindex + vbotex->len - 1,
 			vbotex->curindex, GL_VBOINDEX_TYPE, vbotex->indexarray);
 
@@ -3317,12 +3281,6 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 			pglDisable (GL_DEPTH_TEST);
 
 			// [FWGS, 01.09.26]
-			/*if !defined XASH_NANOGL || defined XASH_WES && XASH_EMSCRIPTEN		// WebGL need to know array sizes
-			if (pglDrawRangeElements)
-				pglDrawRangeElements (GL_LINES, 0, vbo->array_len, vbotex->curindex, GL_VBOINDEX_TYPE, vbotex->indexarray);
-			else
-			endif
-				pglDrawElements (GL_LINES, vbotex->curindex, GL_VBOINDEX_TYPE, vbotex->indexarray);*/
 			GL_DrawRangeElements (GL_LINES, vbotex->firstindex, vbotex->firstindex + vbotex->len - 1,
 				vbotex->curindex, GL_VBOINDEX_TYPE, vbotex->indexarray);
 
@@ -3343,7 +3301,6 @@ static void R_DrawLightmappedVBO (vboarray_t *vbo, vbotexture_t *vbotex, texture
 
 	// [FWGS, 01.09.26]
 	R_DrawVBODlights (vbo, vbotex, texture, lightmap);
-	/*R_AdditionalPasses (vbo, vbotex->curindex, vbotex->indexarray, texture, false, 0);*/
 	R_AdditionalPasses (vbo, vbotex->curindex, vbotex->indexarray, texture, false, 0, vbotex->firstindex,
 		vbotex->firstindex + vbotex->len - 1);
 
@@ -3485,7 +3442,6 @@ static void R_ClearVBOState (qboolean drawlightmap, qboolean drawtextures)
 		pglDisableClientState (GL_TEXTURE_COORD_ARRAY);
 		
 		// [FWGS, 01.09.26]
-		/*pglDisable (GL_TEXTURE_2D);*/
 		GL_CleanUpTextureUnits (1);
 
 		if (drawtextures)

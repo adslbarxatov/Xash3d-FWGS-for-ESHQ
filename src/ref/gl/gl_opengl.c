@@ -598,7 +598,7 @@ static void GL_SetExtension (int r_ext, int enable)
 
 /***
 =================
-GL_CheckExtension [FWGS, 01.10.26]
+GL_CheckExtension
 =================
 ***/
 static qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, size_t num_funcs, const char *cvarname,
@@ -646,8 +646,9 @@ static qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, siz
 
 	for (size_t i = 0; i < num_funcs; i++)
 		{
-		// functions are cleared before all the extensions are evaluated
-		if ((*(funcs[i].func) = (void *)gEngfuncs.GL_GetProcAddress (funcs[i].name)) == NULL)
+		// [FWGS, 08.11.26] functions are cleared before all the extensions are evaluated
+		/*if ((*(funcs[i].func) = (void *)gEngfuncs.GL_GetProcAddress (funcs[i].name)) == NULL)*/
+		if ((*(funcs[i].func) = (void *)GL_GetProcAddress (funcs[i].name)) == NULL)
 			{
 			string	name;
 			char	*end;
@@ -678,7 +679,9 @@ static qboolean GL_CheckExtension (const char *name, const dllfunc_t *funcs, siz
 
 				Q_strncat (name, suffixes[j], sizeof (name));
 
-				if ((f = gEngfuncs.GL_GetProcAddress (name)))
+				// [FWGS, 08.11.26]
+				/*if ((f = gEngfuncs.GL_GetProcAddress (name)))*/
+				if ((f = GL_GetProcAddress (name)))
 					{
 					// GL_GetProcAddress prints errors about missing functions,
 					// so tell user that we found it with different name
@@ -719,11 +722,19 @@ GL_GetProcAddress
 defined just for nanogl/glwes, so it don't link to SDL2 directly, nor use dlsym
 ==============
 ***/
-void GAME_EXPORT *GL_GetProcAddress (const char *name);	// [FWGS, 01.02.24] keep defined for nanogl/wes
 
+// [FWGS, 08.11.26]
+/*void GAME_EXPORT *GL_GetProcAddress (const char *name);	// [FWGS, 01.02.24] keep defined for nanogl/wes*/
+
+// [FWGS, 08.11.26]
 void GAME_EXPORT *GL_GetProcAddress (const char *name)
 	{
+#if XASH_PS4
+	// OpenGL is implemented by the renderer itself, the engine only has the device
+	return GNM_ShimGetProcAddress (name);
+#else
 	return gEngfuncs.GL_GetProcAddress (name);
+#endif
 	}
 
 /***
@@ -1246,6 +1257,11 @@ static void GL_InitExtensionsBigGL (void)
 	GL_SetExtension (GL_OPENGL_110, true);
 	// init our immediate mode override
 	VGL_ShimInit ();
+
+	// [FWGS, 08.11.26]
+#elif XASH_PS4
+	// gnm_shim implements only GL1.1 functions that are used
+	GL_SetExtension (GL_OPENGL_110, true);
 #endif
 
 #if !XASH_GLES && !XASH_GL_STATIC
@@ -1274,6 +1290,7 @@ void GL_InitExtensions (void)
 
 	pglGetIntegerv (GL_MAJOR_VERSION, &major);
 	pglGetIntegerv (GL_MINOR_VERSION, &minor);
+
 	if (!major && glConfig.version_string)
 		{
 		const char	*str = glConfig.version_string;
@@ -1297,8 +1314,11 @@ void GL_InitExtensions (void)
 #if !XASH_GL_STATIC
 	if (!glConfig.extensions_string)
 		{
-		int n = 0;
-		pglGetStringi = gEngfuncs.GL_GetProcAddress ("glGetStringi");
+		int	n = 0;
+
+		// [FWGS, 08.11.26]
+		/*pglGetStringi = gEngfuncs.GL_GetProcAddress ("glGetStringi");*/
+		pglGetStringi = GL_GetProcAddress ("glGetStringi");
 
 		pglGetIntegerv (GL_NUM_EXTENSIONS, &n);
 		if (n && pglGetStringi)
@@ -1585,6 +1605,11 @@ void R_Shutdown (void)
 	close_gl4es ();
 #endif
 
+	// [FWGS, 08.11.26]
+#if XASH_PS4
+	GNM_ShimShutdown ();
+#endif
+
 	// shut down OS specific OpenGL stuff like contexts, etc.
 	gEngfuncs.R_Free_Video ();
 	}
@@ -1816,6 +1841,14 @@ void GL_OnContextCreated (void)
 
 #if XASH_NANOGL
 	nanoGL_Init ();
+#endif
+
+	// [FWGS, 08.11.26]
+#if XASH_PS4
+	void	*gnm = NULL;
+
+	if (gEngfuncs.R_GetWindowHandle (&gnm, REF_WINDOW_TYPE_GNM) != REF_WINDOW_TYPE_GNM || !GNM_ShimInit (gnm))
+		gEngfuncs.Host_Error ("%s: can't initialize OpenGL over GNM\n", __func__);
 #endif
 
 	gEngfuncs.GL_GetAttribute (REF_GL_RED_SIZE, &colorBits[0]);

@@ -395,29 +395,26 @@ static void GAME_EXPORT R_SetupSky (int *skyboxTextures)
 		tr.skyboxTextures[i] = skyboxTextures[i];
 	}
 
-// [FWGS, 01.10.26]
+// [FWGS, 08.11.26]
 /*static qboolean R_SetDisplayTransform (ref_screen_rotation_t rotate, int offset_x, int offset_y,
 	float scale_x, float scale_y)*/
 static qboolean R_SetDisplayTransform (ref_screen_rotation_t rotate, int offset_x, int offset_y,
 	float unused1_default_at_1, float unused2_default_at_1)
 	{
-	qboolean	ret = true;
+	/*qboolean	ret = true;*/
 
 	tr.rotation = rotate;
+	tr.offset_x = offset_x;
+	tr.offset_y = offset_y;
 
-	if (offset_x || offset_y)
+	/*if (offset_x || offset_y)
 		{
 		gEngfuncs.Con_Printf ("offset transform not supported\n");
 		ret = false;
 		}
 
-	/*if ((scale_x != 1.0f) || (scale_y != 1.0f))
-		{
-		gEngfuncs.Con_Printf ("scale transform not supported\n");
-		ret = false;
-		}*/
-
-	return ret;
+	return ret;*/
+	return true;
 	}
 
 // [FWGS, 01.05.26] removed VGUI_UploadTextureBlock
@@ -449,13 +446,14 @@ static void GAME_EXPORT R_OverrideTextureSourceSize (unsigned int texnum, uint s
 	tx->srcHeight = srcHeight;
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 08.11.26]
 static void *GAME_EXPORT R_GetProcAddress (const char *name)
 	{
 #if XASH_GL4ES
 	return gl4es_GetProcAddress (name);
 #else
-	return gEngfuncs.GL_GetProcAddress (name);
+	/*return gEngfuncs.GL_GetProcAddress (name);*/
+	return GL_GetProcAddress (name);
 #endif
 	}
 

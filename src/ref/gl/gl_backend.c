@@ -585,15 +585,18 @@ static const envmap_t	r_envMapInfo[6] =
 	{{ 90,   0,  90}, 0 }
 	};
 
-// [FWGS, 01.07.26]
 qboolean VID_ScreenShot (const char *filename, int shot_type)
 	{
 	uint	flags = IMAGE_FLIP_Y;
 	int		width = 0, height = 0;
 
+	// [FWGS, 08.11.26]
 	rgbdata_t	*r_shot = Mem_Calloc (r_temppool, sizeof (rgbdata_t));
-	r_shot->width = (gpGlobals->width + 3) & ~3;
-	r_shot->height = (gpGlobals->height + 3) & ~3;
+	/*r_shot->width = (gpGlobals->width + 3) & ~3;
+	r_shot->height = (gpGlobals->height + 3) & ~3;*/
+	r_shot->width = gpGlobals->width;
+	r_shot->height = gpGlobals->height;
+
 	r_shot->flags = IMAGE_HAS_COLOR;
 	r_shot->type = PF_RGBA_32;
 	r_shot->size = r_shot->width * r_shot->height * gEngfuncs.Image_GetPFDesc (r_shot->type)->bpp;

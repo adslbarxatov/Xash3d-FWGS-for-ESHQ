@@ -33,8 +33,9 @@ GNU General Public License for more details
 	#include <io.h>
 #endif
 
-// [FWGS, 01.07.25] do not waste precious CPU cycles on mobiles or low memory devices
-#if !XASH_WIN32 && !XASH_MOBILE_PLATFORM && !XASH_LOW_MEMORY && !XASH_EMSCRIPTEN
+// [FWGS, 08.11.26] do not waste precious CPU cycles on mobiles or low memory devices
+/*if !XASH_WIN32 && !XASH_MOBILE_PLATFORM && !XASH_LOW_MEMORY && !XASH_EMSCRIPTEN*/
+#if !XASH_WIN32 && ( !XASH_MOBILE_PLATFORM || XASH_SAILFISH ) && !XASH_LOW_MEMORY && !XASH_EMSCRIPTEN
 	#define XASH_COLORIZE_CONSOLE 1
 #else
 	#define XASH_COLORIZE_CONSOLE 0
@@ -78,10 +79,13 @@ int Sys_LogFileNo (void)
 	return s_ld.logfileno;
 	}
 
+// [FWGS, 08.11.26]
 static void Sys_FlushStdout (void)
 	{
-	// never printing anything to stdout on mobiles
-#if !XASH_MOBILE_PLATFORM
+	/*// never printing anything to stdout on mobiles
+if !XASH_MOBILE_PLATFORM*/
+	// never printing anything to stdout on mobiles, except Sailfish, where it goes to the journal
+#if !XASH_MOBILE_PLATFORM || XASH_SAILFISH
 	fflush (stdout);
 #endif
 	}
@@ -125,7 +129,7 @@ void Sys_InitLog (void)
 
 		if (!COM_StringEmptyOrNULL (basedir) && (s_ld.log_path[0] != '/'))
 			{
-			char fullpath[MAX_SYSPATH];
+			char	fullpath[MAX_SYSPATH];
 			Q_snprintf (fullpath, sizeof (fullpath), "%s/%s", basedir, s_ld.log_path);
 			s_ld.logfile = fopen (fullpath, mode);
 			}
@@ -292,7 +296,6 @@ static void Sys_WriteLogfile (int fd, const char *logtime, size_t logtime_len, c
 		}
 	}
 
-// [FWGS, 01.07.26]
 static void Sys_PrintStdout (const char *logtime, size_t logtime_len, const char *msg, const char *stripped)
 	{
 #if XASH_ANDROID && !XASH_DEDICATED
@@ -309,24 +312,36 @@ static void Sys_PrintStdout (const char *logtime, size_t logtime_len, const char
 	fprintf (stderr, "%s %s", logtime, stripped);
 #endif
 
+	// [FWGS, 08.11.26]
 #if XASH_PSVITA
 	// spew to stderr only in developer mode
 	if (host_developer.value)
 		fprintf (stderr, "%s %s", logtime, stripped);
+#elif XASH_PS4
+	// no console, written directly to file to survive crashes
+	PS4_Log ("%s %s", logtime, stripped);
 #endif
 
-#if !XASH_MOBILE_PLATFORM && !XASH_WIN32	// Wcon does the job
+	// [FWGS, 08.11.26]
+/*if !XASH_MOBILE_PLATFORM && !XASH_WIN32	// Wcon does the job*/
+#if ( !XASH_MOBILE_PLATFORM || XASH_SAILFISH ) && !XASH_WIN32	// Wcon does the job
+	Platform_ConsolePrintBegin ();
 	Sys_PrintLogfile (STDOUT_FILENO, logtime, logtime_len, XASH_COLORIZE_CONSOLE ? msg : stripped, XASH_COLORIZE_CONSOLE);
 	Sys_FlushStdout ();
+	Platform_ConsolePrintEnd (msg);
 #endif
 
 	XRcon_Print (stripped);
 	}
 
-// [FWGS, 01.07.26]
+// [FWGS, 08.11.26]
 void Sys_PrintLog (const char *pMsg)
 	{
 	static char	lastchar;
+	static char	clean[MAX_PRINT_MSG];
+
+	COM_StripControlChars (clean, pMsg, sizeof (clean));
+	pMsg = clean;
 	const struct tm	*crt_tm = NULL;
 
 	if (!lastchar || (lastchar == '\n'))

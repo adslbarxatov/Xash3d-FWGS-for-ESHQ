@@ -16,7 +16,7 @@ GNU General Public License for more details
 // [FWGS, 01.03.26]
 #include "common.h"
 #include "client.h"
-#include "tests.h"
+/*include "tests.h"*/
 
 // [FWGS, 05.04.26]
 client_textmessage_t	gMessageParms;

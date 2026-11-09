@@ -36,6 +36,7 @@ static int R_RankForRenderMode (int rendermode)
 		case kRenderGlow:
 			return 3;	// must be last!
 		}
+
 	return 0;
 	}
 
@@ -582,10 +583,18 @@ void R_SetupGL (qboolean set_gl_state)
 		int	y = scene_height - RI.rvp.viewport[1] * scene_height / gpGlobals->height;
 		int	y2 = scene_height - ((RI.rvp.viewport[1] + RI.rvp.viewport[3]) * scene_height + gpGlobals->height - 1) / gpGlobals->height;
 
+		// [FWGS, 08.11.26] the screen target is moved into place when it's presented
+		int	ox = GL_RenderTargetsActive () ? 0 : tr.offset_x;
+		int	oy = GL_RenderTargetsActive () ? 0 : tr.offset_y;
+
+		// [FWGS, 08.11.26]
 		if (tr.rotation & 1)
-			pglViewport (y2, x, y - y2, x2 - x);
+		/*	pglViewport (y2, x, y - y2, x2 - x);
 		else
-			pglViewport (x, y2, x2 - x, y - y2);
+			pglViewport (x, y2, x2 - x, y - y2);*/
+			pglViewport (ox + y2, oy + x, y - y2, x2 - x);
+		else
+			pglViewport (ox + x, oy + y2, x2 - x, y - y2);
 		}
 	else
 		{
@@ -1206,6 +1215,12 @@ void R_EndFrame (void)
 
 	// flush any remaining 2D bits
 	R_Set2DMode (false);
+
+	// [FWGS, 08.11.26]
+#if XASH_PS4
+	GNM_ShimEndFrame ();
+#endif
+
 	gEngfuncs.GL_SwapBuffers ();
 	}
 
