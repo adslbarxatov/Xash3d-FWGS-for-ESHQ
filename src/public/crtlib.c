@@ -60,7 +60,6 @@ void Q_strnlwr (const char *in, char *out, size_t size_out)
 // [FWGS, 01.02.25] removed Q_colorstr
 // [FWGS, 01.05.24] removed Q_toupper, Q_tolower, Q_strncat
 
-// [FWGS, 01.07.26]
 int Q_atoi_hex (int sign, const char *str)
 	{
 	int	val = 0;
@@ -72,6 +71,13 @@ int Q_atoi_hex (int sign, const char *str)
 		{
 		int	c = *str++;
 
+		// [FWGS, 13.11.26]
+		/*if ((c >= '0') && (c <= '9'))
+			val = (val << 4) + c - '0';
+		else if ((c >= 'a') && (c <= 'f'))
+			val = (val << 4) + c - 'a' + 10;
+		else if ((c >= 'A') && (c <= 'F'))
+			val = (val << 4) + c - 'A' + 10;*/
 		if ((c >= '0') && (c <= '9'))
 			val = (val << 4) + c - '0';
 		else if ((c >= 'a') && (c <= 'f'))
@@ -229,7 +235,6 @@ void Q_atov (float *vec, const char *str, size_t siz)
 		}
 	}
 
-// [FWGS, 01.07.26]
 static qboolean Q_starcmp (const char *pattern, const char *text)
 	{
 	char	c;
@@ -244,7 +249,9 @@ static qboolean Q_starcmp (const char *pattern, const char *text)
 	if (c == '\0')
 		return true;
 
-	for (char c1 = ((c == '\\') ? *p : c); ; )
+	// [FWGS, 13.11.26]
+	/*for (char c1 = ((c == '\\') ? *p : c); ; )*/
+	for (char c1 = ((c == '\\') ? *p : c);; )
 		{
 		if ((Q_tolower (*t) == c1) && Q_stricmpext (p - 1, t))
 			return true;
@@ -286,8 +293,10 @@ qboolean Q_strnicmpext (const char *pattern, const char *text, size_t minimumlen
 	return (*text == '\0') || (i == minimumlength);
 	}
 
+// [FWGS, 13.11.26]
 qboolean Q_stricmpext (const char *pattern, const char *text)
 	{
+	/*return Q_strnicmpext (pattern, text, ~((size_t)0));*/
 	return Q_strnicmpext (pattern, text, ~((size_t)0));
 	}
 
@@ -657,7 +666,8 @@ void COM_ExtractFilePath (const char *path, char *dest)
 	{
 	const char	*src = path + Q_strlen (path) - 1;
 
-	// back up until a / or the start
+	// [FWGS, 13.11.26] back up until a / or the start
+	/*while ((src > path) && !(*(src - 1) == '\\' || *(src - 1) == '/'))*/
 	while ((src > path) && !(*(src - 1) == '\\' || *(src - 1) == '/'))
 		src--;
 
@@ -785,11 +795,15 @@ int COM_CheckNastyPath (const char *path)
 		return 1;	// non-portable attempt to go to parent directory
 #endif
 
-	// all: don't allow going to parent directory (../ or /../)
+	// [FWGS, 13.11.26] all: don't allow going to parent directory (../ or /../)
+	/*if (Q_strstr (path, ".."))
+		return 2;	// attempt to go outside the game directory*/
 	if (Q_strstr (path, ".."))
 		return 2;	// attempt to go outside the game directory
 
-	// Windows and UNIXes: don't allow absolute paths
+	// [FWGS, 13.11.26] Windows and UNIXes: don't allow absolute paths
+	/*if (path[0] == '/')
+		return 2;	// attempt to go outside the game directory*/
 	if (path[0] == '/')
 		return 2;	// attempt to go outside the game directory
 
@@ -798,7 +812,9 @@ int COM_CheckNastyPath (const char *path)
 	if (isgamedir && path[Q_strlen (path) - 1] == '/') return 2;
 #endif
 
-	// all: forbid leading dot on any filename for any reason
+	// [FWGS, 13.11.26] all: forbid leading dot on any filename for any reason
+	/*if (Q_strstr (path, "/."))
+		return 2;	// attempt to go outside the game directory*/
 	if (Q_strstr (path, "/."))
 		return 2;	// attempt to go outside the game directory
 
@@ -869,11 +885,11 @@ char *COM_ParseFileSafe (char *data, char *token, const int size, unsigned int f
 	if (!data)
 		return NULL;
 
-	// skip whitespace
+	// [FWGS, 13.11.26] skip whitespace
 skipwhite:
+	/*while ((c = ((byte)*data)) <= ' ')*/
 	while ((c = ((byte)*data)) <= ' ')
 		{
-		// [FWGS, 01.03.26]
 		if (FBitSet (flags, PFILE_NEWLINE_AS_TOKEN) && (c == '\n'))
 			break;
 
@@ -991,7 +1007,9 @@ skipwhite:
 			overflow = true;
 			}
 
+		// [FWGS, 13.11.26]
 		data++;
+		/*c = ((byte)*data);*/
 		c = ((byte)*data);
 
 		if (COM_IsSingleChar (flags, c))
@@ -1016,7 +1034,6 @@ int matchpattern (const char *in, const char *pattern, qboolean caseinsensitive)
 	return matchpattern_with_separator (in, pattern, caseinsensitive, separators, false);
 	}
 
-// [FWGS, 01.07.26]
 // wildcard_least_one:	if true * matches 1 or more characters
 //						if false * matches 0 or more characters
 int matchpattern_with_separator (const char *in, const char *pattern, qboolean caseinsensitive,
@@ -1047,9 +1064,13 @@ int matchpattern_with_separator (const char *in, const char *pattern, qboolean c
 				pattern++;
 				while (*in)
 					{
+					// [FWGS, 13.11.26]
+					/*if (Q_strchr (separators, *in))*/
 					if (Q_strchr (separators, *in))
 						break;
-					// see if pattern matches at this offset
+
+					// [FWGS, 13.11.26] see if pattern matches at this offset
+					/*if (matchpattern_with_separator (in, pattern, caseinsensitive, separators, wildcard_least_one))*/
 					if (matchpattern_with_separator (in, pattern, caseinsensitive, separators, wildcard_least_one))
 						return 1;
 

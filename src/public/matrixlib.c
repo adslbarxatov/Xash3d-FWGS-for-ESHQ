@@ -28,41 +28,6 @@ Matrix3x4 operations
 // [FWGS, 01.09.26] removed Matrix3x4_VectorTransform, Matrix3x4_VectorITransform,
 // Matrix3x4_VectorRotate, Matrix3x4_VectorIRotate
 
-/*void Matrix3x4_VectorTransform (const matrix3x4 in, const float v[3], float out[3])
-	{
-	out[0] = v[0] * in[0][0] + v[1] * in[0][1] + v[2] * in[0][2] + in[0][3];
-	out[1] = v[0] * in[1][0] + v[1] * in[1][1] + v[2] * in[1][2] + in[1][3];
-	out[2] = v[0] * in[2][0] + v[1] * in[2][1] + v[2] * in[2][2] + in[2][3];
-	}
-
-// [FWGS, 01.07.26]
-void Matrix3x4_VectorITransform (const matrix3x4 in, const float v[3], float out[3])
-	{
-	vec3_t	dir;
-
-	dir[0] = v[0] - in[0][3];
-	dir[1] = v[1] - in[1][3];
-	dir[2] = v[2] - in[2][3];
-
-	out[0] = dir[0] * in[0][0] + dir[1] * in[1][0] + dir[2] * in[2][0];
-	out[1] = dir[0] * in[0][1] + dir[1] * in[1][1] + dir[2] * in[2][1];
-	out[2] = dir[0] * in[0][2] + dir[1] * in[1][2] + dir[2] * in[2][2];
-	}
-
-void Matrix3x4_VectorRotate (const matrix3x4 in, const float v[3], float out[3])
-	{
-	out[0] = v[0] * in[0][0] + v[1] * in[0][1] + v[2] * in[0][2];
-	out[1] = v[0] * in[1][0] + v[1] * in[1][1] + v[2] * in[1][2];
-	out[2] = v[0] * in[2][0] + v[1] * in[2][1] + v[2] * in[2][2];
-	}
-
-void Matrix3x4_VectorIRotate (const matrix3x4 in, const float v[3], float out[3])
-	{
-	out[0] = v[0] * in[0][0] + v[1] * in[1][0] + v[2] * in[2][0];
-	out[1] = v[0] * in[0][1] + v[1] * in[1][1] + v[2] * in[2][1];
-	out[2] = v[0] * in[0][2] + v[1] * in[1][2] + v[2] * in[2][2];
-	}*/
-
 void Matrix3x4_ConcatTransforms (matrix3x4 out, const matrix3x4 in1, const matrix3x4 in2)
 	{
 	out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] + in1[0][2] * in2[2][0];
@@ -118,28 +83,42 @@ void Matrix3x4_FromOriginQuat (matrix3x4 out, const vec4_t quaternion, const vec
 	out[2][3] = origin[2];
 	}
 
-// [FWGS, 01.07.26]
+// [FWGS, 13.11.26]
 void Matrix3x4_CreateFromEntity (matrix3x4 out, const vec3_t angles, const vec3_t origin, float scale)
 	{
 	if (angles[ROLL])
 		{
 		float	angle, sr, sp, sy, cr, cp, cy;
 
+		/*angle = angles[YAW] * (M_PI2 / 360.0f);*/
 		angle = angles[YAW] * (M_PI2 / 360.0f);
 		SinCos (angle, &sy, &cy);
+		/*angle = angles[PITCH] * (M_PI2 / 360.0f);*/
 		angle = angles[PITCH] * (M_PI2 / 360.0f);
 		SinCos (angle, &sp, &cp);
+		/*angle = angles[ROLL] * (M_PI2 / 360.0f);*/
 		angle = angles[ROLL] * (M_PI2 / 360.0f);
 		SinCos (angle, &sr, &cr);
 
+		/*out[0][0] = (cp * cy) * scale;
+		out[0][1] = (sr * sp * cy + cr * -sy) * scale;
+		out[0][2] = (cr * sp * cy + -sr * -sy) * scale;*/
 		out[0][0] = (cp * cy) * scale;
 		out[0][1] = (sr * sp * cy + cr * -sy) * scale;
 		out[0][2] = (cr * sp * cy + -sr * -sy) * scale;
 		out[0][3] = origin[0];
+
+		/*out[1][0] = (cp * sy) * scale;
+		out[1][1] = (sr * sp * sy + cr * cy) * scale;
+		out[1][2] = (cr * sp * sy + -sr * cy) * scale;*/
 		out[1][0] = (cp * sy) * scale;
 		out[1][1] = (sr * sp * sy + cr * cy) * scale;
 		out[1][2] = (cr * sp * sy + -sr * cy) * scale;
 		out[1][3] = origin[1];
+
+		/*out[2][0] = (-sp) * scale;
+		out[2][1] = (sr * cp) * scale;
+		out[2][2] = (cr * cp) * scale;*/
 		out[2][0] = (-sp) * scale;
 		out[2][1] = (sr * cp) * scale;
 		out[2][2] = (cr * cp) * scale;
@@ -149,39 +128,58 @@ void Matrix3x4_CreateFromEntity (matrix3x4 out, const vec3_t angles, const vec3_
 		{
 		float	angle, sp, sy, cp, cy;
 
+		/*angle = angles[YAW] * (M_PI2 / 360.0f);*/
 		angle = angles[YAW] * (M_PI2 / 360.0f);
 		SinCos (angle, &sy, &cy);
+		/*angle = angles[PITCH] * (M_PI2 / 360.0f);*/
 		angle = angles[PITCH] * (M_PI2 / 360.0f);
 		SinCos (angle, &sp, &cp);
 
+		/*out[0][0] = (cp * cy) * scale;
+		out[0][1] = (-sy) * scale;
+		out[0][2] = (sp * cy) * scale;*/
 		out[0][0] = (cp * cy) * scale;
 		out[0][1] = (-sy) * scale;
 		out[0][2] = (sp * cy) * scale;
 		out[0][3] = origin[0];
-		out[1][0] = (cp * sy) * scale;
+
+		/*out[1][0] = (cp * sy) * scale;
 		out[1][1] = (cy)*scale;
+		out[1][2] = (sp * sy) * scale;*/
+		out[1][0] = (cp * sy) * scale;
+		out[1][1] = (cy) * scale;
 		out[1][2] = (sp * sy) * scale;
 		out[1][3] = origin[1];
+
+		/*out[2][0] = (-sp) * scale;*/
 		out[2][0] = (-sp) * scale;
 		out[2][1] = 0.0f;
-		out[2][2] = (cp)*scale;
+		/*out[2][2] = (cp)*scale;*/
+		out[2][2] = (cp) * scale;
 		out[2][3] = origin[2];
 		}
 	else if (angles[YAW])
 		{
 		float	angle, sy, cy;
 
+		/*angle = angles[YAW] * (M_PI2 / 360.0f);*/
 		angle = angles[YAW] * (M_PI2 / 360.0f);
 		SinCos (angle, &sy, &cy);
 
-		out[0][0] = (cy)*scale;
+		/*out[0][0] = (cy)*scale;
+		out[0][1] = (-sy) * scale;*/
+		out[0][0] = (cy) * scale;
 		out[0][1] = (-sy) * scale;
 		out[0][2] = 0.0f;
 		out[0][3] = origin[0];
-		out[1][0] = (sy)*scale;
-		out[1][1] = (cy)*scale;
+
+		/*out[1][0] = (sy)*scale;
+		out[1][1] = (cy)*scale;*/
+		out[1][0] = (sy) * scale;
+		out[1][1] = (cy) * scale;
 		out[1][2] = 0.0f;
 		out[1][3] = origin[1];
+
 		out[2][0] = 0.0f;
 		out[2][1] = 0.0f;
 		out[2][2] = scale;
@@ -193,10 +191,12 @@ void Matrix3x4_CreateFromEntity (matrix3x4 out, const vec3_t angles, const vec3_
 		out[0][1] = 0.0f;
 		out[0][2] = 0.0f;
 		out[0][3] = origin[0];
+
 		out[1][0] = 0.0f;
 		out[1][1] = scale;
 		out[1][2] = 0.0f;
 		out[1][3] = origin[1];
+
 		out[2][0] = 0.0f;
 		out[2][1] = 0.0f;
 		out[2][2] = scale;
@@ -217,7 +217,7 @@ void Matrix3x4_TransformAABB (const matrix3x4 world, const vec3_t mins, const ve
 	VectorAverage (mins, maxs, localCenter);
 	VectorSubtract (maxs, localCenter, localExtents);
 
-	vec3_t worldCenter, worldExtents;
+	vec3_t	worldCenter, worldExtents;
 
 	Matrix3x4_VectorTransform (world, localCenter, worldCenter);
 	worldExtents[0] = DotProductFabs (localExtents, world[0]);	// auto-transposed!
@@ -237,41 +237,6 @@ Matrix4x4 operations
 // [FWGS, 01.09.26] removed Matrix4x4_VectorTransform, Matrix4x4_VectorITransform,
 // Matrix4x4_VectorRotate, Matrix4x4_VectorIRotate
 
-/*void Matrix4x4_VectorTransform (const matrix4x4 in, const float v[3], float out[3])
-	{
-	out[0] = v[0] * in[0][0] + v[1] * in[0][1] + v[2] * in[0][2] + in[0][3];
-	out[1] = v[0] * in[1][0] + v[1] * in[1][1] + v[2] * in[1][2] + in[1][3];
-	out[2] = v[0] * in[2][0] + v[1] * in[2][1] + v[2] * in[2][2] + in[2][3];
-	}
-
-// [FWGS, 01.07.26]
-void Matrix4x4_VectorITransform (const matrix4x4 in, const float v[3], float out[3])
-	{
-	vec3_t	dir;
-
-	dir[0] = v[0] - in[0][3];
-	dir[1] = v[1] - in[1][3];
-	dir[2] = v[2] - in[2][3];
-
-	out[0] = dir[0] * in[0][0] + dir[1] * in[1][0] + dir[2] * in[2][0];
-	out[1] = dir[0] * in[0][1] + dir[1] * in[1][1] + dir[2] * in[2][1];
-	out[2] = dir[0] * in[0][2] + dir[1] * in[1][2] + dir[2] * in[2][2];
-	}
-
-void Matrix4x4_VectorRotate (const matrix4x4 in, const float v[3], float out[3])
-	{
-	out[0] = v[0] * in[0][0] + v[1] * in[0][1] + v[2] * in[0][2];
-	out[1] = v[0] * in[1][0] + v[1] * in[1][1] + v[2] * in[1][2];
-	out[2] = v[0] * in[2][0] + v[1] * in[2][1] + v[2] * in[2][2];
-	}
-
-void Matrix4x4_VectorIRotate (const matrix4x4 in, const float v[3], float out[3])
-	{
-	out[0] = v[0] * in[0][0] + v[1] * in[1][0] + v[2] * in[2][0];
-	out[1] = v[0] * in[0][1] + v[1] * in[1][1] + v[2] * in[2][1];
-	out[2] = v[0] * in[0][2] + v[1] * in[1][2] + v[2] * in[2][2];
-	}*/
-
 void Matrix4x4_ConcatTransforms (matrix4x4 out, const matrix4x4 in1, const matrix4x4 in2)
 	{
 	out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] + in1[0][2] * in2[2][0];
@@ -288,32 +253,47 @@ void Matrix4x4_ConcatTransforms (matrix4x4 out, const matrix4x4 in1, const matri
 	out[2][3] = in1[2][0] * in2[0][3] + in1[2][1] * in2[1][3] + in1[2][2] * in2[2][3] + in1[2][3];
 	}
 
-// [FWGS, 01.07.26]
+// [FWGS, 13.11.26]
 void Matrix4x4_CreateFromEntity (matrix4x4 out, const vec3_t angles, const vec3_t origin, float scale)
 	{
 	if (angles[ROLL])
 		{
 		float	angle, sr, sp, sy, cr, cp, cy;
 
+		/*angle = angles[YAW] * (M_PI2 / 360.0f);*/
 		angle = angles[YAW] * (M_PI2 / 360.0f);
 		SinCos (angle, &sy, &cy);
+		/*angle = angles[PITCH] * (M_PI2 / 360.0f);*/
 		angle = angles[PITCH] * (M_PI2 / 360.0f);
 		SinCos (angle, &sp, &cp);
+		/*angle = angles[ROLL] * (M_PI2 / 360.0f);*/
 		angle = angles[ROLL] * (M_PI2 / 360.0f);
 		SinCos (angle, &sr, &cr);
 
+		/*out[0][0] = (cp * cy) * scale;
+		out[0][1] = (sr * sp * cy + cr * -sy) * scale;
+		out[0][2] = (cr * sp * cy + -sr * -sy) * scale;*/
 		out[0][0] = (cp * cy) * scale;
 		out[0][1] = (sr * sp * cy + cr * -sy) * scale;
 		out[0][2] = (cr * sp * cy + -sr * -sy) * scale;
 		out[0][3] = origin[0];
+
+		/*out[1][0] = (cp * sy) * scale;
+		out[1][1] = (sr * sp * sy + cr * cy) * scale;
+		out[1][2] = (cr * sp * sy + -sr * cy) * scale;*/
 		out[1][0] = (cp * sy) * scale;
 		out[1][1] = (sr * sp * sy + cr * cy) * scale;
 		out[1][2] = (cr * sp * sy + -sr * cy) * scale;
 		out[1][3] = origin[1];
+
+		/*out[2][0] = (-sp) * scale;
+		out[2][1] = (sr * cp) * scale;
+		out[2][2] = (cr * cp) * scale;*/
 		out[2][0] = (-sp) * scale;
 		out[2][1] = (sr * cp) * scale;
 		out[2][2] = (cr * cp) * scale;
 		out[2][3] = origin[2];
+
 		out[3][0] = 0.0f;
 		out[3][1] = 0.0f;
 		out[3][2] = 0.0f;
@@ -323,23 +303,36 @@ void Matrix4x4_CreateFromEntity (matrix4x4 out, const vec3_t angles, const vec3_
 		{
 		float	angle, sp, sy, cp, cy;
 
+		/*angle = angles[YAW] * (M_PI2 / 360.0f);*/
 		angle = angles[YAW] * (M_PI2 / 360.0f);
 		SinCos (angle, &sy, &cy);
+		/*angle = angles[PITCH] * (M_PI2 / 360.0f);*/
 		angle = angles[PITCH] * (M_PI2 / 360.0f);
 		SinCos (angle, &sp, &cp);
 
+		/*out[0][0] = (cp * cy) * scale;
+		out[0][1] = (-sy) * scale;
+		out[0][2] = (sp * cy) * scale;*/
 		out[0][0] = (cp * cy) * scale;
 		out[0][1] = (-sy) * scale;
 		out[0][2] = (sp * cy) * scale;
 		out[0][3] = origin[0];
-		out[1][0] = (cp * sy) * scale;
+
+		/*out[1][0] = (cp * sy) * scale;
 		out[1][1] = (cy)*scale;
+		out[1][2] = (sp * sy) * scale;*/
+		out[1][0] = (cp * sy) * scale;
+		out[1][1] = (cy) * scale;
 		out[1][2] = (sp * sy) * scale;
 		out[1][3] = origin[1];
+
+		/*out[2][0] = (-sp) * scale;*/
 		out[2][0] = (-sp) * scale;
 		out[2][1] = 0.0f;
-		out[2][2] = (cp)*scale;
+		/*out[2][2] = (cp)*scale;*/
+		out[2][2] = (cp) * scale;
 		out[2][3] = origin[2];
+
 		out[3][0] = 0.0f;
 		out[3][1] = 0.0f;
 		out[3][2] = 0.0f;
@@ -349,21 +342,29 @@ void Matrix4x4_CreateFromEntity (matrix4x4 out, const vec3_t angles, const vec3_
 		{
 		float	angle, sy, cy;
 
+		/*angle = angles[YAW] * (M_PI2 / 360.0f);*/
 		angle = angles[YAW] * (M_PI2 / 360.0f);
 		SinCos (angle, &sy, &cy);
 
-		out[0][0] = (cy)*scale;
+		/*out[0][0] = (cy)*scale;
+		out[0][1] = (-sy) * scale;*/
+		out[0][0] = (cy) * scale;
 		out[0][1] = (-sy) * scale;
 		out[0][2] = 0.0f;
 		out[0][3] = origin[0];
-		out[1][0] = (sy)*scale;
-		out[1][1] = (cy)*scale;
+
+		/*out[1][0] = (sy)*scale;
+		out[1][1] = (cy)*scale;*/
+		out[1][0] = (sy) * scale;
+		out[1][1] = (cy) * scale;
 		out[1][2] = 0.0f;
 		out[1][3] = origin[1];
+
 		out[2][0] = 0.0f;
 		out[2][1] = 0.0f;
 		out[2][2] = scale;
 		out[2][3] = origin[2];
+
 		out[3][0] = 0.0f;
 		out[3][1] = 0.0f;
 		out[3][2] = 0.0f;
@@ -375,14 +376,17 @@ void Matrix4x4_CreateFromEntity (matrix4x4 out, const vec3_t angles, const vec3_
 		out[0][1] = 0.0f;
 		out[0][2] = 0.0f;
 		out[0][3] = origin[0];
+
 		out[1][0] = 0.0f;
 		out[1][1] = scale;
 		out[1][2] = 0.0f;
 		out[1][3] = origin[1];
+
 		out[2][0] = 0.0f;
 		out[2][1] = 0.0f;
 		out[2][2] = scale;
 		out[2][3] = origin[2];
+
 		out[3][0] = 0.0f;
 		out[3][1] = 0.0f;
 		out[3][2] = 0.0f;
@@ -418,18 +422,24 @@ void Matrix4x4_TransformPositivePlane (const matrix4x4 in, const vec3_t normal, 
 	float	scale = sqrt (in[0][0] * in[0][0] + in[0][1] * in[0][1] + in[0][2] * in[0][2]);
 	float	iscale = 1.0f / scale;
 
+	// [FWGS, 13.11.26]
+	/*out[0] = (normal[0] * in[0][0] + normal[1] * in[0][1] + normal[2] * in[0][2]) * iscale;
+	out[1] = (normal[0] * in[1][0] + normal[1] * in[1][1] + normal[2] * in[1][2]) * iscale;
+	out[2] = (normal[0] * in[2][0] + normal[1] * in[2][1] + normal[2] * in[2][2]) * iscale;*/
 	out[0] = (normal[0] * in[0][0] + normal[1] * in[0][1] + normal[2] * in[0][2]) * iscale;
 	out[1] = (normal[0] * in[1][0] + normal[1] * in[1][1] + normal[2] * in[1][2]) * iscale;
 	out[2] = (normal[0] * in[2][0] + normal[1] * in[2][1] + normal[2] * in[2][2]) * iscale;
+
 	*dist = d * scale + (out[0] * in[0][3] + out[1] * in[1][3] + out[2] * in[2][3]);
 	}
 
 void Matrix4x4_Invert_Simple (matrix4x4 out, const matrix4x4 in1)
 	{
-	// we only support uniform scaling, so assume the first row is enough
+	// [FWGS, 13.11.26] we only support uniform scaling, so assume the first row is enough
 	// (note the lack of sqrt here, because we're trying to undo the scaling,
 	// this means multiplying by the inverse scale twice - squaring it, which
 	// makes the sqrt a waste of time)
+	/*float	scale = 1.0f / (in1[0][0] * in1[0][0] + in1[0][1] * in1[0][1] + in1[0][2] * in1[0][2]);*/
 	float	scale = 1.0f / (in1[0][0] * in1[0][0] + in1[0][1] * in1[0][1] + in1[0][2] * in1[0][2]);
 
 	// invert the rotation by transposing and multiplying by the squared
@@ -437,14 +447,19 @@ void Matrix4x4_Invert_Simple (matrix4x4 out, const matrix4x4 in1)
 	out[0][0] = in1[0][0] * scale;
 	out[0][1] = in1[1][0] * scale;
 	out[0][2] = in1[2][0] * scale;
+
 	out[1][0] = in1[0][1] * scale;
 	out[1][1] = in1[1][1] * scale;
 	out[1][2] = in1[2][1] * scale;
+
 	out[2][0] = in1[0][2] * scale;
 	out[2][1] = in1[1][2] * scale;
 	out[2][2] = in1[2][2] * scale;
 
-	// invert the translate
+	// [FWGS, 13.11.26] invert the translate
+	/*out[0][3] = -(in1[0][3] * out[0][0] + in1[1][3] * out[0][1] + in1[2][3] * out[0][2]);
+	out[1][3] = -(in1[0][3] * out[1][0] + in1[1][3] * out[1][1] + in1[2][3] * out[1][2]);
+	out[2][3] = -(in1[0][3] * out[2][0] + in1[1][3] * out[2][1] + in1[2][3] * out[2][2]);*/
 	out[0][3] = -(in1[0][3] * out[0][0] + in1[1][3] * out[0][1] + in1[2][3] * out[0][2]);
 	out[1][3] = -(in1[0][3] * out[1][0] + in1[1][3] * out[1][1] + in1[2][3] * out[1][2]);
 	out[2][3] = -(in1[0][3] * out[2][0] + in1[1][3] * out[2][1] + in1[2][3] * out[2][2]);
@@ -456,7 +471,6 @@ void Matrix4x4_Invert_Simple (matrix4x4 out, const matrix4x4 in1)
 	out[3][3] = 1.0f;
 	}
 
-// [FWGS, 01.07.26]
 qboolean Matrix4x4_Invert_Full (matrix4x4 out, const matrix4x4 in1)
 	{
 	float	*r[4];
@@ -507,21 +521,21 @@ qboolean Matrix4x4_Invert_Full (matrix4x4 out, const matrix4x4 in1)
 
 	if (fabs (r[3][0]) > fabs (r[2][0]))
 		{
-		float *temp = r[3];
+		float	*temp = r[3];
 		r[3] = r[2];
 		r[2] = temp;
 		}
 
 	if (fabs (r[2][0]) > fabs (r[1][0]))
 		{
-		float *temp = r[2];
+		float	*temp = r[2];
 		r[2] = r[1];
 		r[1] = temp;
 		}
 
 	if (fabs (r[1][0]) > fabs (r[0][0]))
 		{
-		float *temp = r[1];
+		float	*temp = r[1];
 		r[1] = r[0];
 		r[0] = temp;
 		}
@@ -581,14 +595,14 @@ qboolean Matrix4x4_Invert_Full (matrix4x4 out, const matrix4x4 in1)
 
 		if (fabs (r[3][1]) > fabs (r[2][1]))
 			{
-			float *temp = r[3];
+			float	*temp = r[3];
 			r[3] = r[2];
 			r[2] = temp;
 			}
 
 		if (fabs (r[2][1]) > fabs (r[1][1]))
 			{
-			float *temp = r[2];
+			float	*temp = r[2];
 			r[2] = r[1];
 			r[1] = temp;
 			}
@@ -632,7 +646,7 @@ qboolean Matrix4x4_Invert_Full (matrix4x4 out, const matrix4x4 in1)
 
 			if (fabs (r[3][2]) > fabs (r[2][2]))
 				{
-				float *temp = r[3];
+				float	*temp = r[3];
 				r[3] = r[2];
 				r[2] = temp;
 				}
@@ -654,8 +668,13 @@ qboolean Matrix4x4_Invert_Full (matrix4x4 out, const matrix4x4 in1)
 					r[3][6] *= s;
 					r[3][7] *= s;
 
+					// [FWGS, 13.11.26]
 					m[2] = r[2][3];
 					s = 1.0f / r[2][2];
+					/*r[2][4] = s * (r[2][4] - r[3][4] * m[2]);
+					r[2][5] = s * (r[2][5] - r[3][5] * m[2]);
+					r[2][6] = s * (r[2][6] - r[3][6] * m[2]);
+					r[2][7] = s * (r[2][7] - r[3][7] * m[2]);*/
 					r[2][4] = s * (r[2][4] - r[3][4] * m[2]);
 					r[2][5] = s * (r[2][5] - r[3][5] * m[2]);
 					r[2][6] = s * (r[2][6] - r[3][6] * m[2]);
@@ -673,8 +692,13 @@ qboolean Matrix4x4_Invert_Full (matrix4x4 out, const matrix4x4 in1)
 					r[0][6] -= r[3][6] * m[0];
 					r[0][7] -= r[3][7] * m[0];
 
+					// [FWGS, 13.11.26]
 					m[1] = r[1][2];
 					s = 1.0f / r[1][1];
+					/*r[1][4] = s * (r[1][4] - r[2][4] * m[1]);
+					r[1][5] = s * (r[1][5] - r[2][5] * m[1]);
+					r[1][6] = s * (r[1][6] - r[2][6] * m[1]);
+					r[1][7] = s * (r[1][7] - r[2][7] * m[1]);*/
 					r[1][4] = s * (r[1][4] - r[2][4] * m[1]);
 					r[1][5] = s * (r[1][5] - r[2][5] * m[1]);
 					r[1][6] = s * (r[1][6] - r[2][6] * m[1]);
@@ -688,6 +712,30 @@ qboolean Matrix4x4_Invert_Full (matrix4x4 out, const matrix4x4 in1)
 
 					m[0] = r[0][1];
 					s = 1.0f / r[0][0];
+					/*r[0][4] = s * (r[0][4] - r[1][4] * m[0]);
+					r[0][5] = s * (r[0][5] - r[1][5] * m[0]);
+					r[0][6] = s * (r[0][6] - r[1][6] * m[0]);
+					r[0][7] = s * (r[0][7] - r[1][7] * m[0]);
+
+					out[0][0] = r[0][4];
+					out[0][1] = r[0][5];
+					out[0][2] = r[0][6];
+					out[0][3] = r[0][7];
+
+					out[1][0] = r[1][4];
+					out[1][1] = r[1][5];
+					out[1][2] = r[1][6];
+					out[1][3] = r[1][7];
+
+					out[2][0] = r[2][4];
+					out[2][1] = r[2][5];
+					out[2][2] = r[2][6];
+					out[2][3] = r[2][7];
+
+					out[3][0] = r[3][4];
+					out[3][1] = r[3][5];
+					out[3][2] = r[3][6];
+					out[3][3] = r[3][7];*/
 					r[0][4] = s * (r[0][4] - r[1][4] * m[0]);
 					r[0][5] = s * (r[0][5] - r[1][5] * m[0]);
 					r[0][6] = s * (r[0][6] - r[1][6] * m[0]);
@@ -697,14 +745,17 @@ qboolean Matrix4x4_Invert_Full (matrix4x4 out, const matrix4x4 in1)
 					out[0][1] = r[0][5];
 					out[0][2] = r[0][6];
 					out[0][3] = r[0][7];
+
 					out[1][0] = r[1][4];
 					out[1][1] = r[1][5];
 					out[1][2] = r[1][6];
 					out[1][3] = r[1][7];
+
 					out[2][0] = r[2][4];
 					out[2][1] = r[2][5];
 					out[2][2] = r[2][6];
 					out[2][3] = r[2][7];
+
 					out[3][0] = r[3][4];
 					out[3][1] = r[3][5];
 					out[3][2] = r[3][6];

@@ -33,60 +33,77 @@ static const uint8_t hull_table[] = {
 	120,	128,	140,	176
 	};
 
-// [FWGS, 01.12.24]
-const int boxpnt[6][4] =
+// [FWGS, 13.11.26]
+/*const int boxpnt[6][4] =
 	{
 	{ 0, 4, 6, 2 }, // +X
 	{ 0, 1, 5, 4 }, // +Y
 	{ 0, 2, 3, 1 }, // +Z
 	{ 7, 5, 1, 3 }, // -X
 	{ 7, 3, 2, 6 }, // -Y
-	{ 7, 6, 4, 5 }, // -Z
+	{ 7, 6, 4, 5 }, // -Z*/
+const int boxpnt[6][4] = {
+	{ 0,	4,	6,	2 },	// +X
+	{ 0,	1,	5,	4 },	// +Y
+	{ 0,	2,	3,	1 },	// +Z
+	{ 7,	5,	1,	3 },	// -X
+	{ 7,	3,	2,	6 },	// -Y
+	{ 7,	6,	4,	5 },	// -Z
 	};
 
-// pre-quantized table normals from Quake1
-const float m_bytenormals[NUMVERTEXNORMALS][3] =
-	{
+// [FWGS, 13.11.26] pre-quantized table normals from Quake1
+/*const float m_bytenormals[NUMVERTEXNORMALS][3] =
+	{*/
+const float m_bytenormals[NUMVERTEXNORMALS][3] = {
 	#include "anorms.h"
 	};
 
 // [FWGS, 01.12.24] removed anglemod
 
-// [FWGS, 01.07.26]
+// [FWGS, 13.11.26]
 uint16_t FloatToHalf (float v)
 	{
 	unsigned int	i = FloatAsUint (v);
+	/*unsigned int	e = (i >> 23) & 0x00ff;*/
 	unsigned int	e = (i >> 23) & 0x00ff;
 	unsigned int	m = i & 0x007fffff;
 	unsigned short	h;
 
 	if (e <= 127 - 15)
+	/*	h = ((m | 0x00800000) >> (127 - 14 - e)) >> 13;
+	else
+		h = (i >> 13) & 0x3fff;*/
 		h = ((m | 0x00800000) >> (127 - 14 - e)) >> 13;
 	else
 		h = (i >> 13) & 0x3fff;
 
+	/*h |= (i >> 16) & 0xc000;*/
 	h |= (i >> 16) & 0xc000;
 
 	return h;
 	}
 
-// [FWGS, 01.12.24]
+// [FWGS, 13.11.26]
 float HalfToFloat (uint16_t h)
 	{
+	/*unsigned int	f = (h << 16) & 0x80000000;
+	unsigned int	em = h & 0x7fff;*/
 	unsigned int	f = (h << 16) & 0x80000000;
 	unsigned int	em = h & 0x7fff;
 
 	if (em > 0x03ff)
 		{
+		/*f |= (em << 13) + ((127 - 15) << 23);*/
 		f |= (em << 13) + ((127 - 15) << 23);
 		}
 	else
 		{
-		unsigned int m = em & 0x03ff;
+		unsigned int	m = em & 0x03ff;
 
 		if (m != 0)
 			{
-			unsigned int e = (em >> 10) & 0x1f;
+			/*unsigned int e = (em >> 10) & 0x1f;*/
+			unsigned int	e = (em >> 10) & 0x1f;
 
 			while ((m & 0x0400) == 0)
 				{
@@ -95,6 +112,7 @@ float HalfToFloat (uint16_t h)
 				}
 
 			m &= 0x3ff;
+			/*f |= ((e + (127 - 14)) << 23) | (m << 13);*/
 			f |= ((e + (127 - 14)) << 23) | (m << 13);
 			}
 		}
@@ -201,7 +219,7 @@ void RoundUpHullSize (vec3_t mins, vec3_t maxs)
 
 /***
 =================
-rsqrt [FWGS, 01.07.26]
+rsqrt [FWGS, 13.11.26]
 =================
 ***/
 float Q_rsqrt (float number)
@@ -210,11 +228,14 @@ float Q_rsqrt (float number)
 		return 0.0f;
 
 	float	x = number * 0.5f;
-	int		i = FloatAsInt (number);	// evil floating point bit level hacking
+	/*int		i = FloatAsInt (number);	// evil floating point bit level hacking
 
+	i = 0x5f3759df - (i >> 1);		// what the fuck?*/
+	int		i = FloatAsInt (number);	// evil floating point bit level hacking
 	i = 0x5f3759df - (i >> 1);		// what the fuck?
 
 	float	y = IntAsFloat (i);
+	/*y = y * (1.5f - (x * y * y));	// first iteration*/
 	y = y * (1.5f - (x * y * y));	// first iteration
 
 	return y;
@@ -340,7 +361,7 @@ qboolean SphereIntersect (const vec3_t vSphereCenter, float fSphereRadiusSquared
 
 /***
 ====================
-QuaternionAlign [FWGS, 01.07.26]
+QuaternionAlign
 
 make sure quaternions are within 180 degrees of one another,
 if not, reverse q
@@ -352,8 +373,11 @@ static void QuaternionAlign (const vec4_t p, const vec4_t q, vec4_t qt)
 	float	a = 0.0f;
 	float	b = 0.0f;
 
+	// [FWGS, 13.11.26]
 	for (int i = 0; i < 4; i++)
 		{
+		/*a += (p[i] - q[i]) * (p[i] - q[i]);
+		b += (p[i] + q[i]) * (p[i] + q[i]);*/
 		a += (p[i] - q[i]) * (p[i] - q[i]);
 		b += (p[i] + q[i]) * (p[i] + q[i]);
 		}
@@ -372,7 +396,7 @@ static void QuaternionAlign (const vec4_t p, const vec4_t q, vec4_t qt)
 
 /***
 ====================
-QuaternionSlerpNoAlign [FWGS, 01.07.26]
+QuaternionSlerpNoAlign
 ====================
 ***/
 static void QuaternionSlerpNoAlign (const vec4_t p, const vec4_t q, float t, vec4_t qt)
@@ -388,6 +412,8 @@ static void QuaternionSlerpNoAlign (const vec4_t p, const vec4_t q, float t, vec
 			float	omega = acos (cosom);
 			float	sinom = sin (omega);
 
+			// [FWGS, 13.11.26]
+			/*sclp = sin ((1.0f - t) * omega) / sinom;*/
 			sclp = sin ((1.0f - t) * omega) / sinom;
 			sclq = sin (t * omega) / sinom;
 			}
@@ -408,6 +434,7 @@ static void QuaternionSlerpNoAlign (const vec4_t p, const vec4_t q, float t, vec
 		qt[1] = q[0];
 		qt[2] = -q[3];
 		qt[3] = q[2];
+
 		sclp = sin ((1.0f - t) * (0.5f * M_PI_F));
 		sclq = sin (t * (0.5f * M_PI_F));
 
@@ -509,7 +536,6 @@ int BoxOnPlaneSide (const vec3_t emins, const vec3_t emaxs, const struct mplane_
 
 // [FWGS, 01.12.24] removed R_StudioSlerpBones
 
-// [FWGS, 01.07.26]
 void R_StudioCalcBones (int frame, float s, const mstudiobone_t *pbone, const mstudioanim_t *panim, const float *adj,
 	vec3_t pos, vec4_t q)
 	{
@@ -543,25 +569,30 @@ void R_StudioCalcBones (int frame, float s, const mstudiobone_t *pbone, const ms
 				j = 0;
 			}
 
+		// [FWGS, 13.11.26]
 		if (panimvalue->num.valid > j)
 			{
+			/*v1[i] = UnalignedShort (&(panimvalue[j + 1].value));*/
 			v1[i] = UnalignedShort (&(panimvalue[j + 1].value));
 
 			if (panimvalue->num.valid > j + 1)
+				/*v2[i] = UnalignedShort (&(panimvalue[j + 2].value));*/
 				v2[i] = UnalignedShort (&(panimvalue[j + 2].value));
 			else if (panimvalue->num.total > j + 1)
 				v2[i] = v1[i];
 			else
+				/*v2[i] = UnalignedShort (&(panimvalue[panimvalue->num.valid + 2].value));*/
 				v2[i] = UnalignedShort (&(panimvalue[panimvalue->num.valid + 2].value));
 			}
-
 		else
 			{
+			/*v1[i] = UnalignedShort (&(panimvalue[panimvalue->num.valid].value));*/
 			v1[i] = UnalignedShort (&(panimvalue[panimvalue->num.valid].value));
 
 			if (panimvalue->num.total > j + 1)
 				v2[i] = v1[i];
 			else
+				/*v2[i] = UnalignedShort (&(panimvalue[panimvalue->num.valid + 2].value));*/
 				v2[i] = UnalignedShort (&(panimvalue[panimvalue->num.valid + 2].value));
 			}
 

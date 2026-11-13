@@ -22,11 +22,9 @@ static const char mond[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 // [FWGS, 01.09.25] removed Q_buildnum_date
 
-// [FWGS, 01.07.26]
 int Q_buildnum_iso (const char *date)
 	{
-	/*int y, m, d, b, i;*/
-	int y, m, d;
+	int	y, m, d;
 
 	if (sscanf (date, "%d-%d-%d", &y, &m, &d) != 3 || (y <= 1900) || (m <= 0) || (d <= 0))
 		return -1;
@@ -35,12 +33,13 @@ int Q_buildnum_iso (const char *date)
 	m--;
 	d--;
 
-	/*for (i = 0; i < m; i++)*/
 	for (int i = 0; i < m; i++)
 		d += mond[i];
 
 	y -= 1900;
-	/*b = d + (int)((y - 1) * 365.25f);*/
+
+	// [FWGS, 13.11.26]
+	/*int	b = d + (int)((y - 1) * 365.25f);*/
 	int b = d + (int)((y - 1) * 365.25f);
 
 	if (((y % 4) == 0) && m > 1)
@@ -59,7 +58,7 @@ returns days since Apr 1 2015
 ***/
 int Q_buildnum (void)
 	{
-	static int b = 0;
+	static int	b = 0;
 
 	if (b)
 		return b;
@@ -70,4 +69,5 @@ int Q_buildnum (void)
 
 // [FWGS, 01.03.26] removed Q_buildnum_compat, Q_PlatformStringByID, Q_buildos,
 // Q_ArchitectureStringByID, Q_buildarch
+
 // [FWGS, 01.02.25] removed Q_buildcommit, Q_buildbranch
