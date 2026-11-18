@@ -34,6 +34,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #define ID_NODSP			7
 #define ID_MSGHINT			8
 
+// ESHQ: поддержка локализации
+#include "menu_locale.h"
+
 typedef struct
 	{
 	float		soundVolume;
@@ -59,7 +62,7 @@ typedef struct
 	menuCheckBox_s	noDSP;
 	} uiAudio_t;
 
-static uiAudio_t		uiAudio;
+static uiAudio_t	uiAudio;
 
 /***
 =================
@@ -117,18 +120,18 @@ static void UI_Audio_UpdateConfig (void)
 UI_Audio_Callback
 =================
 ***/
-static void UI_Audio_Callback (void* self, int event)
+static void UI_Audio_Callback (void *self, int event)
 	{
-	menuCommon_s* item = (menuCommon_s*)self;
+	menuCommon_s *item = (menuCommon_s *)self;
 
 	switch (item->id)
 		{
 		case ID_INTERP:
 		case ID_NODSP:
 			if (event == QM_PRESSED)
-				((menuCheckBox_s*)self)->focusPic = UI_CHECKBOX_PRESSED;
-			else 
-				((menuCheckBox_s*)self)->focusPic = UI_CHECKBOX_FOCUS;
+				((menuCheckBox_s *)self)->focusPic = UI_CHECKBOX_PRESSED;
+			else
+				((menuCheckBox_s *)self)->focusPic = UI_CHECKBOX_FOCUS;
 			break;
 		}
 
@@ -183,13 +186,15 @@ static void UI_Audio_Init (void)
 	uiAudio.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiAudio.done.generic.x = 72;
 	uiAudio.done.generic.y = 230;
-	uiAudio.done.generic.name = "Done";
+	/*uiAudio.done.generic.name = "Done";*/
 	uiAudio.done.generic.callback = UI_Audio_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiAudio.done.generic.statusText = "Вернуться в меню конфигурации";
-#else
+	else
 	uiAudio.done.generic.statusText = "Go back to the configuration menu";
-#endif
+	endif*/
+	uiAudio.done.generic.name = MLOC (LOC_Done);
+	uiAudio.done.generic.statusText = MLOC (uiAudio_done_generic_statusText);
 
 	UI_UtilSetupPicButton (&uiAudio.done, PC_DONE);
 
@@ -202,13 +207,15 @@ static void UI_Audio_Init (void)
 	uiAudio.soundVolume.minValue = 0.0;
 	uiAudio.soundVolume.maxValue = 1.0;
 	uiAudio.soundVolume.range = 0.05f;
-#ifdef RU
+	/*ifdef RU
 	uiAudio.soundVolume.generic.name = "Громкость звуков";
 	uiAudio.soundVolume.generic.statusText = "Задать базовую громкость звуков";
-#else
+	else
 	uiAudio.soundVolume.generic.name = "Game sound volume";
 	uiAudio.soundVolume.generic.statusText = "Set master volume level";
-#endif
+	endif*/
+	uiAudio.soundVolume.generic.name = MLOC (uiAudio_soundVolume_generic_name);
+	uiAudio.soundVolume.generic.statusText = MLOC (uiAudio_soundVolume_generic_statusText);
 
 	uiAudio.musicVolume.generic.id = ID_MUSICVOLUME;
 	uiAudio.musicVolume.generic.type = QMTYPE_SLIDER;
@@ -219,13 +226,15 @@ static void UI_Audio_Init (void)
 	uiAudio.musicVolume.minValue = 0.0;
 	uiAudio.musicVolume.maxValue = 1.0;
 	uiAudio.musicVolume.range = 0.05f;
-#ifdef RU
+	/*ifdef RU
 	uiAudio.musicVolume.generic.name = "Громкость музыки";
 	uiAudio.musicVolume.generic.statusText = "Задать громкость фоновой музыки";
-#else
+	else
 	uiAudio.musicVolume.generic.name = "Game music volume";
 	uiAudio.musicVolume.generic.statusText = "Set background music volume level";
-#endif
+	endif*/
+	uiAudio.musicVolume.generic.name = MLOC (uiAudio_musicVolume_generic_name);
+	uiAudio.musicVolume.generic.statusText = MLOC (uiAudio_musicVolume_generic_statusText);
 
 	uiAudio.suitVolume.generic.id = ID_SUITVOLUME;
 	uiAudio.suitVolume.generic.type = QMTYPE_SLIDER;
@@ -236,13 +245,15 @@ static void UI_Audio_Init (void)
 	uiAudio.suitVolume.minValue = 0.0;
 	uiAudio.suitVolume.maxValue = 1.0;
 	uiAudio.suitVolume.range = 0.05f;
-#ifdef RU
+	/*ifdef RU
 	uiAudio.suitVolume.generic.name = "Громкость костюма";
 	uiAudio.suitVolume.generic.statusText = "Громкость голоса костюма (сюжетный режим)";
-#else
+	else
 	uiAudio.suitVolume.generic.name = "Suit volume";
 	uiAudio.suitVolume.generic.statusText = "Singleplayer suit volume";
-#endif
+	endif*/
+	uiAudio.suitVolume.generic.name = MLOC (uiAudio_suitVolume_generic_name);
+	uiAudio.suitVolume.generic.statusText = MLOC (uiAudio_suitVolume_generic_statusText);
 
 	uiAudio.lerping.generic.id = ID_INTERP;
 	uiAudio.lerping.generic.type = QMTYPE_CHECKBOX;
@@ -250,13 +261,15 @@ static void UI_Audio_Init (void)
 	uiAudio.lerping.generic.x = 320;
 	uiAudio.lerping.generic.y = 470;
 	uiAudio.lerping.generic.callback = UI_Audio_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiAudio.lerping.generic.name = "Включить интерполяцию звука";
 	uiAudio.lerping.generic.statusText = "Включение / выключение интерполяции звукового выхода";
-#else
+	else
 	uiAudio.lerping.generic.name = "Enable sound interpolation";
 	uiAudio.lerping.generic.statusText = "Enable / disable interpolation on sound output";
-#endif
+	endif*/
+	uiAudio.lerping.generic.name = MLOC (uiAudio_lerping_generic_name);
+	uiAudio.lerping.generic.statusText = MLOC (uiAudio_lerping_generic_statusText);
 
 	uiAudio.noDSP.generic.id = ID_NODSP;
 	uiAudio.noDSP.generic.type = QMTYPE_CHECKBOX;
@@ -264,13 +277,15 @@ static void UI_Audio_Init (void)
 	uiAudio.noDSP.generic.x = 320;
 	uiAudio.noDSP.generic.y = 520;
 	uiAudio.noDSP.generic.callback = UI_Audio_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiAudio.noDSP.generic.name = "Отключить DSP-эффекты";
 	uiAudio.noDSP.generic.statusText = "Отключение обработки звука (эхо, фланжер и т.п.)";
-#else
+	else
 	uiAudio.noDSP.generic.name = "Disable DSP effects";
 	uiAudio.noDSP.generic.statusText = "Disables sound processing (like echo, flanger etc)";
-#endif
+	endif*/
+	uiAudio.noDSP.generic.name = MLOC (uiAudio_noDSP_generic_name);
+	uiAudio.noDSP.generic.statusText = MLOC (uiAudio_noDSP_generic_statusText);
 
 	UI_Audio_GetConfig ();
 

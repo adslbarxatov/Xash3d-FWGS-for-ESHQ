@@ -21,9 +21,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #include "extdll.h"
 #include "basemenu.h"
 #include "utils.h"
-/*include "kbutton.h"*/
 #include "menu_btnsbmp_table.h"
-#include "menu_strings.h"
+/*include "menu_strings.h"*/
 #include "q_client.h"
 
 #define ART_BANNER			"gfx/shell/head_advanced"
@@ -40,6 +39,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #define ID_LOOKSTRAFE		8
 #define ID_INFINITERUN		9	// ESHQ: замена параметра
 #define ID_AUTOAIM			10
+
+// ESHQ: поддержка локализации
+#include "menu_locale.h"
 
 typedef struct
 	{
@@ -115,7 +117,7 @@ UI_AdvControls_GetConfig
 static void UI_AdvControls_GetConfig (void)
 	{
 	// ESHQ: непонятно чем вызванное переопределение kbutton_s на kbutton_t
-	kbutton_t *mlook;
+	kbutton_t	*mlook;
 
 	if (CVAR_GET_FLOAT ("m_pitch") < 0)
 		uiAdvControls.invertMouse.enabled = true;
@@ -164,7 +166,7 @@ UI_AdvControls_Callback
 ***/
 static void UI_AdvControls_Callback (void *self, int event)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	switch (item->id)
 		{
@@ -233,13 +235,15 @@ static void UI_AdvControls_Init (void)
 	uiAdvControls.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiAdvControls.done.generic.x = 72;
 	uiAdvControls.done.generic.y = 680;
-	uiAdvControls.done.generic.name = "Done";
+	/*uiAdvControls.done.generic.name = "Done";*/
+	uiAdvControls.done.generic.name = MLOC (LOC_Done);
 	uiAdvControls.done.generic.callback = UI_AdvControls_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiAdvControls.done.generic.statusText = "Сохранить изменения и вернуться в меню настройки";
-#else
+	else
 	uiAdvControls.done.generic.statusText = "Save changes and go back to the customizing menu";
-#endif
+	endif*/
+	uiAdvControls.done.generic.statusText = MLOC (LOC_SaveAndReturnToSettingsMenu);
 
 	UI_UtilSetupPicButton (&uiAdvControls.done, PC_DONE);
 
@@ -250,26 +254,30 @@ static void UI_AdvControls_Init (void)
 	uiAdvControls.crosshair.generic.x = 72;
 	uiAdvControls.crosshair.generic.y = 230;
 	uiAdvControls.crosshair.generic.callback = UI_AdvControls_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiAdvControls.crosshair.generic.name = "Перекрестие";
 	uiAdvControls.crosshair.generic.statusText = "Включение точки прицела оружия";
-#else
+	else
 	uiAdvControls.crosshair.generic.name = "Crosshair";
 	uiAdvControls.crosshair.generic.statusText = "Enable the weapon aiming crosshair";
-#endif
+	endif*/
+	uiAdvControls.crosshair.generic.name = MLOC (uiAdvControls_crosshair_generic_name);
+	uiAdvControls.crosshair.generic.statusText = MLOC (uiAdvControls_crosshair_generic_statusText);
 
 	uiAdvControls.invertMouse.generic.id = ID_INVERTMOUSE;
 	uiAdvControls.invertMouse.generic.type = QMTYPE_CHECKBOX;
 	uiAdvControls.invertMouse.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_NOTIFY | QMF_ACT_ONRELEASE | QMF_MOUSEONLY | QMF_DROPSHADOW;
 	uiAdvControls.invertMouse.generic.x = 72;
 	uiAdvControls.invertMouse.generic.y = 280;
-	uiAdvControls.invertMouse.generic.name = MenuStrings[HINT_REVERSE_MOUSE];
+	/*uiAdvControls.invertMouse.generic.name = MenuStrings[HINT_REVERSE_MOUSE];*/
+	uiAdvControls.invertMouse.generic.name = MLOC (uiAdvControls_invertMouse_generic_name);
 	uiAdvControls.invertMouse.generic.callback = UI_AdvControls_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiAdvControls.invertMouse.generic.statusText = "Перевернуть вертикальную ось мыши";
-#else
+	else
 	uiAdvControls.invertMouse.generic.statusText = "Reverse vertical mouse axis";
-#endif
+	endif*/
+	uiAdvControls.invertMouse.generic.statusText = MLOC (uiAdvControls_invertMouse_generic_statusText);
 
 	uiAdvControls.mouseLook.generic.id = ID_MOUSELOOK;
 	uiAdvControls.mouseLook.generic.type = QMTYPE_CHECKBOX;
@@ -277,13 +285,15 @@ static void UI_AdvControls_Init (void)
 	uiAdvControls.mouseLook.generic.x = 72;
 	uiAdvControls.mouseLook.generic.y = 330;
 	uiAdvControls.mouseLook.generic.callback = UI_AdvControls_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiAdvControls.mouseLook.generic.name = "Обзор мышью";
 	uiAdvControls.mouseLook.generic.statusText = "Использовать мышь для обзора вместо перемещения";
-#else
+	else
 	uiAdvControls.mouseLook.generic.name = "Mouse look";
 	uiAdvControls.mouseLook.generic.statusText = "Use the mouse to look around instead of using the mouse to move";
-#endif
+	endif*/
+	uiAdvControls.mouseLook.generic.name = MLOC (uiAdvControls_mouseLook_generic_name);
+	uiAdvControls.mouseLook.generic.statusText = MLOC (uiAdvControls_mouseLook_generic_statusText);
 
 	uiAdvControls.lookSpring.generic.id = ID_LOOKSPRING;
 	uiAdvControls.lookSpring.generic.type = QMTYPE_CHECKBOX;
@@ -291,13 +301,15 @@ static void UI_AdvControls_Init (void)
 	uiAdvControls.lookSpring.generic.x = 72;
 	uiAdvControls.lookSpring.generic.y = 380;
 	uiAdvControls.lookSpring.generic.callback = UI_AdvControls_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiAdvControls.lookSpring.generic.name = "Пружинящий экран";
 	uiAdvControls.lookSpring.generic.statusText = "Заставляет экран 'пружинить' назад, чтобы смотреть\nпрямо, когда вы двигаетесь вперёд";
-#else
+	else
 	uiAdvControls.lookSpring.generic.name = "Look spring";
 	uiAdvControls.lookSpring.generic.statusText = "Causes the screen to 'spring' back to looking straight\nahead when you move forward";
-#endif
+	endif*/
+	uiAdvControls.lookSpring.generic.name = MLOC (uiAdvControls_lookSpring_generic_name);
+	uiAdvControls.lookSpring.generic.statusText = MLOC (uiAdvControls_lookSpring_generic_statusText);
 
 	uiAdvControls.lookStrafe.generic.id = ID_LOOKSTRAFE;
 	uiAdvControls.lookStrafe.generic.type = QMTYPE_CHECKBOX;
@@ -305,13 +317,15 @@ static void UI_AdvControls_Init (void)
 	uiAdvControls.lookStrafe.generic.x = 72;
 	uiAdvControls.lookStrafe.generic.y = 430;
 	uiAdvControls.lookStrafe.generic.callback = UI_AdvControls_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiAdvControls.lookStrafe.generic.name = "Режим обзора";
 	uiAdvControls.lookStrafe.generic.statusText = "В сочетании с модификатором обзора мыши заставляет\nдвигаться влево-вправо вместо поворота";
-#else
+	else
 	uiAdvControls.lookStrafe.generic.name = "Look strafe";
 	uiAdvControls.lookStrafe.generic.statusText = "In combination with your mouse look modifier, causes left-right\nmovements to strafe instead of turn";
-#endif
+	endif*/
+	uiAdvControls.lookStrafe.generic.name = MLOC (uiAdvControls_lookStrafe_generic_name);
+	uiAdvControls.lookStrafe.generic.statusText = MLOC (uiAdvControls_lookStrafe_generic_statusText);
 
 	// ESHQ: замена параметра на бесконечный бег
 	uiAdvControls.infiniteRun.generic.id = ID_INFINITERUN;
@@ -321,13 +335,15 @@ static void UI_AdvControls_Init (void)
 	uiAdvControls.infiniteRun.generic.x = 72;
 	uiAdvControls.infiniteRun.generic.y = 480;
 	uiAdvControls.infiniteRun.generic.callback = UI_AdvControls_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiAdvControls.infiniteRun.generic.name = "Постоянный бег";
 	uiAdvControls.infiniteRun.generic.statusText = "Постоянный бег игрока, не требующий нажатия\nотдельной клавиши";
-#else
+	else
 	uiAdvControls.infiniteRun.generic.name = "Permanent run";
 	uiAdvControls.infiniteRun.generic.statusText = "Constantly running player without special keys";
-#endif
+	endif*/
+	uiAdvControls.infiniteRun.generic.name = MLOC (uiAdvControls_infiniteRun_generic_name);
+	uiAdvControls.infiniteRun.generic.statusText = MLOC (uiAdvControls_infiniteRun_generic_statusText);
 
 	uiAdvControls.autoaim.generic.id = ID_AUTOAIM;
 	uiAdvControls.autoaim.generic.type = QMTYPE_CHECKBOX;
@@ -335,29 +351,33 @@ static void UI_AdvControls_Init (void)
 	uiAdvControls.autoaim.generic.x = 72;
 	uiAdvControls.autoaim.generic.y = 530;
 	uiAdvControls.autoaim.generic.callback = UI_AdvControls_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiAdvControls.autoaim.generic.name = "Автоприцел";
 	uiAdvControls.autoaim.generic.statusText = "Пусть игра поможет вам целиться во врагов";
-#else
+	else
 	uiAdvControls.autoaim.generic.name = "Autoaim";
 	uiAdvControls.autoaim.generic.statusText = "Let game to help you aim at enemies";
-#endif
+	endif*/
+	uiAdvControls.autoaim.generic.name = MLOC (uiAdvControls_autoaim_generic_name);
+	uiAdvControls.autoaim.generic.statusText = MLOC (uiAdvControls_autoaim_generic_statusText);
 
 	uiAdvControls.sensitivity.generic.id = ID_SENSITIVITY;
 	uiAdvControls.sensitivity.generic.type = QMTYPE_SLIDER;
 	uiAdvControls.sensitivity.generic.flags = QMF_PULSEIFFOCUS | QMF_DROPSHADOW;
-	uiAdvControls.sensitivity.generic.name = MenuStrings[HINT_MOUSE_SENSE];
+	/*uiAdvControls.sensitivity.generic.name = MenuStrings[HINT_MOUSE_SENSE];*/
 	uiAdvControls.sensitivity.generic.x = 72;
 	uiAdvControls.sensitivity.generic.y = 625;
 	uiAdvControls.sensitivity.minValue = 0.0;
 	uiAdvControls.sensitivity.maxValue = 1.0;
 	uiAdvControls.sensitivity.range = 0.01f;
 	uiAdvControls.sensitivity.generic.callback = UI_AdvControls_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiAdvControls.sensitivity.generic.statusText = "Установка чувствительности мыши в игре";
-#else
+	else
 	uiAdvControls.sensitivity.generic.statusText = "Set in-game mouse sensitivity";
-#endif
+	endif*/
+	uiAdvControls.sensitivity.generic.name = MLOC (uiAdvControls_sensitivity_generic_name);
+	uiAdvControls.sensitivity.generic.statusText = MLOC (uiAdvControls_sensitivity_generic_statusText);
 
 	UI_AdvControls_GetConfig ();
 

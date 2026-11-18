@@ -1601,22 +1601,6 @@ void CTestEffect::TestThink (void)
 		m_flBeamTime[m_iBeam] = gpGlobals->time;
 		m_pBeam[m_iBeam] = pbeam;
 		m_iBeam++;
-
-		/*if 0
-		Vector vecMid = (vecSrc + tr.vecEndPos) * 0.5;
-		MESSAGE_BEGIN (MSG_BROADCAST, SVC_TEMPENTITY);
-		WRITE_BYTE (TE_DLIGHT);
-		WRITE_COORD (vecMid.x);	// X
-		WRITE_COORD (vecMid.y);	// Y
-		WRITE_COORD (vecMid.z);	// Z
-		WRITE_BYTE (20);		// radius * 0.1
-		WRITE_BYTE (255);		// r
-		WRITE_BYTE (180);		// g
-		WRITE_BYTE (100);		// b
-		WRITE_BYTE (20);		// time * 10
-		WRITE_BYTE (0);		// decay * 0.1
-		MESSAGE_END ();
-		endif*/
 		}
 
 	if (t < 3.0)
@@ -1625,8 +1609,8 @@ void CTestEffect::TestThink (void)
 			{
 			t = (gpGlobals->time - m_flBeamTime[i]) / (3 + m_flStartTime - m_flBeamTime[i]);
 			m_pBeam[i]->SetBrightness (255 * t);
-			// m_pBeam[i]->SetScrollRate( 20 * t );
 			}
+
 		pev->nextthink = gpGlobals->time + 0.1;
 		}
 	else
@@ -1635,6 +1619,7 @@ void CTestEffect::TestThink (void)
 			{
 			UTIL_Remove (m_pBeam[i]);
 			}
+
 		m_flStartTime = gpGlobals->time;
 		m_iBeam = 0;
 		SetThink (NULL);

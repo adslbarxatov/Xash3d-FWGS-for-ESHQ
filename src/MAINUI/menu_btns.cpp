@@ -26,77 +26,77 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 
 const char* MenuButtons[PC_BUTTONCOUNT] =
 	{
-		"New game",
-		"Resume Game",
-		"Hazard Course",
-		"Configuration",
-		"Load game",
-		"Save/load game",
-		"View readme",
-		"Quit",
-		"Multiplayer",
-		"Easy",
-		"Medium",
-		"Difficult",
-		"Save game",
-		"Load game",
-		"Cancel",
-		"Game options",
-		"Video",
-		"Audio",
-		"Controls",
-		"Done",
-		"Quickstart",
-		"Use defaults",
-		"OK",
-		"Video options",
-		"Video modes",
-		"Adv controls",
-		"Order Half-life",
-		"Delete",
-		"Internet games",
-		"Chat rooms",
-		"Lan games",
-		"Customize",
-		"Skip",
-		"Exit",
-		"Connect",
-		"Refresh",
-		"Filter",
-		"Filter",
-		"Create",
-		"Create game",
-		"Chat rooms",
-		"List rooms",
-		"Search",
-		"Servers",
-		"Join",
-		"Find",
-		"Create room",
-		"Join game",
-		"Search games",
-		"Find game",
-		"Start game",
-		"View game info",
-		"Update",
-		"Add server",
-		"Disconnect",
-		"Console",
-		"Content control",
-		"Update",
-		"Visit won",
-		"Previews",
-		"Adv options",
-		"3D info site",
-		"Custom Game",
-		"Activate",
-		"Install",
-		"Visit web site",
-		"Refresh list",
-		"Deactivate",
-		"Adv options",
-		"Spectate game",
-		"Spectate games"
+	"New game",
+	"Resume Game",
+	"Hazard Course",
+	"Configuration",
+	"Load game",
+	"Save/load game",
+	"View readme",
+	"Quit",
+	"Multiplayer",
+	"Easy",
+	"Medium",
+	"Difficult",
+	"Save game",
+	"Load game",
+	"Cancel",
+	"Game options",
+	"Video",
+	"Audio",
+	"Controls",
+	"Done",
+	"Quickstart",
+	"Use defaults",
+	"OK",
+	"Video options",
+	"Video modes",
+	"Adv controls",
+	"Order Half-life",
+	"Delete",
+	"Internet games",
+	"Chat rooms",
+	"Lan games",
+	"Customize",
+	"Skip",
+	"Exit",
+	"Connect",
+	"Refresh",
+	"Filter",
+	"Filter",
+	"Create",
+	"Create game",
+	"Chat rooms",
+	"List rooms",
+	"Search",
+	"Servers",
+	"Join",
+	"Find",
+	"Create room",
+	"Join game",
+	"Search games",
+	"Find game",
+	"Start game",
+	"View game info",
+	"Update",
+	"Add server",
+	"Disconnect",
+	"Console",
+	"Content control",
+	"Update",
+	"Visit won",
+	"Previews",
+	"Adv options",
+	"3D info site",
+	"Custom Game",
+	"Activate",
+	"Install",
+	"Visit web site",
+	"Refresh list",
+	"Deactivate",
+	"Adv options",
+	"Spectate game",
+	"Spectate games"
 	};
 
 /***
@@ -108,20 +108,19 @@ void UI_LoadBmpButtons (void)
 	{
 	memset (uiStatic.buttonsPics, 0, sizeof (uiStatic.buttonsPics));
 
-	int bmp_filesize, palette_sz = 0;
-	byte* bmp_buffer = LOAD_FILE (ART_BUTTONS_MAIN, &bmp_filesize);
+	int		bmp_filesize, palette_sz = 0;
+	byte	*bmp_buffer = LOAD_FILE (ART_BUTTONS_MAIN, &bmp_filesize);
 
 	if (!bmp_buffer || !bmp_filesize)
 		{
-		Con_Printf ("UI_LoadBmpButtons: btns_main.bmp not found\n");
+		Con_Printf ("%s: btns_main.bmp not found\n", __func__);
 		return;
 		}
 
-	BITMAPFILEHEADER* pFileHdr = (BITMAPFILEHEADER*)bmp_buffer;
-	BITMAPINFOHEADER* pInfoHdr = (BITMAPINFOHEADER*)&bmp_buffer[sizeof (BITMAPFILEHEADER)];
-
-	BITMAPINFOHEADER NewInfoHdr;
-	BITMAPFILEHEADER NewFileHdr;
+	BITMAPFILEHEADER	*pFileHdr = (BITMAPFILEHEADER *)bmp_buffer;
+	BITMAPINFOHEADER	*pInfoHdr = (BITMAPINFOHEADER *)&bmp_buffer[sizeof (BITMAPFILEHEADER)];
+	BITMAPINFOHEADER	NewInfoHdr;
+	BITMAPFILEHEADER	NewFileHdr;
 
 	if ((pInfoHdr->biBitCount == 8) && (pInfoHdr->biClrUsed == 0))
 		pInfoHdr->biClrUsed = 256; // all colors used
@@ -129,7 +128,8 @@ void UI_LoadBmpButtons (void)
 	memcpy (&NewFileHdr, pFileHdr, sizeof (BITMAPFILEHEADER));
 	memcpy (&NewInfoHdr, pInfoHdr, sizeof (BITMAPINFOHEADER));
 
-	byte* palette = bmp_buffer + sizeof (BITMAPFILEHEADER) + sizeof (BITMAPINFOHEADER);
+	byte	*palette = bmp_buffer + sizeof (BITMAPFILEHEADER) + sizeof (BITMAPINFOHEADER);
+
 	if (pInfoHdr->biBitCount <= 8)
 		{
 		// figure out how many entries are actually in the table
@@ -148,20 +148,20 @@ void UI_LoadBmpButtons (void)
 	uiStatic.buttons_height = 78;	// fixed height (26 * 3)
 
 	// determine buttons count by image height...
-	int pic_count = (pInfoHdr->biHeight / uiStatic.buttons_height);
+	int		pic_count = (pInfoHdr->biHeight / uiStatic.buttons_height);
 
-	int stride = (pInfoHdr->biWidth * pInfoHdr->biBitCount / 8);
-	int cutted_img_sz = ((stride + 3) & ~3) * uiStatic.buttons_height;
-	int CuttedBmpSize = sizeof (BITMAPFILEHEADER) + sizeof (BITMAPINFOHEADER) + palette_sz + cutted_img_sz;
-	byte* img_data = &bmp_buffer[pFileHdr->bfOffBits + cutted_img_sz * (pic_count - 1)];
+	int		stride = (pInfoHdr->biWidth * pInfoHdr->biBitCount / 8);
+	int		cutted_img_sz = ((stride + 3) & ~3) * uiStatic.buttons_height;
+	int		CuttedBmpSize = sizeof (BITMAPFILEHEADER) + sizeof (BITMAPINFOHEADER) + palette_sz + cutted_img_sz;
+	byte	*img_data = &bmp_buffer[pFileHdr->bfOffBits + cutted_img_sz * (pic_count - 1)];
 
 	NewFileHdr.bfSize = CuttedBmpSize;
 	NewFileHdr.bfOffBits = sizeof (BITMAPFILEHEADER) + sizeof (BITMAPINFOHEADER) + palette_sz;
 	NewInfoHdr.biHeight = uiStatic.buttons_height;
 	NewInfoHdr.biSizeImage = cutted_img_sz;
 
-	char fname[256];
-	byte* raw_img_buff = (byte*)MALLOC (CuttedBmpSize);
+	char	fname[256];
+	byte	*raw_img_buff = (byte *)MALLOC (CuttedBmpSize);
 
 	for (int i = 0; i < pic_count; i++)
 		{

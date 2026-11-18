@@ -44,10 +44,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #define ID_QUIT				10
 #define ID_QUIT_BUTTON		11
 #define ID_MINIMIZE			12
-#define ID_MSGBOX	 		13
-#define ID_MSGTEXT	 		14
-#define ID_YES	 			130
-#define ID_NO	 			131
+#define ID_MSGBOX			13
+#define ID_MSGTEXT			14
+#define ID_YES				130
+#define ID_NO				131
 
 typedef struct
 	{

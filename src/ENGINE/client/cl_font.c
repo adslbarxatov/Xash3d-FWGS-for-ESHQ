@@ -216,11 +216,6 @@ static int CL_CalcTabStop (const cl_font_t *font, int x)
 // [FWGS, 01.07.26]
 int CL_DrawCharacter (float x, float y, int number, const rgba_t color, cl_font_t *font, int flags)
 	{
-	/*wrect_t *rc;
-	float w, h;
-	float s1, t1, s2, t2, half = 0.5f;
-	int texw, texh;*/
-
 	if (!font || !font->valid || (y < -font->charHeight))
 		return 0;
 
@@ -243,29 +238,22 @@ int CL_DrawCharacter (float x, float y, int number, const rgba_t color, cl_font_
 	if (!number || !font->charWidths[number])
 		return 0;
 
-	int texw, texh;
+	int	texw, texh;
 	R_GetTextureParms (&texw, &texh, font->hFontTexture);
 	if (!texw || !texh)
 		return font->charWidths[number];
 
-	/*rc = &font->fontRc[number];*/
-	wrect_t *rc = &font->fontRc[number];
-	float half = 0.5f;
+	wrect_t	*rc = &font->fontRc[number];
+	float	half = 0.5f;
 	if ((font->scale <= 1.0f) || !REF_GET_PARM (PARM_TEX_FILTERING, font->hFontTexture))
 		half = 0;
 
-	/*s1 = ((float)rc->left + half) / texw;
-	t1 = ((float)rc->top + half) / texh;
-	s2 = ((float)rc->right - half) / texw;
-	t2 = ((float)rc->bottom - half) / texh;
-	w = (rc->right - rc->left) * font->scale;
-	h = (rc->bottom - rc->top) * font->scale;*/
-	float s1 = ((float)rc->left + half) / texw;
-	float t1 = ((float)rc->top + half) / texh;
-	float s2 = ((float)rc->right - half) / texw;
-	float t2 = ((float)rc->bottom - half) / texh;
-	float w = (rc->right - rc->left) * font->scale;
-	float h = (rc->bottom - rc->top) * font->scale;
+	float	s1 = ((float)rc->left + half) / texw;
+	float	t1 = ((float)rc->top + half) / texh;
+	float	s2 = ((float)rc->right - half) / texw;
+	float	t2 = ((float)rc->bottom - half) / texh;
+	float	w = (rc->right - rc->left) * font->scale;
+	float	h = (rc->bottom - rc->top) * font->scale;
 
 	if (FBitSet (flags, FONT_DRAW_HUD))
 		SPR_AdjustSize (&x, &y, &w, &h);

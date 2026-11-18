@@ -134,8 +134,11 @@ static CVAR_DEFINE_AUTO (cl_upmax, "508", FCVAR_ARCHIVE,
 	"max allowed incoming fragment size");
 CVAR_DEFINE_AUTO (cl_lw, "1", FCVAR_ARCHIVE | FCVAR_USERINFO,
 	"enable client weapon predicting");
-CVAR_DEFINE_AUTO (cl_charset, "utf-8", FCVAR_ARCHIVE,
+
+// ESHQ: изменено с utf-8 для поддержки локализации меню
+CVAR_DEFINE_AUTO (cl_charset, "cp1251", FCVAR_ARCHIVE,
 	"1-byte charset to use (iconv style)");
+
 CVAR_DEFINE_AUTO (cl_trace_consistency, "0", 0,
 	"enable consistency info tracing (good for developers)");
 CVAR_DEFINE_AUTO (cl_trace_stufftext, "0", 0,

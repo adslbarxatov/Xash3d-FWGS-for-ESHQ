@@ -35,6 +35,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #define ID_HAND				6
 #define ID_ALLOWDOWNLOAD	7
 
+// ESHQ: поддержка локализации
+#include "menu_locale.h"
+
 typedef struct
 	{
 	float	maxFPS;
@@ -97,8 +100,9 @@ UI_GameOptions_KeyFunc
 ***/
 static const char *UI_GameOptions_KeyFunc (int key, int down)
 	{
-	if (down && key == K_ESCAPE)
+	if (down && (key == K_ESCAPE))
 		UI_GameOptions_DiscardChanges ();
+
 	return UI_DefaultKey (&uiGameOptions.menu, key, down);
 	}
 
@@ -127,7 +131,7 @@ UI_GameOptions_Callback
 ***/
 static void UI_GameOptions_Callback (void *self, int event)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	switch (item->id)
 		{
@@ -154,6 +158,7 @@ static void UI_GameOptions_Callback (void *self, int event)
 		case ID_DONE:
 			UI_PopMenu ();
 			break;
+
 		case ID_CANCEL:
 			UI_GameOptions_DiscardChanges ();
 			UI_PopMenu ();
@@ -197,28 +202,32 @@ static void UI_GameOptions_Init (void)
 	uiGameOptions.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiGameOptions.done.generic.x = 72;
 	uiGameOptions.done.generic.y = 230;
-	uiGameOptions.done.generic.name = "Done";
+	/*uiGameOptions.done.generic.name = "Done";*/
 	uiGameOptions.done.generic.callback = UI_GameOptions_Callback;
 	UI_UtilSetupPicButton (&uiGameOptions.done, PC_DONE);
-#ifdef RU
+	/*ifdef RU
 	uiGameOptions.done.generic.statusText = "Сохранить изменения и вернуться в меню настроек";
-#else
+	else
 	uiGameOptions.done.generic.statusText = "Save changes and go back to the customize menu";
-#endif
+	endif*/
+	uiGameOptions.done.generic.name = MLOC (LOC_Done);
+	uiGameOptions.done.generic.statusText = MLOC (LOC_SaveAndReturnToSettingsMenu);
 
 	uiGameOptions.cancel.generic.id = ID_CANCEL;
 	uiGameOptions.cancel.generic.type = QMTYPE_BM_BUTTON;
 	uiGameOptions.cancel.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiGameOptions.cancel.generic.x = 72;
 	uiGameOptions.cancel.generic.y = 280;
-	uiGameOptions.cancel.generic.name = "Cancel";
+	/*uiGameOptions.cancel.generic.name = "Cancel";*/
 	uiGameOptions.cancel.generic.callback = UI_GameOptions_Callback;
 	UI_UtilSetupPicButton (&uiGameOptions.cancel, PC_CANCEL);
-#ifdef RU
+	/*ifdef RU
 	uiGameOptions.cancel.generic.statusText = "Вернуться в меню настроек";
-#else
+	else
 	uiGameOptions.cancel.generic.statusText = "Go back to the customize menu";
-#endif
+	endif*/
+	uiGameOptions.cancel.generic.name = MLOC (LOC_Cancel);
+	uiGameOptions.cancel.generic.statusText = MLOC (LOC_ReturnToSettingsMenu);
 
 	uiGameOptions.maxFPS.generic.id = ID_MAXFPS;
 	uiGameOptions.maxFPS.generic.type = QMTYPE_SPINCONTROL;
@@ -231,11 +240,12 @@ static void UI_GameOptions_Init (void)
 	uiGameOptions.maxFPS.minValue = 20;
 	uiGameOptions.maxFPS.maxValue = 500;
 	uiGameOptions.maxFPS.range = 20;
-#ifdef RU
+	/*ifdef RU
 	uiGameOptions.maxFPS.generic.statusText = "Ограничить частоту кадров в игре";
-#else
+	else
 	uiGameOptions.maxFPS.generic.statusText = "Cap your game frame rate";
-#endif
+	endif*/
+	uiGameOptions.maxFPS.generic.statusText = MLOC (uiGameOptions_maxFPS_generic_statusText);
 
 	uiGameOptions.maxFPSmessage.generic.id = ID_MAXFPSMESSAGE;
 	uiGameOptions.maxFPSmessage.generic.type = QMTYPE_ACTION;
@@ -243,11 +253,12 @@ static void UI_GameOptions_Init (void)
 	uiGameOptions.maxFPSmessage.generic.x = 280;
 	uiGameOptions.maxFPSmessage.generic.y = 230;
 	uiGameOptions.maxFPSmessage.generic.color = uiColorHelp;
-#ifdef RU
+	/*ifdef RU
 	uiGameOptions.maxFPSmessage.generic.name = "Ограничить FPS";
-#else
+	else
 	uiGameOptions.maxFPSmessage.generic.name = "Limit game FPS";
-#endif
+	endif*/
+	uiGameOptions.maxFPSmessage.generic.name = MLOC (uiGameOptions_maxFPSmessage_generic_name);
 
 	uiGameOptions.hand.generic.id = ID_HAND;
 	uiGameOptions.hand.generic.type = QMTYPE_CHECKBOX;
@@ -255,13 +266,15 @@ static void UI_GameOptions_Init (void)
 	uiGameOptions.hand.generic.x = 280;
 	uiGameOptions.hand.generic.y = 330;
 	uiGameOptions.hand.generic.callback = UI_GameOptions_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiGameOptions.hand.generic.name = "Левая рука";
 	uiGameOptions.hand.generic.statusText = "Отображать оружие слева";
-#else
+	else
 	uiGameOptions.hand.generic.name = "Use left hand";
 	uiGameOptions.hand.generic.statusText = "Draw gun at left side";
-#endif
+	endif*/
+	uiGameOptions.hand.generic.name = MLOC (uiGameOptions_hand_generic_name);
+	uiGameOptions.hand.generic.statusText = MLOC (uiGameOptions_hand_generic_statusText);
 
 	uiGameOptions.allowDownload.generic.id = ID_ALLOWDOWNLOAD;
 	uiGameOptions.allowDownload.generic.type = QMTYPE_CHECKBOX;
@@ -269,13 +282,15 @@ static void UI_GameOptions_Init (void)
 	uiGameOptions.allowDownload.generic.x = 280;
 	uiGameOptions.allowDownload.generic.y = 390;
 	uiGameOptions.allowDownload.generic.callback = UI_GameOptions_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiGameOptions.allowDownload.generic.name = "Разрешить загрузку";
 	uiGameOptions.allowDownload.generic.statusText = "Разрешить загрузку файлов с серверов";
-#else
+	else
 	uiGameOptions.allowDownload.generic.name = "Allow download";
 	uiGameOptions.allowDownload.generic.statusText = "Allow download of files from servers";
-#endif
+	endif*/
+	uiGameOptions.allowDownload.generic.name = MLOC (uiGameOptions_allowDownload_generic_name);
+	uiGameOptions.allowDownload.generic.statusText = MLOC (uiGameOptions_allowDownload_generic_statusText);
 
 	UI_GameOptions_GetConfig ();
 

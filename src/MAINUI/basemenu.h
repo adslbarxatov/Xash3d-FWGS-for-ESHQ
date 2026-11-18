@@ -424,6 +424,10 @@ void UI_DrawString (int x, int y, int w, int h, const char *str, const int col, 
 void UI_StartSound (const char *sound);
 void UI_LoadBmpButtons (void);
 
+// ESHQ: загрузка локализации меню
+void UI_LoadMenuLocale (void);
+void UI_UnloadMenuLocale (void);
+
 void UI_DrawBackground_Callback (void *self);
 void UI_AddItem (menuFramework_s *menu, void *item);
 void UI_CursorMoved (menuFramework_s *menu);

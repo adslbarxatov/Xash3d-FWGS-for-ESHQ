@@ -2296,6 +2296,7 @@ qboolean CL_DispatchUserMessage (const char *pszName, int iSize, void *pbuf)
 		Con_DPrintf (S_ERROR "UserMsg: No pfn %s %d\n", clgame.msg[i].name, clgame.msg[i].number);
 		clgame.msg[i].func = CL_UserMsgStub;	// throw warning only once
 		}
+
 	return true;
 	}
 

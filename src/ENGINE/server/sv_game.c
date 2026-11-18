@@ -456,7 +456,7 @@ static int SV_Multicast (int dest, const vec3_t origin, const edict_t *ent, qboo
 		if ((cl->state == cs_free) || (cl->state == cs_zombie))
 			continue;
 
-		if (cl->state != cs_spawned && (!reliable || usermessage))
+		if ((cl->state != cs_spawned) && (!reliable || usermessage))
 			continue;
 
 		if (specproxy && !FBitSet (cl->flags, FCL_HLTV_PROXY))
@@ -477,14 +477,12 @@ static int SV_Multicast (int dest, const vec3_t origin, const edict_t *ent, qboo
 		if (!SV_CheckClientVisiblity (cl, mask))
 			continue;
 
-		if (specproxy) MSG_WriteBits (&sv.spec_datagram, MSG_GetData (&sv.multicast),
-			MSG_GetNumBitsWritten (&sv.multicast));
-		else if
-			(reliable) MSG_WriteBits (&cl->netchan.message, MSG_GetData (&sv.multicast),
-				MSG_GetNumBitsWritten (&sv.multicast));
+		if (specproxy)
+			MSG_WriteBits (&sv.spec_datagram, MSG_GetData (&sv.multicast), MSG_GetNumBitsWritten (&sv.multicast));
+		else if (reliable)
+			MSG_WriteBits (&cl->netchan.message, MSG_GetData (&sv.multicast), MSG_GetNumBitsWritten (&sv.multicast));
 		else
-			MSG_WriteBits (&cl->datagram, MSG_GetData (&sv.multicast),
-				MSG_GetNumBitsWritten (&sv.multicast));
+			MSG_WriteBits (&cl->datagram, MSG_GetData (&sv.multicast), MSG_GetNumBitsWritten (&sv.multicast));
 		numsends++;
 		}
 

@@ -37,19 +37,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #define ID_PASSWORD		9
 #define ID_DEDICATED	10
 
-#define ID_MSGBOX	 	12
-#define ID_MSGTEXT	 	13
-#define ID_YES	 		130
-#define ID_NO	 		131
+#define ID_MSGBOX		12
+#define ID_MSGTEXT		13
+#define ID_YES			130
+#define ID_NO			131
 
 #define MAPNAME_LENGTH	20
 #define TITLE_LENGTH	20+MAPNAME_LENGTH
 
+// ESHQ: поддержка локализации
+#include "menu_locale.h"
+
 typedef struct
 	{
-	char		mapName[UI_MAXGAMES][64];
-	char		mapsDescription[UI_MAXGAMES][256];
-	char *mapsDescriptionPtr[UI_MAXGAMES];
+	char	mapName[UI_MAXGAMES][64];
+	char	mapsDescription[UI_MAXGAMES][256];
+	char	*mapsDescriptionPtr[UI_MAXGAMES];
 
 	menuFramework_s	menu;
 
@@ -85,10 +88,10 @@ UI_CreateGame_Begin
 ***/
 static void UI_CreateGame_Begin (void)
 	{
-	char *pMapName = uiCreateGame.mapName[uiCreateGame.mapsList.curItem];
-	int	maxPlayers = atoi (uiCreateGame.maxClients.buffer);
-	int	loc = CVAR_GET_FLOAT ("sv_lan");
-	int	pub = CVAR_GET_FLOAT ("public");
+	char	*pMapName = uiCreateGame.mapName[uiCreateGame.mapsList.curItem];
+	int		maxPlayers = atoi (uiCreateGame.maxClients.buffer);
+	int		loc = CVAR_GET_FLOAT ("sv_lan");
+	int		pub = CVAR_GET_FLOAT ("public");
 
 	if (!MAP_IS_VALID (pMapName))
 		return;	// bad map
@@ -106,7 +109,7 @@ static void UI_CreateGame_Begin (void)
 	// all done, start server
 	if (uiCreateGame.dedicatedServer.enabled)
 		{
-		char cmd[128], msg[128];
+		char	cmd[128], msg[128];
 		sprintf (cmd, "#%s +maxplayers %i +sv_lan %i +public %i +map %s", gMenu.m_gameinfo.gamefolder, maxPlayers, 
 			loc, pub, pMapName);
 		sprintf (msg, "startup dedicated server from '%s'", gMenu.m_gameinfo.gamefolder);
@@ -115,7 +118,7 @@ static void UI_CreateGame_Begin (void)
 		}
 	else
 		{
-		char cmd[128];
+		char	cmd[128];
 		sprintf (cmd, "map %s\n", pMapName);
 
 		CLIENT_COMMAND (FALSE, cmd);
@@ -155,11 +158,12 @@ UI_CreateGame_KeyFunc
 ***/
 static const char *UI_CreateGame_KeyFunc (int key, int down)
 	{
-	if (down && key == K_ESCAPE && !(uiCreateGame.dlgMessage1.generic.flags & QMF_HIDDEN))
+	if (down && (key == K_ESCAPE) && !(uiCreateGame.dlgMessage1.generic.flags & QMF_HIDDEN))
 		{
 		UI_PromptDialog ();
 		return uiSoundNull;
 		}
+
 	return UI_DefaultKey (&uiCreateGame.menu, key, down);
 	}
 
@@ -170,7 +174,7 @@ UI_MsgBox_Ownerdraw
 ***/
 static void UI_MsgBox_Ownerdraw (void *self)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	UI_FillRect (item->x, item->y, item->width, item->height, uiPromptBgColor);
 	}
@@ -182,7 +186,7 @@ UI_CreateGame_GetMapsList
 ***/
 static void UI_CreateGame_GetMapsList (void)
 	{
-	char *afile;
+	char	*afile;
 
 	if (!CHECK_MAP_LIST (FALSE) || (afile = (char *)LOAD_FILE ("maps.lst", NULL)) == NULL)
 		{
@@ -192,26 +196,34 @@ static void UI_CreateGame_GetMapsList (void)
 		return;
 		}
 
-	char *pfile = afile;
-	char token[1024];
-	int numMaps = 0;
+	char	*pfile = afile;
+	char	token[1024];
+	int		numMaps = 0;
 
 	while ((pfile = COM_ParseFile (pfile, token)) != NULL)
 		{
-		if (numMaps >= UI_MAXGAMES) break;
+		if (numMaps >= UI_MAXGAMES)
+			break;
+
 		StringConcat (uiCreateGame.mapName[numMaps], token, sizeof (uiCreateGame.mapName[0]));
 		StringConcat (uiCreateGame.mapsDescription[numMaps], token, MAPNAME_LENGTH);
 		StringConcat (uiCreateGame.mapsDescription[numMaps], uiEmptyString, MAPNAME_LENGTH);
-		if ((pfile = COM_ParseFile (pfile, token)) == NULL) break; // unexpected end of file
+
+		if ((pfile = COM_ParseFile (pfile, token)) == NULL)
+			break;	// unexpected end of file
+
 		StringConcat (uiCreateGame.mapsDescription[numMaps], token, TITLE_LENGTH);
 		StringConcat (uiCreateGame.mapsDescription[numMaps], uiEmptyString, TITLE_LENGTH);
 		uiCreateGame.mapsDescriptionPtr[numMaps] = uiCreateGame.mapsDescription[numMaps];
 		numMaps++;
 		}
 
-	if (!numMaps) uiCreateGame.done.generic.flags |= QMF_GRAYED;
+	if (!numMaps)
+		uiCreateGame.done.generic.flags |= QMF_GRAYED;
 
-	for (; numMaps < UI_MAXGAMES; numMaps++) uiCreateGame.mapsDescriptionPtr[numMaps] = NULL;
+	for (; numMaps < UI_MAXGAMES; numMaps++)
+		uiCreateGame.mapsDescriptionPtr[numMaps] = NULL;
+
 	uiCreateGame.mapsList.itemNames = (const char **)uiCreateGame.mapsDescriptionPtr;
 	FREE_FILE (afile);
 	}
@@ -223,7 +235,7 @@ UI_CreateGame_Callback
 ***/
 static void UI_CreateGame_Callback (void *self, int event)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	switch (item->id)
 		{
@@ -270,17 +282,20 @@ static void UI_CreateGame_Init (void)
 	uiCreateGame.menu.vidInitFunc = UI_CreateGame_Init;
 	uiCreateGame.menu.keyFunc = UI_CreateGame_KeyFunc;
 
-#ifdef RU
+	/*ifdef RU
 	StringConcat (uiCreateGame.hintText, "Карта", MAPNAME_LENGTH);
-#else
+	else
 	StringConcat (uiCreateGame.hintText, "Map", MAPNAME_LENGTH);
-#endif
+	endif*/
+	StringConcat (uiCreateGame.hintText, MLOC (LOC_Map), MAPNAME_LENGTH);
 	StringConcat (uiCreateGame.hintText, uiEmptyString, MAPNAME_LENGTH);
-#ifdef RU
+
+	/*ifdef RU
 	StringConcat (uiCreateGame.hintText, "Заголовок", TITLE_LENGTH);
-#else
+	else
 	StringConcat (uiCreateGame.hintText, "Title", TITLE_LENGTH);
-#endif
+	endif*/
+	StringConcat (uiCreateGame.hintText, MLOC (uiCreateGame_hintText_Title), TITLE_LENGTH);
 	StringConcat (uiCreateGame.hintText, uiEmptyString, TITLE_LENGTH);
 
 	uiCreateGame.background.generic.id = ID_BACKGROUND;
@@ -306,42 +321,48 @@ static void UI_CreateGame_Init (void)
 	uiCreateGame.advOptions.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_GRAYED;
 	uiCreateGame.advOptions.generic.x = 72;
 	uiCreateGame.advOptions.generic.y = 230;
-	uiCreateGame.advOptions.generic.name = "Adv. options";
+	/*uiCreateGame.advOptions.generic.name = "Adv. options";*/
 	uiCreateGame.advOptions.generic.callback = UI_CreateGame_Callback;
 	UI_UtilSetupPicButton (&uiCreateGame.advOptions, PC_ADV_OPT);
-#ifdef RU
+	/*ifdef RU
 	uiCreateGame.advOptions.generic.statusText = "Открыть меню дополнительных параметров игры по LAN";
-#else
+	else
 	uiCreateGame.advOptions.generic.statusText = "Open the LAN game advanced options menu";
-#endif
+	endif*/
+	uiCreateGame.advOptions.generic.name = MLOC (uiCreateGame_advOptions_generic_name);
+	uiCreateGame.advOptions.generic.statusText = MLOC (uiCreateGame_advOptions_generic_statusText);
 
 	uiCreateGame.done.generic.id = ID_DONE;
 	uiCreateGame.done.generic.type = QMTYPE_BM_BUTTON;
 	uiCreateGame.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiCreateGame.done.generic.x = 72;
 	uiCreateGame.done.generic.y = 280;
-	uiCreateGame.done.generic.name = "OK";
+	/*uiCreateGame.done.generic.name = "OK";*/
 	uiCreateGame.done.generic.callback = UI_CreateGame_Callback;
 	UI_UtilSetupPicButton (&uiCreateGame.done, PC_OK);
-#ifdef RU
+	/*ifdef RU
 	uiCreateGame.done.generic.statusText = "Начать многопользовательскую игру";
-#else
+	else
 	uiCreateGame.done.generic.statusText = "Start the multiplayer game";
-#endif
+	endif*/
+	uiCreateGame.done.generic.name = MLOC (LOC_OK);
+	uiCreateGame.done.generic.statusText = MLOC (uiCreateGame_done_generic_statusText);
 
 	uiCreateGame.cancel.generic.id = ID_CANCEL;
 	uiCreateGame.cancel.generic.type = QMTYPE_BM_BUTTON;
 	uiCreateGame.cancel.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiCreateGame.cancel.generic.x = 72;
 	uiCreateGame.cancel.generic.y = 330;
-	uiCreateGame.cancel.generic.name = "Cancel";
+	/*uiCreateGame.cancel.generic.name = "Cancel";*/
 	uiCreateGame.cancel.generic.callback = UI_CreateGame_Callback;
 	UI_UtilSetupPicButton (&uiCreateGame.cancel, PC_CANCEL);
-#ifdef RU
+	/*ifdef RU
 	uiCreateGame.cancel.generic.statusText = "Вернуться в меню игры по LAN";
-#else
+	else
 	uiCreateGame.cancel.generic.statusText = "Return to LAN game menu";
-#endif
+	endif*/
+	uiCreateGame.cancel.generic.name = MLOC (LOC_Cancel);
+	uiCreateGame.cancel.generic.statusText = MLOC (uiCreateGame_cancel_generic_statusText);
 
 	uiCreateGame.dedicatedServer.generic.id = ID_DEDICATED;
 	uiCreateGame.dedicatedServer.generic.type = QMTYPE_CHECKBOX;
@@ -349,13 +370,15 @@ static void UI_CreateGame_Init (void)
 	uiCreateGame.dedicatedServer.generic.x = 72;
 	uiCreateGame.dedicatedServer.generic.y = 685;
 	uiCreateGame.dedicatedServer.generic.callback = UI_CreateGame_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiCreateGame.dedicatedServer.generic.name = "Выделенный сервер";
 	uiCreateGame.dedicatedServer.generic.statusText = "Быстрее, но вы не можете подключиться к серверу с этой машины";
-#else
+	else
 	uiCreateGame.dedicatedServer.generic.name = "Dedicated server";
 	uiCreateGame.dedicatedServer.generic.statusText = "Faster, but you can't join the server from this machine";
-#endif
+	endif*/
+	uiCreateGame.dedicatedServer.generic.name = MLOC (uiCreateGame_dedicatedServer_generic_name);
+	uiCreateGame.dedicatedServer.generic.statusText = MLOC (uiCreateGame_dedicatedServer_generic_statusText);
 
 	uiCreateGame.hintMessage.generic.id = ID_TABLEHINT;
 	uiCreateGame.hintMessage.generic.type = QMTYPE_ACTION;
@@ -384,11 +407,12 @@ static void UI_CreateGame_Init (void)
 	uiCreateGame.hostName.generic.callback = UI_CreateGame_Callback;
 	uiCreateGame.hostName.maxLength = 28;
 	strcpy (uiCreateGame.hostName.buffer, CVAR_GET_STRING ("hostname"));
-#ifdef RU
+	/*ifdef RU
 	uiCreateGame.hostName.generic.name = "Имя сервера:";
-#else
+	else
 	uiCreateGame.hostName.generic.name = "Server name:";
-#endif
+	endif*/
+	uiCreateGame.hostName.generic.name = MLOC (uiCreateGame_hostName_generic_name);
 
 	uiCreateGame.maxClients.generic.id = ID_MAXCLIENTS;
 	uiCreateGame.maxClients.generic.type = QMTYPE_FIELD;
@@ -398,11 +422,12 @@ static void UI_CreateGame_Init (void)
 	uiCreateGame.maxClients.generic.width = 205;
 	uiCreateGame.maxClients.generic.height = 32;
 	uiCreateGame.maxClients.maxLength = 3;
-#ifdef RU
+	/*ifdef RU
 	uiCreateGame.maxClients.generic.name = "Максимум игроков:";
-#else
+	else
 	uiCreateGame.maxClients.generic.name = "Max players:";
-#endif
+	endif*/
+	uiCreateGame.maxClients.generic.name = MLOC (uiCreateGame_maxClients_generic_name);
 
 	if (CVAR_GET_FLOAT ("maxplayers") <= 1)
 		strcpy (uiCreateGame.maxClients.buffer, "8");
@@ -418,11 +443,12 @@ static void UI_CreateGame_Init (void)
 	uiCreateGame.password.generic.height = 32;
 	uiCreateGame.password.generic.callback = UI_CreateGame_Callback;
 	uiCreateGame.password.maxLength = 16;
-#ifdef RU
+	/*ifdef RU
 	uiCreateGame.password.generic.name = "Пароль:";
-#else
+	else
 	uiCreateGame.password.generic.name = "Password:";
-#endif
+	endif*/
+	uiCreateGame.password.generic.name = MLOC (uiCreateGame_password_generic_name);
 
 	uiCreateGame.msgBox.generic.id = ID_MSGBOX;
 	uiCreateGame.msgBox.generic.type = QMTYPE_ACTION;
@@ -438,40 +464,44 @@ static void UI_CreateGame_Init (void)
 	uiCreateGame.dlgMessage1.generic.flags = QMF_INACTIVE | QMF_HIDDEN | QMF_DROPSHADOW;
 	uiCreateGame.dlgMessage1.generic.x = 248;
 	uiCreateGame.dlgMessage1.generic.y = 280;
-#ifdef RU
+	/*ifdef RU
 	uiCreateGame.dlgMessage1.generic.name = "Запуск новой игры остановит";
-#else
+	else
 	uiCreateGame.dlgMessage1.generic.name = "Starting a new game will exit";
-#endif
+	endif*/
+	uiCreateGame.dlgMessage1.generic.name = MLOC (LOC_WarningNewGame1);
 
 	uiCreateGame.dlgMessage2.generic.id = ID_MSGTEXT;
 	uiCreateGame.dlgMessage2.generic.type = QMTYPE_ACTION;
 	uiCreateGame.dlgMessage2.generic.flags = QMF_INACTIVE | QMF_HIDDEN | QMF_DROPSHADOW;
 	uiCreateGame.dlgMessage2.generic.x = 248;
 	uiCreateGame.dlgMessage2.generic.y = 310;
-#ifdef RU
+	/*ifdef RU
 	uiCreateGame.dlgMessage2.generic.name = "любую текущую игру. Продолжить?";
-#else
+	else
 	uiCreateGame.dlgMessage2.generic.name = "any current game. Continue?";
-#endif
+	endif*/
+	uiCreateGame.dlgMessage2.generic.name = MLOC (LOC_WarningNewGame2);
 
 	uiCreateGame.yes.generic.id = ID_YES;
 	uiCreateGame.yes.generic.type = QMTYPE_BM_BUTTON;
 	uiCreateGame.yes.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_HIDDEN | QMF_DROPSHADOW;
-	uiCreateGame.yes.generic.name = "OK";
+	/*uiCreateGame.yes.generic.name = "OK";*/
 	uiCreateGame.yes.generic.x = 380;
 	uiCreateGame.yes.generic.y = 460;
 	uiCreateGame.yes.generic.callback = UI_CreateGame_Callback;
 	UI_UtilSetupPicButton (&uiCreateGame.yes, PC_OK);
+	uiCreateGame.yes.generic.name = MLOC (LOC_OK);
 
 	uiCreateGame.no.generic.id = ID_NO;
 	uiCreateGame.no.generic.type = QMTYPE_BM_BUTTON;
 	uiCreateGame.no.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_HIDDEN | QMF_DROPSHADOW;
-	uiCreateGame.no.generic.name = "Cancel";
+	/*uiCreateGame.no.generic.name = "Cancel";*/
 	uiCreateGame.no.generic.x = 530;
 	uiCreateGame.no.generic.y = 460;
 	uiCreateGame.no.generic.callback = UI_CreateGame_Callback;
 	UI_UtilSetupPicButton (&uiCreateGame.no, PC_CANCEL);
+	uiCreateGame.no.generic.name = MLOC (LOC_Cancel);
 
 	UI_CreateGame_GetMapsList ();
 

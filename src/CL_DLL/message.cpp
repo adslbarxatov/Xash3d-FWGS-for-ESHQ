@@ -62,8 +62,8 @@ void CHudMessage::Reset (void)
 
 float CHudMessage::FadeBlend (float fadein, float fadeout, float hold, float localTime)
 	{
-	float fadeTime = fadein + hold;
-	float fadeBlend;
+	float	fadeTime = fadein + hold;
+	float	fadeBlend;
 
 	if (localTime < 0)
 		return 0;
@@ -80,14 +80,16 @@ float CHudMessage::FadeBlend (float fadein, float fadeout, float hold, float loc
 			fadeBlend = 0;
 		}
 	else
+		{
 		fadeBlend = 1;
+		}
 
 	return fadeBlend;
 	}
 
 int	CHudMessage::XPosition (float x, int width, int totalWidth)
 	{
-	int xPos;
+	int	xPos;
 
 	if (x == -1)
 		{
@@ -111,10 +113,12 @@ int	CHudMessage::XPosition (float x, int width, int totalWidth)
 
 int CHudMessage::YPosition (float y, int height)
 	{
-	int yPos;
+	int	yPos;
 
 	if (y == -1)	// Centered?
+		{
 		yPos = (ScreenHeight - height) * 0.5;
+		}
 	else
 		{
 		// Alight bottom?
@@ -134,8 +138,8 @@ int CHudMessage::YPosition (float y, int height)
 
 void CHudMessage::MessageScanNextChar (void)
 	{
-	int srcRed, srcGreen, srcBlue, destRed, destGreen, destBlue;
-	int blend;
+	int	srcRed, srcGreen, srcBlue, destRed, destGreen, destBlue;
+	int	blend;
 
 	srcRed = m_parms.pMessage->r1;
 	srcGreen = m_parms.pMessage->g1;
@@ -160,7 +164,7 @@ void CHudMessage::MessageScanNextChar (void)
 				}
 			else
 				{
-				float deltaTime = m_parms.time - m_parms.charTime;
+				float	deltaTime = m_parms.time - m_parms.charTime;
 
 				destRed = destGreen = destBlue = 0;
 				if (m_parms.time > m_parms.fadeTime)
@@ -168,7 +172,9 @@ void CHudMessage::MessageScanNextChar (void)
 					blend = m_parms.fadeBlend;
 					}
 				else if (deltaTime > m_parms.pMessage->fxtime)
+					{
 					blend = 0;	// pure dest
+					}
 				else
 					{
 					destRed = m_parms.pMessage->r2;
@@ -189,9 +195,9 @@ void CHudMessage::MessageScanNextChar (void)
 	m_parms.g = ((srcGreen * (255 - blend)) + (destGreen * blend)) >> 8;
 	m_parms.b = ((srcBlue * (255 - blend)) + (destBlue * blend)) >> 8;
 
-	if (m_parms.pMessage->effect == 1 && m_parms.charTime != 0)
+	if ((m_parms.pMessage->effect == 1) && (m_parms.charTime != 0))
 		{
-		if (m_parms.x >= 0 && m_parms.y >= 0 && (m_parms.x + gHUD.m_scrinfo.charWidths[m_parms.text]) <= ScreenWidth)
+		if ((m_parms.x >= 0) && (m_parms.y >= 0) && ((m_parms.x + gHUD.m_scrinfo.charWidths[m_parms.text]) <= ScreenWidth))
 			TextMessageDrawChar (m_parms.x, m_parms.y, m_parms.text, m_parms.pMessage->r2, m_parms.pMessage->g2, m_parms.pMessage->b2);
 		}
 	}

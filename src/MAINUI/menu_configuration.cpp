@@ -23,20 +23,23 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #include "keydefs.h"
 #include "menu_btnsbmp_table.h"
 
-#define ART_BANNER	     	"gfx/shell/head_config"
+#define ART_BANNER			"gfx/shell/head_config"
 
-#define ID_BACKGROUND    	0
-#define ID_BANNER	     	1
+#define ID_BACKGROUND		0
+#define ID_BANNER			1
 
 #define ID_CONTROLS			2
-#define ID_AUDIO	     	3
-#define ID_VIDEO	     	4
-#define ID_UPDATE   		5
-#define ID_DONE	     		6
-#define ID_MSGBOX	 		7
-#define ID_MSGTEXT	 		8
-#define ID_YES	 			130
-#define ID_NO	 			131
+#define ID_AUDIO			3
+#define ID_VIDEO			4
+#define ID_UPDATE			5
+#define ID_DONE				6
+#define ID_MSGBOX			7
+#define ID_MSGTEXT			8
+#define ID_YES				130
+#define ID_NO				131
+
+// ESHQ: поддержка локализации
+#include "menu_locale.h"
 
 typedef struct
 	{
@@ -58,7 +61,7 @@ typedef struct
 	menuPicButton_s	no;
 	} uiOptions_t;
 
-static uiOptions_t		uiOptions;
+static uiOptions_t	uiOptions;
 
 /***
 =================
@@ -67,14 +70,14 @@ UI_MsgBox_Ownerdraw
 ***/
 static void UI_MsgBox_Ownerdraw (void *self)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	UI_FillRect (item->x, item->y, item->width, item->height, uiPromptBgColor);
 	}
 
 static void UI_CheckUpdatesDialog (void)
 	{
-	// toggle configuration menu between active\inactive, show\hide CheckUpdates dialog
+	// toggle configuration menu between active/inactive, show/hide CheckUpdates dialog
 	uiOptions.controls.generic.flags ^= QMF_INACTIVE;
 	uiOptions.audio.generic.flags ^= QMF_INACTIVE;
 	uiOptions.video.generic.flags ^= QMF_INACTIVE;
@@ -99,6 +102,7 @@ static const char *UI_Options_KeyFunc (int key, int down)
 		UI_CheckUpdatesDialog ();	// cancel 'check updates' dialog
 		return uiSoundNull;
 		}
+
 	return UI_DefaultKey (&uiOptions.menu, key, down);
 	}
 
@@ -109,7 +113,7 @@ UI_Options_Callback
 ***/
 static void UI_Options_Callback (void *self, int event)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	if (event != QM_ACTIVATED)
 		return;
@@ -175,56 +179,64 @@ static void UI_Options_Init (void)
 	uiOptions.controls.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
 	uiOptions.controls.generic.x = 72;
 	uiOptions.controls.generic.y = 230;
-	uiOptions.controls.generic.name = "Controls";
+	/*uiOptions.controls.generic.name = "Controls";*/
 	uiOptions.controls.generic.callback = UI_Options_Callback;
 	UI_UtilSetupPicButton (&uiOptions.controls, PC_CONTROLS);
-#ifdef RU
+	/*ifdef RU
 	uiOptions.controls.generic.statusText = "Изменить настройки клавиатуры и мыши";
-#else
+	else
 	uiOptions.controls.generic.statusText = "Change keyboard and mouse settings";
-#endif
+	endif*/
+	uiOptions.controls.generic.name = MLOC (uiOptions_controls_generic_name);
+	uiOptions.controls.generic.statusText = MLOC (uiOptions_controls_generic_statusText);
 
 	uiOptions.audio.generic.id = ID_AUDIO;
 	uiOptions.audio.generic.type = QMTYPE_BM_BUTTON;
 	uiOptions.audio.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
 	uiOptions.audio.generic.x = 72;
 	uiOptions.audio.generic.y = 280;
-	uiOptions.audio.generic.name = "Audio";
+	/*uiOptions.audio.generic.name = "Audio";*/
 	uiOptions.audio.generic.callback = UI_Options_Callback;
 	UI_UtilSetupPicButton (&uiOptions.audio, PC_AUDIO);
-#ifdef RU
+	/*ifdef RU
 	uiOptions.audio.generic.statusText = "Изменить громкость и качество звука";
-#else
+	else
 	uiOptions.audio.generic.statusText = "Change sound volume and quality";
-#endif
+	endif*/
+	uiOptions.audio.generic.name = MLOC (uiOptions_audio_generic_name);
+	uiOptions.audio.generic.statusText = MLOC (uiOptions_audio_generic_statusText);
 
 	uiOptions.video.generic.id = ID_VIDEO;
 	uiOptions.video.generic.type = QMTYPE_BM_BUTTON;
 	uiOptions.video.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
 	uiOptions.video.generic.x = 72;
 	uiOptions.video.generic.y = 330;
-	uiOptions.video.generic.name = "Video";
+	/*uiOptions.video.generic.name = "Video";*/
 	uiOptions.video.generic.callback = UI_Options_Callback;
 	UI_UtilSetupPicButton (&uiOptions.video, PC_VIDEO);
-#ifdef RU
+	/*ifdef RU
 	uiOptions.video.generic.statusText = "Изменить размер экрана, видеорежим и гамму";
-#else
+	else
 	uiOptions.video.generic.statusText = "Change screen size, video mode and gamma";
-#endif
+	endif*/
+	uiOptions.video.generic.name = MLOC (uiOptions_video_generic_name);
+	uiOptions.video.generic.statusText = MLOC (uiOptions_video_generic_statusText);
 
 	uiOptions.update.generic.id = ID_UPDATE;
 	uiOptions.update.generic.type = QMTYPE_BM_BUTTON;
 	uiOptions.update.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
 	uiOptions.update.generic.x = 72;
 	uiOptions.update.generic.y = 380;
-	uiOptions.update.generic.name = "Update";
+	/*uiOptions.update.generic.name = "Update";*/
 	uiOptions.update.generic.callback = UI_Options_Callback;
 	UI_UtilSetupPicButton (&uiOptions.update, PC_UPDATE);
-#ifdef RU
+	/*ifdef RU
 	uiOptions.update.generic.statusText = "Загрузить актуальную версию Xash3D engine";
-#else
+	else
 	uiOptions.update.generic.statusText = "Download the latest version of the Xash3D engine";
-#endif
+	endif*/
+	uiOptions.update.generic.name = MLOC (uiOptions_update_generic_name);
+	uiOptions.update.generic.statusText = MLOC (uiOptions_update_generic_statusText);
 
 	if (!strlen (gMenu.m_gameinfo.update_url))
 		uiOptions.update.generic.flags |= QMF_GRAYED;
@@ -234,19 +246,21 @@ static void UI_Options_Init (void)
 	uiOptions.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
 	uiOptions.done.generic.x = 72;
 	uiOptions.done.generic.y = 430;
-	uiOptions.done.generic.name = "Done";
+	/*uiOptions.done.generic.name = "Done";*/
 	uiOptions.done.generic.callback = UI_Options_Callback;
 	UI_UtilSetupPicButton (&uiOptions.done, PC_DONE);
-#ifdef RU
+	/*ifdef RU
 	uiOptions.done.generic.statusText = "Вернуться в главное меню";
-#else
+	else
 	uiOptions.done.generic.statusText = "Go back to the main Menu";
-#endif
+	endif*/
+	uiOptions.done.generic.name = MLOC (LOC_Done);
+	uiOptions.done.generic.statusText = MLOC (LOC_ReturnToMainMenu);
 
 	uiOptions.msgBox.generic.id = ID_MSGBOX;
 	uiOptions.msgBox.generic.type = QMTYPE_ACTION;
 	uiOptions.msgBox.generic.flags = QMF_INACTIVE | QMF_HIDDEN;
-	uiOptions.msgBox.generic.ownerdraw = UI_MsgBox_Ownerdraw; // just a fill rectangle
+	uiOptions.msgBox.generic.ownerdraw = UI_MsgBox_Ownerdraw;	// just a fill rectangle
 	uiOptions.msgBox.generic.x = 192;
 	uiOptions.msgBox.generic.y = 256;
 	uiOptions.msgBox.generic.width = 640;
@@ -257,16 +271,18 @@ static void UI_Options_Init (void)
 	uiOptions.updatePrompt.generic.flags = QMF_INACTIVE | QMF_DROPSHADOW | QMF_HIDDEN;
 	uiOptions.updatePrompt.generic.x = 248;
 	uiOptions.updatePrompt.generic.y = 280;
-#ifdef RU
+	/*ifdef RU
 	uiOptions.updatePrompt.generic.name = "Проверить наличие обновлений?";
-#else
+	else
 	uiOptions.updatePrompt.generic.name = "Check the internet for updates?";
-#endif
+	endif*/
+	uiOptions.updatePrompt.generic.name = MLOC (uiOptions_updatePrompt_generic_name);
 
 	uiOptions.yes.generic.id = ID_YES;
 	uiOptions.yes.generic.type = QMTYPE_BM_BUTTON;
 	uiOptions.yes.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_HIDDEN;
-	uiOptions.yes.generic.name = "OK";
+	/*uiOptions.yes.generic.name = "OK";*/
+	uiOptions.yes.generic.name = MLOC (LOC_OK);
 	uiOptions.yes.generic.x = 380;
 	uiOptions.yes.generic.y = 460;
 	uiOptions.yes.generic.callback = UI_Options_Callback;
@@ -275,7 +291,8 @@ static void UI_Options_Init (void)
 	uiOptions.no.generic.id = ID_NO;
 	uiOptions.no.generic.type = QMTYPE_BM_BUTTON;
 	uiOptions.no.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_HIDDEN;
-	uiOptions.no.generic.name = "Cancel";
+	/*uiOptions.no.generic.name = "Cancel";*/
+	uiOptions.no.generic.name = MLOC (LOC_Cancel);
 	uiOptions.no.generic.x = 530;
 	uiOptions.no.generic.y = 460;
 	uiOptions.no.generic.callback = UI_Options_Callback;

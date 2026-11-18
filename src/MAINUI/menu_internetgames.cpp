@@ -35,15 +35,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #define ID_SERVERSLIST	7
 #define ID_TABLEHINT	8
 
-#define ID_MSGBOX	 	9
-#define ID_MSGTEXT	 	10
-#define ID_YES	 		130
-#define ID_NO	 		131
+#define ID_MSGBOX		9
+#define ID_MSGTEXT		10
+#define ID_YES			130
+#define ID_NO			131
 
 #define GAME_LENGTH		28
 #define MAPNAME_LENGTH	20+GAME_LENGTH
 #define TYPE_LENGTH		10+MAPNAME_LENGTH
 #define MAXCL_LENGTH	15+TYPE_LENGTH
+
+// ESHQ: поддержка локализации
+#include "menu_locale.h"
 
 typedef struct
 	{
@@ -104,6 +107,7 @@ static const char *UI_InternetGames_KeyFunc (int key, int down)
 		UI_PromptDialog ();
 		return uiSoundNull;
 		}
+
 	return UI_DefaultKey (&uiInternetGames.menu, key, down);
 	}
 
@@ -115,7 +119,7 @@ UI_InternetGames_GetGamesList
 static void UI_InternetGames_GetGamesList (void)
 	{
 	int		i;
-	const char *info, *host, *map;
+	const char	*info, *host, *map;
 	int		colorOffset[2];
 
 	for (i = 0; i < uiStatic.numServers; i++)
@@ -132,6 +136,7 @@ static void UI_InternetGames_GetGamesList (void)
 		colorOffset[1] = ColorPrexfixCount (map);
 		StringConcat (uiInternetGames.gameDescription[i], map, MAPNAME_LENGTH);
 		StringConcat (uiInternetGames.gameDescription[i], uiEmptyString, MAPNAME_LENGTH + colorOffset[0] + colorOffset[1]);
+
 		if (!strcmp (Info_ValueForKey (info, "dm"), "1"))
 			StringConcat (uiInternetGames.gameDescription[i], "dm", TYPE_LENGTH);
 		else if (!strcmp (Info_ValueForKey (info, "coop"), "1"))
@@ -140,6 +145,7 @@ static void UI_InternetGames_GetGamesList (void)
 			StringConcat (uiInternetGames.gameDescription[i], "team", TYPE_LENGTH);
 		else 
 			StringConcat (uiInternetGames.gameDescription[i], "???", TYPE_LENGTH);
+
 		StringConcat (uiInternetGames.gameDescription[i], uiEmptyString, TYPE_LENGTH + colorOffset[0] + colorOffset[1]);
 		StringConcat (uiInternetGames.gameDescription[i], Info_ValueForKey (info, "numcl"), MAXCL_LENGTH);
 		StringConcat (uiInternetGames.gameDescription[i], "\\", MAXCL_LENGTH);
@@ -152,10 +158,10 @@ static void UI_InternetGames_GetGamesList (void)
 		uiInternetGames.gameDescriptionPtr[i] = NULL;
 
 	uiInternetGames.gameList.itemNames = (const char **)uiInternetGames.gameDescriptionPtr;
-	uiInternetGames.gameList.numItems = 0; // reset it
+	uiInternetGames.gameList.numItems = 0;	// reset it
 
 	if (!uiInternetGames.gameList.generic.charHeight)
-		return; // to avoid divide integer by zero
+		return;		// to avoid divide integer by zero
 
 	// count number of items
 	while (uiInternetGames.gameList.itemNames[uiInternetGames.gameList.numItems])
@@ -191,14 +197,14 @@ UI_Background_Ownerdraw
 ***/
 static void UI_Background_Ownerdraw (void *self)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	if (!CVAR_GET_FLOAT ("cl_background"))
 		UI_DrawBackground_Callback (self);
 
 	if (uiStatic.realTime > uiInternetGames.refreshTime)
 		{
-		uiInternetGames.refreshTime = uiStatic.realTime + 10000; // refresh every 10 secs
+		uiInternetGames.refreshTime = uiStatic.realTime + 10000;	// refresh every 10 secs
 		UI_RefreshInternetServerList ();
 		}
 
@@ -217,7 +223,7 @@ UI_MsgBox_Ownerdraw
 ***/
 static void UI_MsgBox_Ownerdraw (void *self)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	UI_FillRect (item->x, item->y, item->width, item->height, uiPromptBgColor);
 	}
@@ -229,7 +235,7 @@ UI_InternetGames_Callback
 ***/
 static void UI_InternetGames_Callback (void *self, int event)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	if (event != QM_ACTIVATED)
 		return;
@@ -241,23 +247,29 @@ static void UI_InternetGames_Callback (void *self, int event)
 				UI_PromptDialog ();
 			else UI_InternetGames_JoinGame ();
 			break;
+
 		case ID_CREATEGAME:
 			CVAR_SET_FLOAT ("public", 1.0f);
 			CVAR_SET_FLOAT ("sv_lan", 0.0f);
 			UI_CreateGame_Menu ();
 			break;
+
 		case ID_GAMEINFO:
 			// UNDONE: not implemented
 			break;
+
 		case ID_REFRESH:
 			UI_RefreshInternetServerList ();
 			break;
+
 		case ID_DONE:
 			UI_PopMenu ();
 			break;
+
 		case ID_YES:
 			UI_InternetGames_JoinGame ();
 			break;
+
 		case ID_NO:
 			UI_PromptDialog ();
 			break;
@@ -276,29 +288,36 @@ static void UI_InternetGames_Init (void)
 	uiInternetGames.menu.vidInitFunc = UI_InternetGames_Init;
 	uiInternetGames.menu.keyFunc = UI_InternetGames_KeyFunc;
 
-#ifdef RU
+	/*ifdef RU
 	StringConcat (uiInternetGames.hintText, "Игра", GAME_LENGTH);
-#else
+	else
 	StringConcat (uiInternetGames.hintText, "Game", GAME_LENGTH);
-#endif
+	endif*/
+	StringConcat (uiInternetGames.hintText, MLOC (uiInternetGames_hintText_Game), GAME_LENGTH);
 	StringConcat (uiInternetGames.hintText, uiEmptyString, GAME_LENGTH);
-#ifdef RU
+
+	/*ifdef RU
 	StringConcat (uiInternetGames.hintText, "Карта", MAPNAME_LENGTH);
-#else
+	else
 	StringConcat (uiInternetGames.hintText, "Map", MAPNAME_LENGTH);
-#endif
+	endif*/
+	StringConcat (uiInternetGames.hintText, MLOC (LOC_Map), MAPNAME_LENGTH);
 	StringConcat (uiInternetGames.hintText, uiEmptyString, MAPNAME_LENGTH);
-#ifdef RU
+
+	/*ifdef RU
 	StringConcat (uiInternetGames.hintText, "Тип", TYPE_LENGTH);
-#else
+	else
 	StringConcat (uiInternetGames.hintText, "Type", TYPE_LENGTH);
-#endif
+	endif*/
+	StringConcat (uiInternetGames.hintText, MLOC (LOC_Type), TYPE_LENGTH);
 	StringConcat (uiInternetGames.hintText, uiEmptyString, TYPE_LENGTH);
-#ifdef RU
+
+	/*ifdef RU
 	StringConcat (uiInternetGames.hintText, "Клиенты", MAXCL_LENGTH);
-#else
+	else
 	StringConcat (uiInternetGames.hintText, "Clients", MAXCL_LENGTH);
-#endif
+	endif*/
+	StringConcat (uiInternetGames.hintText, MLOC (uiInternetGames_hintText_Clients), MAXCL_LENGTH);
 	StringConcat (uiInternetGames.hintText, uiEmptyString, MAXCL_LENGTH);
 
 	uiInternetGames.background.generic.id = ID_BACKGROUND;
@@ -325,75 +344,85 @@ static void UI_InternetGames_Init (void)
 	uiInternetGames.joinGame.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_GRAYED;
 	uiInternetGames.joinGame.generic.x = 72;
 	uiInternetGames.joinGame.generic.y = 230;
-	uiInternetGames.joinGame.generic.name = "Join game";
+	/*uiInternetGames.joinGame.generic.name = "Join game";*/
 	uiInternetGames.joinGame.generic.callback = UI_InternetGames_Callback;
 	UI_UtilSetupPicButton (&uiInternetGames.joinGame, PC_JOIN_GAME);
-#ifdef RU
+	/*ifdef RU
 	uiInternetGames.joinGame.generic.statusText = "Присоединиться к выбранной игре";
-#else
+	else
 	uiInternetGames.joinGame.generic.statusText = "Join to selected game";
-#endif
+	endif*/
+	uiInternetGames.joinGame.generic.name = MLOC (uiInternetGames_joinGame_generic_name);
+	uiInternetGames.joinGame.generic.statusText = MLOC (uiInternetGames_joinGame_generic_statusText);
 
 	uiInternetGames.createGame.generic.id = ID_CREATEGAME;
 	uiInternetGames.createGame.generic.type = QMTYPE_BM_BUTTON;
 	uiInternetGames.createGame.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiInternetGames.createGame.generic.x = 72;
 	uiInternetGames.createGame.generic.y = 280;
-	uiInternetGames.createGame.generic.name = "Create game";
+	/*uiInternetGames.createGame.generic.name = "Create game";*/
 	uiInternetGames.createGame.generic.callback = UI_InternetGames_Callback;
 	UI_UtilSetupPicButton (&uiInternetGames.createGame, PC_CREATE_GAME);
-#ifdef RU
+	/*ifdef RU
 	uiInternetGames.createGame.generic.statusText = "Создать новую интернет-игру";
-#else
+	else
 	uiInternetGames.createGame.generic.statusText = "Create new internet game";
-#endif
+	endif*/
+	uiInternetGames.createGame.generic.name = MLOC (uiInternetGames_createGame_generic_name);
+	uiInternetGames.createGame.generic.statusText = MLOC (uiInternetGames_createGame_generic_statusText);
 
 	uiInternetGames.gameInfo.generic.id = ID_GAMEINFO;
 	uiInternetGames.gameInfo.generic.type = QMTYPE_BM_BUTTON;
 	uiInternetGames.gameInfo.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_GRAYED;
 	uiInternetGames.gameInfo.generic.x = 72;
 	uiInternetGames.gameInfo.generic.y = 330;
-	uiInternetGames.gameInfo.generic.name = "View game info";
+	/*uiInternetGames.gameInfo.generic.name = "View game info";*/
 	uiInternetGames.gameInfo.generic.callback = UI_InternetGames_Callback;
 	UI_UtilSetupPicButton (&uiInternetGames.gameInfo, PC_VIEW_GAME_INFO);
-#ifdef RU
+	/*ifdef RU
 	uiInternetGames.gameInfo.generic.statusText = "Детальная информация об игре";
-#else
+	else
 	uiInternetGames.gameInfo.generic.statusText = "Get detail game info";
-#endif
+	endif*/
+	uiInternetGames.gameInfo.generic.name = MLOC (uiInternetGames_gameInfo_generic_name);
+	uiInternetGames.gameInfo.generic.statusText = MLOC (uiInternetGames_gameInfo_generic_statusText);
 
 	uiInternetGames.refresh.generic.id = ID_REFRESH;
 	uiInternetGames.refresh.generic.type = QMTYPE_BM_BUTTON;
 	uiInternetGames.refresh.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiInternetGames.refresh.generic.x = 72;
 	uiInternetGames.refresh.generic.y = 380;
-	uiInternetGames.refresh.generic.name = "Refresh";
+	/*uiInternetGames.refresh.generic.name = "Refresh";*/
 	uiInternetGames.refresh.generic.callback = UI_InternetGames_Callback;
 	UI_UtilSetupPicButton (&uiInternetGames.refresh, PC_REFRESH);
-#ifdef RU
+	/*ifdef RU
 	uiInternetGames.refresh.generic.statusText = "Обновить список серверов";
-#else
+	else
 	uiInternetGames.refresh.generic.statusText = "Refresh servers list";
-#endif
+	endif*/
+	uiInternetGames.refresh.generic.name = MLOC (uiInternetGames_refresh_generic_name);
+	uiInternetGames.refresh.generic.statusText = MLOC (uiInternetGames_refresh_generic_statusText);
 
 	uiInternetGames.done.generic.id = ID_DONE;
 	uiInternetGames.done.generic.type = QMTYPE_BM_BUTTON;
 	uiInternetGames.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiInternetGames.done.generic.x = 72;
 	uiInternetGames.done.generic.y = 430;
-	uiInternetGames.done.generic.name = "Done";
+	/*uiInternetGames.done.generic.name = "Done";*/
 	uiInternetGames.done.generic.callback = UI_InternetGames_Callback;
 	UI_UtilSetupPicButton (&uiInternetGames.done, PC_DONE);
-#ifdef RU
+	/*ifdef RU
 	uiInternetGames.done.generic.statusText = "Вернуться в главное меню";
-#else
+	else
 	uiInternetGames.done.generic.statusText = "Return to main menu";
-#endif
+	endif*/
+	uiInternetGames.done.generic.name = MLOC (LOC_Done);
+	uiInternetGames.done.generic.statusText = MLOC (LOC_ReturnToMainMenu);
 
 	uiInternetGames.msgBox.generic.id = ID_MSGBOX;
 	uiInternetGames.msgBox.generic.type = QMTYPE_ACTION;
 	uiInternetGames.msgBox.generic.flags = QMF_INACTIVE | QMF_HIDDEN;
-	uiInternetGames.msgBox.generic.ownerdraw = UI_MsgBox_Ownerdraw; // just a fill rectangle
+	uiInternetGames.msgBox.generic.ownerdraw = UI_MsgBox_Ownerdraw;		// just a fill rectangle
 	uiInternetGames.msgBox.generic.x = 192;
 	uiInternetGames.msgBox.generic.y = 256;
 	uiInternetGames.msgBox.generic.width = 640;
@@ -404,40 +433,44 @@ static void UI_InternetGames_Init (void)
 	uiInternetGames.dlgMessage1.generic.flags = QMF_INACTIVE | QMF_HIDDEN | QMF_DROPSHADOW;
 	uiInternetGames.dlgMessage1.generic.x = 248;
 	uiInternetGames.dlgMessage1.generic.y = 280;
-#ifdef RU
+	/*ifdef RU
 	uiInternetGames.dlgMessage1.generic.name = "Подключение к игре завершит";
-#else
+	else
 	uiInternetGames.dlgMessage1.generic.name = "Join a network game will exit";
-#endif
+	endif*/
+	uiInternetGames.dlgMessage1.generic.name = MLOC (LOC_WarningNewGame1);
 
 	uiInternetGames.dlgMessage2.generic.id = ID_MSGTEXT;
 	uiInternetGames.dlgMessage2.generic.type = QMTYPE_ACTION;
 	uiInternetGames.dlgMessage2.generic.flags = QMF_INACTIVE | QMF_HIDDEN | QMF_DROPSHADOW;
 	uiInternetGames.dlgMessage2.generic.x = 248;
 	uiInternetGames.dlgMessage2.generic.y = 310;
-#ifdef RU
+	/*ifdef RU
 	uiInternetGames.dlgMessage2.generic.name = "все текущие игры. Продолжить?";
-#else
+	else
 	uiInternetGames.dlgMessage2.generic.name = "any current game. Continue?";
-#endif
+	endif*/
+	uiInternetGames.dlgMessage2.generic.name = MLOC (LOC_WarningNewGame2);
 
 	uiInternetGames.yes.generic.id = ID_YES;
 	uiInternetGames.yes.generic.type = QMTYPE_BM_BUTTON;
 	uiInternetGames.yes.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_HIDDEN | QMF_DROPSHADOW;
-	uiInternetGames.yes.generic.name = "OK";
+	/*uiInternetGames.yes.generic.name = "OK";*/
 	uiInternetGames.yes.generic.x = 380;
 	uiInternetGames.yes.generic.y = 460;
 	uiInternetGames.yes.generic.callback = UI_InternetGames_Callback;
 	UI_UtilSetupPicButton (&uiInternetGames.yes, PC_OK);
+	uiInternetGames.yes.generic.name = MLOC (LOC_OK);
 
 	uiInternetGames.no.generic.id = ID_NO;
 	uiInternetGames.no.generic.type = QMTYPE_BM_BUTTON;
 	uiInternetGames.no.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_HIDDEN | QMF_DROPSHADOW;
-	uiInternetGames.no.generic.name = "Cancel";
+	/*uiInternetGames.no.generic.name = "Cancel";*/
 	uiInternetGames.no.generic.x = 530;
 	uiInternetGames.no.generic.y = 460;
 	uiInternetGames.no.generic.callback = UI_InternetGames_Callback;
 	UI_UtilSetupPicButton (&uiInternetGames.no, PC_CANCEL);
+	uiInternetGames.no.generic.name = MLOC (LOC_Cancel);
 
 	uiInternetGames.hintMessage.generic.id = ID_TABLEHINT;
 	uiInternetGames.hintMessage.generic.type = QMTYPE_ACTION;
@@ -476,7 +509,7 @@ static void UI_InternetGames_Init (void)
 	UI_AddItem (&uiInternetGames.menu, (void *)&uiInternetGames.no);
 	UI_AddItem (&uiInternetGames.menu, (void *)&uiInternetGames.yes);
 
-	uiInternetGames.refreshTime = uiStatic.realTime + 500; // delay before update 0.5 sec
+	uiInternetGames.refreshTime = uiStatic.realTime + 500;	// delay before update 0.5 sec
 	}
 
 /***

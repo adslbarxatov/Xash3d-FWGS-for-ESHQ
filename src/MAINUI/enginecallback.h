@@ -9,8 +9,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #ifndef ENGINECALLBACKS_H
@@ -187,4 +187,4 @@ inline void TextMessageSetColor (int r, int g, int b, int alpha = 255)
 #define COMPARE_FILE_TIME	(*g_engfuncs.pfnCompareFileTime)
 #define VID_GET_MODE	(*g_engfuncs.pfnGetModeString)
 
-#endif//ENGINECALLBACKS_H
+#endif

@@ -33,17 +33,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #define ID_CANCEL		5
 #define ID_KEYLIST		6
 #define ID_TABLEHINT	7
-#define ID_MSGBOX1	 	8
-#define ID_MSGBOX2	 	9
-#define ID_MSGTEXT	 	10
-#define ID_PROMPT	 	11
-#define ID_YES	 		130
-#define ID_NO	 		131
+#define ID_MSGBOX1		8
+#define ID_MSGBOX2		9
+#define ID_MSGTEXT		10
+#define ID_PROMPT		11
+#define ID_YES			130
+#define ID_NO			131
 
 #define MAX_KEYS		256
 #define CMD_LENGTH		38
 #define KEY1_LENGTH		20+CMD_LENGTH
 #define KEY2_LENGTH		20+KEY1_LENGTH
+
+// ESHQ: поддержка локализации
+#include "menu_locale.h"
 
 typedef struct
 	{
@@ -101,17 +104,18 @@ static void UI_ResetToDefaultsDialog (void)
 UI_Controls_GetKeyBindings
 =================
 ***/
-static void UI_Controls_GetKeyBindings (const char* command, int* twoKeys)
+static void UI_Controls_GetKeyBindings (const char *command, int *twoKeys)
 	{
 	int		i, count = 0;
-	const char* b;
+	const char	*b;
 
 	twoKeys[0] = twoKeys[1] = -1;
 
 	for (i = 0; i < 256; i++)
 		{
 		b = KEY_GetBinding (i);
-		if (!b) continue;
+		if (!b)
+			continue;
 
 		if (!stricmp (command, b))
 			{
@@ -131,17 +135,18 @@ static void UI_Controls_GetKeyBindings (const char* command, int* twoKeys)
 		}
 	}
 
-void UI_UnbindCommand (const char* command)
+void UI_UnbindCommand (const char *command)
 	{
-	int i, l;
-	const char* b;
+	int		i, l;
+	const char	*b;
 
 	l = strlen (command);
 
 	for (i = 0; i < 256; i++)
 		{
 		b = KEY_GetBinding (i);
-		if (!b) continue;
+		if (!b)
+			continue;
 
 		if (!strncmp (b, command, l))
 			KEY_SetBinding (i, "");
@@ -150,16 +155,16 @@ void UI_UnbindCommand (const char* command)
 
 static void UI_Controls_ParseKeysList (void)
 	{
-	char* afile = (char*)LOAD_FILE ("gfx/shell/kb_act.lst", NULL);
-	char* pfile = afile;
-	char token[1024];
-	int i = 0;
+	char	*afile = (char *)LOAD_FILE ("gfx/shell/kb_act.lst", NULL);
+	char	*pfile = afile;
+	char	token[1024];
+	int		i = 0;
 
 	if (!afile)
 		{
 		for (; i < MAX_KEYS; i++)
 			uiControls.keysDescriptionPtr[i] = NULL;
-		uiControls.keysList.itemNames = (const char**)uiControls.keysDescriptionPtr;
+		uiControls.keysList.itemNames = (const char **)uiControls.keysDescriptionPtr;
 
 		Con_Printf ("UI_Parse_KeysList: kb_act.lst not found\n");
 		return;
@@ -173,7 +178,8 @@ static void UI_Controls_ParseKeysList (void)
 			{
 			// seperator
 			pfile = COM_ParseFile (pfile, token);
-			if (!pfile) break;	// technically an error
+			if (!pfile)
+				break;	// technically an error
 
 			sprintf (str, "^6%s^7", token);	// enable uiPromptTextColor
 			StringConcat (uiControls.keysDescription[i], str, strlen (str) + 1);
@@ -193,7 +199,8 @@ static void UI_Controls_ParseKeysList (void)
 			strncpy (uiControls.keysBind[i], token, sizeof (uiControls.keysBind[i]));
 
 			pfile = COM_ParseFile (pfile, token);
-			if (!pfile) break; // technically an error
+			if (!pfile)
+				break; // technically an error
 
 			sprintf (str, "^6%s^7", token);	// enable uiPromptTextColor
 
@@ -236,7 +243,7 @@ static void UI_Controls_ParseKeysList (void)
 
 	for (; i < MAX_KEYS; i++)
 		uiControls.keysDescriptionPtr[i] = NULL;
-	uiControls.keysList.itemNames = (const char**)uiControls.keysDescriptionPtr;
+	uiControls.keysList.itemNames = (const char **)uiControls.keysDescriptionPtr;
 	}
 
 static void UI_PromptDialog (void)
@@ -255,8 +262,8 @@ static void UI_PromptDialog (void)
 
 static void UI_Controls_RestartMenu (void)
 	{
-	int lastSelectedKey = uiControls.keysList.curItem;
-	int lastTopItem = uiControls.keysList.topItem;
+	int	lastSelectedKey = uiControls.keysList.curItem;
+	int	lastTopItem = uiControls.keysList.topItem;
 
 	// HACK to prevent mismatch anim stack
 	hold_button_stack = true;
@@ -274,10 +281,10 @@ static void UI_Controls_RestartMenu (void)
 
 static void UI_Controls_ResetKeysList (void)
 	{
-	char* afile = (char*)LOAD_FILE ("gfx/shell/kb_def.lst", NULL);
-	char* pfile = afile;
-	char token[1024];
-	int i = 0;
+	char	*afile = (char *)LOAD_FILE ("gfx/shell/kb_def.lst", NULL);
+	char	*pfile = afile;
+	char	token[1024];
+	int		i = 0;
 
 	if (!afile)
 		{
@@ -318,7 +325,7 @@ static void UI_Controls_ResetKeysList (void)
 UI_Controls_KeyFunc
 =================
 ***/
-static const char* UI_Controls_KeyFunc (int key, int down)
+static const char *UI_Controls_KeyFunc (int key, int down)
 	{
 	char	cmd[128];
 
@@ -342,7 +349,7 @@ static const char* UI_Controls_KeyFunc (int key, int down)
 				}
 			else if (key != K_ESCAPE)
 				{
-				const char* bindName = uiControls.keysBind[uiControls.keysList.curItem];
+				const char	*bindName = uiControls.keysBind[uiControls.keysList.curItem];
 				sprintf (cmd, "bind \"%s\" \"%s\"\n", KEY_KeynumToString (key), bindName);
 				CLIENT_COMMAND (TRUE, cmd);
 				}
@@ -362,7 +369,7 @@ static const char* UI_Controls_KeyFunc (int key, int down)
 				return uiSoundNull;
 				}
 
-			const char* bindName = uiControls.keysBind[uiControls.keysList.curItem];
+			const char	*bindName = uiControls.keysBind[uiControls.keysList.curItem];
 			UI_UnbindCommand (bindName);
 			UI_StartSound (uiSoundRemoveKey);
 			UI_Controls_RestartMenu ();
@@ -386,8 +393,8 @@ static const char* UI_Controls_KeyFunc (int key, int down)
 				}
 
 			// entering to grab-mode
-			const char* bindName = uiControls.keysBind[uiControls.keysList.curItem];
-			int keys[2];
+			const char	*bindName = uiControls.keysBind[uiControls.keysList.curItem];
+			int		keys[2];
 
 			UI_Controls_GetKeyBindings (bindName, keys);
 			if (keys[1] != -1)
@@ -409,7 +416,7 @@ UI_MsgBox_Ownerdraw
 ***/
 static void UI_MsgBox_Ownerdraw (void* self)
 	{
-	menuCommon_s* item = (menuCommon_s*)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	UI_FillRect (item->x, item->y, item->width, item->height, uiPromptBgColor);
 	}
@@ -419,9 +426,9 @@ static void UI_MsgBox_Ownerdraw (void* self)
 UI_Controls_Callback
 =================
 ***/
-static void UI_Controls_Callback (void* self, int event)
+static void UI_Controls_Callback (void *self, int event)
 	{
-	menuCommon_s* item = (menuCommon_s*)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	if (event != QM_ACTIVATED)
 		return;
@@ -432,13 +439,16 @@ static void UI_Controls_Callback (void* self, int event)
 		case ID_CANCEL:
 			UI_PopMenu ();
 			break;
+
 		case ID_DEFAULTS:
 		case ID_NO:
 			UI_ResetToDefaultsDialog ();
 			break;
+
 		case ID_YES:
 			UI_Controls_ResetKeysList ();
 			break;
+
 		case ID_ADVANCED:
 			UI_AdvControls_Menu ();
 			break;
@@ -457,23 +467,28 @@ static void UI_Controls_Init (void)
 	uiControls.menu.vidInitFunc = UI_Controls_Init;
 	uiControls.menu.keyFunc = UI_Controls_KeyFunc;
 
-#ifdef RU
+	/*ifdef RU
 	StringConcat (uiControls.hintText, "Действие", CMD_LENGTH);
-#else
+	else
 	StringConcat (uiControls.hintText, "Action", CMD_LENGTH);
-#endif
+	endif*/
+	StringConcat (uiControls.hintText, MLOC (uiControls_hintText_Action), CMD_LENGTH);
 	StringConcat (uiControls.hintText, uiEmptyString, CMD_LENGTH - 4);
-#ifdef RU
+
+	/*ifdef RU
 	StringConcat (uiControls.hintText, "Клавиша/Кнопка", KEY1_LENGTH);
-#else
+	else
 	StringConcat (uiControls.hintText, "Key/Button", KEY1_LENGTH);
-#endif
+	endif*/
+	StringConcat (uiControls.hintText, MLOC (uiControls_hintText_Key), KEY1_LENGTH);
 	StringConcat (uiControls.hintText, uiEmptyString, KEY1_LENGTH - 8);
-#ifdef RU
+
+	/*ifdef RU
 	StringConcat (uiControls.hintText, "Вариант", KEY2_LENGTH);
-#else
+	else
 	StringConcat (uiControls.hintText, "Alternate", KEY2_LENGTH);
-#endif
+	endif*/
+	StringConcat (uiControls.hintText, MLOC (uiControls_hintText_Variant), KEY2_LENGTH);
 	StringConcat (uiControls.hintText, uiEmptyString, KEY2_LENGTH);
 
 	uiControls.background.generic.id = ID_BACKGROUND;
@@ -499,56 +514,64 @@ static void UI_Controls_Init (void)
 	uiControls.defaults.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiControls.defaults.generic.x = 72;
 	uiControls.defaults.generic.y = 230;
-	uiControls.defaults.generic.name = "Use defaults";
+	/*uiControls.defaults.generic.name = "Use defaults";*/
 	uiControls.defaults.generic.callback = UI_Controls_Callback;
 	UI_UtilSetupPicButton (&uiControls.defaults, PC_USE_DEFAULTS);
-#ifdef RU
+	/*ifdef RU
 	uiControls.defaults.generic.statusText = "Сбросить все привязки клавиш к значениям по умолчанию";
-#else
+	else
 	uiControls.defaults.generic.statusText = "Reset all buttons binding to their default values";
-#endif
+	endif*/
+	uiControls.defaults.generic.name = MLOC (uiControls_defaults_generic_name);
+	uiControls.defaults.generic.statusText = MLOC (uiControls_defaults_generic_statusText);
 
 	uiControls.advanced.generic.id = ID_ADVANCED;
 	uiControls.advanced.generic.type = QMTYPE_BM_BUTTON;
 	uiControls.advanced.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiControls.advanced.generic.x = 72;
 	uiControls.advanced.generic.y = 280;
-	uiControls.advanced.generic.name = "Adv controls";
+	/*uiControls.advanced.generic.name = "Adv controls";*/
 	uiControls.advanced.generic.callback = UI_Controls_Callback;
 	UI_UtilSetupPicButton (&uiControls.advanced, PC_ADV_CONTROLS);
-#ifdef RU
+	/*ifdef RU
 	uiControls.advanced.generic.statusText = "Чувствительность мыши, автоприцеливание, перекрестие и обзор";
-#else
+	else
 	uiControls.advanced.generic.statusText = "Change mouse sensitivity, enable autoaim, mouselook and crosshair";
-#endif
+	endif*/
+	uiControls.advanced.generic.name = MLOC (uiControls_advanced_generic_name);
+	uiControls.advanced.generic.statusText = MLOC (uiControls_advanced_generic_statusText);
 
 	uiControls.done.generic.id = ID_DONE;
 	uiControls.done.generic.type = QMTYPE_BM_BUTTON;
 	uiControls.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiControls.done.generic.x = 72;
 	uiControls.done.generic.y = 330;
-	uiControls.done.generic.name = "OK";
+	/*uiControls.done.generic.name = "OK";*/
 	uiControls.done.generic.callback = UI_Controls_Callback;
 	UI_UtilSetupPicButton (&uiControls.done, PC_DONE);
-#ifdef RU
+	/*ifdef RU
 	uiControls.done.generic.statusText = "Сохранить изменения и вернуться в меню конфигурации";
-#else
+	else
 	uiControls.done.generic.statusText = "Save changes and return to configuration menu";
-#endif
+	endif*/
+	uiControls.done.generic.name = MLOC (LOC_OK);
+	uiControls.done.generic.statusText = MLOC (uiControls_done_generic_statusText);
 
 	uiControls.cancel.generic.id = ID_CANCEL;
 	uiControls.cancel.generic.type = QMTYPE_BM_BUTTON;
 	uiControls.cancel.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiControls.cancel.generic.x = 72;
 	uiControls.cancel.generic.y = 380;
-	uiControls.cancel.generic.name = "Cancel";
+	/*uiControls.cancel.generic.name = "Cancel";*/
 	uiControls.cancel.generic.callback = UI_Controls_Callback;
 	UI_UtilSetupPicButton (&uiControls.cancel, PC_CANCEL);
-#ifdef RU
+	/*ifdef RU
 	uiControls.cancel.generic.statusText = "Отменить изменения и вернуться в меню конфигурации";
-#else
+	else
 	uiControls.cancel.generic.statusText = "Discard changes and return to configuration menu";
-#endif
+	endif*/
+	uiControls.cancel.generic.name = MLOC (LOC_Cancel);
+	uiControls.cancel.generic.statusText = MLOC (uiControls_cancel_generic_statusText);
 
 	uiControls.tipMessage.generic.id = ID_TABLEHINT;
 	uiControls.tipMessage.generic.type = QMTYPE_ACTION;
@@ -556,13 +579,14 @@ static void UI_Controls_Init (void)
 	uiControls.tipMessage.generic.color = uiInputFgColor;
 	uiControls.tipMessage.generic.x = 360;
 	uiControls.tipMessage.generic.y = 175;
-#ifdef RU
+	/*ifdef RU
 	uiControls.tipMessage.generic.name =	"    Нажмите 'Enter' для задания/добавления, 'Del' для очистки,\n"
 											"           'Backspace' для очистки и установки клавиши";
-#else
+	else
 	uiControls.tipMessage.generic.name =	"    Press 'Enter' to set/add a key, 'Del' to clear keys,\n"
 											"              'Backspace' to clear and set key";
-#endif
+	endif*/
+	uiControls.tipMessage.generic.name = MLOC (uiControls_tipMessage_generic_name);
 
 	uiControls.hintMessage.generic.id = ID_TABLEHINT;
 	uiControls.hintMessage.generic.type = QMTYPE_ACTION;
@@ -585,7 +609,7 @@ static void UI_Controls_Init (void)
 	uiControls.msgBox1.generic.id = ID_MSGBOX1;
 	uiControls.msgBox1.generic.type = QMTYPE_ACTION;
 	uiControls.msgBox1.generic.flags = QMF_INACTIVE | QMF_HIDDEN;
-	uiControls.msgBox1.generic.ownerdraw = UI_MsgBox_Ownerdraw; // just a fill rectangle
+	uiControls.msgBox1.generic.ownerdraw = UI_MsgBox_Ownerdraw;		// just a fill rectangle
 	uiControls.msgBox1.generic.x = 192;
 	uiControls.msgBox1.generic.y = 256;
 	uiControls.msgBox1.generic.width = 640;
@@ -594,7 +618,7 @@ static void UI_Controls_Init (void)
 	uiControls.msgBox2.generic.id = ID_MSGBOX2;
 	uiControls.msgBox2.generic.type = QMTYPE_ACTION;
 	uiControls.msgBox2.generic.flags = QMF_INACTIVE | QMF_HIDDEN;
-	uiControls.msgBox2.generic.ownerdraw = UI_MsgBox_Ownerdraw; // just a fill rectangle
+	uiControls.msgBox2.generic.ownerdraw = UI_MsgBox_Ownerdraw;		// just a fill rectangle
 	uiControls.msgBox2.generic.x = 192;
 	uiControls.msgBox2.generic.y = 256;
 	uiControls.msgBox2.generic.width = 640;
@@ -605,40 +629,44 @@ static void UI_Controls_Init (void)
 	uiControls.dlgMessage.generic.flags = QMF_INACTIVE | QMF_HIDDEN | QMF_DROPSHADOW;
 	uiControls.dlgMessage.generic.x = 280;
 	uiControls.dlgMessage.generic.y = 280;
-#ifdef RU
+	/*ifdef RU
 	uiControls.dlgMessage.generic.name = "Нажмите клавишу или кнопку";
-#else
+	else
 	uiControls.dlgMessage.generic.name = "   Press a key or button";
-#endif
+	endif*/
+	uiControls.dlgMessage.generic.name = MLOC (uiControls_dlgMessage_generic_name);
 
 	uiControls.promptMessage.generic.id = ID_PROMPT;
 	uiControls.promptMessage.generic.type = QMTYPE_ACTION;
 	uiControls.promptMessage.generic.flags = QMF_INACTIVE | QMF_DROPSHADOW | QMF_HIDDEN;
 	uiControls.promptMessage.generic.x = 290;
 	uiControls.promptMessage.generic.y = 280;
-#ifdef RU
+	/*ifdef RU
 	uiControls.promptMessage.generic.name = "Сбросить настройки клавиш?";
-#else
+	else
 	uiControls.promptMessage.generic.name = "Reset buttons to default?";
-#endif
+	endif*/
+	uiControls.promptMessage.generic.name = MLOC (uiControls_promptMessage_generic_name);
 
 	uiControls.yes.generic.id = ID_YES;
 	uiControls.yes.generic.type = QMTYPE_BM_BUTTON;
 	uiControls.yes.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_HIDDEN;
-	uiControls.yes.generic.name = "OK";
+	/*uiControls.yes.generic.name = "OK";*/
 	uiControls.yes.generic.x = 380;
 	uiControls.yes.generic.y = 460;
 	uiControls.yes.generic.callback = UI_Controls_Callback;
 	UI_UtilSetupPicButton (&uiControls.yes, PC_OK);
+	uiControls.yes.generic.name = MLOC (LOC_OK);
 
 	uiControls.no.generic.id = ID_NO;
 	uiControls.no.generic.type = QMTYPE_BM_BUTTON;
 	uiControls.no.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_HIDDEN;
-	uiControls.no.generic.name = "Cancel";
+	/*uiControls.no.generic.name = "Cancel";*/
 	uiControls.no.generic.x = 530;
 	uiControls.no.generic.y = 460;
 	uiControls.no.generic.callback = UI_Controls_Callback;
 	UI_UtilSetupPicButton (&uiControls.no, PC_CANCEL);
+	uiControls.no.generic.name = MLOC (LOC_Cancel);
 
 	UI_AddItem (&uiControls.menu, (void*)&uiControls.background);
 	UI_AddItem (&uiControls.menu, (void*)&uiControls.banner);
