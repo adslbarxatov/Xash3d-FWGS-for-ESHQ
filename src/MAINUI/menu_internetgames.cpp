@@ -293,7 +293,7 @@ static void UI_InternetGames_Init (void)
 	else
 	StringConcat (uiInternetGames.hintText, "Game", GAME_LENGTH);
 	endif*/
-	StringConcat (uiInternetGames.hintText, MLOC (uiInternetGames_hintText_Game), GAME_LENGTH);
+	StringConcat (uiInternetGames.hintText, MLOC (LOC_Game), GAME_LENGTH);
 	StringConcat (uiInternetGames.hintText, uiEmptyString, GAME_LENGTH);
 
 	/*ifdef RU
@@ -317,7 +317,7 @@ static void UI_InternetGames_Init (void)
 	else
 	StringConcat (uiInternetGames.hintText, "Clients", MAXCL_LENGTH);
 	endif*/
-	StringConcat (uiInternetGames.hintText, MLOC (uiInternetGames_hintText_Clients), MAXCL_LENGTH);
+	StringConcat (uiInternetGames.hintText, MLOC (LOC_Clients), MAXCL_LENGTH);
 	StringConcat (uiInternetGames.hintText, uiEmptyString, MAXCL_LENGTH);
 
 	uiInternetGames.background.generic.id = ID_BACKGROUND;
@@ -352,8 +352,8 @@ static void UI_InternetGames_Init (void)
 	else
 	uiInternetGames.joinGame.generic.statusText = "Join to selected game";
 	endif*/
-	uiInternetGames.joinGame.generic.name = MLOC (uiInternetGames_joinGame_generic_name);
-	uiInternetGames.joinGame.generic.statusText = MLOC (uiInternetGames_joinGame_generic_statusText);
+	uiInternetGames.joinGame.generic.name = MLOC (LOC_JoinGame);
+	uiInternetGames.joinGame.generic.statusText = MLOC (LOC_JoinGameTip);
 
 	uiInternetGames.createGame.generic.id = ID_CREATEGAME;
 	uiInternetGames.createGame.generic.type = QMTYPE_BM_BUTTON;
@@ -368,7 +368,7 @@ static void UI_InternetGames_Init (void)
 	else
 	uiInternetGames.createGame.generic.statusText = "Create new internet game";
 	endif*/
-	uiInternetGames.createGame.generic.name = MLOC (uiInternetGames_createGame_generic_name);
+	uiInternetGames.createGame.generic.name = MLOC (LOC_CreateGame);
 	uiInternetGames.createGame.generic.statusText = MLOC (uiInternetGames_createGame_generic_statusText);
 
 	uiInternetGames.gameInfo.generic.id = ID_GAMEINFO;
@@ -384,8 +384,8 @@ static void UI_InternetGames_Init (void)
 	else
 	uiInternetGames.gameInfo.generic.statusText = "Get detail game info";
 	endif*/
-	uiInternetGames.gameInfo.generic.name = MLOC (uiInternetGames_gameInfo_generic_name);
-	uiInternetGames.gameInfo.generic.statusText = MLOC (uiInternetGames_gameInfo_generic_statusText);
+	uiInternetGames.gameInfo.generic.name = MLOC (LOC_GameInfo);
+	uiInternetGames.gameInfo.generic.statusText = MLOC (LOC_GameInfoTip);
 
 	uiInternetGames.refresh.generic.id = ID_REFRESH;
 	uiInternetGames.refresh.generic.type = QMTYPE_BM_BUTTON;
@@ -400,8 +400,8 @@ static void UI_InternetGames_Init (void)
 	else
 	uiInternetGames.refresh.generic.statusText = "Refresh servers list";
 	endif*/
-	uiInternetGames.refresh.generic.name = MLOC (uiInternetGames_refresh_generic_name);
-	uiInternetGames.refresh.generic.statusText = MLOC (uiInternetGames_refresh_generic_statusText);
+	uiInternetGames.refresh.generic.name = MLOC (LOC_Refresh);
+	uiInternetGames.refresh.generic.statusText = MLOC (LOC_RefreshTip);
 
 	uiInternetGames.done.generic.id = ID_DONE;
 	uiInternetGames.done.generic.type = QMTYPE_BM_BUTTON;

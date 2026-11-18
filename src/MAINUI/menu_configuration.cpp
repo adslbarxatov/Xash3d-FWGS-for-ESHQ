@@ -123,21 +123,27 @@ static void UI_Options_Callback (void *self, int event)
 		case ID_DONE:
 			UI_PopMenu ();
 			break;
+
 		case ID_CONTROLS:
 			UI_Controls_Menu ();
 			break;
+
 		case ID_AUDIO:
 			UI_Audio_Menu ();
 			break;
+
 		case ID_VIDEO:
 			UI_Video_Menu ();
 			break;
+
 		case ID_UPDATE:
 			UI_CheckUpdatesDialog ();
 			break;
+
 		case ID_YES:
 			SHELL_EXECUTE (gMenu.m_gameinfo.update_url, NULL, TRUE);
 			break;
+
 		case ID_NO:
 			UI_CheckUpdatesDialog ();
 			break;
@@ -187,7 +193,7 @@ static void UI_Options_Init (void)
 	else
 	uiOptions.controls.generic.statusText = "Change keyboard and mouse settings";
 	endif*/
-	uiOptions.controls.generic.name = MLOC (uiOptions_controls_generic_name);
+	uiOptions.controls.generic.name = MLOC (LOC_Controls);
 	uiOptions.controls.generic.statusText = MLOC (uiOptions_controls_generic_statusText);
 
 	uiOptions.audio.generic.id = ID_AUDIO;

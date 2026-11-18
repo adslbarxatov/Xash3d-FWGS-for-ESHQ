@@ -1,3 +1,7 @@
+/***
+Title anim
+***/
+
 #define AS_TO_TITLE		1
 #define AS_TO_BUTTON	2
 
@@ -9,7 +13,7 @@ float UI_GetTitleTransFraction (void);
 
 typedef struct
 	{
-	int x, y, lx, ly;
+	int	x, y, lx, ly;
 	} quad_t;
 
 void UI_PopPButtonStack (void);

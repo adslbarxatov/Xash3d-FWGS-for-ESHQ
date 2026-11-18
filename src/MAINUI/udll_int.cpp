@@ -9,8 +9,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #include "extdll.h"
@@ -18,8 +18,8 @@ GNU General Public License for more details.
 #include "utils.h"
 
 ui_enginefuncs_t	g_engfuncs;
-ui_globalvars_t *gpGlobals;
-CMenu gMenu;
+ui_globalvars_t		*gpGlobals;
+CMenu	gMenu;
 
 // main DLL entry point
 BOOL WINAPI DllMain (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
@@ -48,14 +48,12 @@ static UI_FUNCTIONS gFunctionTable =
 	};
 
 //=======================================================================
-//			GetApi
+// GetApi
 //=======================================================================
 int GetMenuAPI (UI_FUNCTIONS *pFunctionTable, ui_enginefuncs_t *pEngfuncsFromEngine, ui_globalvars_t *pGlobals)
 	{
 	if (!pFunctionTable || !pEngfuncsFromEngine)
-		{
 		return FALSE;
-		}
 
 	// copy HUD_FUNCTIONS table to engine, copy engfuncs table from engine
 	memcpy (pFunctionTable, &gFunctionTable, sizeof (UI_FUNCTIONS));

@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #include "const.h"
 #include "basemenu.h"
 #include "utils.h"
-#include "keydefs.h"
+/*include "keydefs.h"*/
 #include "ref_params.h"
 #include "cl_entity.h"
 #include "entity_types.h"
@@ -45,6 +45,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 
 #define MAX_PLAYERMODELS	100
 
+// ESHQ: поддержка локализации
+#include "menu_locale.h"
+
 typedef struct
 	{
 	char	models[MAX_PLAYERMODELS][CS_SIZE];
@@ -52,7 +55,7 @@ typedef struct
 	char	currentModel[CS_SIZE];
 
 	ref_viewpass_t	rvp;
-	cl_entity_t* ent;
+	cl_entity_t		*ent;
 
 	menuFramework_s	menu;
 
@@ -86,8 +89,9 @@ assume refdef is valid
 static void UI_PlayerSetup_CalcFov (ref_viewpass_t* rvp)
 	{
 	rvp->fov_x = 40.0f;
-	float x = rvp->viewport[2] / tan (DEG2RAD (rvp->fov_x) * 0.5f);
-	float half_fov_y = atan (rvp->viewport[3] / x);
+
+	float	x = rvp->viewport[2] / tan (DEG2RAD (rvp->fov_x) * 0.5f);
+	float	half_fov_y = atan (rvp->viewport[3] / x);
 	rvp->fov_y = RAD2DEG (half_fov_y) * 2;
 	}
 
@@ -99,14 +103,15 @@ UI_PlayerSetup_FindModels
 static void UI_PlayerSetup_FindModels (void)
 	{
 	char	name[256], path[256];
-	char** filenames;
-	int	i, numFiles;
+	char	**filenames;
+	int		i, numFiles;
 
 	uiPlayerSetup.num_models = 0;
 
 	// Get file list
 	filenames = FS_SEARCH ("models/player/*", &numFiles, TRUE);
-	if (!numFiles) filenames = FS_SEARCH ("models/player/*", &numFiles, FALSE);
+	if (!numFiles)
+		filenames = FS_SEARCH ("models/player/*", &numFiles, FALSE);
 
 	// add default singleplayer model
 	strcpy (uiPlayerSetup.models[uiPlayerSetup.num_models], "player");
@@ -117,7 +122,8 @@ static void UI_PlayerSetup_FindModels (void)
 		{
 		COM_FileBase (filenames[i], name);
 		sprintf (path, "models/player/%s/%s.mdl", name, name);
-		if (!FILE_EXISTS (path)) continue;
+		if (!FILE_EXISTS (path))
+			continue;
 
 		strcpy (uiPlayerSetup.models[uiPlayerSetup.num_models], name);
 		uiPlayerSetup.num_models++;
@@ -188,13 +194,11 @@ static void UI_PlayerSetup_UpdateConfig (void)
 	{
 	char	path[256], name[256];
 	char	newImage[256];
-	int	topColor, bottomColor;
+	int		topColor, bottomColor;
 
 	// see if the model has changed
 	if (stricmp (uiPlayerSetup.currentModel, uiPlayerSetup.models[(int)uiPlayerSetup.model.curValue]))
-		{
 		strcpy (uiPlayerSetup.currentModel, uiPlayerSetup.models[(int)uiPlayerSetup.model.curValue]);
-		}
 
 	uiPlayerSetup.model.generic.name = uiPlayerSetup.models[(int)uiPlayerSetup.model.curValue];
 	strcpy (name, uiPlayerSetup.models[(int)uiPlayerSetup.model.curValue]);
@@ -220,7 +224,8 @@ static void UI_PlayerSetup_UpdateConfig (void)
 	CVAR_SET_FLOAT ("bottomcolor", bottomColor);
 
 	// IMPORTANT: always set default model becuase we need to have something valid here
-	// if you wish draw your playermodel as normal studiomodel please change "models/player.mdl" to path
+	// if you wish draw your playermodel as normal studiomodel please change
+	// "models/player.mdl" to path
 	if (uiPlayerSetup.ent)
 		ENGINE_SET_MODEL (uiPlayerSetup.ent, "models/player.mdl");
 
@@ -239,7 +244,7 @@ static void UI_PlayerSetup_UpdateConfig (void)
 			if (stricmp (name, "player"))
 				{
 				sprintf (lastImage, "models/player/%s/%s.bmp", name, name);
-				playerImage = PIC_Load (lastImage, PIC_KEEP_SOURCE); // if present of course
+				playerImage = PIC_Load (lastImage, PIC_KEEP_SOURCE);	// if present of course
 				}
 			else if (lastImage[0] && playerImage)
 				{
@@ -250,7 +255,7 @@ static void UI_PlayerSetup_UpdateConfig (void)
 				}
 			}
 
-		if (playerImage != 0) // update remap colors
+		if (playerImage != 0)	// update remap colors
 			PIC_Remap (playerImage, topColor, bottomColor);
 		}
 	}
@@ -260,18 +265,18 @@ static void UI_PlayerSetup_UpdateConfig (void)
 UI_PlayerSetup_Callback
 =================
 ***/
-static void UI_PlayerSetup_Callback (void* self, int event)
+static void UI_PlayerSetup_Callback (void *self, int event)
 	{
-	menuCommon_s* item = (menuCommon_s*)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	switch (item->id)
 		{
 		case ID_HIMODELS:
 		case ID_SHOWMODELS:
 			if (event == QM_PRESSED)
-				((menuCheckBox_s*)self)->focusPic = UI_CHECKBOX_PRESSED;
-			else 
-				((menuCheckBox_s*)self)->focusPic = UI_CHECKBOX_FOCUS;
+				((menuCheckBox_s *)self)->focusPic = UI_CHECKBOX_PRESSED;
+			else
+				((menuCheckBox_s *)self)->focusPic = UI_CHECKBOX_FOCUS;
 			break;
 		}
 
@@ -290,6 +295,7 @@ static void UI_PlayerSetup_Callback (void* self, int event)
 			UI_PlayerSetup_SetConfig ();
 			UI_PopMenu ();
 			break;
+
 		case ID_ADVOPTIONS:
 			UI_PlayerSetup_SetConfig ();
 			UI_GameOptions_Menu ();
@@ -302,9 +308,9 @@ static void UI_PlayerSetup_Callback (void* self, int event)
 UI_PlayerSetup_Ownerdraw
 =================
 ***/
-static void UI_PlayerSetup_Ownerdraw (void* self)
+static void UI_PlayerSetup_Ownerdraw (void *self)
 	{
-	menuCommon_s* item = (menuCommon_s*)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	// draw the background
 	UI_FillRect (item->x, item->y, item->width, item->height, uiPromptBgColor);
@@ -312,7 +318,7 @@ static void UI_PlayerSetup_Ownerdraw (void* self)
 	// draw the rectangle
 	UI_DrawRectangle (item->x, item->y, item->width, item->height, uiInputFgColor);
 
-	if (!ui_showmodels->value && playerImage != 0)
+	if (!ui_showmodels->value && (playerImage != 0))
 		{
 		PIC_Set (playerImage, 255, 255, 255, 255);
 		PIC_Draw (item->x, item->y, item->width, item->height);
@@ -337,7 +343,7 @@ UI_PlayerSetup_Init
 ***/
 static void UI_PlayerSetup_Init (void)
 	{
-	int addFlags = 0;
+	int	addFlags = 0;
 
 	memset (&uiPlayerSetup, 0, sizeof (uiPlayerSetup_t));
 
@@ -369,28 +375,32 @@ static void UI_PlayerSetup_Init (void)
 	uiPlayerSetup.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiPlayerSetup.done.generic.x = 72;
 	uiPlayerSetup.done.generic.y = 230;
-	uiPlayerSetup.done.generic.name = "Done";
+	/*uiPlayerSetup.done.generic.name = "Done";*/
 	uiPlayerSetup.done.generic.callback = UI_PlayerSetup_Callback;
 	UI_UtilSetupPicButton (&uiPlayerSetup.done, PC_DONE);
-#ifdef RU
+	/*ifdef RU
 	uiPlayerSetup.done.generic.statusText = "Вернуться в многопользовательское меню";
-#else
+	else
 	uiPlayerSetup.done.generic.statusText = "Go back to the multiplayer menu";
-#endif
+	endif*/
+	uiPlayerSetup.done.generic.name = MLOC (LOC_Done);
+	uiPlayerSetup.done.generic.statusText = MLOC (uiPlayerSetup_done_generic_statusText);
 
 	uiPlayerSetup.AdvOptions.generic.id = ID_ADVOPTIONS;
 	uiPlayerSetup.AdvOptions.generic.type = QMTYPE_BM_BUTTON;
 	uiPlayerSetup.AdvOptions.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiPlayerSetup.AdvOptions.generic.x = 72;
 	uiPlayerSetup.AdvOptions.generic.y = 280;
-	uiPlayerSetup.AdvOptions.generic.name = "Adv. options";
+	/*uiPlayerSetup.AdvOptions.generic.name = "Adv. options";*/
 	uiPlayerSetup.AdvOptions.generic.callback = UI_PlayerSetup_Callback;
 	UI_UtilSetupPicButton (&uiPlayerSetup.AdvOptions, PC_ADV_OPT);
-#ifdef RU
+	/*ifdef RU
 	uiPlayerSetup.AdvOptions.generic.statusText = "Настроить сложность, угол обзора и другие опции";
-#else
+	else
 	uiPlayerSetup.AdvOptions.generic.statusText = "Configure handness, fov and other advanced options";
-#endif
+	endif*/
+	uiPlayerSetup.AdvOptions.generic.name = MLOC (LOC_AdvOptions);
+	uiPlayerSetup.AdvOptions.generic.statusText = MLOC (uiPlayerSetup_AdvOptions_generic_statusText);
 
 	uiPlayerSetup.view.generic.id = ID_VIEW;
 	uiPlayerSetup.view.generic.type = QMTYPE_BITMAP;
@@ -410,11 +420,12 @@ static void UI_PlayerSetup_Init (void)
 	uiPlayerSetup.name.generic.height = 36;
 	uiPlayerSetup.name.generic.callback = UI_PlayerSetup_Callback;
 	uiPlayerSetup.name.maxLength = 32;
-#ifdef RU
+	/*ifdef RU
 	uiPlayerSetup.name.generic.statusText = "Введите имя игрока для отображения";
-#else
+	else
 	uiPlayerSetup.name.generic.statusText = "Enter your multiplayer display name";
-#endif
+	endif*/
+	uiPlayerSetup.name.generic.statusText = MLOC (uiPlayerSetup_name_generic_statusText);
 
 	uiPlayerSetup.model.generic.id = ID_MODEL;
 	uiPlayerSetup.model.generic.type = QMTYPE_SPINCONTROL;
@@ -427,11 +438,12 @@ static void UI_PlayerSetup_Init (void)
 	uiPlayerSetup.model.minValue = 0;
 	uiPlayerSetup.model.maxValue = 1;
 	uiPlayerSetup.model.range = 1;
-#ifdef RU
+	/*ifdef RU
 	uiPlayerSetup.model.generic.statusText = "Выберите модель, представляющую игрока";
-#else
+	else
 	uiPlayerSetup.model.generic.statusText = "Select a model for representation in multiplayer";
-#endif
+	endif*/
+	uiPlayerSetup.model.generic.statusText = MLOC (uiPlayerSetup_model_generic_statusText);
 
 	uiPlayerSetup.topColor.generic.id = ID_TOPCOLOR;
 	uiPlayerSetup.topColor.generic.type = QMTYPE_SLIDER;
@@ -443,13 +455,15 @@ static void UI_PlayerSetup_Init (void)
 	uiPlayerSetup.topColor.minValue = 0.0;
 	uiPlayerSetup.topColor.maxValue = 1.0;
 	uiPlayerSetup.topColor.range = 0.05f;
-#ifdef RU
+	/*ifdef RU
 	uiPlayerSetup.topColor.generic.name = "Верхний цвет";
 	uiPlayerSetup.topColor.generic.statusText = "Верхний цвет модели игрока";
-#else
+	else
 	uiPlayerSetup.topColor.generic.name = "Top color";
 	uiPlayerSetup.topColor.generic.statusText = "Set a player model top color";
-#endif
+	endif*/
+	uiPlayerSetup.topColor.generic.name = MLOC (uiPlayerSetup_topColor_generic_name);
+	uiPlayerSetup.topColor.generic.statusText = MLOC (uiPlayerSetup_topColor_generic_statusText);
 
 	uiPlayerSetup.bottomColor.generic.id = ID_BOTTOMCOLOR;
 	uiPlayerSetup.bottomColor.generic.type = QMTYPE_SLIDER;
@@ -461,13 +475,15 @@ static void UI_PlayerSetup_Init (void)
 	uiPlayerSetup.bottomColor.minValue = 0.0;
 	uiPlayerSetup.bottomColor.maxValue = 1.0;
 	uiPlayerSetup.bottomColor.range = 0.05f;
-#ifdef RU
+	/*ifdef RU
 	uiPlayerSetup.bottomColor.generic.name = "Нижний цвет";
 	uiPlayerSetup.bottomColor.generic.statusText = "Нижний цвет модели игрока";
-#else
+	else
 	uiPlayerSetup.bottomColor.generic.name = "Bottom color";
 	uiPlayerSetup.bottomColor.generic.statusText = "Set a player model bottom color";
-#endif
+	endif*/
+	uiPlayerSetup.bottomColor.generic.name = MLOC (uiPlayerSetup_bottomColor_generic_name);
+	uiPlayerSetup.bottomColor.generic.statusText = MLOC (uiPlayerSetup_bottomColor_generic_statusText);
 
 	uiPlayerSetup.showModels.generic.id = ID_SHOWMODELS;
 	uiPlayerSetup.showModels.generic.type = QMTYPE_CHECKBOX;
@@ -475,13 +491,15 @@ static void UI_PlayerSetup_Init (void)
 	uiPlayerSetup.showModels.generic.x = 72;
 	uiPlayerSetup.showModels.generic.y = 380;
 	uiPlayerSetup.showModels.generic.callback = UI_PlayerSetup_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiPlayerSetup.showModels.generic.name = "Показать 3D-превью";
 	uiPlayerSetup.showModels.generic.statusText = "Показывать 3D-модель вместо эскизов";
-#else
+	else
 	uiPlayerSetup.showModels.generic.name = "Show 3D preview";
 	uiPlayerSetup.showModels.generic.statusText = "Show 3D player models instead of preview thumbnails";
-#endif
+	endif*/
+	uiPlayerSetup.showModels.generic.name = MLOC (uiPlayerSetup_showModels_generic_name);
+	uiPlayerSetup.showModels.generic.statusText = MLOC (uiPlayerSetup_showModels_generic_statusText);
 
 	uiPlayerSetup.hiModels.generic.id = ID_HIMODELS;
 	uiPlayerSetup.hiModels.generic.type = QMTYPE_CHECKBOX;
@@ -489,20 +507,23 @@ static void UI_PlayerSetup_Init (void)
 	uiPlayerSetup.hiModels.generic.x = 72;
 	uiPlayerSetup.hiModels.generic.y = 430;
 	uiPlayerSetup.hiModels.generic.callback = UI_PlayerSetup_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiPlayerSetup.hiModels.generic.name = "Модели высокого качества";
 	uiPlayerSetup.hiModels.generic.statusText = "Показывать модели высокого разрешения в игре";
-#else
+	else
 	uiPlayerSetup.hiModels.generic.name = "High quality models";
 	uiPlayerSetup.hiModels.generic.statusText = "Show hi-res models in multiplayer";
-#endif
+	endif*/
+	uiPlayerSetup.hiModels.generic.name = MLOC (uiPlayerSetup_hiModels_generic_name);
+	uiPlayerSetup.hiModels.generic.statusText = MLOC (uiPlayerSetup_hiModels_generic_statusText);
 
 	UI_PlayerSetup_GetConfig ();
 
-	UI_AddItem (&uiPlayerSetup.menu, (void*)&uiPlayerSetup.background);
-	UI_AddItem (&uiPlayerSetup.menu, (void*)&uiPlayerSetup.banner);
-	UI_AddItem (&uiPlayerSetup.menu, (void*)&uiPlayerSetup.done);
-	UI_AddItem (&uiPlayerSetup.menu, (void*)&uiPlayerSetup.AdvOptions);
+	UI_AddItem (&uiPlayerSetup.menu, (void *)&uiPlayerSetup.background);
+	UI_AddItem (&uiPlayerSetup.menu, (void *)&uiPlayerSetup.banner);
+	UI_AddItem (&uiPlayerSetup.menu, (void *)&uiPlayerSetup.done);
+	UI_AddItem (&uiPlayerSetup.menu, (void *)&uiPlayerSetup.AdvOptions);
+
 	// disable playermodel preview for HLRally to prevent crash
 	if (!FBitSet (gMenu.m_gameinfo.flags, GFL_NOMODELS))
 		UI_AddItem (&uiPlayerSetup.menu, (void*)&uiPlayerSetup.view);
@@ -510,11 +531,11 @@ static void UI_PlayerSetup_Init (void)
 
 	if (!FBitSet (gMenu.m_gameinfo.flags, GFL_NOMODELS))
 		{
-		UI_AddItem (&uiPlayerSetup.menu, (void*)&uiPlayerSetup.model);
-		UI_AddItem (&uiPlayerSetup.menu, (void*)&uiPlayerSetup.topColor);
-		UI_AddItem (&uiPlayerSetup.menu, (void*)&uiPlayerSetup.bottomColor);
-		UI_AddItem (&uiPlayerSetup.menu, (void*)&uiPlayerSetup.showModels);
-		UI_AddItem (&uiPlayerSetup.menu, (void*)&uiPlayerSetup.hiModels);
+		UI_AddItem (&uiPlayerSetup.menu, (void *)&uiPlayerSetup.model);
+		UI_AddItem (&uiPlayerSetup.menu, (void *)&uiPlayerSetup.topColor);
+		UI_AddItem (&uiPlayerSetup.menu, (void *)&uiPlayerSetup.bottomColor);
+		UI_AddItem (&uiPlayerSetup.menu, (void *)&uiPlayerSetup.showModels);
+		UI_AddItem (&uiPlayerSetup.menu, (void *)&uiPlayerSetup.hiModels);
 		}
 
 	// NOTE: must be called after UI_AddItem whan we sure what UI_ScaleCoords is done
@@ -545,10 +566,11 @@ static void UI_PlayerSetup_Init (void)
 	uiPlayerSetup.ent->latched.prevcontroller[1] = 127;
 	uiPlayerSetup.ent->latched.prevcontroller[2] = 127;
 	uiPlayerSetup.ent->latched.prevcontroller[3] = 127;
-	uiPlayerSetup.ent->origin[0] = uiPlayerSetup.ent->curstate.origin[0] = 45.0f / tan (DEG2RAD (uiPlayerSetup.rvp.fov_y / 2.0f));
+	uiPlayerSetup.ent->origin[0] = uiPlayerSetup.ent->curstate.origin[0] = 45.0f /
+		tan (DEG2RAD (uiPlayerSetup.rvp.fov_y / 2.0f));
 	uiPlayerSetup.ent->origin[2] = uiPlayerSetup.ent->curstate.origin[2] = 2.0f;
 	uiPlayerSetup.ent->angles[1] = uiPlayerSetup.ent->curstate.angles[1] = 180.0f;
-	uiPlayerSetup.ent->player = true; // yes, draw me as playermodel
+	uiPlayerSetup.ent->player = true;	// yes, draw me as playermodel
 	}
 
 /***

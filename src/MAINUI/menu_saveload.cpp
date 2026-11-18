@@ -27,11 +27,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #define ID_BACKGROUND	0
 #define ID_BANNER		1
 
-#define ID_LOAD	  		2
-#define ID_SAVE	  		3
+#define ID_LOAD			2
+#define ID_SAVE			3
 #define ID_DONE			4
 
 #define ID_MSGHINT		5
+
+// ESHQ: поддержка локализации
+#include "menu_locale.h"
 
 typedef struct
 	{
@@ -55,9 +58,9 @@ static uiSaveLoad_t	uiSaveLoad;
 UI_SaveLoad_Callback
 =================
 ***/
-static void UI_SaveLoad_Callback (void* self, int event)
+static void UI_SaveLoad_Callback (void *self, int event)
 	{
-	menuCommon_s* item = (menuCommon_s*)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	if (event != QM_ACTIVATED)
 		return;
@@ -67,9 +70,11 @@ static void UI_SaveLoad_Callback (void* self, int event)
 		case ID_LOAD:
 			UI_LoadGame_Menu ();
 			break;
+
 		case ID_SAVE:
 			UI_SaveGame_Menu ();
 			break;
+
 		case ID_DONE:
 			UI_PopMenu ();
 			break;
@@ -87,19 +92,21 @@ static void UI_SaveLoad_Init (void)
 
 	uiSaveLoad.menu.vidInitFunc = UI_SaveLoad_Init;
 
-#ifdef RU
+	/*ifdef RU
 	strcat (uiSaveLoad.hintText, "Во время игры вы можете быстро сохранить её, нажав ");
-#else
+	else
 	strcat (uiSaveLoad.hintText, "During play, you can quickly save your game by pressing ");
-#endif
+	endif*/
+	strcat (uiSaveLoad.hintText, MLOC (uiSaveLoad_hintText_Save));
 	strcat (uiSaveLoad.hintText, KEY_KeynumToString (KEY_GetKey ("save quick")));
-#ifdef RU
+
+	/*ifdef RU
 	strcat (uiSaveLoad.hintText, ".\nТакже можно снова загрузить эту игру, нажав ");
-#else
+	else
 	strcat (uiSaveLoad.hintText, ".\nAlso you can load this game again by pressing ");
-#endif
+	endif*/
+	strcat (uiSaveLoad.hintText, MLOC (uiSaveLoad_hintText_Load));
 	strcat (uiSaveLoad.hintText, KEY_KeynumToString (KEY_GetKey ("load quick")));
-	//strcat (uiSaveLoad.hintText, ".\n");
 
 	uiSaveLoad.background.generic.id = ID_BACKGROUND;
 	uiSaveLoad.background.generic.type = QMTYPE_BITMAP;
@@ -122,44 +129,50 @@ static void UI_SaveLoad_Init (void)
 	uiSaveLoad.load.generic.id = ID_LOAD;
 	uiSaveLoad.load.generic.type = QMTYPE_BM_BUTTON;
 	uiSaveLoad.load.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
-	uiSaveLoad.load.generic.name = "Load game";
+	/*uiSaveLoad.load.generic.name = "Load game";*/
 	uiSaveLoad.load.generic.x = 72;
 	uiSaveLoad.load.generic.y = 230;
 	uiSaveLoad.load.generic.callback = UI_SaveLoad_Callback;
 	UI_UtilSetupPicButton (&uiSaveLoad.load, PC_LOAD_GAME);
-#ifdef RU
+	/*ifdef RU
 	uiSaveLoad.load.generic.statusText = "Загрузить ранее сохранённую игру";
-#else
+	else
 	uiSaveLoad.load.generic.statusText = "Load a previously saved game";
-#endif
+	endif*/
+	uiSaveLoad.load.generic.name = MLOC (LOC_Load);
+	uiSaveLoad.load.generic.statusText = MLOC (LOC_LoadTip);
 
 	uiSaveLoad.save.generic.id = ID_SAVE;
 	uiSaveLoad.save.generic.type = QMTYPE_BM_BUTTON;
 	uiSaveLoad.save.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
-	uiSaveLoad.save.generic.name = "Save game";
+	/*uiSaveLoad.save.generic.name = "Save game";*/
 	uiSaveLoad.save.generic.x = 72;
 	uiSaveLoad.save.generic.y = 280;
 	uiSaveLoad.save.generic.callback = UI_SaveLoad_Callback;
 	UI_UtilSetupPicButton (&uiSaveLoad.save, PC_SAVE_GAME);
-#ifdef RU
+	/*ifdef RU
 	uiSaveLoad.save.generic.statusText = "Сохранить текущую игру";
-#else
+	else
 	uiSaveLoad.save.generic.statusText = "Save current game";
-#endif
+	endif*/
+	uiSaveLoad.save.generic.name = MLOC (LOC_Save);
+	uiSaveLoad.save.generic.statusText = MLOC (LOC_SaveTip);
 
 	uiSaveLoad.done.generic.id = ID_DONE;
 	uiSaveLoad.done.generic.type = QMTYPE_BM_BUTTON;
 	uiSaveLoad.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
-	uiSaveLoad.done.generic.name = "Done";
+	/*uiSaveLoad.done.generic.name = "Done";*/
 	uiSaveLoad.done.generic.x = 72;
 	uiSaveLoad.done.generic.y = 330;
 	uiSaveLoad.done.generic.callback = UI_SaveLoad_Callback;
 	UI_UtilSetupPicButton (&uiSaveLoad.done, PC_DONE);
-#ifdef RU
+	/*ifdef RU
 	uiSaveLoad.done.generic.statusText = "Вернуться в главное меню";
-#else
+	else
 	uiSaveLoad.done.generic.statusText = "Go back to the main menu";
-#endif
+	endif*/
+	uiSaveLoad.done.generic.name = MLOC (LOC_Done);
+	uiSaveLoad.done.generic.statusText = MLOC (LOC_ReturnToMainMenu);
 
 	uiSaveLoad.hintMessage.generic.id = ID_MSGHINT;
 	uiSaveLoad.hintMessage.generic.type = QMTYPE_ACTION;
@@ -169,12 +182,12 @@ static void UI_SaveLoad_Init (void)
 	uiSaveLoad.hintMessage.generic.x = 360;
 	uiSaveLoad.hintMessage.generic.y = 480;
 
-	UI_AddItem (&uiSaveLoad.menu, (void*)&uiSaveLoad.background);
-	UI_AddItem (&uiSaveLoad.menu, (void*)&uiSaveLoad.banner);
-	UI_AddItem (&uiSaveLoad.menu, (void*)&uiSaveLoad.load);
-	UI_AddItem (&uiSaveLoad.menu, (void*)&uiSaveLoad.save);
-	UI_AddItem (&uiSaveLoad.menu, (void*)&uiSaveLoad.done);
-	UI_AddItem (&uiSaveLoad.menu, (void*)&uiSaveLoad.hintMessage);
+	UI_AddItem (&uiSaveLoad.menu, (void *)&uiSaveLoad.background);
+	UI_AddItem (&uiSaveLoad.menu, (void *)&uiSaveLoad.banner);
+	UI_AddItem (&uiSaveLoad.menu, (void *)&uiSaveLoad.load);
+	UI_AddItem (&uiSaveLoad.menu, (void *)&uiSaveLoad.save);
+	UI_AddItem (&uiSaveLoad.menu, (void *)&uiSaveLoad.done);
+	UI_AddItem (&uiSaveLoad.menu, (void *)&uiSaveLoad.hintMessage);
 	}
 
 /***

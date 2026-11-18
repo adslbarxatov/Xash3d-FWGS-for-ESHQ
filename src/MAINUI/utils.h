@@ -9,14 +9,14 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 ***/
 
 #ifndef UTILS_H
 #define UTILS_H
 
-extern ui_enginefuncs_t g_engfuncs;
+extern ui_enginefuncs_t		g_engfuncs;
 
 #include "enginecallback.h"
 #include "gameinfo.h"
@@ -24,7 +24,7 @@ extern ui_enginefuncs_t g_engfuncs;
 #define FILE_GLOBAL	static
 #define DLL_GLOBAL
 
-#define MAX_INFO_STRING	256	// engine limit
+#define MAX_INFO_STRING		256		// engine limit
 
 #define RAD2DEG( x )	((float)(x) * (float)(180.f / M_PI))
 #define DEG2RAD( x )	((float)(x) * (float)(M_PI / 180.f))
@@ -33,12 +33,16 @@ extern ui_enginefuncs_t g_engfuncs;
 // How did I ever live without ASSERT?
 //
 #ifdef _DEBUG
+
 void DBG_AssertFunction (BOOL fExpr, const char *szExpr, const char *szFile, int szLine, const char *szMessage);
 #define ASSERT( f )		DBG_AssertFunction( f, #f, __FILE__, __LINE__, NULL )
 #define ASSERTSZ( f, sz )	DBG_AssertFunction( f, #f, __FILE__, __LINE__, sz )
+
 #else
+
 #define ASSERT( f )
 #define ASSERTSZ( f, sz )
+
 #endif
 
 extern ui_globalvars_t *gpGlobals;
@@ -65,6 +69,7 @@ extern void UI_FinalCredits (void);
 
 // ScreenHeight returns the height of the screen, in pixels
 #define ScreenHeight	(gpGlobals->scrHeight)
+
 // ScreenWidth returns the width of the screen, in pixels
 #define ScreenWidth		(gpGlobals->scrWidth)
 
@@ -103,7 +108,7 @@ inline int UnpackAlpha (unsigned int ulRGBA)
 	return ((ulRGBA & 0xFF000000) >> 24);
 	}
 
-	// Remap a value in the range [A,B] to [C,D].
+// Remap a value in the range [A,B] to [C,D].
 inline float RemapVal (float val, float A, float B, float C, float D)
 	{
 	if (A == B) return val >= B ? D : C;
@@ -122,4 +127,4 @@ extern int COM_CompareSaves (const void **a, const void **b);
 
 extern void UI_LoadCustomStrings (void);
 
-#endif//UTILS_H
+#endif

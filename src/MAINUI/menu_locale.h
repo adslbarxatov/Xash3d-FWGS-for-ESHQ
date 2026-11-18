@@ -49,7 +49,7 @@ enum
 	uiAudio_noDSP_generic_name,
 	uiAudio_noDSP_generic_statusText,
 
-	uiOptions_controls_generic_name,
+	LOC_Controls,
 	uiOptions_controls_generic_statusText,
 
 	uiOptions_audio_generic_name,
@@ -95,7 +95,7 @@ enum
 	LOC_Map,
 	uiCreateGame_hintText_Title,
 
-	uiCreateGame_advOptions_generic_name,
+	LOC_AdvOptions,
 	uiCreateGame_advOptions_generic_statusText,
 
 	// OK
@@ -142,20 +142,133 @@ enum
 	uiGameOptions_allowDownload_generic_name,
 	uiGameOptions_allowDownload_generic_statusText,
 
-	uiInternetGames_hintText_Game,
-	uiInternetGames_hintText_Clients,
+	LOC_Game,
+	LOC_Clients,
 
-	uiInternetGames_joinGame_generic_name,
-	uiInternetGames_joinGame_generic_statusText,
+	LOC_JoinGame,
+	LOC_JoinGameTip,
 
-	uiInternetGames_createGame_generic_name,
+	LOC_CreateGame,
 	uiInternetGames_createGame_generic_statusText,
 
-	uiInternetGames_gameInfo_generic_name,
-	uiInternetGames_gameInfo_generic_statusText,
+	LOC_GameInfo,
+	LOC_GameInfoTip,
 
-	uiInternetGames_refresh_generic_name,
-	uiInternetGames_refresh_generic_statusText,
+	LOC_Refresh,
+	LOC_RefreshTip,
+
+	// CreateGame
+	uiLanGame_createGame_generic_statusText,
+
+	LOC_Time,
+	LOC_ElapsedTime,
+
+	uiLoadGame_load_generic_name,
+	uiLoadGame_load_generic_statusText,
+
+	LOC_Delete,
+	LOC_DeleteTip,
+
+	LOC_WarningDeleteGame,
+	// OK
+	// Cancel
+
+	uiMain_resumeGame_generic_name,
+	uiMain_resumeGame_generic_statusText,
+
+	uiMain_newGame_generic_name,
+	uiMain_newGame_generic_statusText,
+
+	uiMain_hazardCourse_generic_name,
+	uiMain_hazardCourse_generic_statusText,
+
+	uiMain_saveRestore_generic_name,
+	uiMain_saveRestore_generic_statusText,
+	LOC_Load,
+	LOC_LoadTip,
+
+	uiMain_configuration_generic_name,
+	uiMain_configuration_generic_statusText,
+
+	uiMain_multiPlayer_generic_name,
+	uiMain_multiPlayer_generic_statusText,
+
+	uiMain_customGame_generic_name,
+	uiMain_customGame_generic_statusText,
+
+	uiMain_previews_generic_name,
+	uiMain_previews_generic_statusText,
+
+	uiMain_quit_generic_name,
+	uiMain_quit_generic_statusText,
+
+	uiMain_console_generic_name,
+
+	uiMain_quitActiveMessage_generic_name,
+	uiMain_quitMessage_generic_name,
+
+	uiMain_dlgMessage1_generic_name,
+	// OK
+	// Cancel
+
+	uiMultiPlayer_internetGames_generic_name,
+	uiMultiPlayer_internetGames_generic_statusText,
+
+	uiMultiPlayer_spectateGames_generic_name,
+	uiMultiPlayer_spectateGames_generic_statusText,
+
+	uiMultiPlayer_LANGame_generic_name,
+	uiMultiPlayer_LANGame_generic_statusText,
+
+	uiMultiPlayer_Customize_generic_name,
+	uiMultiPlayer_Customize_generic_statusText,
+
+	// Controls
+	uiMultiPlayer_Controls_generic_statusText,
+
+	uiNewGame_easy_generic_name,
+	uiNewGame_easy_generic_statusText,
+
+	uiNewGame_medium_generic_name,
+	uiNewGame_medium_generic_statusText,
+
+	uiNewGame_hard_generic_name,
+	uiNewGame_hard_generic_statusText,
+
+	uiNewGame_dlgMessage1_generic_name,
+	// OK
+	// Cancel
+
+	// Done
+	uiPlayerSetup_done_generic_statusText,
+
+	// Adv. options
+	uiPlayerSetup_AdvOptions_generic_statusText,
+
+	uiPlayerSetup_name_generic_statusText,
+	uiPlayerSetup_model_generic_statusText,
+
+	uiPlayerSetup_topColor_generic_name,
+	uiPlayerSetup_topColor_generic_statusText,
+
+	uiPlayerSetup_bottomColor_generic_name,
+	uiPlayerSetup_bottomColor_generic_statusText,
+
+	uiPlayerSetup_showModels_generic_name,
+	uiPlayerSetup_showModels_generic_statusText,
+
+	uiPlayerSetup_hiModels_generic_name,
+	uiPlayerSetup_hiModels_generic_statusText,
+
+	uiSaveGame_saveDescription_Current,
+	uiSaveGame_saveDescription_Save,
+	uiSaveGame_saveDescription_New,
+
+	LOC_Save,
+	LOC_SaveTip,
+
+	uiSaveLoad_hintText_Save,
+	uiSaveLoad_hintText_Load,
 
 	LOC_STRINGSCOUNT	// must be last
 	};

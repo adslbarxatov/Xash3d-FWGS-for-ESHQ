@@ -34,6 +34,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #define ID_CONTROLS			6
 #define ID_DONE				7
 
+// ESHQ: поддержка локализации
+#include "menu_locale.h"
+
 typedef struct
 	{
 	menuFramework_s	menu;
@@ -58,7 +61,7 @@ UI_MultiPlayer_Callback
 ***/
 static void UI_MultiPlayer_Callback (void *self, int event)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	if (event != QM_ACTIVATED)
 		return;
@@ -68,18 +71,23 @@ static void UI_MultiPlayer_Callback (void *self, int event)
 		case ID_INTERNETGAMES:
 			UI_InternetGames_Menu ();
 			break;
+
 		case ID_SPECTATEGAMES:
 			// UNDONE: not implemented
 			break;
+
 		case ID_LANGAME:
 			UI_LanGame_Menu ();
 			break;
+
 		case ID_CUSTOMIZE:
 			UI_PlayerSetup_Menu ();
 			break;
+
 		case ID_CONTROLS:
 			UI_Controls_Menu ();
 			break;
+
 		case ID_DONE:
 			UI_PopMenu ();
 			break;
@@ -120,86 +128,98 @@ static void UI_MultiPlayer_Init (void)
 	uiMultiPlayer.internetGames.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
 	uiMultiPlayer.internetGames.generic.x = 72;
 	uiMultiPlayer.internetGames.generic.y = 230;
-	uiMultiPlayer.internetGames.generic.name = "Internet games";
+	/*uiMultiPlayer.internetGames.generic.name = "Internet games";*/
 	uiMultiPlayer.internetGames.generic.callback = UI_MultiPlayer_Callback;
 	UI_UtilSetupPicButton (&uiMultiPlayer.internetGames, PC_INET_GAME);
-#ifdef RU
-	uiMultiPlayer.internetGames.generic.statusText = 
+	/*ifdef RU
+	uiMultiPlayer.internetGames.generic.statusText =
 		"Просмотрите список игровых интернет-серверов и присоединитесь\nк одному по вашему выбору";
-#else
-	uiMultiPlayer.internetGames.generic.statusText = 
+	else
+	uiMultiPlayer.internetGames.generic.statusText =
 		"View list of a game internet servers and join the one\nof your choise";
-#endif
+	endif*/
+	uiMultiPlayer.internetGames.generic.name = MLOC (uiMultiPlayer_internetGames_generic_name);
+	uiMultiPlayer.internetGames.generic.statusText = MLOC (uiMultiPlayer_internetGames_generic_statusText);
 
 	uiMultiPlayer.spectateGames.generic.id = ID_SPECTATEGAMES;
 	uiMultiPlayer.spectateGames.generic.type = QMTYPE_BM_BUTTON;
 	uiMultiPlayer.spectateGames.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY | QMF_GRAYED;
 	uiMultiPlayer.spectateGames.generic.x = 72;
 	uiMultiPlayer.spectateGames.generic.y = 280;
-	uiMultiPlayer.spectateGames.generic.name = "Spectate games";
+	/*uiMultiPlayer.spectateGames.generic.name = "Spectate games";*/
 	uiMultiPlayer.spectateGames.generic.callback = UI_MultiPlayer_Callback;
 	UI_UtilSetupPicButton (&uiMultiPlayer.spectateGames, PC_SPECTATE_GAMES);
-#ifdef RU
+	/*ifdef RU
 	uiMultiPlayer.spectateGames.generic.statusText = "Наблюдайте за интернет-играми";
-#else
+	else
 	uiMultiPlayer.spectateGames.generic.statusText = "Spectate internet games";
-#endif
+	endif*/
+	uiMultiPlayer.spectateGames.generic.name = MLOC (uiMultiPlayer_spectateGames_generic_name);
+	uiMultiPlayer.spectateGames.generic.statusText = MLOC (uiMultiPlayer_spectateGames_generic_statusText);
 
 	uiMultiPlayer.LANGame.generic.id = ID_LANGAME;
 	uiMultiPlayer.LANGame.generic.type = QMTYPE_BM_BUTTON;
 	uiMultiPlayer.LANGame.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
 	uiMultiPlayer.LANGame.generic.x = 72;
 	uiMultiPlayer.LANGame.generic.y = 330;
-	uiMultiPlayer.LANGame.generic.name = "LAN game";
+	/*uiMultiPlayer.LANGame.generic.name = "LAN game";*/
 	uiMultiPlayer.LANGame.generic.callback = UI_MultiPlayer_Callback;
 	UI_UtilSetupPicButton (&uiMultiPlayer.LANGame, PC_LAN_GAME);
-#ifdef RU
+	/*ifdef RU
 	uiMultiPlayer.LANGame.generic.statusText = "Настройте игру по локальной сети";
-#else
+	else
 	uiMultiPlayer.LANGame.generic.statusText = "Set up the game on the local area network";
-#endif
+	endif*/
+	uiMultiPlayer.LANGame.generic.name = MLOC (uiMultiPlayer_LANGame_generic_name);
+	uiMultiPlayer.LANGame.generic.statusText = MLOC (uiMultiPlayer_LANGame_generic_statusText);
 
 	uiMultiPlayer.Customize.generic.id = ID_CUSTOMIZE;
 	uiMultiPlayer.Customize.generic.type = QMTYPE_BM_BUTTON;
 	uiMultiPlayer.Customize.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
 	uiMultiPlayer.Customize.generic.x = 72;
 	uiMultiPlayer.Customize.generic.y = 380;
-	uiMultiPlayer.Customize.generic.name = "Customize";
+	/*uiMultiPlayer.Customize.generic.name = "Customize";*/
 	uiMultiPlayer.Customize.generic.callback = UI_MultiPlayer_Callback;
 	UI_UtilSetupPicButton (&uiMultiPlayer.Customize, PC_CUSTOMIZE);
-#ifdef RU
+	/*ifdef RU
 	uiMultiPlayer.Customize.generic.statusText = "Выберите имя игрока и визуальные параметры для своего персонажа";
-#else
+	else
 	uiMultiPlayer.Customize.generic.statusText = "Choose your player name, and select visual options for your character";
-#endif
+	endif*/
+	uiMultiPlayer.Customize.generic.name = MLOC (uiMultiPlayer_Customize_generic_name);
+	uiMultiPlayer.Customize.generic.statusText = MLOC (uiMultiPlayer_Customize_generic_statusText);
 
 	uiMultiPlayer.Controls.generic.id = ID_CONTROLS;
 	uiMultiPlayer.Controls.generic.type = QMTYPE_BM_BUTTON;
 	uiMultiPlayer.Controls.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
 	uiMultiPlayer.Controls.generic.x = 72;
 	uiMultiPlayer.Controls.generic.y = 430;
-	uiMultiPlayer.Controls.generic.name = "Controls";
+	/*uiMultiPlayer.Controls.generic.name = "Controls";*/
 	uiMultiPlayer.Controls.generic.callback = UI_MultiPlayer_Callback;
 	UI_UtilSetupPicButton (&uiMultiPlayer.Controls, PC_CONTROLS);
-#ifdef RU
+	/*ifdef RU
 	uiMultiPlayer.Controls.generic.statusText = "Измените настройки мыши и клавиатуры";
-#else
+	else
 	uiMultiPlayer.Controls.generic.statusText = "Change keyboard and mouse settings";
-#endif
+	endif*/
+	uiMultiPlayer.Controls.generic.name = MLOC (LOC_Controls);
+	uiMultiPlayer.Controls.generic.statusText = MLOC (uiMultiPlayer_Controls_generic_statusText);
 
 	uiMultiPlayer.done.generic.id = ID_DONE;
 	uiMultiPlayer.done.generic.type = QMTYPE_BM_BUTTON;
 	uiMultiPlayer.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
 	uiMultiPlayer.done.generic.x = 72;
 	uiMultiPlayer.done.generic.y = 480;
-	uiMultiPlayer.done.generic.name = "Done";
+	/*uiMultiPlayer.done.generic.name = "Done";*/
 	uiMultiPlayer.done.generic.callback = UI_MultiPlayer_Callback;
 	UI_UtilSetupPicButton (&uiMultiPlayer.done, PC_DONE);
-#ifdef RU
+	/*ifdef RU
 	uiMultiPlayer.done.generic.statusText = "Вернуться в главное меню";
-#else
+	else
 	uiMultiPlayer.done.generic.statusText = "Go back to the main menu";
-#endif
+	endif*/
+	uiMultiPlayer.done.generic.name = MLOC (LOC_Done);
+	uiMultiPlayer.done.generic.statusText = MLOC (LOC_ReturnToMainMenu);
 
 	UI_AddItem (&uiMultiPlayer.menu, (void *)&uiMultiPlayer.background);
 	UI_AddItem (&uiMultiPlayer.menu, (void *)&uiMultiPlayer.banner);

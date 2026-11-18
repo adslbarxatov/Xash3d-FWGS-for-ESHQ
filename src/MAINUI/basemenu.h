@@ -266,10 +266,10 @@ typedef struct
 	{
 	menuCommon_s	generic;
 	int		enabled;
-	const char *emptyPic;
-	const char *focusPic;	// can be replaced with pressPic manually
-	const char *checkPic;
-	const char *grayedPic;	// when QMF_GRAYED is set
+	const char	*emptyPic;
+	const char	*focusPic;	// can be replaced with pressPic manually
+	const char	*checkPic;
+	const char	*grayedPic;	// when QMF_GRAYED is set
 	} menuCheckBox_s;
 
 typedef struct
@@ -320,10 +320,10 @@ void UI_PicButton_Draw (menuPicButton_s *item);
 // =====================================================================
 // Main menu interface
 
-extern cvar_t *ui_precache;
-extern cvar_t *ui_showmodels;
+extern cvar_t	*ui_precache;
+extern cvar_t	*ui_showmodels;
 
-#define MAX_BACKGROUNDS	48 // SC 5.0 have 35 tiled backgrounds!
+#define MAX_BACKGROUNDS	48	// SC 5.0 have 35 tiled backgrounds!
 
 typedef struct
 	{
@@ -335,11 +335,11 @@ typedef struct
 
 typedef struct
 	{
-	menuFramework_s *menuActive;
-	menuFramework_s *menuStack[UI_MAX_MENUDEPTH];
+	menuFramework_s	*menuActive;
+	menuFramework_s	*menuStack[UI_MAX_MENUDEPTH];
 	int		menuDepth;
 
-	netadr_t		serverAddresses[UI_MAX_SERVERS];
+	netadr_t	serverAddresses[UI_MAX_SERVERS];
 	char		serverNames[UI_MAX_SERVERS][256];
 	int		numServers;
 	int		updateServers;	// true is receive new info about servers

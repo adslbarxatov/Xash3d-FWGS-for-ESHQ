@@ -35,15 +35,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #define ID_SERVERSLIST	7
 #define ID_TABLEHINT	8
 
-#define ID_MSGBOX	 	9
-#define ID_MSGTEXT	 	10
-#define ID_YES	 		130
-#define ID_NO	 		131
+#define ID_MSGBOX		9
+#define ID_MSGTEXT		10
+#define ID_YES			130
+#define ID_NO			131
 
 #define GAME_LENGTH		28
 #define MAPNAME_LENGTH	20+GAME_LENGTH
 #define TYPE_LENGTH		10+MAPNAME_LENGTH
 #define MAXCL_LENGTH	15+TYPE_LENGTH
+
+// ESHQ: поддержка локализации
+#include "menu_locale.h"
 
 typedef struct
 	{
@@ -77,7 +80,7 @@ static uiLanGame_t	uiLanGame;
 
 static void UI_PromptDialog (void)
 	{
-	// toggle main menu between active\inactive, show\hide quit dialog
+	// toggle main menu between active/inactive, show/hide quit dialog
 	uiLanGame.joinGame.generic.flags ^= QMF_INACTIVE;
 	uiLanGame.createGame.generic.flags ^= QMF_INACTIVE;
 	uiLanGame.gameInfo.generic.flags ^= QMF_INACTIVE;
@@ -104,6 +107,7 @@ static const char *UI_LanGame_KeyFunc (int key, int down)
 		UI_PromptDialog ();
 		return uiSoundNull;
 		}
+
 	return UI_DefaultKey (&uiLanGame.menu, key, down);
 	}
 
@@ -115,12 +119,13 @@ UI_LanGame_GetGamesList
 static void UI_LanGame_GetGamesList (void)
 	{
 	int		i;
-	const char *info, *host, *map;
+	const char	*info, *host, *map;
 	int		colorOffset[2];
 
 	for (i = 0; i < uiStatic.numServers; i++)
 		{
-		if (i >= UI_MAX_SERVERS) break;
+		if (i >= UI_MAX_SERVERS)
+			break;
 		info = uiStatic.serverNames[i];
 
 		host = Info_ValueForKey (info, "host");
@@ -131,6 +136,7 @@ static void UI_LanGame_GetGamesList (void)
 		colorOffset[1] = ColorPrexfixCount (map);
 		StringConcat (uiLanGame.gameDescription[i], map, MAPNAME_LENGTH);
 		StringConcat (uiLanGame.gameDescription[i], uiEmptyString, MAPNAME_LENGTH + colorOffset[0] + colorOffset[1]);
+		
 		if (!strcmp (Info_ValueForKey (info, "dm"), "1"))
 			StringConcat (uiLanGame.gameDescription[i], "dm", TYPE_LENGTH);
 		else if (!strcmp (Info_ValueForKey (info, "coop"), "1"))
@@ -139,6 +145,7 @@ static void UI_LanGame_GetGamesList (void)
 			StringConcat (uiLanGame.gameDescription[i], "team", TYPE_LENGTH);
 		else 
 			StringConcat (uiLanGame.gameDescription[i], "???", TYPE_LENGTH);
+		
 		StringConcat (uiLanGame.gameDescription[i], uiEmptyString, TYPE_LENGTH + colorOffset[0] + colorOffset[1]);
 		StringConcat (uiLanGame.gameDescription[i], Info_ValueForKey (info, "numcl"), MAXCL_LENGTH);
 		StringConcat (uiLanGame.gameDescription[i], "\\", MAXCL_LENGTH);
@@ -151,10 +158,10 @@ static void UI_LanGame_GetGamesList (void)
 		uiLanGame.gameDescriptionPtr[i] = NULL;
 
 	uiLanGame.gameList.itemNames = (const char **)uiLanGame.gameDescriptionPtr;
-	uiLanGame.gameList.numItems = 0; // reset it
+	uiLanGame.gameList.numItems = 0;	// reset it
 
 	if (!uiLanGame.gameList.generic.charHeight)
-		return; // to avoid divide integer by zero
+		return;		// to avoid divide integer by zero
 
 	// count number of items
 	while (uiLanGame.gameList.itemNames[uiLanGame.gameList.numItems])
@@ -162,7 +169,8 @@ static void UI_LanGame_GetGamesList (void)
 
 	// calculate number of visible rows
 	uiLanGame.gameList.numRows = (uiLanGame.gameList.generic.height2 / uiLanGame.gameList.generic.charHeight) - 2;
-	if (uiLanGame.gameList.numRows > uiLanGame.gameList.numItems) uiLanGame.gameList.numRows = uiLanGame.gameList.numItems;
+	if (uiLanGame.gameList.numRows > uiLanGame.gameList.numItems)
+		uiLanGame.gameList.numRows = uiLanGame.gameList.numItems;
 
 	if (uiStatic.numServers)
 		uiLanGame.joinGame.generic.flags &= ~QMF_GRAYED;
@@ -188,18 +196,18 @@ UI_Background_Ownerdraw
 ***/
 static void UI_Background_Ownerdraw (void *self)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	if (!CVAR_GET_FLOAT ("cl_background"))
 		UI_DrawBackground_Callback (self);
 
 	if (uiStatic.realTime > uiLanGame.refreshTime)
 		{
-		uiLanGame.refreshTime = uiStatic.realTime + 10000; // refresh every 10 secs
+		uiLanGame.refreshTime = uiStatic.realTime + 10000;	// refresh every 10 secs
 		UI_RefreshServerList ();
 		}
 
-		// serverinfo has been changed update display
+	// serverinfo has been changed update display
 	if (uiStatic.updateServers)
 		{
 		UI_LanGame_GetGamesList ();
@@ -214,7 +222,7 @@ UI_MsgBox_Ownerdraw
 ***/
 static void UI_MsgBox_Ownerdraw (void *self)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	UI_FillRect (item->x, item->y, item->width, item->height, uiPromptBgColor);
 	}
@@ -226,7 +234,7 @@ UI_LanGame_Callback
 ***/
 static void UI_LanGame_Callback (void *self, int event)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	if (event != QM_ACTIVATED)
 		return;
@@ -238,23 +246,29 @@ static void UI_LanGame_Callback (void *self, int event)
 				UI_PromptDialog ();
 			else UI_LanGame_JoinGame ();
 			break;
+
 		case ID_CREATEGAME:
 			CVAR_SET_FLOAT ("public", 0.0f);
 			CVAR_SET_FLOAT ("sv_lan", 1.0f);
 			UI_CreateGame_Menu ();
 			break;
+
 		case ID_GAMEINFO:
 			// UNDONE: not implemented
 			break;
+
 		case ID_REFRESH:
 			UI_RefreshServerList ();
 			break;
+
 		case ID_DONE:
 			UI_PopMenu ();
 			break;
+
 		case ID_YES:
 			UI_LanGame_JoinGame ();
 			break;
+
 		case ID_NO:
 			UI_PromptDialog ();
 			break;
@@ -273,29 +287,36 @@ static void UI_LanGame_Init (void)
 	uiLanGame.menu.vidInitFunc = UI_LanGame_Init;
 	uiLanGame.menu.keyFunc = UI_LanGame_KeyFunc;
 
-#ifdef RU
+	/*ifdef RU
 	StringConcat (uiLanGame.hintText, "Игра", GAME_LENGTH);
-#else
+	else
 	StringConcat (uiLanGame.hintText, "Game", GAME_LENGTH);
-#endif
+	endif*/
+	StringConcat (uiLanGame.hintText, MLOC (LOC_Game), GAME_LENGTH);
 	StringConcat (uiLanGame.hintText, uiEmptyString, GAME_LENGTH);
-#ifdef RU
+
+	/*ifdef RU
 	StringConcat (uiLanGame.hintText, "Карта", MAPNAME_LENGTH);
-#else
+	else
 	StringConcat (uiLanGame.hintText, "Map", MAPNAME_LENGTH);
-#endif
+	endif*/
+	StringConcat (uiLanGame.hintText, MLOC (LOC_Map), MAPNAME_LENGTH);
 	StringConcat (uiLanGame.hintText, uiEmptyString, MAPNAME_LENGTH);
-#ifdef RU
+
+	/*ifdef RU
 	StringConcat (uiLanGame.hintText, "Тип", TYPE_LENGTH);
-#else
+	else
 	StringConcat (uiLanGame.hintText, "Type", TYPE_LENGTH);
-#endif
+	endif*/
+	StringConcat (uiLanGame.hintText, MLOC (LOC_Type), TYPE_LENGTH);
 	StringConcat (uiLanGame.hintText, uiEmptyString, TYPE_LENGTH);
-#ifdef RU
+
+	/*ifdef RU
 	StringConcat (uiLanGame.hintText, "Клиенты", MAXCL_LENGTH);
-#else
+	else
 	StringConcat (uiLanGame.hintText, "Clients", MAXCL_LENGTH);
-#endif
+	endif*/
+	StringConcat (uiLanGame.hintText, MLOC (LOC_Clients), MAXCL_LENGTH);
 	StringConcat (uiLanGame.hintText, uiEmptyString, MAXCL_LENGTH);
 
 	uiLanGame.background.generic.id = ID_BACKGROUND;
@@ -322,70 +343,80 @@ static void UI_LanGame_Init (void)
 	uiLanGame.joinGame.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_GRAYED;
 	uiLanGame.joinGame.generic.x = 72;
 	uiLanGame.joinGame.generic.y = 230;
-	uiLanGame.joinGame.generic.name = "Join game";
+	/*uiLanGame.joinGame.generic.name = "Join game";*/
 	uiLanGame.joinGame.generic.callback = UI_LanGame_Callback;
 	UI_UtilSetupPicButton (&uiLanGame.joinGame, PC_JOIN_GAME);
-#ifdef RU
+	/*ifdef RU
 	uiLanGame.joinGame.generic.statusText = "Присоединиться к выбранной игре";
-#else
+	else
 	uiLanGame.joinGame.generic.statusText = "Join to selected game";
-#endif
+	endif*/
+	uiLanGame.joinGame.generic.name = MLOC (LOC_JoinGame);
+	uiLanGame.joinGame.generic.statusText = MLOC (LOC_JoinGameTip);
 
 	uiLanGame.createGame.generic.id = ID_CREATEGAME;
 	uiLanGame.createGame.generic.type = QMTYPE_BM_BUTTON;
 	uiLanGame.createGame.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiLanGame.createGame.generic.x = 72;
 	uiLanGame.createGame.generic.y = 280;
-	uiLanGame.createGame.generic.name = "Create game";
+	/*uiLanGame.createGame.generic.name = "Create game";*/
 	uiLanGame.createGame.generic.callback = UI_LanGame_Callback;
 	UI_UtilSetupPicButton (&uiLanGame.createGame, PC_CREATE_GAME);
-#ifdef RU
+	/*ifdef RU
 	uiLanGame.createGame.generic.statusText = "Создать новую LAN-игру";
-#else
+	else
 	uiLanGame.createGame.generic.statusText = "Create new LAN game";
-#endif
+	endif*/
+	uiLanGame.createGame.generic.name = MLOC (LOC_CreateGame);
+	uiLanGame.createGame.generic.statusText = MLOC (uiLanGame_createGame_generic_statusText);
 
 	uiLanGame.gameInfo.generic.id = ID_GAMEINFO;
 	uiLanGame.gameInfo.generic.type = QMTYPE_BM_BUTTON;
 	uiLanGame.gameInfo.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_GRAYED;
 	uiLanGame.gameInfo.generic.x = 72;
 	uiLanGame.gameInfo.generic.y = 330;
-	uiLanGame.gameInfo.generic.name = "View game info";
+	/*uiLanGame.gameInfo.generic.name = "View game info";*/
 	uiLanGame.gameInfo.generic.callback = UI_LanGame_Callback;
 	UI_UtilSetupPicButton (&uiLanGame.gameInfo, PC_VIEW_GAME_INFO);
-#ifdef RU
+	/*ifdef RU
 	uiLanGame.gameInfo.generic.statusText = "Детальная информация об игре";
-#else
+	else
 	uiLanGame.gameInfo.generic.statusText = "Get detail game info";
-#endif
+	endif*/
+	uiLanGame.gameInfo.generic.name = MLOC (LOC_GameInfo);
+	uiLanGame.gameInfo.generic.statusText = MLOC (LOC_GameInfoTip);
 
 	uiLanGame.refresh.generic.id = ID_REFRESH;
 	uiLanGame.refresh.generic.type = QMTYPE_BM_BUTTON;
 	uiLanGame.refresh.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiLanGame.refresh.generic.x = 72;
 	uiLanGame.refresh.generic.y = 380;
-	uiLanGame.refresh.generic.name = "Refresh";
+	/*uiLanGame.refresh.generic.name = "Refresh";*/
 	uiLanGame.refresh.generic.callback = UI_LanGame_Callback;
 	UI_UtilSetupPicButton (&uiLanGame.refresh, PC_REFRESH);
-#ifdef RU
+	/*ifdef RU
 	uiLanGame.refresh.generic.statusText = "Обновить список серверов";
-#else
+	else
 	uiLanGame.refresh.generic.statusText = "Refresh servers list";
-#endif
+	endif*/
+	uiLanGame.refresh.generic.name = MLOC (LOC_Refresh);
+	uiLanGame.refresh.generic.statusText = MLOC (LOC_RefreshTip);
 
 	uiLanGame.done.generic.id = ID_DONE;
 	uiLanGame.done.generic.type = QMTYPE_BM_BUTTON;
 	uiLanGame.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiLanGame.done.generic.x = 72;
 	uiLanGame.done.generic.y = 430;
-	uiLanGame.done.generic.name = "Done";
+	/*uiLanGame.done.generic.name = "Done";*/
 	uiLanGame.done.generic.callback = UI_LanGame_Callback;
 	UI_UtilSetupPicButton (&uiLanGame.done, PC_DONE);
-#ifdef RU
+	/*ifdef RU
 	uiLanGame.done.generic.statusText = "Вернуться в главное меню";
-#else
+	else
 	uiLanGame.done.generic.statusText = "Return to main menu";
-#endif
+	endif*/
+	uiLanGame.done.generic.name = MLOC (LOC_Done);
+	uiLanGame.done.generic.statusText = MLOC (LOC_ReturnToMainMenu);
 
 	uiLanGame.msgBox.generic.id = ID_MSGBOX;
 	uiLanGame.msgBox.generic.type = QMTYPE_ACTION;
@@ -401,40 +432,44 @@ static void UI_LanGame_Init (void)
 	uiLanGame.dlgMessage1.generic.flags = QMF_INACTIVE | QMF_HIDDEN | QMF_DROPSHADOW;
 	uiLanGame.dlgMessage1.generic.x = 248;
 	uiLanGame.dlgMessage1.generic.y = 280;
-#ifdef RU
+	/*ifdef RU
 	uiLanGame.dlgMessage1.generic.name = "Подключение к игре завершит";
-#else
+	else
 	uiLanGame.dlgMessage1.generic.name = "Join a network game will exit";
-#endif
+	endif*/
+	uiLanGame.dlgMessage1.generic.name = MLOC (LOC_WarningNewGame1);
 
 	uiLanGame.dlgMessage2.generic.id = ID_MSGTEXT;
 	uiLanGame.dlgMessage2.generic.type = QMTYPE_ACTION;
 	uiLanGame.dlgMessage2.generic.flags = QMF_INACTIVE | QMF_HIDDEN | QMF_DROPSHADOW;
 	uiLanGame.dlgMessage2.generic.x = 248;
 	uiLanGame.dlgMessage2.generic.y = 310;
-#ifdef RU
+	/*ifdef RU
 	uiLanGame.dlgMessage2.generic.name = "все текущие игры. Продолжить?";
-#else
+	else
 	uiLanGame.dlgMessage2.generic.name = "any current game. Continue?";
-#endif
+	endif*/
+	uiLanGame.dlgMessage2.generic.name = MLOC (LOC_WarningNewGame2);
 
 	uiLanGame.yes.generic.id = ID_YES;
 	uiLanGame.yes.generic.type = QMTYPE_BM_BUTTON;
 	uiLanGame.yes.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_HIDDEN | QMF_DROPSHADOW;
-	uiLanGame.yes.generic.name = "OK";
+	/*uiLanGame.yes.generic.name = "OK";*/
 	uiLanGame.yes.generic.x = 380;
 	uiLanGame.yes.generic.y = 460;
 	uiLanGame.yes.generic.callback = UI_LanGame_Callback;
 	UI_UtilSetupPicButton (&uiLanGame.yes, PC_OK);
+	uiLanGame.yes.generic.name = MLOC (LOC_OK);
 
 	uiLanGame.no.generic.id = ID_NO;
 	uiLanGame.no.generic.type = QMTYPE_BM_BUTTON;
 	uiLanGame.no.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_HIDDEN | QMF_DROPSHADOW;
-	uiLanGame.no.generic.name = "Cancel";
+	/*uiLanGame.no.generic.name = "Cancel";*/
 	uiLanGame.no.generic.x = 530;
 	uiLanGame.no.generic.y = 460;
 	uiLanGame.no.generic.callback = UI_LanGame_Callback;
 	UI_UtilSetupPicButton (&uiLanGame.no, PC_CANCEL);
+	uiLanGame.no.generic.name = MLOC (LOC_Cancel);
 
 	uiLanGame.hintMessage.generic.id = ID_TABLEHINT;
 	uiLanGame.hintMessage.generic.type = QMTYPE_ACTION;
@@ -473,7 +508,7 @@ static void UI_LanGame_Init (void)
 	UI_AddItem (&uiLanGame.menu, (void *)&uiLanGame.no);
 	UI_AddItem (&uiLanGame.menu, (void *)&uiLanGame.yes);
 
-	uiLanGame.refreshTime = uiStatic.realTime + 500; // delay before update 0.5 sec
+	uiLanGame.refreshTime = uiStatic.realTime + 500;	// delay before update 0.5 sec
 	}
 
 /***

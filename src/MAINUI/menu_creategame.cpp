@@ -255,15 +255,19 @@ static void UI_CreateGame_Callback (void *self, int event)
 		case ID_ADVOPTIONS:
 			// UNDONE: not implemented
 			break;
+
 		case ID_DONE:
 			UI_PromptDialog ();
 			break;
+
 		case ID_CANCEL:
 			UI_PopMenu ();
 			break;
+
 		case ID_YES:
 			UI_CreateGame_Begin ();
 			break;
+
 		case ID_NO:
 			UI_PromptDialog ();
 			break;
@@ -329,7 +333,7 @@ static void UI_CreateGame_Init (void)
 	else
 	uiCreateGame.advOptions.generic.statusText = "Open the LAN game advanced options menu";
 	endif*/
-	uiCreateGame.advOptions.generic.name = MLOC (uiCreateGame_advOptions_generic_name);
+	uiCreateGame.advOptions.generic.name = MLOC (LOC_AdvOptions);
 	uiCreateGame.advOptions.generic.statusText = MLOC (uiCreateGame_advOptions_generic_statusText);
 
 	uiCreateGame.done.generic.id = ID_DONE;

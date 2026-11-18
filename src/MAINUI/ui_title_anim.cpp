@@ -1,3 +1,7 @@
+/***
+Title anim
+***/
+
 #include "extdll.h"
 #include "basemenu.h"
 #include "utils.h"
@@ -9,27 +13,30 @@
 // Title Transition Time period
 #define TTT_PERIOD		200.0f
 
-quad_t TitleLerpQuads[2];
-int transition_initial_time;
-int transition_state;
-HIMAGE TransPic = 0;
-int PreClickDepth;
-bool hold_button_stack = false;
+quad_t	TitleLerpQuads[2];
+int		transition_initial_time;
+int		transition_state;
+HIMAGE	TransPic = 0;
+int		PreClickDepth;
+bool	hold_button_stack = false;
 
 void UI_TACheckMenuDepth (void)
 	{
 	PreClickDepth = uiStatic.menuDepth;
 	}
 
-menuPicButton_s *ButtonStack[UI_MAX_MENUDEPTH];
-int ButtonStackDepth;
+menuPicButton_s		*ButtonStack[UI_MAX_MENUDEPTH];
+int		ButtonStackDepth;
 
 void UI_PopPButtonStack ()
 	{
-	if (hold_button_stack) return;
+	if (hold_button_stack)
+		return;
 
-	if (ButtonStack[ButtonStackDepth]) UI_SetTitleAnim (AS_TO_BUTTON, ButtonStack[ButtonStackDepth]);
-	if (ButtonStackDepth) ButtonStackDepth--;
+	if (ButtonStack[ButtonStackDepth])
+		UI_SetTitleAnim (AS_TO_BUTTON, ButtonStack[ButtonStackDepth]);
+	if (ButtonStackDepth)
+		ButtonStackDepth--;
 	}
 
 void UI_PushPButtonStack (menuPicButton_s *button)
@@ -43,7 +50,7 @@ void UI_PushPButtonStack (menuPicButton_s *button)
 
 float UI_GetTitleTransFraction (void)
 	{
-	float fraction = (float)(uiStatic.realTime - transition_initial_time) / TTT_PERIOD;
+	float	fraction = (float)(uiStatic.realTime - transition_initial_time) / TTT_PERIOD;
 
 	if (fraction > 1.0f)
 		fraction = 1.0f;
@@ -71,24 +78,23 @@ void UI_DrawTitleAnim ()
 	{
 	UI_SetupTitleQuad ();
 
-	if (!TransPic) return;
+	if (!TransPic)
+		return;
 
-	wrect_t r = { 0, uiStatic.buttons_width, 26, 51 };
-
-	float frac = UI_GetTitleTransFraction ();
+	wrect_t	r = { 0, uiStatic.buttons_width, 26, 51 };
+	float	frac = UI_GetTitleTransFraction ();
 
 #ifdef TA_ALT_MODE
-	if (frac == 1 && transition_state == AS_TO_BUTTON)
+	if ((frac == 1) && (transition_state == AS_TO_BUTTON))
 		return;
 #else
 	if (frac == 1) 
 		return;
 #endif
 
-	quad_t c;
-
-	int f_idx = (transition_state == AS_TO_TITLE) ? 0 : 1;
-	int s_idx = (transition_state == AS_TO_TITLE) ? 1 : 0;
+	quad_t	c;
+	int		f_idx = (transition_state == AS_TO_TITLE) ? 0 : 1;
+	int		s_idx = (transition_state == AS_TO_TITLE) ? 1 : 0;
 
 	LerpQuad (TitleLerpQuads[f_idx], TitleLerpQuads[s_idx], frac, &c);
 
@@ -99,11 +105,11 @@ void UI_DrawTitleAnim ()
 void UI_SetTitleAnim (int anim_state, menuPicButton_s *button)
 	{
 	// skip buttons which don't call new menu
-	if (!button || PreClickDepth == uiStatic.menuDepth && anim_state == AS_TO_TITLE)
+	if (!button || (PreClickDepth == uiStatic.menuDepth) && (anim_state == AS_TO_TITLE))
 		return;
 
-	// replace cancel\done button with button which called this menu 
-	if (PreClickDepth > uiStatic.menuDepth && anim_state == AS_TO_TITLE)
+	// replace cancel / done button with button which called this menu 
+	if ((PreClickDepth > uiStatic.menuDepth) && (anim_state == AS_TO_TITLE))
 		{
 		anim_state = AS_TO_BUTTON;
 
@@ -113,7 +119,7 @@ void UI_SetTitleAnim (int anim_state, menuPicButton_s *button)
 		}
 
 	// don't reset anim if dialog buttons pressed
-	if (button->generic.id == 130 || button->generic.id == 131)
+	if ((button->generic.id == 130) || (button->generic.id == 131))
 		return;
 
 	if (anim_state == AS_TO_TITLE)

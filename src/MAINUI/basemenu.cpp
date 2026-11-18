@@ -506,27 +506,35 @@ void UI_AddItem (menuFramework_s *menu, void *item)
 		case QMTYPE_SCROLLLIST:
 			UI_ScrollList_Init ((menuScrollList_s *)item);
 			break;
+
 		case QMTYPE_SPINCONTROL:
 			UI_SpinControl_Init ((menuSpinControl_s *)item);
 			break;
+
 		case QMTYPE_CHECKBOX:
 			UI_CheckBox_Init ((menuCheckBox_s *)item);
 			break;
+
 		case QMTYPE_SLIDER:
 			UI_Slider_Init ((menuSlider_s *)item);
 			break;
+
 		case QMTYPE_FIELD:
 			UI_Field_Init ((menuField_s *)item);
 			break;
+
 		case QMTYPE_ACTION:
 			UI_Action_Init ((menuAction_s *)item);
 			break;
+
 		case QMTYPE_BITMAP:
 			UI_Bitmap_Init ((menuBitmap_s *)item);
 			break;
+
 		case QMTYPE_BM_BUTTON:
 			UI_PicButton_Init ((menuPicButton_s *)item);
 			break;
+
 		default:
 			HOST_ERROR ("UI_AddItem: unknown item type (%i)\n", generic->type);
 		}
@@ -730,7 +738,7 @@ void UI_DrawMenu (menuFramework_s *menu)
 		lastItem = item;
 		}
 
-	if (item && (item->flags & QMF_HASMOUSEFOCUS && !(item->flags & QMF_NOTIFY)) && (item->statusText != NULL))
+	if (item && ((item->flags & QMF_HASMOUSEFOCUS) && !(item->flags & QMF_NOTIFY)) && (item->statusText != NULL))
 		{
 		// fade it in, but wait a second
 		int	alpha = bound (0, (((uiStatic.realTime - statusFadeTime) - 1000) * 0.001f) * 255, 255);
@@ -1248,7 +1256,7 @@ void UI_MouseMove (int x, int y)
 			continue;
 			}
 
-			// set focus to item at cursor
+		// set focus to item at cursor
 		if (uiStatic.menuActive->cursor != i)
 			{
 			UI_SetCursor (uiStatic.menuActive, i);
@@ -1263,7 +1271,7 @@ void UI_MouseMove (int x, int y)
 		return;
 		}
 
-		// out of any region
+	// out of any region
 	if (uiStatic.menuActive->numItems)
 		{
 		((menuCommon_s *)(uiStatic.menuActive->items[uiStatic.menuActive->cursor]))->flags &= ~QMF_HASMOUSEFOCUS;

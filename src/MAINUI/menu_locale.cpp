@@ -33,7 +33,8 @@ void UI_LoadMenuLocale (void)
 	union MenuLocStringHeader header;
 	for (int i = 0; i < LOC_STRINGSCOUNT; i++)
 		{
-		if (pos >= loc_filesize)
+		// Защита от чтения вне диапазона
+		if (pos + sizeof (header) >= loc_filesize)
 			break;
 
 		memcpy (header.Ptr, menuLocBuffer + pos, sizeof (header));
@@ -41,9 +42,14 @@ void UI_LoadMenuLocale (void)
 			header.Str.Length[2] - '0');
 
 		pos += sizeof (header);
+
+		// Защита от выхода за диапазон и повреждения файла
+		if ((pos + len >= loc_filesize) || (menuLocBuffer[pos + len] != '\n'))
+			break;
+
 		MenuLocStrings[i] = (char *)(menuLocBuffer + pos);
 		menuLocBuffer[pos + len] = '\0';
-		pos += (len + 2);	// \r\n
+		pos += (len + 1);	// \n
 		}
 	}
 

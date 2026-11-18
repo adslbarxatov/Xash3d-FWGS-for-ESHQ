@@ -22,22 +22,25 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #include "utils.h"
 #include "keydefs.h"
 #include "menu_btnsbmp_table.h"
-#include "menu_strings.h"
+/*include "menu_strings.h"*/
 
 #define ART_BANNER		"gfx/shell/head_newgame"
 
 #define ID_BACKGROUND	0
 #define ID_BANNER		1
 
-#define ID_EASY	  		2
-#define ID_MEDIUM	  	3
-#define ID_DIFFICULT  	4
+#define ID_EASY			2
+#define ID_MEDIUM		3
+#define ID_DIFFICULT	4
 #define ID_CANCEL		5
 
-#define ID_MSGBOX	 	6
-#define ID_MSGTEXT	 	7
+#define ID_MSGBOX		6
+#define ID_MSGTEXT		7
 #define ID_YES			130
-#define ID_NO	 		131
+#define ID_NO			131
+
+// ESHQ: поддержка локализации
+#include "menu_locale.h"
 
 typedef struct
 	{
@@ -118,6 +121,7 @@ static const char *UI_NewGame_KeyFunc (int key, int down)
 		UI_PromptDialog (0.0f);	// clear skill
 		return uiSoundNull;
 		}
+
 	return UI_DefaultKey (&uiNewGame.menu, key, down);
 	}
 
@@ -128,7 +132,7 @@ UI_NewGame_Callback
 ***/
 static void UI_NewGame_Callback (void *self, int event)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	if (event != QM_ACTIVATED)
 		return;
@@ -138,20 +142,25 @@ static void UI_NewGame_Callback (void *self, int event)
 		case ID_EASY:
 			UI_PromptDialog (1.0f);
 			break;
+
 		case ID_MEDIUM:
 			UI_PromptDialog (2.0f);
 			break;
+
 		case ID_DIFFICULT:
 			UI_PromptDialog (3.0f);
 			break;
+
 		case ID_CANCEL:
 			UI_PopMenu ();
 			break;
+
 		case ID_YES:
 			UI_NewGame_StartGame (uiNewGame.skill);
 			break;
+
 		case ID_NO:
-			UI_PromptDialog (1.0f); // clear skill
+			UI_PromptDialog (1.0f);	// clear skill
 			break;
 		}
 	}
@@ -163,7 +172,7 @@ UI_MsgBox_Ownerdraw
 ***/
 static void UI_MsgBox_Ownerdraw (void *self)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	UI_FillRect (item->x, item->y, item->width, item->height, uiPromptBgColor);
 	}
@@ -201,51 +210,59 @@ static void UI_NewGame_Init (void)
 	uiNewGame.easy.generic.id = ID_EASY;
 	uiNewGame.easy.generic.type = QMTYPE_BM_BUTTON;
 	uiNewGame.easy.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
-	uiNewGame.easy.generic.name = "Easy";
-	uiNewGame.easy.generic.statusText = MenuStrings[HINT_SKILL_EASY];
+	/*uiNewGame.easy.generic.name = "Easy";
+	uiNewGame.easy.generic.statusText = MenuStrings[HINT_SKILL_EASY];*/
 	uiNewGame.easy.generic.x = 72;
 	uiNewGame.easy.generic.y = 230;
 	uiNewGame.easy.generic.callback = UI_NewGame_Callback;
 	UI_UtilSetupPicButton (&uiNewGame.easy, PC_EASY);
+	uiNewGame.easy.generic.name = MLOC (uiNewGame_easy_generic_name);
+	uiNewGame.easy.generic.statusText = MLOC (uiNewGame_easy_generic_statusText);
 
 	uiNewGame.medium.generic.id = ID_MEDIUM;
 	uiNewGame.medium.generic.type = QMTYPE_BM_BUTTON;
 	uiNewGame.medium.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
-	uiNewGame.medium.generic.name = "Medium";
-	uiNewGame.medium.generic.statusText = MenuStrings[HINT_SKILL_NORMAL];
+	/*uiNewGame.medium.generic.name = "Medium";
+	uiNewGame.medium.generic.statusText = MenuStrings[HINT_SKILL_NORMAL];*/
 	uiNewGame.medium.generic.x = 72;
 	uiNewGame.medium.generic.y = 280;
 	uiNewGame.medium.generic.callback = UI_NewGame_Callback;
 	UI_UtilSetupPicButton (&uiNewGame.medium, PC_MEDIUM);
+	uiNewGame.medium.generic.name = MLOC (uiNewGame_medium_generic_name);
+	uiNewGame.medium.generic.statusText = MLOC (uiNewGame_medium_generic_statusText);
 
 	uiNewGame.hard.generic.id = ID_DIFFICULT;
 	uiNewGame.hard.generic.type = QMTYPE_BM_BUTTON;
 	uiNewGame.hard.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
-	uiNewGame.hard.generic.name = "Difficult";
-	uiNewGame.hard.generic.statusText = MenuStrings[HINT_SKILL_HARD];
+	/*uiNewGame.hard.generic.name = "Difficult";
+	uiNewGame.hard.generic.statusText = MenuStrings[HINT_SKILL_HARD];*/
 	uiNewGame.hard.generic.x = 72;
 	uiNewGame.hard.generic.y = 330;
 	uiNewGame.hard.generic.callback = UI_NewGame_Callback;
 	UI_UtilSetupPicButton (&uiNewGame.hard, PC_DIFFICULT);
+	uiNewGame.hard.generic.name = MLOC (uiNewGame_hard_generic_name);
+	uiNewGame.hard.generic.statusText = MLOC (uiNewGame_hard_generic_statusText);
 
 	uiNewGame.cancel.generic.id = ID_CANCEL;
 	uiNewGame.cancel.generic.type = QMTYPE_BM_BUTTON;
 	uiNewGame.cancel.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
-	uiNewGame.cancel.generic.name = "Cancel";
+	/*uiNewGame.cancel.generic.name = "Cancel";*/
 	uiNewGame.cancel.generic.x = 72;
 	uiNewGame.cancel.generic.y = 380;
 	uiNewGame.cancel.generic.callback = UI_NewGame_Callback;
 	UI_UtilSetupPicButton (&uiNewGame.cancel, PC_CANCEL);
-#ifdef RU
+	/*ifdef RU
 	uiNewGame.cancel.generic.statusText = "Вернуться в главное меню";
-#else
+	else
 	uiNewGame.cancel.generic.statusText = "Go back to the main menu";
-#endif
+	endif*/
+	uiNewGame.cancel.generic.name = MLOC (LOC_Cancel);
+	uiNewGame.cancel.generic.statusText = MLOC (LOC_ReturnToMainMenu);
 
 	uiNewGame.msgBox.generic.id = ID_MSGBOX;
 	uiNewGame.msgBox.generic.type = QMTYPE_ACTION;
 	uiNewGame.msgBox.generic.flags = QMF_INACTIVE | QMF_HIDDEN;
-	uiNewGame.msgBox.generic.ownerdraw = UI_MsgBox_Ownerdraw; // just a fill rectangle
+	uiNewGame.msgBox.generic.ownerdraw = UI_MsgBox_Ownerdraw;	// just a fill rectangle
 	uiNewGame.msgBox.generic.x = 192;
 	uiNewGame.msgBox.generic.y = 256;
 	uiNewGame.msgBox.generic.width = 640;
@@ -254,29 +271,32 @@ static void UI_NewGame_Init (void)
 	uiNewGame.dlgMessage1.generic.id = ID_MSGTEXT;
 	uiNewGame.dlgMessage1.generic.type = QMTYPE_ACTION;
 	uiNewGame.dlgMessage1.generic.flags = QMF_INACTIVE | QMF_HIDDEN | QMF_DROPSHADOW | QMF_CENTER_JUSTIFY;
-	uiNewGame.dlgMessage1.generic.name = MenuStrings[HINT_RESTART_GAME];
+	/*uiNewGame.dlgMessage1.generic.name = MenuStrings[HINT_RESTART_GAME];*/
 	uiNewGame.dlgMessage1.generic.x = 192;
 	uiNewGame.dlgMessage1.generic.y = 280;
 	uiNewGame.dlgMessage1.generic.width = 640;
 	uiNewGame.dlgMessage1.generic.height = 256;
+	uiNewGame.dlgMessage1.generic.name = MLOC (uiNewGame_dlgMessage1_generic_name);
 
 	uiNewGame.yes.generic.id = ID_YES;
 	uiNewGame.yes.generic.type = QMTYPE_BM_BUTTON;
 	uiNewGame.yes.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_HIDDEN | QMF_DROPSHADOW;
-	uiNewGame.yes.generic.name = "OK";
+	/*uiNewGame.yes.generic.name = "OK";*/
 	uiNewGame.yes.generic.x = 380;
 	uiNewGame.yes.generic.y = 460;
 	uiNewGame.yes.generic.callback = UI_NewGame_Callback;
 	UI_UtilSetupPicButton (&uiNewGame.yes, PC_OK);
+	uiNewGame.yes.generic.name = MLOC (LOC_OK);
 
 	uiNewGame.no.generic.id = ID_NO;
 	uiNewGame.no.generic.type = QMTYPE_BM_BUTTON;
 	uiNewGame.no.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_HIDDEN | QMF_DROPSHADOW;
-	uiNewGame.no.generic.name = "Cancel";
+	/*uiNewGame.no.generic.name = "Cancel";*/
 	uiNewGame.no.generic.x = 530;
 	uiNewGame.no.generic.y = 460;
 	uiNewGame.no.generic.callback = UI_NewGame_Callback;
 	UI_UtilSetupPicButton (&uiNewGame.no, PC_CANCEL);
+	uiNewGame.no.generic.name = MLOC (LOC_Cancel);
 
 	UI_AddItem (&uiNewGame.menu, (void *)&uiNewGame.background);
 	UI_AddItem (&uiNewGame.menu, (void *)&uiNewGame.banner);
