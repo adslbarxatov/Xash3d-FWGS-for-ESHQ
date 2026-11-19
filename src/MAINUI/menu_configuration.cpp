@@ -31,7 +31,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #define ID_CONTROLS			2
 #define ID_AUDIO			3
 #define ID_VIDEO			4
-#define ID_UPDATE			5
+/*define ID_UPDATE			5*/
 #define ID_DONE				6
 #define ID_MSGBOX			7
 #define ID_MSGTEXT			8
@@ -51,7 +51,7 @@ typedef struct
 	menuPicButton_s	controls;
 	menuPicButton_s	audio;
 	menuPicButton_s	video;
-	menuPicButton_s	update;
+	/*menuPicButton_s	update;*/
 	menuPicButton_s	done;
 
 	// update dialog
@@ -81,7 +81,7 @@ static void UI_CheckUpdatesDialog (void)
 	uiOptions.controls.generic.flags ^= QMF_INACTIVE;
 	uiOptions.audio.generic.flags ^= QMF_INACTIVE;
 	uiOptions.video.generic.flags ^= QMF_INACTIVE;
-	uiOptions.update.generic.flags ^= QMF_INACTIVE;
+	/*uiOptions.update.generic.flags ^= QMF_INACTIVE;*/
 	uiOptions.done.generic.flags ^= QMF_INACTIVE;
 
 	uiOptions.msgBox.generic.flags ^= QMF_HIDDEN;
@@ -136,9 +136,9 @@ static void UI_Options_Callback (void *self, int event)
 			UI_Video_Menu ();
 			break;
 
-		case ID_UPDATE:
+		/*case ID_UPDATE:
 			UI_CheckUpdatesDialog ();
-			break;
+			break;*/
 
 		case ID_YES:
 			SHELL_EXECUTE (gMenu.m_gameinfo.update_url, NULL, TRUE);
@@ -182,7 +182,7 @@ static void UI_Options_Init (void)
 
 	uiOptions.controls.generic.id = ID_CONTROLS;
 	uiOptions.controls.generic.type = QMTYPE_BM_BUTTON;
-	uiOptions.controls.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
+	uiOptions.controls.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW /*| QMF_NOTIFY*/;
 	uiOptions.controls.generic.x = 72;
 	uiOptions.controls.generic.y = 230;
 	/*uiOptions.controls.generic.name = "Controls";*/
@@ -198,7 +198,7 @@ static void UI_Options_Init (void)
 
 	uiOptions.audio.generic.id = ID_AUDIO;
 	uiOptions.audio.generic.type = QMTYPE_BM_BUTTON;
-	uiOptions.audio.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
+	uiOptions.audio.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW /*| QMF_NOTIFY*/;
 	uiOptions.audio.generic.x = 72;
 	uiOptions.audio.generic.y = 280;
 	/*uiOptions.audio.generic.name = "Audio";*/
@@ -214,7 +214,7 @@ static void UI_Options_Init (void)
 
 	uiOptions.video.generic.id = ID_VIDEO;
 	uiOptions.video.generic.type = QMTYPE_BM_BUTTON;
-	uiOptions.video.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
+	uiOptions.video.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW /*| QMF_NOTIFY*/;
 	uiOptions.video.generic.x = 72;
 	uiOptions.video.generic.y = 330;
 	/*uiOptions.video.generic.name = "Video";*/
@@ -228,30 +228,25 @@ static void UI_Options_Init (void)
 	uiOptions.video.generic.name = MLOC (uiOptions_video_generic_name);
 	uiOptions.video.generic.statusText = MLOC (uiOptions_video_generic_statusText);
 
-	uiOptions.update.generic.id = ID_UPDATE;
+	/*uiOptions.update.generic.id = ID_UPDATE;
 	uiOptions.update.generic.type = QMTYPE_BM_BUTTON;
 	uiOptions.update.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
 	uiOptions.update.generic.x = 72;
 	uiOptions.update.generic.y = 380;
-	/*uiOptions.update.generic.name = "Update";*/
 	uiOptions.update.generic.callback = UI_Options_Callback;
 	UI_UtilSetupPicButton (&uiOptions.update, PC_UPDATE);
-	/*ifdef RU
-	uiOptions.update.generic.statusText = "Загрузить актуальную версию Xash3D engine";
-	else
-	uiOptions.update.generic.statusText = "Download the latest version of the Xash3D engine";
-	endif*/
 	uiOptions.update.generic.name = MLOC (uiOptions_update_generic_name);
 	uiOptions.update.generic.statusText = MLOC (uiOptions_update_generic_statusText);
 
 	if (!strlen (gMenu.m_gameinfo.update_url))
-		uiOptions.update.generic.flags |= QMF_GRAYED;
+		uiOptions.update.generic.flags |= QMF_GRAYED;*/
 
 	uiOptions.done.generic.id = ID_DONE;
 	uiOptions.done.generic.type = QMTYPE_BM_BUTTON;
-	uiOptions.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
+	uiOptions.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW /*| QMF_NOTIFY*/;
 	uiOptions.done.generic.x = 72;
-	uiOptions.done.generic.y = 430;
+	/*uiOptions.done.generic.y = 430;*/
+	uiOptions.done.generic.y = 380;
 	/*uiOptions.done.generic.name = "Done";*/
 	uiOptions.done.generic.callback = UI_Options_Callback;
 	UI_UtilSetupPicButton (&uiOptions.done, PC_DONE);
@@ -310,7 +305,7 @@ static void UI_Options_Init (void)
 	UI_AddItem (&uiOptions.menu, (void *)&uiOptions.controls);
 	UI_AddItem (&uiOptions.menu, (void *)&uiOptions.audio);
 	UI_AddItem (&uiOptions.menu, (void *)&uiOptions.video);
-	UI_AddItem (&uiOptions.menu, (void *)&uiOptions.update);
+	/*UI_AddItem (&uiOptions.menu, (void *)&uiOptions.update);*/
 	UI_AddItem (&uiOptions.menu, (void *)&uiOptions.msgBox);
 	UI_AddItem (&uiOptions.menu, (void *)&uiOptions.updatePrompt);
 	UI_AddItem (&uiOptions.menu, (void *)&uiOptions.no);

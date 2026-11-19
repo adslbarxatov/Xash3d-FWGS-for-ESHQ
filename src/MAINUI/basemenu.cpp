@@ -390,7 +390,7 @@ bool UI_LoadSteamBackground (void)
 	pfile = afile;
 
 	pfile = COM_ParseFile (pfile, token);
-	if (!pfile || stricmp (token, "resolution")) // resolution at first!
+	if (!pfile || stricmp (token, "resolution"))	// resolution at first!
 		goto cleanup;
 
 	pfile = COM_ParseFile (pfile, token);
@@ -405,7 +405,7 @@ bool UI_LoadSteamBackground (void)
 
 	uiStatic.m_flTotalHeight = atoi (token);
 
-	// Now read all tiled background list
+	// now read all tiled background list
 	while ((pfile = COM_ParseFile (pfile, token)) != NULL)
 		{
 		bimage_t	img;
@@ -1059,7 +1059,7 @@ void UI_PopMenu (void)
 		UI_Main_Menu ();
 		}
 
-	if (uiStatic.m_fDemosPlayed && uiStatic.m_iOldMenuDepth == uiStatic.menuDepth)
+	if (uiStatic.m_fDemosPlayed && (uiStatic.m_iOldMenuDepth == uiStatic.menuDepth))
 		{
 		CLIENT_COMMAND (FALSE, "demos\n");
 		uiStatic.m_fDemosPlayed = false;
@@ -1642,8 +1642,8 @@ void UI_Init (void)
 	// ESHQ: загрузка локализации меню
 	UI_LoadMenuLocale ();
 
-	// load custom strings
-	UI_LoadCustomStrings ();
+	/*// load custom strings
+	UI_LoadCustomStrings ();*/
 
 	// CR
 	UI_InitTitleAnim ();

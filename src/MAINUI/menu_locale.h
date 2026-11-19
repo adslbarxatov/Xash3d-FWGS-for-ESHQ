@@ -270,6 +270,35 @@ enum
 	uiSaveLoad_hintText_Save,
 	uiSaveLoad_hintText_Load,
 
+	uiVideo_vidOptions_generic_name,
+	uiVideo_vidOptions_generic_statusText,
+
+	uiVideo_vidModes_generic_name,
+	uiVideo_vidModes_generic_statusText,
+
+	// Done
+	LOC_ReturnToPreviousMenu,
+
+	uiVidModes_ok_generic_name,
+	uiVidModes_ok_generic_statusText,
+
+	uiVidModes_listCaption_generic_name,
+
+	uiVidModes_windowed_generic_name,
+	uiVidModes_windowed_generic_statusText,
+
+	uiVidModes_vsync_generic_name,
+	uiVidModes_vsync_generic_statusText,
+
+	uiVidOptions_screenSize_generic_name,
+	uiVidOptions_screenSize_generic_statusText,
+
+	uiVidOptions_gammaIntensity_generic_name,
+	uiVidOptions_gammaIntensity_generic_statusText,
+
+	uiVidOptions_glareReduction_generic_name,
+	uiVidOptions_glareReduction_generic_statusText,
+
 	LOC_STRINGSCOUNT	// must be last
 	};
 

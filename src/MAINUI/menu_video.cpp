@@ -27,9 +27,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #define ID_BACKGROUND	0
 #define ID_BANNER		1
 
-#define ID_VIDOPTIONS  	2
-#define ID_VIDMODES	  	3
+#define ID_VIDOPTIONS	2
+#define ID_VIDMODES		3
 #define ID_DONE			4
+
+// ESHQ: поддержка локализации
+#include "menu_locale.h"
 
 typedef struct
 	{
@@ -52,7 +55,7 @@ UI_Video_Callback
 ***/
 static void UI_Video_Callback (void *self, int event)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	if (event != QM_ACTIVATED)
 		return;
@@ -62,9 +65,11 @@ static void UI_Video_Callback (void *self, int event)
 		case ID_VIDOPTIONS:
 			UI_VidOptions_Menu ();
 			break;
+
 		case ID_VIDMODES:
 			UI_VidModes_Menu ();
 			break;
+
 		case ID_DONE:
 			UI_PopMenu ();
 			break;
@@ -102,45 +107,51 @@ static void UI_Video_Init (void)
 
 	uiVideo.vidOptions.generic.id = ID_VIDOPTIONS;
 	uiVideo.vidOptions.generic.type = QMTYPE_BM_BUTTON;
-	uiVideo.vidOptions.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
-	uiVideo.vidOptions.generic.name = "Video options";
+	uiVideo.vidOptions.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW /*| QMF_NOTIFY*/;
+	/*uiVideo.vidOptions.generic.name = "Video options";*/
 	uiVideo.vidOptions.generic.x = 72;
 	uiVideo.vidOptions.generic.y = 230;
 	uiVideo.vidOptions.generic.callback = UI_Video_Callback;
 	UI_UtilSetupPicButton (&uiVideo.vidOptions, PC_VID_OPT);
-#ifdef RU
+	/*ifdef RU
 	uiVideo.vidOptions.generic.statusText = "Настроить видеорежим: размер экрана, гамму и качество изображения";
-#else
+	else
 	uiVideo.vidOptions.generic.statusText = "Set video options such as screen size, gamma and image quality";
-#endif
+	endif*/
+	uiVideo.vidOptions.generic.name = MLOC (uiVideo_vidOptions_generic_name);
+	uiVideo.vidOptions.generic.statusText = MLOC (uiVideo_vidOptions_generic_statusText);
 
 	uiVideo.vidModes.generic.id = ID_VIDMODES;
 	uiVideo.vidModes.generic.type = QMTYPE_BM_BUTTON;
-	uiVideo.vidModes.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
-	uiVideo.vidModes.generic.name = "Video modes";
+	uiVideo.vidModes.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW /*| QMF_NOTIFY*/;
+	/*uiVideo.vidModes.generic.name = "Video modes";*/
 	uiVideo.vidModes.generic.x = 72;
 	uiVideo.vidModes.generic.y = 280;
 	uiVideo.vidModes.generic.callback = UI_Video_Callback;
 	UI_UtilSetupPicButton (&uiVideo.vidModes, PC_VID_MODES);
-#ifdef RU
+	/*ifdef RU
 	uiVideo.vidModes.generic.statusText = "Выбрать видеорежимы и настроить 3D-ускорение";
-#else
+	else
 	uiVideo.vidModes.generic.statusText = "Set video modes and configure 3D accelerators";
-#endif
+	endif*/
+	uiVideo.vidModes.generic.name = MLOC (uiVideo_vidModes_generic_name);
+	uiVideo.vidModes.generic.statusText = MLOC (uiVideo_vidModes_generic_statusText);
 
 	uiVideo.done.generic.id = ID_DONE;
 	uiVideo.done.generic.type = QMTYPE_BM_BUTTON;
-	uiVideo.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
-	uiVideo.done.generic.name = "Done";
+	uiVideo.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW /*| QMF_NOTIFY*/;
+	/*uiVideo.done.generic.name = "Done";*/
 	uiVideo.done.generic.x = 72;
 	uiVideo.done.generic.y = 330;
 	uiVideo.done.generic.callback = UI_Video_Callback;
 	UI_UtilSetupPicButton (&uiVideo.done, PC_DONE);
-#ifdef RU
+	/*ifdef RU
 	uiVideo.done.generic.statusText = "Вернуться в предыдущее меню";
-#else
+	else
 	uiVideo.done.generic.statusText = "Go back to the previous menu";
-#endif
+	endif*/
+	uiVideo.done.generic.name = MLOC (LOC_Done);
+	uiVideo.done.generic.statusText = MLOC (LOC_ReturnToPreviousMenu);
 
 	UI_AddItem (&uiVideo.menu, (void *)&uiVideo.background);
 	UI_AddItem (&uiVideo.menu, (void *)&uiVideo.banner);

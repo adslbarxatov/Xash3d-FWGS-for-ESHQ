@@ -22,15 +22,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #include "utils.h"
 #include "menu_btnsbmp_table.h"
 
-#define ART_BANNER	  	"gfx/shell/head_vidoptions"
+#define ART_BANNER		"gfx/shell/head_vidoptions"
 #define ART_GAMMA		"gfx/shell/gamma"
 
-#define ID_BACKGROUND 	0
-#define ID_BANNER	  	1
-#define ID_DONE	  		2
-#define ID_SCREEN_SIZE	3
-#define ID_GAMMA		4
-#define ID_GLARE_REDUCTION	5 
+#define ID_BACKGROUND		0
+#define ID_BANNER			1
+#define ID_DONE				2
+#define ID_SCREEN_SIZE		3
+#define ID_GAMMA			4
+#define ID_GLARE_REDUCTION	5
+
+// ESHQ: поддержка локализации
+#include "menu_locale.h"
 
 typedef struct
 	{
@@ -96,7 +99,7 @@ UI_VidOptions_Ownerdraw
 static void UI_VidOptions_Ownerdraw (void *self)
 	{
 	menuCommon_s *item = (menuCommon_s *)self;
-	int		color = 0xFFFF0000; // 255, 0, 0, 255
+	int		color = 0xFFFF0000;		// 255, 0, 0, 255
 	int		viewport[4];
 	int		viewsize, size, sb_lines;
 
@@ -106,7 +109,7 @@ static void UI_VidOptions_Ownerdraw (void *self)
 		sb_lines = 0;	// no status bar at all
 	else if (viewsize >= 110)
 		sb_lines = 24;	// no inventory
-	else 
+	else
 		sb_lines = 48;
 
 	size = min (viewsize, 100);
@@ -125,7 +128,8 @@ static void UI_VidOptions_Ownerdraw (void *self)
 	viewport[0] = (item->width - viewport[2]) / 2;
 	viewport[1] = (item->height - sb_lines - viewport[3]) / 2;
 
-	UI_DrawPic (item->x + viewport[0], item->y + viewport[1], viewport[2], viewport[3], uiColorWhite, ((menuBitmap_s *)self)->pic);
+	UI_DrawPic (item->x + viewport[0], item->y + viewport[1], viewport[2], viewport[3], uiColorWhite,
+		((menuBitmap_s *)self)->pic);
 	UI_DrawRectangleExt (item->x, item->y, item->width, item->height, color, uiVidOptions.outlineWidth);
 	}
 
@@ -136,7 +140,7 @@ UI_VidOptions_Callback
 ***/
 static void UI_VidOptions_Callback (void *self, int event)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	if (event == QM_CHANGED)
 		{
@@ -202,14 +206,16 @@ static void UI_VidOptions_Init (void)
 	uiVidOptions.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiVidOptions.done.generic.x = 72;
 	uiVidOptions.done.generic.y = 435;
-	uiVidOptions.done.generic.name = "Done";
+	/*uiVidOptions.done.generic.name = "Done";*/
 	uiVidOptions.done.generic.callback = UI_VidOptions_Callback;
 	UI_UtilSetupPicButton (&uiVidOptions.done, PC_DONE);
-#ifdef RU
+	/*ifdef RU
 	uiVidOptions.done.generic.statusText = "Вернуться в меню видео";
-#else
+	else
 	uiVidOptions.done.generic.statusText = "Go back to the video menu";
-#endif
+	endif*/
+	uiVidOptions.done.generic.name = MLOC (LOC_Done);
+	uiVidOptions.done.generic.statusText = MLOC (LOC_ReturnToPreviousMenu);
 
 	uiVidOptions.screenSize.generic.id = ID_SCREEN_SIZE;
 	uiVidOptions.screenSize.generic.type = QMTYPE_SLIDER;
@@ -220,13 +226,15 @@ static void UI_VidOptions_Init (void)
 	uiVidOptions.screenSize.minValue = 0.0;
 	uiVidOptions.screenSize.maxValue = 1.0;
 	uiVidOptions.screenSize.range = 0.05f;
-#ifdef RU
+	/*ifdef RU
 	uiVidOptions.screenSize.generic.name = "Размер экрана";
 	uiVidOptions.screenSize.generic.statusText = "Задать размеры экрана";
-#else
+	else
 	uiVidOptions.screenSize.generic.name = "Screen size";
 	uiVidOptions.screenSize.generic.statusText = "Set the screen size";
-#endif
+	endif*/
+	uiVidOptions.screenSize.generic.name = MLOC (uiVidOptions_screenSize_generic_name);
+	uiVidOptions.screenSize.generic.statusText = MLOC (uiVidOptions_screenSize_generic_statusText);
 
 	uiVidOptions.gammaIntensity.generic.id = ID_GAMMA;
 	uiVidOptions.gammaIntensity.generic.type = QMTYPE_SLIDER;
@@ -237,13 +245,15 @@ static void UI_VidOptions_Init (void)
 	uiVidOptions.gammaIntensity.minValue = 0.0;
 	uiVidOptions.gammaIntensity.maxValue = 1.0;
 	uiVidOptions.gammaIntensity.range = 0.05f;
-#ifdef RU
+	/*ifdef RU
 	uiVidOptions.gammaIntensity.generic.name = "Гамма";
 	uiVidOptions.gammaIntensity.generic.statusText = "Задать гамму (1.8 - 3.0)";
-#else
+	else
 	uiVidOptions.gammaIntensity.generic.name = "Gamma";
 	uiVidOptions.gammaIntensity.generic.statusText = "Set gamma value (1.8 - 3.0)";
-#endif
+	endif*/
+	uiVidOptions.gammaIntensity.generic.name = MLOC (uiVidOptions_gammaIntensity_generic_name);
+	uiVidOptions.gammaIntensity.generic.statusText = MLOC (uiVidOptions_gammaIntensity_generic_statusText);
 
 	uiVidOptions.glareReduction.generic.id = ID_GLARE_REDUCTION;
 	uiVidOptions.glareReduction.generic.type = QMTYPE_SLIDER;
@@ -254,13 +264,15 @@ static void UI_VidOptions_Init (void)
 	uiVidOptions.glareReduction.minValue = 0.0;
 	uiVidOptions.glareReduction.maxValue = 1.0;
 	uiVidOptions.glareReduction.range = 0.05f;
-#ifdef RU
+	/*ifdef RU
 	uiVidOptions.glareReduction.generic.name = "Подавление бликов";
 	uiVidOptions.glareReduction.generic.statusText = "Задать уровень подавления бликов";
-#else
+	else
 	uiVidOptions.glareReduction.generic.name = "Glare reduction";
 	uiVidOptions.glareReduction.generic.statusText = "Set glare reduction level";
-#endif
+	endif*/
+	uiVidOptions.glareReduction.generic.name = MLOC (uiVidOptions_glareReduction_generic_name);
+	uiVidOptions.glareReduction.generic.statusText = MLOC (uiVidOptions_glareReduction_generic_statusText);
 
 	UI_VidOptions_GetConfig ();
 

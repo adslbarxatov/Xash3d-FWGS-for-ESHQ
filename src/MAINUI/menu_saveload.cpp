@@ -128,7 +128,7 @@ static void UI_SaveLoad_Init (void)
 
 	uiSaveLoad.load.generic.id = ID_LOAD;
 	uiSaveLoad.load.generic.type = QMTYPE_BM_BUTTON;
-	uiSaveLoad.load.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
+	uiSaveLoad.load.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW /*| QMF_NOTIFY*/;
 	/*uiSaveLoad.load.generic.name = "Load game";*/
 	uiSaveLoad.load.generic.x = 72;
 	uiSaveLoad.load.generic.y = 230;
@@ -144,7 +144,7 @@ static void UI_SaveLoad_Init (void)
 
 	uiSaveLoad.save.generic.id = ID_SAVE;
 	uiSaveLoad.save.generic.type = QMTYPE_BM_BUTTON;
-	uiSaveLoad.save.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
+	uiSaveLoad.save.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW /*| QMF_NOTIFY*/;
 	/*uiSaveLoad.save.generic.name = "Save game";*/
 	uiSaveLoad.save.generic.x = 72;
 	uiSaveLoad.save.generic.y = 280;
@@ -160,7 +160,7 @@ static void UI_SaveLoad_Init (void)
 
 	uiSaveLoad.done.generic.id = ID_DONE;
 	uiSaveLoad.done.generic.type = QMTYPE_BM_BUTTON;
-	uiSaveLoad.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW | QMF_NOTIFY;
+	uiSaveLoad.done.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW /*| QMF_NOTIFY*/;
 	/*uiSaveLoad.done.generic.name = "Done";*/
 	uiSaveLoad.done.generic.x = 72;
 	uiSaveLoad.done.generic.y = 330;

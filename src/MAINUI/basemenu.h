@@ -9,8 +9,8 @@ the Free Software Foundation, either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details
 */
 
 #ifndef BASEMENU_H
@@ -151,11 +151,11 @@ typedef struct
 	int		cursor;
 	int		cursorPrev;
 
-	void *items[UI_MAX_MENUITEMS];
+	void	*items[UI_MAX_MENUITEMS];
 	int		numItems;
 
 	void		(*drawFunc)(void);
-	const char *(*keyFunc)(int key, int down);
+	const char	*(*keyFunc)(int key, int down);
 	void		(*activateFunc)(void);
 	void		(*vidInitFunc)(void);
 	} menuFramework_s;
@@ -163,7 +163,7 @@ typedef struct
 typedef struct
 	{
 	menuType_t	type;
-	const char *name;
+	const char	*name;
 	int		id;
 
 	unsigned int	flags;
@@ -185,26 +185,26 @@ typedef struct
 	int		charHeight;
 
 	int		lastFocusTime;
-	bool		bPressed;
+	bool	bPressed;
 
-	const char *statusText;
+	const char	*statusText;
 
-	menuFramework_s *parent;
+	menuFramework_s		*parent;
 
-	void		(*callback) (void *self, int event);
-	void		(*ownerdraw) (void *self);
+	void	(*callback) (void *self, int event);
+	void	(*ownerdraw) (void *self);
 
 	} menuCommon_s;
 
 typedef struct
 	{
 	menuCommon_s	generic;
-	const char *background;
-	const char *upArrow;
-	const char *upArrowFocus;
-	const char *downArrow;
-	const char *downArrowFocus;
-	const char **itemNames;
+	const char	*background;
+	const char	*upArrow;
+	const char	*upArrowFocus;
+	const char	*downArrow;
+	const char	*downArrowFocus;
+	const char	**itemNames;
 	int		numItems;
 	int		curItem;
 	int		topItem;
@@ -220,11 +220,11 @@ typedef struct
 typedef struct
 	{
 	menuCommon_s	generic;
-	const char *background;
-	const char *leftArrow;
-	const char *rightArrow;
-	const char *leftArrowFocus;
-	const char *rightArrowFocus;
+	const char	*background;
+	const char	*leftArrow;
+	const char	*rightArrow;
+	const char	*leftArrowFocus;
+	const char	*rightArrowFocus;
 	float		minValue;
 	float		maxValue;
 	float		curValue;
@@ -234,7 +234,7 @@ typedef struct
 typedef struct
 	{
 	menuCommon_s	generic;
-	const char *background;
+	const char	*background;
 	int		maxLength;		// can't be more than UI_MAX_FIELD_LINE
 	char		buffer[UI_MAX_FIELD_LINE];
 	int		widthInChars;
@@ -245,7 +245,7 @@ typedef struct
 typedef struct
 	{
 	menuCommon_s	generic;
-	const char *background;
+	const char	*background;
 	} menuAction_s;
 
 typedef struct
@@ -258,8 +258,8 @@ typedef struct
 typedef struct
 	{
 	menuCommon_s	generic;
-	const char *pic;
-	const char *focusPic;
+	const char	*pic;
+	const char	*focusPic;
 	} menuBitmap_s;
 
 typedef struct
@@ -388,15 +388,15 @@ typedef struct
 extern uiStatic_t		uiStatic;
 
 extern char		uiEmptyString[256];	// HACKHACK
-extern const char *uiSoundIn;
-extern const char *uiSoundOut;
-extern const char *uiSoundKey;
-extern const char *uiSoundRemoveKey;
-extern const char *uiSoundLaunch;
-extern const char *uiSoundBuzz;
-extern const char *uiSoundGlow;
-extern const char *uiSoundMove;
-extern const char *uiSoundNull;
+extern const char	*uiSoundIn;
+extern const char	*uiSoundOut;
+extern const char	*uiSoundKey;
+extern const char	*uiSoundRemoveKey;
+extern const char	*uiSoundLaunch;
+extern const char	*uiSoundBuzz;
+extern const char	*uiSoundGlow;
+extern const char	*uiSoundMove;
+extern const char	*uiSoundNull;
 
 extern int	uiColorHelp;
 extern int	uiPromptBgColor;
@@ -499,7 +499,7 @@ class CMenu
 	{
 	public:
 		// Game information
-		GAMEINFO		m_gameinfo;
+		GAMEINFO	m_gameinfo;
 	};
 
 extern CMenu gMenu;

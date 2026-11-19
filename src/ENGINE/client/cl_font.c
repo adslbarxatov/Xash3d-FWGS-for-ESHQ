@@ -42,19 +42,14 @@ qboolean CL_FixedFont (cl_font_t *font)
 // [FWGS, 01.07.26]
 static int CL_LoadFontTexture (const char *fontname, uint texFlags, int *width)
 	{
-	/*int font_width;
-	int tex;*/
-
 	if (!g_fsapi.FileExists (fontname, false))
 		return 0;
 
-	/*tex = ref.dllFuncs.GL_LoadTexture (fontname, NULL, 0, texFlags);*/
-	int tex = ref.dllFuncs.GL_LoadTexture (fontname, NULL, 0, texFlags);
+	int	tex = ref.dllFuncs.GL_LoadTexture (fontname, NULL, 0, texFlags);
 	if (!tex)
 		return 0;
 
-	/*font_width = REF_GET_PARM (PARM_TEX_WIDTH, tex);*/
-	int font_width = REF_GET_PARM (PARM_TEX_WIDTH, tex);
+	int	font_width = REF_GET_PARM (PARM_TEX_WIDTH, tex);
 	if (!font_width)
 		{
 		ref.dllFuncs.GL_FreeTexture (tex);

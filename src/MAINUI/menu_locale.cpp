@@ -31,17 +31,19 @@ void UI_LoadMenuLocale (void)
 	// Разбор строк
 	int pos = 0;
 	union MenuLocStringHeader header;
+	char sz = sizeof (union MenuLocStringHeader);
+
 	for (int i = 0; i < LOC_STRINGSCOUNT; i++)
 		{
 		// Защита от чтения вне диапазона
-		if (pos + sizeof (header) >= loc_filesize)
+		if (pos + sz >= loc_filesize)
 			break;
 
-		memcpy (header.Ptr, menuLocBuffer + pos, sizeof (header));
+		memcpy (header.Ptr, menuLocBuffer + pos, sz);
 		int len = ((header.Str.Length[0] - '0') * 100 + (header.Str.Length[1] - '0') * 10 +
 			header.Str.Length[2] - '0');
 
-		pos += sizeof (header);
+		pos += sz;
 
 		// Защита от выхода за диапазон и повреждения файла
 		if ((pos + len >= loc_filesize) || (menuLocBuffer[pos + len] != '\n'))

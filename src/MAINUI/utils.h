@@ -125,6 +125,6 @@ extern int KEY_GetKey (const char *binding);			// ripped out from engine
 extern char *StringCopy (const char *input);			// copy string into new memory
 extern int COM_CompareSaves (const void **a, const void **b);
 
-extern void UI_LoadCustomStrings (void);
+/*extern void UI_LoadCustomStrings (void);*/
 
 #endif

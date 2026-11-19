@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 #include "basemenu.h"
 #include "utils.h"
 #include "menu_btnsbmp_table.h"
-#include "menu_strings.h"
+/*include "menu_strings.h"*/
 
 #define ART_BANNER		"gfx/shell/head_vidmodes"
 
@@ -36,9 +36,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 
 #define MAX_VIDMODES	65
 
+// ESHQ: поддержка локализации
+#include "menu_locale.h"
+
 typedef struct
 	{
-	const char *videoModesPtr[MAX_VIDMODES];
+	const char		*videoModesPtr[MAX_VIDMODES];
 
 	menuFramework_s	menu;
 
@@ -62,12 +65,12 @@ UI_VidModes_GetModesList
 ***/
 static void UI_VidModes_GetConfig (void)
 	{
-	int i;
+	int	i;
 	for (i = 0; i < MAX_VIDMODES - 1; i++)
 		{
 		uiVidModes.videoModesPtr[i] = VID_GET_MODE (i);
 		if (!uiVidModes.videoModesPtr[i])
-			break; // end of list
+			break;	// end of list
 		}
 
 	uiVidModes.videoModesPtr[i] = NULL;	// terminator
@@ -111,7 +114,7 @@ UI_VidModes_Callback
 ***/
 static void UI_VidModes_Callback (void *self, int event)
 	{
-	menuCommon_s *item = (menuCommon_s *)self;
+	menuCommon_s	*item = (menuCommon_s *)self;
 
 	switch (item->id)
 		{
@@ -119,7 +122,7 @@ static void UI_VidModes_Callback (void *self, int event)
 		case ID_VERTICALSYNC:
 			if (event == QM_PRESSED)
 				((menuCheckBox_s *)self)->focusPic = UI_CHECKBOX_PRESSED;
-			else 
+			else
 				((menuCheckBox_s *)self)->focusPic = UI_CHECKBOX_FOCUS;
 			break;
 		}
@@ -138,6 +141,7 @@ static void UI_VidModes_Callback (void *self, int event)
 		case ID_DONE:
 			UI_PopMenu ();
 			break;
+
 		case ID_APPLY:
 			UI_VidOptions_SetConfig ();
 			UI_PopMenu ();
@@ -179,36 +183,41 @@ static void UI_VidModes_Init (void)
 	uiVidModes.ok.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiVidModes.ok.generic.x = 72;
 	uiVidModes.ok.generic.y = 230;
-	uiVidModes.ok.generic.name = "Apply";
+	/*uiVidModes.ok.generic.name = "Apply";*/
 	uiVidModes.ok.generic.callback = UI_VidModes_Callback;
 	UI_UtilSetupPicButton (&uiVidModes.ok, PC_OK);
-#ifdef RU
+	/*ifdef RU
 	uiVidModes.ok.generic.statusText = "Применить изменения";
-#else
+	else
 	uiVidModes.ok.generic.statusText = "Apply changes";
-#endif
+	endif*/
+	uiVidModes.ok.generic.name = MLOC (uiVidModes_ok_generic_name);
+	uiVidModes.ok.generic.statusText = MLOC (uiVidModes_ok_generic_statusText);
 
 	uiVidModes.cancel.generic.id = ID_DONE;
 	uiVidModes.cancel.generic.type = QMTYPE_BM_BUTTON;
 	uiVidModes.cancel.generic.flags = QMF_HIGHLIGHTIFFOCUS | QMF_DROPSHADOW;
 	uiVidModes.cancel.generic.x = 72;
 	uiVidModes.cancel.generic.y = 280;
-	uiVidModes.cancel.generic.name = "Done";
+	/*uiVidModes.cancel.generic.name = "Done";*/
 	uiVidModes.cancel.generic.callback = UI_VidModes_Callback;
 	UI_UtilSetupPicButton (&uiVidModes.cancel, PC_CANCEL);
-#ifdef RU
+	/*ifdef RU
 	uiVidModes.cancel.generic.statusText = "Вернуться в предыдущее меню";
-#else
+	else
 	uiVidModes.cancel.generic.statusText = "Return back to previous menu";
-#endif
+	endif*/
+	uiVidModes.cancel.generic.name = MLOC (LOC_Done);
+	uiVidModes.cancel.generic.statusText = MLOC (LOC_ReturnToPreviousMenu);
 
 	uiVidModes.listCaption.generic.id = ID_TABLEHINT;
 	uiVidModes.listCaption.generic.type = QMTYPE_BM_BUTTON;
 	uiVidModes.listCaption.generic.flags = QMF_INACTIVE | QMF_SMALLFONT;
 	uiVidModes.listCaption.generic.color = uiColorHelp;
-	uiVidModes.listCaption.generic.name = MenuStrings[HINT_DISPLAYMODE];
+	/*uiVidModes.listCaption.generic.name = MenuStrings[HINT_DISPLAYMODE];*/
 	uiVidModes.listCaption.generic.x = 400;
 	uiVidModes.listCaption.generic.y = 270;
+	uiVidModes.listCaption.generic.name = MLOC (uiVidModes_listCaption_generic_name);
 
 	uiVidModes.vidList.generic.id = ID_VIDMODELIST;
 	uiVidModes.vidList.generic.type = QMTYPE_SCROLLLIST;
@@ -225,13 +234,15 @@ static void UI_VidModes_Init (void)
 	uiVidModes.windowed.generic.x = 400;
 	uiVidModes.windowed.generic.y = 620;
 	uiVidModes.windowed.generic.callback = UI_VidModes_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiVidModes.windowed.generic.name = "Запускать в окне";
 	uiVidModes.windowed.generic.statusText = "Запускать игру в оконном режиме";
-#else
+	else
 	uiVidModes.windowed.generic.name = "Run in a window";
 	uiVidModes.windowed.generic.statusText = "Run game in window mode";
-#endif
+	endif*/
+	uiVidModes.windowed.generic.name = MLOC (uiVidModes_windowed_generic_name);
+	uiVidModes.windowed.generic.statusText = MLOC (uiVidModes_windowed_generic_statusText);
 
 	uiVidModes.vsync.generic.id = ID_VERTICALSYNC;
 	uiVidModes.vsync.generic.type = QMTYPE_CHECKBOX;
@@ -239,13 +250,15 @@ static void UI_VidModes_Init (void)
 	uiVidModes.vsync.generic.x = 400;
 	uiVidModes.vsync.generic.y = 670;
 	uiVidModes.vsync.generic.callback = UI_VidModes_Callback;
-#ifdef RU
+	/*ifdef RU
 	uiVidModes.vsync.generic.name = "Верт. синхронизация";
 	uiVidModes.vsync.generic.statusText = "Задействовать вертикальную синхронизацию";
-#else
+	else
 	uiVidModes.vsync.generic.name = "Vertical sync";
 	uiVidModes.vsync.generic.statusText = "Enable the vertical synchronization";
-#endif
+	endif*/
+	uiVidModes.vsync.generic.name = MLOC (uiVidModes_vsync_generic_name);
+	uiVidModes.vsync.generic.statusText = MLOC (uiVidModes_vsync_generic_statusText);
 
 	UI_VidModes_GetConfig ();
 
