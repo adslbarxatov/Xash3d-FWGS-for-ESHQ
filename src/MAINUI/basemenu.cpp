@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "extdll.h"
 #include "basemenu.h"
 #include "keydefs.h"
-#include "menufont.h"	// built-in menu font
+/*include "menufont.h"	// built-in menu font*/
 #include "utils.h"
 #include "menu_btnsbmp_table.h"
 //CR
@@ -33,6 +33,7 @@ cvar_t *ui_precache;
 cvar_t *ui_showmodels;
 
 uiStatic_t	uiStatic;
+static byte *menufont_bmp;
 
 char		uiEmptyString[256];
 const char *uiSoundIn = "media/launch_upmenu1.wav";
@@ -203,9 +204,9 @@ UI_DrawString
 void UI_DrawString (int x, int y, int w, int h, const char *string, const int color, int forceColor, int charW, 
 	int charH, int justify, int shadow)
 	{
-	int	modulate, shadowModulate;
+	int		modulate, shadowModulate;
 	char	line[1024], *l;
-	int	xx, yy, ofsX, ofsY, len, ch;
+	int		xx, yy, ofsX, ofsY, len, ch;
 
 	if (!string || !string[0])
 		return;
@@ -275,7 +276,8 @@ void UI_DrawString (int x, int y, int w, int h, const char *string, const int co
 
 			if (ch != ' ')
 				{
-				if (shadow) TextMessageDrawChar (xx + ofsX, yy + ofsY, charW, charH, ch, shadowModulate, uiStatic.hFont);
+				if (shadow)
+					TextMessageDrawChar (xx + ofsX, yy + ofsY, charW, charH, ch, shadowModulate, uiStatic.hFont);
 				TextMessageDrawChar (xx, yy, charW, charH, ch, modulate, uiStatic.hFont);
 				}
 
@@ -1580,7 +1582,9 @@ int UI_VidInit (void)
 	UI_LoadBackgroundMapList ();
 
 	// register menu font
-	uiStatic.hFont = PIC_Load ("#XASH_SYSTEMFONT_001.bmp", menufont_bmp, sizeof (menufont_bmp));
+	int	menufont_bmp_size;
+	menufont_bmp = LOAD_FILE ("menufont.fnt", &menufont_bmp_size);
+	uiStatic.hFont = PIC_Load ("#XASH_SYSTEMFONT_001.bmp", menufont_bmp, menufont_bmp_size /*sizeof (menufont_bmp)*/);
 
 	UI_LoadBackgroundImage ();
 

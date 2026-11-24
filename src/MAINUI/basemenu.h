@@ -95,7 +95,7 @@ GNU General Public License for more details
 
 #define ID_BACKGROUND		0	// catch warning on change this
 
-#define EMPTY_SAVE_PIC		"gfx\\lambda32"
+#define EMPTY_SAVE_PIC		"gfx\\lambda64"
 
 // ESHQ: основное определение в com_strings.h
 #define DEFAULT_SAVE_EXTENSION	"save/*.x3v"

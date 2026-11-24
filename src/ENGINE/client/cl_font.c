@@ -135,8 +135,6 @@ qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float
 	{
 	fs_offset_t	length;
 	qfont_t		src;
-	/*byte		*pfile;
-	int			font_width, i;*/
 	int		font_width;
 
 	if (!rendermode)
@@ -145,8 +143,7 @@ qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float
 	if (font->valid)
 		return true;
 
-	/*pfile = g_fsapi.LoadFile (fontname, &length, false);*/
-	byte *pfile = g_fsapi.LoadFile (fontname, &length, false);
+	byte	*pfile = g_fsapi.LoadFile (fontname, &length, false);
 	if (!pfile)
 		return false;
 
@@ -170,10 +167,9 @@ qboolean Con_LoadVariableWidthFont (const char *fontname, cl_font_t *font, float
 	font->rendermode = rendermode;
 	font->charHeight = Q_rint (src.rowheight * scale);
 
-	/*for (i = 0; i < HLARRAYSIZE (font->fontRc); i++)*/
 	for (int i = 0; i < HLARRAYSIZE (font->fontRc); i++)
 		{
-		const charinfo *ci = &src.fontinfo[i];
+		const charinfo	*ci = &src.fontinfo[i];
 
 		font->fontRc[i].left = (word)ci->startoffset % font_width;
 		font->fontRc[i].right = font->fontRc[i].left + ci->charwidth;
