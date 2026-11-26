@@ -174,7 +174,7 @@ typedef struct ui_enginefuncs_s
 	float	(*pfnRandomFloat)(float flLow, float flHigh);
 	int		(*pfnRandomLong)(int lLow, int lHigh);
 
-	void	(*pfnSetCursor)(void *hCursor);			// change cursor
+	void	(*pfnSetCursor)(void *hCursor);		// change cursor
 	int		(*pfnIsMapValid)(char *filename);
 	void	(*pfnProcessImage)(int texnum, float gamma, int topColor, int bottomColor);
 	int		(*pfnCompareFileTime)(const char *filename1, const char *filename2, int *iCompare);

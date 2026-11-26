@@ -1059,6 +1059,14 @@ qboolean VID_SetMode (void)
 	window_mode_t	window_mode = bound (0, vid_fullscreen.value, WINDOW_MODE_COUNT - 1);
 	SetBits (gl_vsync.flags, FCVAR_CHANGED);
 	
+	// ESHQ: почему эта настройка никак не воспринималась движком?
+	vidmode_t *vidmode = R_GetVideoMode ((int)Cvar_VariableInteger ("vid_mode"));
+	if (vidmode)
+		{
+		width = vidmode->width;
+		height = vidmode->height;
+		}
+
 	err = R_ChangeDisplaySettings (width, height, window_mode);
 	if (err == rserr_invalid_mode)
 		{

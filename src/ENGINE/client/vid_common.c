@@ -20,8 +20,8 @@ GNU General Public License for more details
 #include "vid_common.h"
 #include "platform/platform.h"
 
-// [FWGS, 01.10.26]
-static CVAR_DEFINE_AUTO (vid_mode, "0", FCVAR_RENDERINFO,
+// ESHQ: добавлен перезапуск видеорежима при обновлении этой переменной
+static CVAR_DEFINE_AUTO (vid_mode, "0", FCVAR_RENDERINFO | FCVAR_VIDRESTART,
 	"current video mode index (used only for storage)");
 
 // [FWGS, 08.11.26]
